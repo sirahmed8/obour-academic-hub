@@ -8,7 +8,6 @@ import {
   query,
   orderBy,
   doc,
-  updateDoc,
   writeBatch,
 } from "firebase/firestore";
 import { useLanguage, useAuth } from "@/contexts";
@@ -20,7 +19,6 @@ import {
   CheckCheck,
   Trash2,
   Search,
-  User,
   Loader2,
 } from "lucide-react";
 import { toast } from "sonner";
@@ -79,7 +77,6 @@ export default function AdminInboxPage() {
   // 2. Listen to Messages for Selected Session
   useEffect(() => {
     if (!selectedSessionId) {
-      setMessages([]);
       return;
     }
 
@@ -171,13 +168,25 @@ export default function AdminInboxPage() {
 
       await batch.commit();
       toast.success("Chat deleted");
+      setMessages([]);
       setSelectedSessionId(null);
     }
   };
 
-  const formatTime = (timestamp: any) => {
+  const formatTime = (timestamp: unknown) => {
     if (!timestamp) return "";
-    const date = timestamp.toDate ? timestamp.toDate() : new Date(timestamp);
+    let date: Date;
+    if (
+      typeof timestamp === "object" &&
+      timestamp !== null &&
+      "toDate" in timestamp
+    ) {
+      date = (timestamp as { toDate: () => Date }).toDate();
+    } else if (timestamp instanceof Date) {
+      date = timestamp;
+    } else {
+      date = new Date(timestamp as string | number);
+    }
     return date.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
   };
 
@@ -227,7 +236,10 @@ export default function AdminInboxPage() {
               sessions.map((session) => (
                 <div
                   key={session.userId}
-                  onClick={() => setSelectedSessionId(session.userId)}
+                  onClick={() => {
+                    setMessages([]);
+                    setSelectedSessionId(session.userId);
+                  }}
                   className={cn(
                     "flex items-center gap-3 p-4 hover:bg-muted/50 transition-colors cursor-pointer border-b border-border/50",
                     selectedSessionId === session.userId &&
@@ -287,7 +299,10 @@ export default function AdminInboxPage() {
               <div className="h-16 border-b border-border bg-card flex items-center px-6 justify-between shadow-sm">
                 <div className="flex items-center gap-3">
                   <button
-                    onClick={() => setSelectedSessionId(null)}
+                    onClick={() => {
+                      setMessages([]);
+                      setSelectedSessionId(null);
+                    }}
                     className="lg:hidden p-2 -ml-2 hover:bg-muted rounded-full"
                   >
                     <svg
@@ -334,7 +349,7 @@ export default function AdminInboxPage() {
 
               {/* Messages */}
               <div className="flex-1 overflow-y-auto p-6 space-y-4 bg-muted/10">
-                {messages.map((msg, idx) => (
+                {messages.map((msg) => (
                   <div
                     key={msg.id}
                     className={cn(

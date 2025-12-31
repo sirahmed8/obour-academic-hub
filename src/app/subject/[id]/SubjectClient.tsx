@@ -83,7 +83,9 @@ export function SubjectClient() {
 
   if (!subject) return null;
 
-  const IconComponent = (Icons as any)[subject.icon] || Icons.BookOpen;
+  const IconComponent =
+    (Icons as unknown as Record<string, React.ElementType>)[subject.icon] ||
+    Icons.BookOpen;
   const bgColorClass = subject.color || "bg-blue-500";
 
   return (

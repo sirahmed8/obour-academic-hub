@@ -22,6 +22,7 @@ export interface Subject {
   color: string;
   orderIndex: number;
   createdAt: string;
+  views?: number;
 }
 
 export interface Resource {

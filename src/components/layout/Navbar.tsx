@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Menu, Sun, Moon, Monitor, Globe } from "lucide-react";
+import { Menu, Sun, Moon, Monitor } from "lucide-react";
 import { useTheme } from "next-themes";
 import { useAuth, useLanguage } from "@/contexts";
 import Image from "next/image";
@@ -14,7 +14,7 @@ interface NavbarProps {
 export function Navbar({ onMenuClick }: NavbarProps) {
   const [showSettings, setShowSettings] = useState(false);
   const { theme, setTheme } = useTheme();
-  const { user } = useAuth();
+  const { user, logout } = useAuth();
   const { language, setLanguage, t } = useLanguage();
 
   const themes = [
@@ -133,7 +133,7 @@ export function Navbar({ onMenuClick }: NavbarProps) {
               {user && (
                 <div className="pt-2 border-t border-border mt-2">
                   <button
-                    onClick={() => useAuth().logout()}
+                    onClick={() => logout()}
                     className="w-full flex items-center gap-2 px-3 py-2 text-sm text-destructive hover:bg-destructive/10 rounded-lg transition-colors"
                   >
                     <svg

@@ -1,18 +1,13 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useEffect } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import Image from "next/image";
 import {
   LayoutDashboard,
   Bell,
-  Shield,
-  Wand2,
   Users,
-  LogOut,
-  Menu,
-  X,
   BarChart3,
   MessageSquare,
   FileText,
@@ -28,7 +23,7 @@ interface SidebarProps {
 
 export function Sidebar({ isOpen, onClose }: SidebarProps) {
   const pathname = usePathname();
-  const { user, isAdmin, isOwner, logout } = useAuth();
+  const { isAdmin, isOwner } = useAuth();
   const { t, language } = useLanguage();
 
   const navItems = [
