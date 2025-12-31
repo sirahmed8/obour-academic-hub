@@ -10,10 +10,18 @@ import {
   doc,
   updateDoc,
   arrayUnion,
+  deleteDoc,
 } from "firebase/firestore";
 import { useLanguage, useAuth } from "@/contexts";
 import { AppShell } from "@/components/layout/AppShell";
-import { Bell, Info, AlertTriangle, CheckCircle, Loader2 } from "lucide-react";
+import {
+  Bell,
+  Info,
+  AlertTriangle,
+  CheckCircle,
+  Loader2,
+  Trash2,
+} from "lucide-react";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { formatDate, formatDateArabic } from "@/lib/utils";
@@ -83,6 +91,34 @@ export default function NotificationsPage() {
       }
     });
     toast.success(t("notifications.marked_read") || "Marked all as read");
+  };
+
+  const handleDelete = async (id: string, e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (
+      !confirm(
+        language === "ar"
+          ? "هل أنت متأكد من حذف هذا الإشعار؟"
+          : "Are you sure you want to delete this notification?"
+      )
+    )
+      return;
+
+    try {
+      await deleteDoc(doc(db, "notifications", id));
+      toast.success(
+        language === "ar"
+          ? "تم حذف الإشعار بنجاح"
+          : "Notification deleted successfully"
+      );
+    } catch (error) {
+      console.error("Error deleting notification:", error);
+      toast.error(
+        language === "ar"
+          ? "حدث خطأ أثناء حذف الإشعار"
+          : "Error deleting notification"
+      );
+    }
   };
 
   const getIcon = (type: string) => {
@@ -183,17 +219,28 @@ export default function NotificationsPage() {
                     </div>
                     <div className="flex-1">
                       <div className="flex justify-between items-start">
-                        <h3
-                          className={cn(
-                            "font-bold text-foreground",
-                            !isRead && "text-primary"
+                        <div className="flex items-center gap-2">
+                          <h3
+                            className={cn(
+                              "font-bold text-foreground",
+                              !isRead && "text-primary"
+                            )}
+                          >
+                            {notif.title}
+                            {!isRead && (
+                              <span className="ml-2 inline-block w-2 h-2 rounded-full bg-red-500 align-middle" />
+                            )}
+                          </h3>
+                          {isAdmin && (
+                            <button
+                              onClick={(e) => handleDelete(notif.id, e)}
+                              className="p-1 text-muted-foreground hover:text-red-500 transition-colors"
+                              title="Delete notification"
+                            >
+                              <Trash2 size={16} />
+                            </button>
                           )}
-                        >
-                          {notif.title}
-                          {!isRead && (
-                            <span className="ml-2 inline-block w-2 h-2 rounded-full bg-red-500 align-middle" />
-                          )}
-                        </h3>
+                        </div>
                         <span className="text-xs text-muted-foreground whitespace-nowrap">
                           {language === "ar"
                             ? formatDateArabic(notif.createdAt)

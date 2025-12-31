@@ -1,0 +1,42 @@
+[debug] [2025-12-31T17:36:45.026Z] ----------------------------------------------------------------------
+[debug] [2025-12-31T17:36:45.028Z] Command:       C:\Program Files\nodejs\node.exe C:\Users\a7med\AppData\Roaming\npm\node_modules\firebase-tools\lib\bin\firebase.js deploy
+[debug] [2025-12-31T17:36:45.028Z] CLI Version:   15.1.0
+[debug] [2025-12-31T17:36:45.028Z] Platform:      win32
+[debug] [2025-12-31T17:36:45.028Z] Node Version:  v24.12.0
+[debug] [2025-12-31T17:36:45.028Z] Time:          Wed Dec 31 2025 19:36:45 GMT+0200 (Eastern European Standard Time)
+[debug] [2025-12-31T17:36:45.029Z] ----------------------------------------------------------------------
+[debug] 
+[debug] [2025-12-31T17:36:46.357Z] > command requires scopes: ["email","openid","https://www.googleapis.com/auth/cloudplatformprojects.readonly","https://www.googleapis.com/auth/firebase","https://www.googleapis.com/auth/cloud-platform"]
+[debug] [2025-12-31T17:36:46.357Z] > authorizing via signed-in user (a7medorabe7@gmail.com)
+[debug] [2025-12-31T17:36:46.357Z] [iam] checking project obour-institutes-a607d for permissions ["datastore.indexes.create","datastore.indexes.delete","datastore.indexes.list","datastore.indexes.update","firebase.projects.get","firebasedatabase.instances.update","firebasehosting.sites.update"]
+[debug] [2025-12-31T17:36:46.358Z] Checked if tokens are valid: true, expires at: 1767205601761
+[debug] [2025-12-31T17:36:46.358Z] Checked if tokens are valid: true, expires at: 1767205601761
+[debug] [2025-12-31T17:36:46.359Z] >>> [apiv2][query] POST https://cloudresourcemanager.googleapis.com/v1/projects/obour-institutes-a607d:testIamPermissions [none]
+[debug] [2025-12-31T17:36:46.359Z] >>> [apiv2][(partial)header] POST https://cloudresourcemanager.googleapis.com/v1/projects/obour-institutes-a607d:testIamPermissions x-goog-quota-user=projects/obour-institutes-a607d
+[debug] [2025-12-31T17:36:46.359Z] >>> [apiv2][body] POST https://cloudresourcemanager.googleapis.com/v1/projects/obour-institutes-a607d:testIamPermissions {"permissions":["datastore.indexes.create","datastore.indexes.delete","datastore.indexes.list","datastore.indexes.update","firebase.projects.get","firebasedatabase.instances.update","firebasehosting.sites.update"]}
+[debug] [2025-12-31T17:36:47.736Z] <<< [apiv2][status] POST https://cloudresourcemanager.googleapis.com/v1/projects/obour-institutes-a607d:testIamPermissions 200
+[debug] [2025-12-31T17:36:47.736Z] <<< [apiv2][body] POST https://cloudresourcemanager.googleapis.com/v1/projects/obour-institutes-a607d:testIamPermissions {"permissions":["datastore.indexes.create","datastore.indexes.delete","datastore.indexes.list","datastore.indexes.update","firebase.projects.get","firebasedatabase.instances.update","firebasehosting.sites.update"]}
+[debug] [2025-12-31T17:36:47.737Z] Checked if tokens are valid: true, expires at: 1767205601761
+[debug] [2025-12-31T17:36:47.737Z] Checked if tokens are valid: true, expires at: 1767205601761
+[debug] [2025-12-31T17:36:47.737Z] >>> [apiv2][query] GET https://firebase.googleapis.com/v1beta1/projects/obour-institutes-a607d [none]
+[debug] [2025-12-31T17:36:48.304Z] <<< [apiv2][status] GET https://firebase.googleapis.com/v1beta1/projects/obour-institutes-a607d 200
+[debug] [2025-12-31T17:36:48.304Z] <<< [apiv2][body] GET https://firebase.googleapis.com/v1beta1/projects/obour-institutes-a607d {"projectId":"obour-institutes-a607d","projectNumber":"761134603194","displayName":"Obour-Institutes","name":"projects/obour-institutes-a607d","resources":{"hostingSite":"obour-institutes-a607d","realtimeDatabaseInstance":"obour-institutes-a607d-default-rtdb"},"state":"ACTIVE","etag":"1_5fbb180a-9a06-4869-8f1b-c8821b207f7d"}
+[debug] [2025-12-31T17:36:48.305Z] Checked if tokens are valid: true, expires at: 1767205601761
+[debug] [2025-12-31T17:36:48.305Z] Checked if tokens are valid: true, expires at: 1767205601761
+[debug] [2025-12-31T17:36:48.305Z] >>> [apiv2][query] GET https://firebase.googleapis.com/v1beta1/projects/obour-institutes-a607d [none]
+[debug] [2025-12-31T17:36:48.644Z] <<< [apiv2][status] GET https://firebase.googleapis.com/v1beta1/projects/obour-institutes-a607d 200
+[debug] [2025-12-31T17:36:48.645Z] <<< [apiv2][body] GET https://firebase.googleapis.com/v1beta1/projects/obour-institutes-a607d {"projectId":"obour-institutes-a607d","projectNumber":"761134603194","displayName":"Obour-Institutes","name":"projects/obour-institutes-a607d","resources":{"hostingSite":"obour-institutes-a607d","realtimeDatabaseInstance":"obour-institutes-a607d-default-rtdb"},"state":"ACTIVE","etag":"1_5fbb180a-9a06-4869-8f1b-c8821b207f7d"}
+[info] 
+[info] === Deploying to 'obour-institutes-a607d'...
+[info] 
+[info] i  deploying database, firestore, hosting 
+[info] i  database: checking rules syntax... 
+[debug] [2025-12-31T17:36:48.649Z] Checked if tokens are valid: true, expires at: 1767205601761
+[debug] [2025-12-31T17:36:48.649Z] Checked if tokens are valid: true, expires at: 1767205601761
+[debug] [2025-12-31T17:36:48.649Z] >>> [apiv2][query] GET https://firebasedatabase.googleapis.com/v1beta/projects/obour-institutes-a607d/locations/-/instances/obour-institutes-a607d-default-rtdb [none]
+[debug] [2025-12-31T17:36:49.671Z] <<< [apiv2][status] GET https://firebasedatabase.googleapis.com/v1beta/projects/obour-institutes-a607d/locations/-/instances/obour-institutes-a607d-default-rtdb 200
+[debug] [2025-12-31T17:36:49.671Z] <<< [apiv2][body] GET https://firebasedatabase.googleapis.com/v1beta/projects/obour-institutes-a607d/locations/-/instances/obour-institutes-a607d-default-rtdb {"name":"projects/761134603194/locations/us-central1/instances/obour-institutes-a607d-default-rtdb","project":"projects/761134603194","databaseUrl":"https://obour-institutes-a607d-default-rtdb.firebaseio.com","type":"DEFAULT_DATABASE","state":"ACTIVE"}
+[debug] [2025-12-31T17:36:49.672Z] Checked if tokens are valid: true, expires at: 1767205601761
+[debug] [2025-12-31T17:36:49.672Z] Checked if tokens are valid: true, expires at: 1767205601761
+[debug] [2025-12-31T17:36:49.672Z] >>> [apiv2][query] PUT https://obour-institutes-a607d-default-rtdb.firebaseio.com/.settings/rules.json dryRun=true
+[debug] [2025-12-31T17:36:49.672Z] >>> [apiv2][body] PUT https://obour-institutes-a607d-default-rtdb.firebaseio.com/.settings/rules.json "{\n  \"rules\": {\n    \".read\": \"auth != null\",\n    \".write\": \"auth != null\",\n    \"presence\": {\n      \".read\": true,\n      \".write\": \"auth != null\"\n    },\n    \"support_chats\": {\n      \".read\": \"auth != null\",\n      \".write\": \"auth != null\"\n    }\n  }\n}\n"
