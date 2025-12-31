@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import { useAuth, useLanguage } from '@/contexts';
 import { Sidebar, Navbar } from '@/components/layout';
 import { LoginScreen } from '@/components/features/LoginScreen';
@@ -14,14 +15,26 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   const { user, loading } = useAuth();
   const { dir } = useLanguage();
 
+  const router = useRouter();
+
+  // ... existing simple side effects ...
+
   useEffect(() => {
-    // Check if profile is incomplete (missing studentCode or displayName is not Arabic)
+    // Check if profile is incomplete
     if (user && (!user.studentCode || user.studentCode.length !== 6)) {
       setShowProfileSetup(true);
     } else {
       setShowProfileSetup(false);
     }
   }, [user]);
+
+  // Protect route with useEffect to avoid render-loop
+  useEffect(() => {
+    if (!loading && !user) {
+      router.push('/');
+    }
+  }, [user, loading, router]);
+
 
   if (loading) {
     return (
@@ -32,7 +45,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   }
 
   if (!user) {
-    return <LoginScreen />;
+    return null; // Don't render anything while redirecting
   }
 
   return (

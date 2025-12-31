@@ -2,21 +2,29 @@
 
 import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { AppShell } from '@/components/layout/AppShell';
+import { useAuth } from '@/contexts';
+import { LoginScreen } from '@/components/features/LoginScreen';
 import { Loader2 } from 'lucide-react';
 
 export default function HomePage() {
   const router = useRouter();
+  const { user, loading } = useAuth();
 
   useEffect(() => {
-    router.push('/main');
-  }, [router]);
+    if (!loading && user) {
+      router.push('/main');
+    }
+  }, [user, loading, router]);
 
-  return (
-    <AppShell>
-      <div className="flex items-center justify-center h-full">
+  if (loading) {
+    return (
+      <div className="h-screen w-full flex items-center justify-center bg-background">
         <Loader2 className="animate-spin text-primary" size={40} />
       </div>
-    </AppShell>
-  );
+    );
+  }
+
+  // If we are here, we are not loading and have no user
+  // Render LoginScreen directly (no AppShell to prevent loops)
+  return <LoginScreen />;
 }

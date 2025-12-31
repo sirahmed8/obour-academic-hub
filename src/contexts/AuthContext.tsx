@@ -1,6 +1,8 @@
 'use client';
 
-import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import { createContext, useContext, useState, useEffect, ReactNode, useMemo } from 'react';
+import { toast } from 'sonner';
+import { useLanguage } from '@/contexts/LanguageContext';
 import { User } from '@/types';
 import { auth, googleProvider, db } from '@/lib/firebase';
 import { signInWithPopup, signOut, onAuthStateChanged, User as FirebaseUser } from 'firebase/auth';
@@ -69,6 +71,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       await signInWithPopup(auth, googleProvider);
     } catch (error: any) {
       console.error('Login failed:', error);
+      if (error?.code === 'auth/unauthorized-domain') {
+        toast.error(language === 'ar' ? 'نطاق غير مصرح به. يرجى إضافته في Firebase.' : 'Unauthorized Domain. Please add to Firebase Console.');
+      } else if (error?.code === 'auth/popup-closed-by-user') {
+        toast.warning(language === 'ar' ? 'تم إغلاق النافذة' : 'Login popup closed');
+      } else {
+        toast.error(language === 'ar' ? 'فشل تسجيل الدخول' : 'Login failed. Check console.');
+      }
       throw error;
     }
   };
@@ -89,8 +98,18 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setUser({ ...user, ...data });
   };
 
+  const value = useMemo(() => ({
+    user,
+    loading,
+    isAdmin,
+    isOwner,
+    login,
+    logout,
+    updateProfile
+  }), [user, loading, isAdmin, isOwner]);
+
   return (
-    <AuthContext.Provider value={{ user, loading, isAdmin, isOwner, login, logout, updateProfile }}>
+    <AuthContext.Provider value={value}>
       {children}
     </AuthContext.Provider>
   );
