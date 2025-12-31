@@ -3,11 +3,19 @@
 import { useState, useEffect } from "react";
 import { db } from "@/lib/firebase";
 import { collection, query, where, getDocs } from "firebase/firestore";
-import { useLanguage } from "@/contexts";
+import { useLanguage, useAuth } from "@/contexts";
 import { AppShell } from "@/components/layout/AppShell";
-import { Code2, Coffee, Heart, Loader2, ExternalLink } from "lucide-react";
+import {
+  Code2,
+  Coffee,
+  Heart,
+  Loader2,
+  ExternalLink,
+  Settings,
+} from "lucide-react";
 import { cn } from "@/lib/utils";
 import Image from "next/image";
+import Link from "next/link";
 
 interface TeamMember {
   displayName: string;
@@ -18,6 +26,7 @@ interface TeamMember {
 
 export default function TeamPage() {
   const { language } = useLanguage();
+  const { isAdmin, isOwner } = useAuth();
   const [teamMembers, setTeamMembers] = useState<TeamMember[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
@@ -69,6 +78,20 @@ export default function TeamPage() {
             {language === "ar" ? "والكثير من" : "and lots of"}
             <Coffee className="inline w-5 h-5 text-amber-700 mx-1" />
           </p>
+
+          {(isAdmin || isOwner) && (
+            <div className="pt-4">
+              <Link
+                href="/admin/users"
+                className="inline-flex items-center gap-2 px-6 py-2 bg-muted hover:bg-muted/80 text-foreground font-semibold rounded-full transition-all text-sm"
+              >
+                <Settings className="w-4 h-4" />
+                {language === "ar"
+                  ? "إدارة الأعضاء والصلاحيات"
+                  : "Manage Members & Permissions"}
+              </Link>
+            </div>
+          )}
         </div>
 
         {/* Grid */}

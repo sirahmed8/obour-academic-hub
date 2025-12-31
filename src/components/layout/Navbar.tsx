@@ -296,7 +296,7 @@ export function Navbar({ onMenuClick }: NavbarProps) {
                     {/* iOS-style toggle */}
                     <div
                       className={cn(
-                        "w-11 h-6 rounded-full p-0.5 transition-colors duration-200",
+                        "w-11 h-6 rounded-full p-0.5 transition-colors duration-200 relative",
                         typeof window !== "undefined" &&
                           Notification.permission === "granted"
                           ? "bg-green-500"
@@ -305,11 +305,15 @@ export function Navbar({ onMenuClick }: NavbarProps) {
                     >
                       <div
                         className={cn(
-                          "w-5 h-5 bg-white rounded-full shadow-sm transition-transform duration-200",
+                          "w-5 h-5 bg-white rounded-full shadow-sm transition-all duration-200 absolute top-0.5",
                           typeof window !== "undefined" &&
                             Notification.permission === "granted"
-                            ? "translate-x-5"
-                            : "translate-x-0"
+                            ? language === "ar"
+                              ? "left-0.5"
+                              : "right-0.5"
+                            : language === "ar"
+                            ? "right-0.5"
+                            : "left-0.5"
                         )}
                       />
                     </div>

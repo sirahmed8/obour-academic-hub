@@ -1,5 +1,18 @@
-import { db } from './firebase';
-import { collection, addDoc, updateDoc, doc, serverTimestamp, getDoc, setDoc, increment } from 'firebase/firestore';
+import { db } from "./firebase";
+import {
+  collection,
+  addDoc,
+  updateDoc,
+  doc,
+  serverTimestamp,
+  getDoc,
+  setDoc,
+  increment,
+  query,
+  where,
+  getDocs,
+  writeBatch,
+} from "firebase/firestore";
 
 // Types
 export interface ChatMessage {
@@ -7,8 +20,8 @@ export interface ChatMessage {
   text: string;
   senderId: string;
   senderName?: string;
-  timestamp: any; // Firestore Timestamp
-  status: 'sent' | 'delivered' | 'seen';
+  timestamp: { seconds: number; nanoseconds: number } | null; // Firestore Timestamp
+  status: "sent" | "delivered" | "seen";
   replyTo?: {
     id: string;
     text: string;
@@ -16,7 +29,7 @@ export interface ChatMessage {
   };
   reactions?: Record<string, string>; // userId -> emoji
   isDeleted?: boolean;
-  type?: 'text' | 'image' | 'system';
+  type?: "text" | "image" | "system";
 }
 
 export interface ChatSession {
@@ -24,7 +37,7 @@ export interface ChatSession {
   userName: string;
   userEmail: string;
   lastMessage: string;
-  lastMessageTime: any;
+  lastMessageTime: { seconds: number; nanoseconds: number } | null;
   unreadCount: number; // For User (how many admin messages they haven't seen)
   adminUnreadCount: number; // For Admin (how many user messages admin hasn't seen)
   isTyping?: boolean;
@@ -32,33 +45,33 @@ export interface ChatSession {
 
 // Helpers
 export const sendMessage = async (
-  chatId: string, 
-  text: string, 
-  senderId: string, 
+  chatId: string,
+  text: string,
+  senderId: string,
   senderName: string,
   isAdmin: boolean = false,
-  replyTo?: ChatMessage['replyTo']
+  replyTo?: ChatMessage["replyTo"]
 ) => {
   const messagesRef = collection(db, `chats/${chatId}/messages`);
-  const chatRef = doc(db, 'chats', chatId);
+  const chatRef = doc(db, "chats", chatId);
 
   // 1. Add Message
   await addDoc(messagesRef, {
     text,
     senderId,
     timestamp: serverTimestamp(),
-    status: 'sent',
+    status: "sent",
     replyTo: replyTo || null,
     reactions: {},
     isDeleted: false,
-    type: 'text'
+    type: "text",
   });
 
   // 2. Update Chat Session Metadata
-  const chatUpdate: any = {
+  const chatUpdate: Record<string, unknown> = {
     lastMessage: text,
     lastMessageTime: serverTimestamp(),
-    isTyping: false
+    isTyping: false,
   };
 
   // Increment unread counts
@@ -75,43 +88,78 @@ export const sendMessage = async (
   await setDoc(chatRef, chatUpdate, { merge: true });
 };
 
+// Mark messages as seen (both session count and individual messages)
 export const markMessagesAsSeen = async (chatId: string, isAdmin: boolean) => {
-  const chatRef = doc(db, 'chats', chatId);
-  
-  // Reset relevant unread count
-  const update = isAdmin 
-    ? { adminUnreadCount: 0 } 
-    : { unreadCount: 0 };
-    
+  const chatRef = doc(db, "chats", chatId);
+
+  // 1. Reset relevant unread count on the session
+  const update = isAdmin ? { adminUnreadCount: 0 } : { unreadCount: 0 };
   await updateDoc(chatRef, update);
-  
-  // Note: Updating individual message 'status' to 'seen' would usually happen 
-  // in a Cloud Function to avoid N writes from the client, 
-  // but for small scale we can do it or rely on the aggregate 'unreadCount' for UI.
+
+  // 2. Mark individual messages as seen (Client-side implementation)
+  // Query messages where sender is NOT the current viewer (isAdmin ? user : admin)
+  // and status is NOT 'seen'.
+
+  const messagesRef = collection(db, `chats/${chatId}/messages`);
+  const q = query(
+    messagesRef,
+    // We want messages sent by the 'other' party that are not yet seen
+    where("status", "!=", "seen")
+    // Note: In a real app we'd also filter by senderId != currentUser.uid
+    // But here we rely on the fact that if isAdmin calls this, they want to mark User messages as seen.
+  );
+
+  const snapshot = await getDocs(q);
+  const batch = writeBatch(db);
+  let hasUpdates = false;
+
+  snapshot.docs.forEach((docSnapshot) => {
+    const data = docSnapshot.data() as ChatMessage;
+    // Only mark as seen if the sender is NOT the person viewing it
+    // If isAdmin is true, we want to mark messages sent by user (senderId !== 'admin')
+    // If isAdmin is false, we want to mark messages sent by 'admin'
+    const isMessageFromOther = isAdmin
+      ? data.senderId !== "admin"
+      : data.senderId === "admin";
+
+    if (isMessageFromOther) {
+      batch.update(docSnapshot.ref, { status: "seen" });
+      hasUpdates = true;
+    }
+  });
+
+  if (hasUpdates) {
+    await batch.commit();
+  }
 };
 
-export const toggleReaction = async (chatId: string, messageId: string, userId: string, emoji: string) => {
+export const toggleReaction = async (
+  chatId: string,
+  messageId: string,
+  userId: string,
+  emoji: string
+) => {
   const msgRef = doc(db, `chats/${chatId}/messages`, messageId);
   const msgSnap = await getDoc(msgRef);
-  
+
   if (msgSnap.exists()) {
     const data = msgSnap.data();
     const reactions = data.reactions || {};
-    
+
     if (reactions[userId] === emoji) {
       delete reactions[userId]; // Remove if clicked again
     } else {
       reactions[userId] = emoji; // Add/Update
     }
-    
+
     await updateDoc(msgRef, { reactions });
   }
 };
 
 export const deleteMessage = async (chatId: string, messageId: string) => {
   const msgRef = doc(db, `chats/${chatId}/messages`, messageId);
-  await updateDoc(msgRef, { 
+  await updateDoc(msgRef, {
     isDeleted: true,
-    text: '🚫 This message was deleted' 
+    text: "🚫 This message was deleted",
   });
 };
