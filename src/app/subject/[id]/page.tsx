@@ -1,7 +1,11 @@
 import { SubjectClient } from "./SubjectClient";
 
-// Force dynamic rendering to handle any subject ID
-export const dynamic = "force-dynamic";
+// For static export, we generate NO params at build time
+// This effectively makes it a "catch-all" that requires client-side data fetching
+// Firebase hosting rewrites will handle the routing to this page
+export async function generateStaticParams() {
+  return [];
+}
 
 export default function SubjectPage() {
   return <SubjectClient />;
