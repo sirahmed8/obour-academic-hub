@@ -25,7 +25,6 @@ export default function AdminLogsPage() {
       (error) => {
         console.error("Error fetching logs:", error);
         setLoading(false);
-        toast.error(language === 'ar' ? 'فشل تحميل السجلات' : 'Failed to load logs');
       }
     );
     return () => unsubscribe();

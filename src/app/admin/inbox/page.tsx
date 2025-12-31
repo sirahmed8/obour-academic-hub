@@ -31,7 +31,6 @@ export default function AdminInboxPage() {
       (error) => {
         console.error("Error fetching inbox:", error);
         setLoading(false);
-        toast.error(language === 'ar' ? 'فشل تحميل الرسائل' : 'Failed to load messages');
       }
     );
     return () => unsubscribe();

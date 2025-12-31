@@ -26,9 +26,10 @@ export default function AdminErrorsPage() {
       (error) => {
         console.error("Error fetching system_errors:", error);
         setLoading(false);
-        toast.error(language === 'ar' ? 'فشل تحميل الأخطاء' : 'Failed to load errors');
+        // Toast might flag if auth error
       }
     );
+    // CRITICAL: Return the unsubscribe function to prevents memory leaks
     return () => unsubscribe();
   }, []);
 
