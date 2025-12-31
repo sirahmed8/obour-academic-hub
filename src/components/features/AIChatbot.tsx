@@ -229,18 +229,34 @@ export function AIChatbot() {
   };
 
   const formatTime = (
-  const formatTime = (timestamp: { seconds: number; nanoseconds: number } | { toDate: () => Date } | string | null | undefined) => {
+    timestamp:
+      | { seconds: number; nanoseconds: number }
+      | { toDate: () => Date }
+      | string
+      | null
+      | undefined
+  ) => {
     if (!timestamp) return "";
     let date: Date;
-    
-    if (typeof timestamp === 'string') {
-        date = new Date(timestamp);
-    } else if (typeof timestamp === 'object' && timestamp !== null && 'toDate' in timestamp && typeof timestamp.toDate === 'function') {
-        date = timestamp.toDate();
-    } else if (typeof timestamp === 'object' && timestamp !== null && 'seconds' in timestamp && typeof timestamp.seconds === 'number') {
-        date = new Date(timestamp.seconds * 1000);
+
+    if (typeof timestamp === "string") {
+      date = new Date(timestamp);
+    } else if (
+      typeof timestamp === "object" &&
+      timestamp !== null &&
+      "toDate" in timestamp &&
+      typeof timestamp.toDate === "function"
+    ) {
+      date = timestamp.toDate();
+    } else if (
+      typeof timestamp === "object" &&
+      timestamp !== null &&
+      "seconds" in timestamp &&
+      typeof timestamp.seconds === "number"
+    ) {
+      date = new Date(timestamp.seconds * 1000);
     } else {
-        return "";
+      return "";
     }
 
     return date.toLocaleTimeString(language === "ar" ? "ar-EG" : "en-US", {
