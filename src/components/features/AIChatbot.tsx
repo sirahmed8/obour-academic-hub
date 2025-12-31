@@ -451,7 +451,7 @@ export function AIChatbot() {
               </button>
             )}
             {/* Input */}
-            <div className="flex items-center gap-2 bg-muted p-1 rounded-full">
+            <div className="flex items-center gap-2 bg-background border border-input p-1.5 rounded-3xl focus-within:ring-2 focus-within:ring-primary/20 transition-all shadow-sm">
               <input
                 value={input}
                 onChange={(e) => setInput(e.target.value)}

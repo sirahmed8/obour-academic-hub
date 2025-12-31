@@ -35,8 +35,9 @@ export default function AdminUsersPage() {
   });
 
   const { language, t } = useLanguage();
-  // currentUser removed as unused
+  const [searchTerm, setSearchTerm] = useState("");
 
+  // Permissions configuration
   const PERMISSIONS = [
     {
       key: "delete_chats",
@@ -82,7 +83,6 @@ export default function AdminUsersPage() {
         try {
           await updateDoc(doc(db, "users", userId), {
             role: newRole,
-            // If downgrading to student, remove permissions
             permissions: newRole === "student" ? [] : undefined,
           });
           toast.success(language === "ar" ? "تم تحديث الدور" : "Role updated");
@@ -114,13 +114,33 @@ export default function AdminUsersPage() {
     }
   };
 
+  const filteredUsers = users.filter(
+    (user) =>
+      user.displayName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      user.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      user.studentCode?.includes(searchTerm)
+  );
+
   return (
     <AppShell>
       <div className="p-6 lg:p-10 max-w-6xl mx-auto">
-        <h1 className="text-2xl font-bold text-foreground mb-8 flex items-center gap-3">
-          <Users className="text-primary" />
-          {t("admin.users")}
-        </h1>
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
+          <h1 className="text-2xl font-bold text-foreground flex items-center gap-3">
+            <Users className="text-primary" />
+            {t("admin.users")}
+          </h1>
+
+          <div className="flex gap-4 w-full md:w-auto">
+            <input
+              placeholder={
+                language === "ar" ? "بحث عن مستخدم..." : "Search users..."
+              }
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="flex-1 md:w-64 px-4 py-2 rounded-xl border border-border bg-background focus:ring-2 focus:ring-primary/20 outline-none"
+            />
+          </div>
+        </div>
 
         <div className="bg-card rounded-2xl border border-border overflow-hidden">
           <div className="overflow-x-auto">
@@ -151,7 +171,7 @@ export default function AdminUsersPage() {
                       />
                     </td>
                   </tr>
-                ) : users.length === 0 ? (
+                ) : filteredUsers.length === 0 ? (
                   <tr>
                     <td
                       colSpan={4}
@@ -163,7 +183,7 @@ export default function AdminUsersPage() {
                     </td>
                   </tr>
                 ) : (
-                  users.map((user) => (
+                  filteredUsers.map((user) => (
                     <tr
                       key={user.uid}
                       className="hover:bg-muted/30 transition-colors"

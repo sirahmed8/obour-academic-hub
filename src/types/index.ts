@@ -32,7 +32,9 @@ export interface Notification {
 export interface Subject {
   id: string;
   name: string;
+  nameAr?: string;
   profName: string;
+  profNameAr?: string;
   description?: string;
   icon: string;
   color: string;

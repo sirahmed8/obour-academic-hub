@@ -7,6 +7,8 @@ import { useAuth, useLanguage } from "@/contexts";
 import Image from "next/image";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
+import { doc, updateDoc } from "firebase/firestore";
+import { db } from "@/lib/firebase";
 
 interface NavbarProps {
   onMenuClick: () => void;
@@ -24,6 +26,54 @@ export function Navbar({ onMenuClick }: NavbarProps) {
     { value: "dark", icon: Moon, label: t("profile.darkMode") },
     { value: "system", icon: Monitor, label: t("profile.systemMode") },
   ];
+
+  const [nameInput, setNameInput] = useState("");
+  const [codeInput, setCodeInput] = useState("");
+  const [isSaving, setIsSaving] = useState(false);
+
+  // Initialize inputs
+  useState(() => {
+    if (user) {
+      setNameInput(user.displayName || "");
+      setCodeInput(user.studentCode || "");
+    }
+  });
+
+  const handleSaveProfile = async () => {
+    if (!user) return;
+
+    // Validation
+    if (!codeInput || codeInput.length !== 6 || !/^\d+$/.test(codeInput)) {
+      toast.error(
+        language === "ar"
+          ? "كود الطالب يجب أن يكون 6 أرقام"
+          : "Student code must be 6 digits"
+      );
+      return;
+    }
+    if (!nameInput.trim() || !/^[\p{L}\s]+$/u.test(nameInput)) {
+      toast.error(
+        language === "ar"
+          ? "الاسم يجب أن يحتوي على أحرف فقط"
+          : "Name must contain letters only"
+      );
+      return;
+    }
+
+    setIsSaving(true);
+    try {
+      await updateDoc(doc(db, "users", user.uid), {
+        displayName: nameInput,
+        studentCode: codeInput,
+      });
+      toast.success(
+        language === "ar" ? "تم تحديث الملف الشخصي" : "Profile updated"
+      );
+    } catch {
+      toast.error(language === "ar" ? "حدث خطأ" : "Error updating profile");
+    }
+    setIsSaving(false);
+  };
 
   // Close menu with animation
   const closeMenu = () => {
@@ -80,11 +130,77 @@ export function Navbar({ onMenuClick }: NavbarProps) {
             >
               <div className="pt-2 border-t border-border">
                 {user && (
-                  <div className="flex flex-col gap-1 mb-3 px-1">
-                    <p className="font-bold text-sm text-foreground">
-                      {user.displayName}
-                    </p>
-                    <p className="text-xs text-muted-foreground">
+                  <div className="flex flex-col gap-3 mb-4 px-1">
+                    {/* Read-Only Mode (Locked) */}
+                    {user.studentCode ? (
+                      <div className="space-y-2">
+                        <div className="p-2 bg-muted/50 rounded-lg border border-border">
+                          <p className="text-[10px] text-muted-foreground uppercase tracking-wider font-semibold mb-0.5">
+                            {language === "ar" ? "الاسم" : "Name"}
+                          </p>
+                          <p className="text-sm font-bold truncate">
+                            {user.displayName}
+                          </p>
+                        </div>
+                        <div className="p-2 bg-muted/50 rounded-lg border border-border">
+                          <p className="text-[10px] text-muted-foreground uppercase tracking-wider font-semibold mb-0.5">
+                            {language === "ar" ? "كود الطالب" : "Student Code"}
+                          </p>
+                          <p className="font-mono text-sm font-bold tracking-widest">
+                            {user.studentCode}
+                          </p>
+                        </div>
+                        <div className="text-[10px] text-muted-foreground text-center px-2">
+                          {language === "ar"
+                            ? "لتغيير هذه البيانات يرجى التواصل مع الدعم"
+                            : "Contact support to change these details"}
+                        </div>
+                      </div>
+                    ) : (
+                      /* Edit Mode (Unlocked) */
+                      <div className="space-y-3">
+                        <div>
+                          <label className="text-xs font-medium ml-1">
+                            {language === "ar" ? "الاسم الحقيقي" : "Real Name"}
+                          </label>
+                          <input
+                            value={nameInput}
+                            onChange={(e) => setNameInput(e.target.value)}
+                            className="w-full mt-1 p-2 rounded-lg border border-border bg-background text-sm focus:ring-2 focus:ring-primary/20 outline-none"
+                            placeholder={user.displayName}
+                          />
+                        </div>
+                        <div>
+                          <label className="text-xs font-medium ml-1">
+                            {language === "ar"
+                              ? "كود الطالب (6 أرقام)"
+                              : "Student Code (6 digits)"}
+                          </label>
+                          <input
+                            value={codeInput}
+                            onChange={(e) => {
+                              if (e.target.value.length <= 6)
+                                setCodeInput(e.target.value);
+                            }}
+                            className="w-full mt-1 p-2 rounded-lg border border-border bg-background text-sm font-mono tracking-widest focus:ring-2 focus:ring-primary/20 outline-none"
+                            placeholder="123456"
+                          />
+                        </div>
+                        <button
+                          onClick={handleSaveProfile}
+                          disabled={isSaving}
+                          className="w-full py-2 bg-primary text-primary-foreground rounded-lg text-xs font-bold hover:bg-primary/90 transition-colors"
+                        >
+                          {isSaving
+                            ? "Saving..."
+                            : language === "ar"
+                            ? "حفظ وتثبيت"
+                            : "Save & Lock"}
+                        </button>
+                      </div>
+                    )}
+                    <div className="h-px bg-border my-1" />
+                    <p className="text-xs text-muted-foreground px-1 truncate">
                       {user.email}
                     </p>
                   </div>

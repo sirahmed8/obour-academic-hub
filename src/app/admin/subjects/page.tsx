@@ -72,7 +72,9 @@ export default function AdminSubjectsPage() {
 
   const [formData, setFormData] = useState({
     name: "",
+    nameAr: "",
     profName: "",
+    profNameAr: "",
     description: "",
     icon: "BookOpen",
     color: "bg-blue-500",
@@ -125,7 +127,9 @@ export default function AdminSubjectsPage() {
       );
       setFormData({
         name: "",
+        nameAr: "",
         profName: "",
+        profNameAr: "",
         description: "",
         icon: "BookOpen",
         color: "bg-blue-500",
@@ -152,7 +156,9 @@ export default function AdminSubjectsPage() {
     setEditingId(subject.id);
     setEditData({
       name: subject.name,
+      nameAr: subject.nameAr || "",
       profName: subject.profName,
+      profNameAr: subject.profNameAr || "",
       description: subject.description || "",
       icon: subject.icon,
       color: subject.color,
@@ -232,6 +238,23 @@ export default function AdminSubjectsPage() {
 
                 <div>
                   <label className="block text-sm font-medium mb-1">
+                    {language === "ar"
+                      ? "اسم المادة (بالعربية)"
+                      : "Subject Name (Arabic)"}
+                  </label>
+                  <input
+                    type="text"
+                    value={formData.nameAr}
+                    onChange={(e) =>
+                      setFormData({ ...formData, nameAr: e.target.value })
+                    }
+                    className="w-full rounded-lg border border-border px-4 py-2 bg-background transition-all duration-200 focus:ring-2 focus:ring-primary/50 focus:border-primary outline-none"
+                    placeholder="علوم الحاسب"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium mb-1">
                     {language === "ar" ? "اسم الدكتور" : "Professor Name"} *
                   </label>
                   <input
@@ -253,6 +276,22 @@ export default function AdminSubjectsPage() {
                       {errors.profName}
                     </p>
                   )}
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium mb-1">
+                    {language === "ar"
+                      ? "اسم الدكتور (بالعربية)"
+                      : "Professor Name (Arabic)"}
+                  </label>
+                  <input
+                    type="text"
+                    value={formData.profNameAr}
+                    onChange={(e) =>
+                      setFormData({ ...formData, profNameAr: e.target.value })
+                    }
+                    className="w-full rounded-lg border border-border px-4 py-2 bg-background transition-all duration-200 focus:ring-2 focus:ring-primary/50 focus:border-primary outline-none"
+                  />
                 </div>
 
                 <div>
@@ -395,11 +434,15 @@ export default function AdminSubjectsPage() {
                           />
                           <div>
                             <h3 className="font-bold text-lg text-foreground">
-                              {subject.name}
+                              {language === "ar" && subject.nameAr
+                                ? subject.nameAr
+                                : subject.name}
                             </h3>
                             <p className="text-sm text-muted-foreground">
                               {language === "ar" ? "د." : "Dr."}{" "}
-                              {subject.profName}
+                              {language === "ar" && subject.profNameAr
+                                ? subject.profNameAr
+                                : subject.profName}
                             </p>
                           </div>
                         </div>
@@ -436,7 +479,7 @@ export default function AdminSubjectsPage() {
                         className={cn(
                           "overflow-hidden transition-all duration-300 ease-out",
                           isEditing
-                            ? "max-h-96 opacity-100"
+                            ? "max-h-[500px] opacity-100"
                             : "max-h-0 opacity-0"
                         )}
                       >
@@ -461,6 +504,22 @@ export default function AdminSubjectsPage() {
                               />
                               <input
                                 type="text"
+                                value={editData.nameAr || ""}
+                                onChange={(e) =>
+                                  setEditData({
+                                    ...editData,
+                                    nameAr: e.target.value,
+                                  })
+                                }
+                                placeholder={
+                                  language === "ar"
+                                    ? "اسم المادة (عربي)"
+                                    : "Subject Name (Arabic)"
+                                }
+                                className="rounded-lg border border-border px-3 py-2 bg-background text-sm focus:ring-2 focus:ring-primary/50 focus:border-primary outline-none transition-all"
+                              />
+                              <input
+                                type="text"
                                 value={editData.profName}
                                 onChange={(e) =>
                                   setEditData({
@@ -471,7 +530,23 @@ export default function AdminSubjectsPage() {
                                 placeholder={
                                   language === "ar"
                                     ? "اسم الدكتور"
-                                    : "Professor"
+                                    : "Professor Name"
+                                }
+                                className="rounded-lg border border-border px-3 py-2 bg-background text-sm focus:ring-2 focus:ring-primary/50 focus:border-primary outline-none transition-all"
+                              />
+                              <input
+                                type="text"
+                                value={editData.profNameAr || ""}
+                                onChange={(e) =>
+                                  setEditData({
+                                    ...editData,
+                                    profNameAr: e.target.value,
+                                  })
+                                }
+                                placeholder={
+                                  language === "ar"
+                                    ? "اسم الدكتور (عربي)"
+                                    : "Professor Name (Arabic)"
                                 }
                                 className="rounded-lg border border-border px-3 py-2 bg-background text-sm focus:ring-2 focus:ring-primary/50 focus:border-primary outline-none transition-all"
                               />

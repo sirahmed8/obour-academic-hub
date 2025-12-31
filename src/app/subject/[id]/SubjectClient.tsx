@@ -156,9 +156,16 @@ export function SubjectClient() {
               <IconComponent size={40} />
             </div>
             <div>
-              <h1 className="text-3xl font-black">{subject.name}</h1>
+              <h1 className="text-3xl font-black">
+                {language === "ar" && subject.nameAr
+                  ? subject.nameAr
+                  : subject.name}
+              </h1>
               <p className="text-white/80 mt-2">
-                {language === "ar" ? "د." : "Dr."} {subject.profName}
+                {language === "ar" ? "د." : "Dr."}{" "}
+                {language === "ar" && subject.profNameAr
+                  ? subject.profNameAr
+                  : subject.profName}
               </p>
               {subject.description && (
                 <p className="text-white/70 mt-4 max-w-xl">
