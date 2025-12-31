@@ -21,7 +21,9 @@ import {
   CheckCircle,
   Loader2,
   Trash2,
+  CheckCheck,
 } from "lucide-react";
+import { ConfirmationModal } from "@/components/ui/ConfirmationModal";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { formatDate, formatDateArabic } from "@/lib/utils";
@@ -32,6 +34,7 @@ export default function NotificationsPage() {
   const [loading, setLoading] = useState(true);
   const { language, t } = useLanguage();
   const { user, isAdmin } = useAuth();
+  const [deleteId, setDeleteId] = useState<string | null>(null);
 
   useEffect(() => {
     if (!user) return;
@@ -93,19 +96,11 @@ export default function NotificationsPage() {
     toast.success(t("notifications.marked_read") || "Marked all as read");
   };
 
-  const handleDelete = async (id: string, e: React.MouseEvent) => {
-    e.stopPropagation();
-    if (
-      !confirm(
-        language === "ar"
-          ? "هل أنت متأكد من حذف هذا الإشعار؟"
-          : "Are you sure you want to delete this notification?"
-      )
-    )
-      return;
+  const handleDelete = async () => {
+    if (!deleteId) return;
 
     try {
-      await deleteDoc(doc(db, "notifications", id));
+      await deleteDoc(doc(db, "notifications", deleteId));
       toast.success(
         language === "ar"
           ? "تم حذف الإشعار بنجاح"
@@ -118,7 +113,14 @@ export default function NotificationsPage() {
           ? "حدث خطأ أثناء حذف الإشعار"
           : "Error deleting notification"
       );
+    } finally {
+      setDeleteId(null);
     }
+  };
+
+  const confirmDelete = (id: string, e: React.MouseEvent) => {
+    e.stopPropagation();
+    setDeleteId(id);
   };
 
   const getIcon = (type: string) => {
@@ -171,9 +173,13 @@ export default function NotificationsPage() {
           {unreadCount > 0 && (
             <button
               onClick={markAllAsRead}
-              className="text-sm text-primary hover:underline font-medium"
+              className="flex items-center gap-2 px-4 py-2 bg-primary/10 text-primary rounded-xl hover:bg-primary/20 transition-colors font-medium text-sm"
+              title={t("notifications.mark_all_read") || "Mark all as read"}
             >
-              {t("notifications.mark_all_read") || "Mark all as read"}
+              <CheckCheck className="w-5 h-5" />
+              <span>
+                {t("notifications.mark_all_read") || "Mark all as read"}
+              </span>
             </button>
           )}
         </div>
@@ -233,7 +239,7 @@ export default function NotificationsPage() {
                           </h3>
                           {isAdmin && (
                             <button
-                              onClick={(e) => handleDelete(notif.id, e)}
+                              onClick={(e) => confirmDelete(notif.id, e)}
                               className="p-1 text-muted-foreground hover:text-red-500 transition-colors"
                               title="Delete notification"
                             >
@@ -258,6 +264,21 @@ export default function NotificationsPage() {
           </div>
         )}
       </div>
+
+      <ConfirmationModal
+        isOpen={!!deleteId}
+        onClose={() => setDeleteId(null)}
+        onConfirm={handleDelete}
+        title={language === "ar" ? "حذف الإشعار" : "Delete Notification"}
+        message={
+          language === "ar"
+            ? "هل أنت متأكد من أنك تريد حذف هذا الإشعار؟ لا يمكن التراجع عن هذا الإجراء."
+            : "Are you sure you want to delete this notification? This action cannot be undone."
+        }
+        confirmText={language === "ar" ? "حذف" : "Delete"}
+        cancelText={language === "ar" ? "إلغاء" : "Cancel"}
+        type="danger"
+      />
     </AppShell>
   );
 }
