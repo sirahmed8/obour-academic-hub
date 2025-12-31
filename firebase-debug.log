@@ -1,0 +1,16 @@
+[debug] [2025-12-31T16:30:01.384Z] ----------------------------------------------------------------------
+[debug] [2025-12-31T16:30:01.386Z] Command:       C:\Program Files\nodejs\node.exe C:\Users\a7med\AppData\Roaming\npm\node_modules\firebase-tools\lib\bin\firebase.js deploy
+[debug] [2025-12-31T16:30:01.386Z] CLI Version:   15.1.0
+[debug] [2025-12-31T16:30:01.386Z] Platform:      win32
+[debug] [2025-12-31T16:30:01.386Z] Node Version:  v24.12.0
+[debug] [2025-12-31T16:30:01.386Z] Time:          Wed Dec 31 2025 18:30:01 GMT+0200 (Eastern European Standard Time)
+[debug] [2025-12-31T16:30:01.386Z] ----------------------------------------------------------------------
+[debug] 
+[debug] [2025-12-31T16:30:02.742Z] > command requires scopes: ["email","openid","https://www.googleapis.com/auth/cloudplatformprojects.readonly","https://www.googleapis.com/auth/firebase","https://www.googleapis.com/auth/cloud-platform"]
+[debug] [2025-12-31T16:30:02.742Z] > authorizing via signed-in user (a7medorabe7@gmail.com)
+[debug] [2025-12-31T16:30:02.742Z] [iam] checking project obour-institutes-a607d for permissions ["datastore.indexes.create","datastore.indexes.delete","datastore.indexes.list","datastore.indexes.update","firebase.projects.get","firebasedatabase.instances.update","firebasehosting.sites.update"]
+[debug] [2025-12-31T16:30:02.743Z] Checked if tokens are valid: true, expires at: 1767201204875
+[debug] [2025-12-31T16:30:02.743Z] Checked if tokens are valid: true, expires at: 1767201204875
+[debug] [2025-12-31T16:30:02.744Z] >>> [apiv2][query] POST https://cloudresourcemanager.googleapis.com/v1/projects/obour-institutes-a607d:testIamPermissions [none]
+[debug] [2025-12-31T16:30:02.744Z] >>> [apiv2][(partial)header] POST https://cloudresourcemanager.googleapis.com/v1/projects/obour-institutes-a607d:testIamPermissions x-goog-quota-user=projects/obour-institutes-a607d
+[debug] [2025-12-31T16:30:02.744Z] >>> [apiv2][body] POST https://cloudresourcemanager.googleapis.com/v1/projects/obour-institutes-a607d:testIamPermissions {"permissions":["datastore.indexes.create","datastore.indexes.delete","datastore.indexes.list","datastore.indexes.update","firebase.projects.get","firebasedatabase.instances.update","firebasehosting.sites.update"]}

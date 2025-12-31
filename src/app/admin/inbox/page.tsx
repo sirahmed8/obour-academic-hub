@@ -53,17 +53,25 @@ export default function AdminInboxPage() {
       collection(db, "chats"),
       orderBy("lastMessageTime", "desc")
     );
-    const unsubscribe = onSnapshot(q, (snapshot) => {
-      const data = snapshot.docs.map(
-        (doc) =>
-          ({
-            userId: doc.id,
-            ...doc.data(),
-          } as ChatSession)
-      );
-      setSessions(data);
-      setLoadingSessions(false);
-    });
+    const unsubscribe = onSnapshot(
+      q,
+      (snapshot) => {
+        const data = snapshot.docs.map(
+          (doc) =>
+            ({
+              userId: doc.id,
+              ...doc.data(),
+            } as ChatSession)
+        );
+        setSessions(data);
+        setLoadingSessions(false);
+      },
+      (error) => {
+        console.error("Error fetching chat sessions:", error);
+        toast.error("Failed to load chats");
+        setLoadingSessions(false);
+      }
+    );
 
     return () => unsubscribe();
   }, []);
@@ -83,16 +91,23 @@ export default function AdminInboxPage() {
       orderBy("timestamp", "asc")
     );
 
-    const unsubscribe = onSnapshot(q, (snapshot) => {
-      const msgs = snapshot.docs.map(
-        (doc) =>
-          ({
-            id: doc.id,
-            ...doc.data(),
-          } as ChatMessage)
-      );
-      setMessages(msgs);
-    });
+    const unsubscribe = onSnapshot(
+      q,
+      (snapshot) => {
+        const msgs = snapshot.docs.map(
+          (doc) =>
+            ({
+              id: doc.id,
+              ...doc.data(),
+            } as ChatMessage)
+        );
+        setMessages(msgs);
+      },
+      (error) => {
+        console.error("Error fetching messages:", error);
+        toast.error("Failed to load messages");
+      }
+    );
 
     return () => unsubscribe();
   }, [selectedSessionId]);
