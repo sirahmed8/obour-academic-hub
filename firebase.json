@@ -1,6 +1,6 @@
 {
   "hosting": {
-    "site": "obour-academic-hub",
+    "site": "obour-institutesv3",
     "public": "out",
     "ignore": ["firebase.json", "**/.*", "**/node_modules/**"],
     "rewrites": [

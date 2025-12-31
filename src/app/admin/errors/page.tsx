@@ -18,10 +18,17 @@ export default function AdminErrorsPage() {
 
   useEffect(() => {
     const q = query(collection(db, 'system_errors'), orderBy('timestamp', 'desc'), limit(100));
-    const unsubscribe = onSnapshot(q, (snapshot) => {
-      setErrors(snapshot.docs.map(d => ({ id: d.id, ...d.data() } as SystemError)));
-      setLoading(false);
-    });
+    const unsubscribe = onSnapshot(q, 
+      (snapshot) => {
+        setErrors(snapshot.docs.map(d => ({ id: d.id, ...d.data() } as SystemError)));
+        setLoading(false);
+      },
+      (error) => {
+        console.error("Error fetching system_errors:", error);
+        setLoading(false);
+        toast.error(language === 'ar' ? 'فشل تحميل الأخطاء' : 'Failed to load errors');
+      }
+    );
     return () => unsubscribe();
   }, []);
 

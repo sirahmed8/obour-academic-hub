@@ -17,10 +17,17 @@ export default function AdminLogsPage() {
 
   useEffect(() => {
     const q = query(collection(db, 'logs'), orderBy('timestamp', 'desc'), limit(100));
-    const unsubscribe = onSnapshot(q, (snapshot) => {
-      setLogs(snapshot.docs.map(d => ({ id: d.id, ...d.data() } as ActivityLog)));
-      setLoading(false);
-    });
+    const unsubscribe = onSnapshot(q, 
+      (snapshot) => {
+        setLogs(snapshot.docs.map(d => ({ id: d.id, ...d.data() } as ActivityLog)));
+        setLoading(false);
+      },
+      (error) => {
+        console.error("Error fetching logs:", error);
+        setLoading(false);
+        toast.error(language === 'ar' ? 'فشل تحميل السجلات' : 'Failed to load logs');
+      }
+    );
     return () => unsubscribe();
   }, []);
 

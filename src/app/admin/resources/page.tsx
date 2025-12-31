@@ -112,7 +112,7 @@ export default function AdminResourcesPage() {
                 <select 
                   value={form.subjectId}
                   onChange={(e) => setForm({...form, subjectId: e.target.value})}
-                  className="w-full rounded-lg border border-border px-4 py-3 bg-background"
+                  className="w-full rounded-2xl border border-border px-4 py-3 bg-card focus:ring-2 focus:ring-primary/20 outline-none transition-all appearance-none"
                 >
                   {subjects.map(sub => (
                     <option key={sub.id} value={sub.id}>{sub.name}</option>

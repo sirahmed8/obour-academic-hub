@@ -23,10 +23,17 @@ export default function AdminInboxPage() {
 
   useEffect(() => {
     const q = query(collection(db, 'inbox'), orderBy('timestamp', 'desc'));
-    const unsubscribe = onSnapshot(q, (snapshot) => {
-      setMessages(snapshot.docs.map(d => ({ id: d.id, ...d.data() } as InboxMessage)));
-      setLoading(false);
-    });
+    const unsubscribe = onSnapshot(q, 
+      (snapshot) => {
+        setMessages(snapshot.docs.map(d => ({ id: d.id, ...d.data() } as InboxMessage)));
+        setLoading(false);
+      },
+      (error) => {
+        console.error("Error fetching inbox:", error);
+        setLoading(false);
+        toast.error(language === 'ar' ? 'فشل تحميل الرسائل' : 'Failed to load messages');
+      }
+    );
     return () => unsubscribe();
   }, []);
 

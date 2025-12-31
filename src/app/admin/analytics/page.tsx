@@ -53,10 +53,11 @@ export default function AdminAnalyticsPage() {
       const views = snapshot.docs.map(d => {
         const data = d.data() as Subject;
         return {
-          name: data.name?.slice(0, 15) || 'Subject',
+          name: data.name || 'Subject',
           views: Math.floor(Math.random() * 100) + 10
         };
-      });
+        // Sort by views to make it look better
+      }).sort((a, b) => b.views - a.views).slice(0, 10); // Show top 10
       setData(prev => ({ ...prev, subjectViews: views }));
       setLoading(false);
     });

@@ -2,6 +2,7 @@
 
 import { useState, useRef, useEffect } from 'react';
 import { MessageSquare, X, Send, Loader2, Bot, WifiOff, Headphones } from 'lucide-react';
+import { GoogleGenerativeAI } from '@google/generative-ai';
 import { useAuth, useLanguage } from '@/contexts';
 import { cn } from '@/lib/utils';
 import { db } from '@/lib/firebase';
@@ -14,6 +15,9 @@ interface Message {
 }
 
 type ChatMode = 'ai' | 'offline' | 'live';
+
+// Initialize Gemini (Client Side)
+const genAI = new GoogleGenerativeAI(process.env.NEXT_PUBLIC_GOOGLE_GENERATIVE_AI_API_KEY || '');
 
 // Offline responses for common questions
 const OFFLINE_RESPONSES: Record<string, { en: string; ar: string }> = {
@@ -107,16 +111,19 @@ export function AIChatbot() {
       } else if (mode === 'live') {
         response = await sendToLiveSupport(userMessage.content) || '';
       } else {
-        // AI Mode - call API
-        const res = await fetch('/api/chat', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ message: userMessage.content, language }),
-        });
+        // AI Mode - Client Side SDK
+        const model = genAI.getGenerativeModel({ model: 'gemini-1.5-flash' });
         
-        if (!res.ok) throw new Error('API failed');
-        const data = await res.json();
-        response = data.response;
+        const systemPrompt = language === 'ar' 
+          ? `أنت مساعد أكاديمي ذكي لطلاب معاهد العبور. ساعد الطلاب في دراستهم وأجب على أسئلتهم بطريقة ودية ومفيدة. أجب باللغة العربية.`
+          : `You are a smart academic assistant for Obour Institutes students. Help students with their studies and answer their questions in a friendly and helpful way. Respond in English.`;
+
+        const result = await model.generateContent([
+          { text: systemPrompt },
+          { text: userMessage.content }
+        ]);
+
+        response = result.response.text();
       }
 
       const assistantMessage: Message = {
