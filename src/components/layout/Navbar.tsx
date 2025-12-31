@@ -63,8 +63,10 @@ export function Navbar({ onMenuClick }: NavbarProps) {
             />
             <div
               className={cn(
-                "absolute top-full mt-2 w-64 bg-card border border-border rounded-xl shadow-xl z-50 p-4 space-y-4 animate-fadeIn",
-                language === "ar" ? "left-0" : "right-0"
+                "absolute top-full mt-2 w-72 bg-card border border-border rounded-2xl shadow-2xl z-50 p-4 space-y-4",
+                "transition-all duration-300 ease-out",
+                "animate-scale-in origin-top-right",
+                language === "ar" ? "left-0 origin-top-left" : "right-0"
               )}
             >
               <div className="pt-2 border-t border-border">
@@ -152,12 +154,12 @@ export function Navbar({ onMenuClick }: NavbarProps) {
                         }
                       }
                     }}
-                    className="w-full flex items-center justify-between p-2 rounded-lg hover:bg-muted transition-colors text-sm"
+                    className="w-full flex items-center justify-between p-3 rounded-xl bg-muted/50 hover:bg-muted transition-all duration-200 active:scale-[0.98]"
                   >
-                    <span className="flex items-center gap-2">
+                    <span className="flex items-center gap-3 text-sm font-medium">
                       <span
                         className={cn(
-                          "w-2 h-2 rounded-full",
+                          "w-2.5 h-2.5 rounded-full transition-all",
                           typeof window !== "undefined" &&
                             Notification.permission === "granted"
                             ? "bg-green-500 shadow-[0_0_8px_rgba(34,197,94,0.5)]"
@@ -166,16 +168,26 @@ export function Navbar({ onMenuClick }: NavbarProps) {
                       />
                       {language === "ar" ? "الإشعارات" : "Notifications"}
                     </span>
-                    <span className="text-xs text-muted-foreground">
-                      {typeof window !== "undefined" &&
-                      Notification.permission === "granted"
-                        ? language === "ar"
-                          ? "مفعل"
-                          : "On"
-                        : language === "ar"
-                        ? "معطل"
-                        : "Off"}
-                    </span>
+                    {/* iOS-style toggle */}
+                    <div
+                      className={cn(
+                        "w-11 h-6 rounded-full p-0.5 transition-colors duration-200",
+                        typeof window !== "undefined" &&
+                          Notification.permission === "granted"
+                          ? "bg-green-500"
+                          : "bg-gray-300 dark:bg-gray-600"
+                      )}
+                    >
+                      <div
+                        className={cn(
+                          "w-5 h-5 bg-white rounded-full shadow-sm transition-transform duration-200",
+                          typeof window !== "undefined" &&
+                            Notification.permission === "granted"
+                            ? "translate-x-5"
+                            : "translate-x-0"
+                        )}
+                      />
+                    </div>
                   </button>
                 </div>
               </div>

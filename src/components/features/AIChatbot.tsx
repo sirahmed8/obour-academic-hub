@@ -14,15 +14,10 @@ import {
 import { useAuth, useLanguage } from "@/contexts";
 import { cn } from "@/lib/utils";
 import { db } from "@/lib/firebase";
-import {
-  collection,
-  query,
-  orderBy,
-  onSnapshot,
-  serverTimestamp,
-} from "firebase/firestore";
-import { getLocalBotResponse } from "@/lib/localBot";
+import { collection, query, orderBy, onSnapshot } from "firebase/firestore";
+import { getLocalBotResponse, wantsLiveSupport } from "@/lib/localBot";
 import { sendMessage, ChatMessage } from "@/lib/chatUtils";
+import { ConfirmationModal } from "@/components/ui/ConfirmationModal";
 
 type ChatMode = "bot" | "live";
 
@@ -39,8 +34,7 @@ export function AIChatbot() {
   const [input, setInput] = useState("");
   const [isTyping, setIsTyping] = useState(false);
 
-  // State for Local Bot
-  const [localMessages, setLocalMessages] = useState<LocalMessage[]>([]);
+  // State for Local Bot (defined later with getInitialMessages)
 
   // State for Live Chat
   const [liveMessages, setLiveMessages] = useState<ChatMessage[]>([]);
@@ -48,27 +42,35 @@ export function AIChatbot() {
 
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const { user } = useAuth();
-  const { language, t } = useLanguage();
+  const { language } = useLanguage();
+  const [showClearModal, setShowClearModal] = useState(false);
 
-  // Load Local History
-  useEffect(() => {
+  // Initial state loaded from localStorage
+  const getInitialMessages = (): LocalMessage[] => {
+    if (typeof window === "undefined") return [];
     const saved = localStorage.getItem("obour_local_chat");
     if (saved) {
-      setLocalMessages(JSON.parse(saved));
-    } else {
-      // Initial greeting
-      const greeting: LocalMessage = {
+      try {
+        return JSON.parse(saved);
+      } catch {
+        return [];
+      }
+    }
+    return [
+      {
         id: "init",
-        text:
-          language === "ar"
-            ? "مرحباً! أنا مساعدك الآلي. كيف يمكنني مساعدتك؟"
-            : "Hi! I am your automated assistant. How can I help?",
+        text: "Hi! I am your automated assistant. How can I help?",
         sender: "bot",
         timestamp: new Date().toISOString(),
-      };
-      setLocalMessages([greeting]);
-    }
-  }, [language]);
+      },
+    ];
+  };
+
+  const [localMessages, setLocalMessages] =
+    useState<LocalMessage[]>(getInitialMessages);
+
+  // Note: Language-dependent greeting is set at initialization
+  // If user changes language mid-session, new messages will use the current language
 
   // Save Local History
   useEffect(() => {
@@ -125,6 +127,23 @@ export function AIChatbot() {
         timestamp: new Date().toISOString(),
       };
       setLocalMessages((prev) => [...prev, userMsg]);
+
+      // Check if user wants live support
+      if (wantsLiveSupport(text)) {
+        setMode("live");
+        const switchMsg: LocalMessage = {
+          id: (Date.now() + 1).toString(),
+          text:
+            language === "ar"
+              ? "تم تحويلك للدعم المباشر. يمكنك الآن التحدث مع موظف حقيقي! 🎧"
+              : "Switching you to live support. You can now talk to a real person! 🎧",
+          sender: "bot",
+          timestamp: new Date().toISOString(),
+        };
+        setLocalMessages((prev) => [...prev, switchMsg]);
+        return;
+      }
+
       setIsTyping(true);
 
       // Simulate delay
@@ -138,7 +157,7 @@ export function AIChatbot() {
         };
         setLocalMessages((prev) => [...prev, botMsg]);
         setIsTyping(false);
-      }, 1000);
+      }, 800);
     } else {
       // Live Mode
       if (!user) {
@@ -150,7 +169,8 @@ export function AIChatbot() {
           user.uid,
           text,
           user.uid,
-          user.displayName || "Student"
+          user.displayName || "Student",
+          false // isAdmin = false for user
         );
       } catch (err) {
         console.error("Failed to send", err);
@@ -159,40 +179,32 @@ export function AIChatbot() {
   };
 
   const clearHistory = () => {
-    if (
-      confirm(
-        language === "ar"
-          ? "هل أنت متأكد من مسح المحادثة؟"
-          : "Are you sure you want to clear history?"
-      )
-    ) {
-      if (mode === "bot") {
-        setLocalMessages([]);
-        localStorage.removeItem("obour_local_chat");
-      } else {
-        // For live chat, we assume "Clear" just hides it locally for session or requires admin action,
-        // but user asked for "Clear history" feature.
-        // Real deletion from Firestore requires permissions.
-        // Usually "Clear Chat" for user just wipes their local view or is soft-delete.
-        // For now, let's just clear the local view state (simulated) or just tell them only Admin can delete.
-        // Actually the prompt says: "User clears history but it doesn't delete from Admin".
-        // Implementation: We can't easily hide specific Firestore docs per user without a "hiddenForUser" flag.
-        // Let's implement a "Local Clear" for now which just ignores past messages in UI (complex).
-        // OR simpler: Just clear the state and reload? No, listener will bring them back.
-        // We will just clear the LOCAL BOT history. Live history is persistent.
-        alert(
-          language === "ar"
-            ? "لا يمكن مسح محادثة الدعم الفني من طرفك."
-            : "Live support chat cannot be cleared from your side."
-        );
-      }
+    if (mode === "bot") {
+      setShowClearModal(true);
+    } else {
+      // Live chat cannot be cleared
+      // Just show info - handled in modal
+      setShowClearModal(true);
     }
   };
 
-  const formatTime = (isoString: any) => {
+  const confirmClearHistory = () => {
+    if (mode === "bot") {
+      setLocalMessages([]);
+      localStorage.removeItem("obour_local_chat");
+    }
+    setShowClearModal(false);
+  };
+
+  const formatTime = (
+    isoString: string | { toDate: () => Date } | null | undefined
+  ) => {
     if (!isoString) return "";
     // Handle Firestore Timestamp
-    const date = isoString.toDate ? isoString.toDate() : new Date(isoString);
+    const date =
+      typeof isoString === "object" && "toDate" in isoString
+        ? isoString.toDate()
+        : new Date(isoString as string);
     return date.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
   };
 
@@ -341,7 +353,7 @@ export function AIChatbot() {
                 </p>
               </div>
             ) : (
-              liveMessages.map((msg, idx) => (
+              liveMessages.map((msg) => (
                 <div
                   key={msg.id}
                   className={cn(
@@ -418,6 +430,33 @@ export function AIChatbot() {
           </div>
         </div>
       )}
+
+      <ConfirmationModal
+        isOpen={showClearModal}
+        onClose={() => setShowClearModal(false)}
+        onConfirm={confirmClearHistory}
+        title={language === "ar" ? "مسح المحادثة" : "Clear History"}
+        message={
+          mode === "bot"
+            ? language === "ar"
+              ? "هل أنت متأكد من مسح المحادثة؟"
+              : "Are you sure you want to clear history?"
+            : language === "ar"
+            ? "لا يمكن مسح محادثة الدعم الفني من طرفك."
+            : "Live support chat cannot be cleared from your side."
+        }
+        confirmText={
+          mode === "bot"
+            ? language === "ar"
+              ? "مسح"
+              : "Clear"
+            : language === "ar"
+            ? "حسناً"
+            : "OK"
+        }
+        cancelText={language === "ar" ? "إلغاء" : "Cancel"}
+        type={mode === "bot" ? "warning" : "info"}
+      />
     </>
   );
 }

@@ -173,13 +173,12 @@ export default function NotificationsPage() {
           {unreadCount > 0 && (
             <button
               onClick={markAllAsRead}
-              className="flex items-center gap-2 px-4 py-2 bg-primary/10 text-primary rounded-xl hover:bg-primary/20 transition-colors font-medium text-sm"
-              title={t("notifications.mark_all_read") || "Mark all as read"}
+              className="p-3 bg-primary/10 text-primary rounded-xl hover:bg-primary/20 transition-colors"
+              title={
+                language === "ar" ? "تحديد الكل كمقروء" : "Mark all as read"
+              }
             >
               <CheckCheck className="w-5 h-5" />
-              <span>
-                {t("notifications.mark_all_read") || "Mark all as read"}
-              </span>
             </button>
           )}
         </div>

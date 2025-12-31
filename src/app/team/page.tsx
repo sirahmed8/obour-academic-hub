@@ -2,20 +2,12 @@
 
 import { useState, useEffect } from "react";
 import { db } from "@/lib/firebase";
-import {
-  collection,
-  query,
-  where,
-  orderBy,
-  onSnapshot,
-} from "firebase/firestore";
+import { collection, query, where, getDocs } from "firebase/firestore";
 import { useLanguage } from "@/contexts";
 import { AppShell } from "@/components/layout/AppShell";
-import { Code2, Coffee, Heart, Loader2 } from "lucide-react";
+import { Code2, Coffee, Heart, Loader2, ExternalLink } from "lucide-react";
 import { cn } from "@/lib/utils";
 import Image from "next/image";
-
-// TEAM_MEMBERS removed as it is now dynamic
 
 interface TeamMember {
   displayName: string;
@@ -28,28 +20,41 @@ export default function TeamPage() {
   const { language } = useLanguage();
   const [teamMembers, setTeamMembers] = useState<TeamMember[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(false);
 
   useEffect(() => {
-    const q = query(
-      collection(db, "users"),
-      where("role", "in", ["admin", "owner"]),
-      orderBy("createdAt", "asc")
-    );
+    const fetchTeam = async () => {
+      try {
+        // Simple query without orderBy to avoid index requirement
+        const q = query(
+          collection(db, "users"),
+          where("role", "in", ["admin", "owner"])
+        );
+        const snapshot = await getDocs(q);
+        const members = snapshot.docs.map((d) => d.data() as TeamMember);
+        // Sort client-side: owners first, then by name
+        members.sort((a, b) => {
+          if (a.role === "owner" && b.role !== "owner") return -1;
+          if (b.role === "owner" && a.role !== "owner") return 1;
+          return a.displayName.localeCompare(b.displayName);
+        });
+        setTeamMembers(members);
+      } catch (err) {
+        console.error("Error fetching team:", err);
+        setError(true);
+      } finally {
+        setLoading(false);
+      }
+    };
 
-    const unsubscribe = onSnapshot(q, (snapshot) => {
-      const members = snapshot.docs.map((d) => d.data() as TeamMember);
-      setTeamMembers(members);
-      setLoading(false);
-    });
-
-    return () => unsubscribe();
+    fetchTeam();
   }, []);
 
   return (
     <AppShell>
       <div className="p-6 lg:p-10 space-y-12 max-w-7xl mx-auto page-transition">
         {/* Header */}
-        <div className="text-center space-y-4 max-w-2xl mx-auto">
+        <div className="text-center space-y-4 max-w-2xl mx-auto animate-fade-in-up">
           <div className="inline-flex items-center justify-center p-4 bg-primary/10 rounded-2xl text-primary mb-4">
             <Code2 className="w-8 h-8" />
           </div>
@@ -72,6 +77,18 @@ export default function TeamPage() {
             <div className="col-span-full flex justify-center py-20">
               <Loader2 className="w-10 h-10 animate-spin text-primary" />
             </div>
+          ) : error ? (
+            <div className="col-span-full text-center py-20 text-muted-foreground">
+              {language === "ar"
+                ? "حدث خطأ في تحميل الفريق"
+                : "Error loading team"}
+            </div>
+          ) : teamMembers.length === 0 ? (
+            <div className="col-span-full text-center py-20 text-muted-foreground">
+              {language === "ar"
+                ? "لا يوجد أعضاء فريق حالياً"
+                : "No team members yet"}
+            </div>
           ) : (
             teamMembers.map((member, idx) => (
               <div
@@ -83,7 +100,9 @@ export default function TeamPage() {
                   <Image
                     src={
                       member.photoURL ||
-                      `https://ui-avatars.com/api/?name=${member.displayName}&background=6366f1&color=fff`
+                      `https://ui-avatars.com/api/?name=${encodeURIComponent(
+                        member.displayName
+                      )}&background=6366f1&color=fff`
                     }
                     alt={member.displayName}
                     width={128}
@@ -99,7 +118,7 @@ export default function TeamPage() {
                   className={cn(
                     "inline-block px-4 py-1.5 rounded-full text-sm font-medium mb-4",
                     member.role === "owner"
-                      ? "bg-amber-100 text-amber-700"
+                      ? "bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400"
                       : "bg-primary/10 text-primary"
                   )}
                 >
@@ -112,7 +131,7 @@ export default function TeamPage() {
                     : "Admin"}
                 </span>
 
-                <p className="text-muted-foreground mb-8 leading-relaxed">
+                <p className="text-muted-foreground leading-relaxed">
                   {member.bio ||
                     (language === "ar"
                       ? "عضو في فريق إدارة منصة معاهد العبور."
@@ -124,18 +143,20 @@ export default function TeamPage() {
         </div>
 
         {/* Footer Note */}
-        <div className="text-center pt-10 border-t border-border space-y-4">
+        <div className="text-center pt-10 border-t border-border space-y-4 animate-fade-in-up animate-delay-300">
           <p className="text-muted-foreground">
-            © 2026 Obour Academic Hub. All rights reserved.
+            © {new Date().getFullYear()} Obour Academic Hub. All rights
+            reserved.
           </p>
-          <div className="flex justify-center gap-4">
+          <div className="flex justify-center">
             <a
               href="https://linktr.ee/sir.ahmed"
               target="_blank"
               rel="noopener noreferrer"
-              className="text-primary hover:underline"
+              className="inline-flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-primary to-purple-500 text-white font-medium rounded-xl hover:opacity-90 transition-all duration-200 active:scale-[0.98] shadow-lg"
             >
-              Connect with Developer
+              <ExternalLink className="w-4 h-4" />
+              {language === "ar" ? "تواصل مع المطور" : "Connect with Developer"}
             </a>
           </div>
         </div>

@@ -7,7 +7,14 @@ import { ref, onValue } from "firebase/database";
 import { useLanguage } from "@/contexts";
 import { AppShell } from "@/components/layout/AppShell";
 import { Subject } from "@/types";
-import { BarChart3, Users, BookOpen, Activity, Loader2 } from "lucide-react";
+import {
+  BarChart3,
+  Users,
+  BookOpen,
+  Activity,
+  Loader2,
+  RefreshCw,
+} from "lucide-react";
 import {
   BarChart,
   Bar,
@@ -107,13 +114,33 @@ export default function AdminAnalyticsPage() {
     },
   ];
 
+  const [refreshing, setRefreshing] = useState(false);
+
+  const handleRefresh = () => {
+    setRefreshing(true);
+    // Data refreshes automatically via onSnapshot, this is just visual feedback
+    setTimeout(() => setRefreshing(false), 1000);
+  };
+
   return (
     <AppShell>
       <div className="p-6 lg:p-10 max-w-7xl mx-auto space-y-8">
-        <h1 className="text-2xl font-bold text-foreground flex items-center gap-3">
-          <BarChart3 className="text-primary" />
-          {t("admin.analytics")}
-        </h1>
+        <div className="flex items-center justify-between">
+          <h1 className="text-2xl font-bold text-foreground flex items-center gap-3">
+            <BarChart3 className="text-primary" />
+            {t("admin.analytics")}
+          </h1>
+          <button
+            onClick={handleRefresh}
+            disabled={refreshing}
+            className="p-2 rounded-xl bg-muted hover:bg-muted/80 transition-all active:scale-95 disabled:opacity-50"
+            title={language === "ar" ? "تحديث" : "Refresh"}
+          >
+            <RefreshCw
+              className={cn("w-5 h-5", refreshing && "animate-spin")}
+            />
+          </button>
+        </div>
 
         {loading ? (
           <div className="flex items-center justify-center py-20">

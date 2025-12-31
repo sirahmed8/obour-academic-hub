@@ -1,10 +1,10 @@
-'use client';
+"use client";
 
-import { useEffect } from 'react';
-import { useRouter } from 'next/navigation';
-import { useAuth } from '@/contexts';
-import { LoginScreen } from '@/components/features/LoginScreen';
-import { Loader2 } from 'lucide-react';
+import { useEffect } from "react";
+import { useRouter } from "next/navigation";
+import { useAuth } from "@/contexts";
+import { LoginScreen } from "@/components/features/LoginScreen";
+import { Loader2 } from "lucide-react";
 
 export default function HomePage() {
   const router = useRouter();
@@ -12,11 +12,11 @@ export default function HomePage() {
 
   useEffect(() => {
     if (!loading && user) {
-      router.push('/main');
+      router.push("/main");
     }
   }, [user, loading, router]);
 
-  if (loading) {
+  if (loading || user) {
     return (
       <div className="h-screen w-full flex items-center justify-center bg-background">
         <Loader2 className="animate-spin text-primary" size={40} />

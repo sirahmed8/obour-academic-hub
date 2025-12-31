@@ -1,9 +1,11 @@
-import { SubjectClient } from './SubjectClient';
+import { SubjectClient } from "./SubjectClient";
 
+// For static export, provide placeholder params - actual content is fetched client-side
 export async function generateStaticParams() {
-  return [{ id: '1' }];
+  // Return placeholder - SubjectClient handles actual data fetching
+  return [{ id: "placeholder" }];
 }
 
-export default function SubjectPage({ params }: { params: { id: string } }) {
+export default function SubjectPage() {
   return <SubjectClient />;
 }

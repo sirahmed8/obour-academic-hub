@@ -30,6 +30,7 @@ import {
   markMessagesAsSeen,
 } from "@/lib/chatUtils";
 import Image from "next/image";
+import { ConfirmationModal } from "@/components/ui/ConfirmationModal";
 
 export default function AdminInboxPage() {
   const [sessions, setSessions] = useState<ChatSession[]>([]);
@@ -39,6 +40,7 @@ export default function AdminInboxPage() {
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [input, setInput] = useState("");
   const [loadingSessions, setLoadingSessions] = useState(true);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
 
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const { language, t } = useLanguage();
@@ -139,38 +141,27 @@ export default function AdminInboxPage() {
 
   const deleteChatForEveryone = async () => {
     if (!selectedSessionId) return;
+    setShowDeleteModal(true);
+  };
 
-    if (
-      confirm(
-        language === "ar"
-          ? "هل أنت متأكد من حذف هذا الشات للجميع؟"
-          : "Are you sure you want to delete this chat for everyone?"
-      )
-    ) {
-      const batch = writeBatch(db);
+  const confirmDeleteChat = async () => {
+    if (!selectedSessionId) return;
+    setShowDeleteModal(false);
 
-      // We can't actually delete all messages efficiently in one go if thousands,
-      // but for this scale we'll just delete the session doc or messages.
-      // A "soft delete" or "clear" is safer.
-      // Let's implement deleting the Chat Session Document + Messages manually (client-side batch limited to 500).
+    const batch = writeBatch(db);
 
-      // Simpler approach requested: "Delete for everyone".
-      // We will just clear the messages collection one by one (or batch).
-      messages.forEach((msg) => {
-        const ref = doc(db, `chats/${selectedSessionId}/messages`, msg.id);
-        batch.delete(ref);
-      });
+    messages.forEach((msg) => {
+      const ref = doc(db, `chats/${selectedSessionId}/messages`, msg.id);
+      batch.delete(ref);
+    });
 
-      // Reset the session metadata but keep the doc so we don't lose the user ref if needed?
-      // Or just delete the session doc too.
-      const sessionRef = doc(db, "chats", selectedSessionId);
-      batch.delete(sessionRef);
+    const sessionRef = doc(db, "chats", selectedSessionId);
+    batch.delete(sessionRef);
 
-      await batch.commit();
-      toast.success("Chat deleted");
-      setMessages([]);
-      setSelectedSessionId(null);
-    }
+    await batch.commit();
+    toast.success(language === "ar" ? "تم حذف المحادثة" : "Chat deleted");
+    setMessages([]);
+    setSelectedSessionId(null);
   };
 
   const formatTime = (timestamp: unknown) => {
@@ -421,6 +412,21 @@ export default function AdminInboxPage() {
           )}
         </div>
       </div>
+
+      <ConfirmationModal
+        isOpen={showDeleteModal}
+        onClose={() => setShowDeleteModal(false)}
+        onConfirm={confirmDeleteChat}
+        title={language === "ar" ? "حذف المحادثة" : "Delete Chat"}
+        message={
+          language === "ar"
+            ? "هل أنت متأكد من حذف هذا الشات للجميع؟"
+            : "Are you sure you want to delete this chat for everyone?"
+        }
+        confirmText={language === "ar" ? "حذف" : "Delete"}
+        cancelText={language === "ar" ? "إلغاء" : "Cancel"}
+        type="danger"
+      />
     </AppShell>
   );
 }
