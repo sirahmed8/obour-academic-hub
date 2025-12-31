@@ -72,11 +72,37 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           } else {
             // Create new user
             const isOwnerEmail = firebaseUser.email === "a7medorabe7@gmail.com";
+            let role: "student" | "admin" | "owner" = isOwnerEmail
+              ? "owner"
+              : "student";
+            let permissions: string[] = [];
+
+            // Check if whitelisted
+            if (!isOwnerEmail && firebaseUser.email) {
+              try {
+                const whitelistDoc = await getDoc(
+                  doc(db, "whitelisted_admins", firebaseUser.email)
+                );
+                if (whitelistDoc.exists()) {
+                  role = "admin";
+                  // Assign default permissions
+                  permissions = [
+                    "manage_subjects",
+                    "manage_resources",
+                    "send_notifications",
+                  ];
+                }
+              } catch (e) {
+                console.error("Error checking whitelist", e);
+              }
+            }
+
             const newUser: User = {
               uid: firebaseUser.uid,
               email: firebaseUser.email || "",
               displayName: firebaseUser.displayName || "New Student",
-              role: isOwnerEmail ? "owner" : "student",
+              role: role,
+              permissions: permissions.length > 0 ? permissions : undefined,
               photoURL: firebaseUser.photoURL || undefined,
               createdAt: new Date().toISOString(),
             };

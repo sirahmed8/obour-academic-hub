@@ -22,6 +22,7 @@ import {
 } from "@/lib/localBot";
 import { sendMessage, ChatMessage } from "@/lib/chatUtils";
 import { ConfirmationModal } from "@/components/ui/ConfirmationModal";
+import { toast } from "sonner";
 
 type ChatMode = "bot" | "live";
 
@@ -184,9 +185,15 @@ export function AIChatbot() {
       // Live Mode
       if (!user) {
         // Handle unauthenticated
+        toast.error(
+          language === "ar"
+            ? "يجب عليك تسجيل الدخول أولاً"
+            : "You must login first"
+        );
         return;
       }
       try {
+        // Ensure path matches chatUtils expectations
         await sendMessage(
           user.uid,
           text,
@@ -195,7 +202,10 @@ export function AIChatbot() {
           false // isAdmin = false for user
         );
       } catch (err) {
-        console.error("Failed to send", err);
+        console.error("Failed to send message:", err);
+        toast.error(
+          language === "ar" ? "فشل إرسال الرسالة" : "Failed to send message"
+        );
       }
     }
   };
@@ -219,15 +229,24 @@ export function AIChatbot() {
   };
 
   const formatTime = (
-    isoString: string | { toDate: () => Date } | null | undefined
-  ) => {
-    if (!isoString) return "";
-    // Handle Firestore Timestamp
-    const date =
-      typeof isoString === "object" && "toDate" in isoString
-        ? isoString.toDate()
-        : new Date(isoString as string);
-    return date.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+  const formatTime = (timestamp: { seconds: number; nanoseconds: number } | { toDate: () => Date } | string | null | undefined) => {
+    if (!timestamp) return "";
+    let date: Date;
+    
+    if (typeof timestamp === 'string') {
+        date = new Date(timestamp);
+    } else if (typeof timestamp === 'object' && timestamp !== null && 'toDate' in timestamp && typeof timestamp.toDate === 'function') {
+        date = timestamp.toDate();
+    } else if (typeof timestamp === 'object' && timestamp !== null && 'seconds' in timestamp && typeof timestamp.seconds === 'number') {
+        date = new Date(timestamp.seconds * 1000);
+    } else {
+        return "";
+    }
+
+    return date.toLocaleTimeString(language === "ar" ? "ar-EG" : "en-US", {
+      hour: "2-digit",
+      minute: "2-digit",
+    });
   };
 
   return (
@@ -409,7 +428,12 @@ export function AIChatbot() {
                     )}
                   </div>
                   <span className="text-[10px] text-muted-foreground mt-1 px-1">
-                    {formatTime(msg.timestamp)}
+                    {formatTime(
+                      msg.timestamp as {
+                        seconds: number;
+                        nanoseconds: number;
+                      } | null
+                    )}
                   </span>
                 </div>
               ))

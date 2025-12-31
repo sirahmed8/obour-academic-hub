@@ -7,13 +7,11 @@ import { db } from "@/lib/firebase";
 import {
   collection,
   query,
-  orderBy,
   addDoc,
   deleteDoc,
   doc,
   updateDoc,
   onSnapshot,
-  serverTimestamp,
 } from "firebase/firestore";
 import {
   Megaphone,
@@ -23,6 +21,9 @@ import {
   X,
   AlertCircle,
   CheckCircle2,
+  History,
+  Clock,
+  Loader2,
 } from "lucide-react";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
@@ -33,7 +34,7 @@ interface Banner {
   textEn: string;
   type: "info" | "warning" | "success" | "urgent";
   isActive: boolean;
-  createdAt: { seconds: number; nanoseconds: number } | null;
+  createdAt: string | { seconds: number; nanoseconds: number } | null; // Support both
 }
 
 export default function AdminBannersPage() {
@@ -52,14 +53,39 @@ export default function AdminBannersPage() {
   });
 
   useEffect(() => {
-    if (!isAdmin) return;
+    if (!isAdmin) {
+      setLoading(false); // Stop loading if not admin
+      return;
+    }
 
-    const q = query(collection(db, "banners"), orderBy("createdAt", "desc"));
+    // We rely on client-side sorting if mixing timestamp types,
+    // or just assume standard string sort for ISO.
+    // To be safe, we query all and sort in client.
+    const q = query(collection(db, "banners"));
 
     const unsubscribe = onSnapshot(q, (snapshot) => {
-      setBanners(
-        snapshot.docs.map((d) => ({ id: d.id, ...d.data() } as Banner))
+      const data = snapshot.docs.map(
+        (d) => ({ id: d.id, ...d.data() } as Banner)
       );
+      // Sort in memory to handle different date formats safely
+      data.sort((a, b) => {
+        const dateA =
+          a.createdAt &&
+          typeof a.createdAt === "object" &&
+          "seconds" in a.createdAt
+            ? new Date(a.createdAt.seconds * 1000).getTime()
+            : new Date((a.createdAt as string) || 0).getTime();
+
+        const dateB =
+          b.createdAt &&
+          typeof b.createdAt === "object" &&
+          "seconds" in b.createdAt
+            ? new Date(b.createdAt.seconds * 1000).getTime()
+            : new Date((b.createdAt as string) || 0).getTime();
+
+        return dateB - dateA;
+      });
+      setBanners(data);
       setLoading(false);
     });
 
@@ -72,7 +98,7 @@ export default function AdminBannersPage() {
     try {
       await addDoc(collection(db, "banners"), {
         ...formData,
-        createdAt: serverTimestamp(),
+        createdAt: new Date().toISOString(), // Use simple ISO string
       });
       toast.success(language === "ar" ? "تم نشر الإعلان" : "Banner published");
       setIsAdding(false);
@@ -82,7 +108,8 @@ export default function AdminBannersPage() {
         type: "info",
         isActive: true,
       });
-    } catch {
+    } catch (e) {
+      console.error(e);
       toast.error("Error creating banner");
     }
   };
@@ -98,6 +125,17 @@ export default function AdminBannersPage() {
   };
 
   if (!isAdmin) return null;
+  if (loading)
+    return (
+      <AppShell>
+        <div className="flex justify-center p-20">
+          <Loader2 className="animate-spin" />
+        </div>
+      </AppShell>
+    );
+
+  const activeBanners = banners.filter((b) => b.isActive);
+  const historyBanners = banners.filter((b) => !b.isActive);
 
   return (
     <AppShell>
@@ -123,9 +161,14 @@ export default function AdminBannersPage() {
           </button>
         </div>
 
-        {/* Add Form */}
-        {isAdding && (
-          <div className="bg-card border border-border rounded-2xl p-6 shadow-sm animate-scale-in space-y-4">
+        {/* Add Form with transitions */}
+        <div
+          className={cn(
+            "overflow-hidden transition-all duration-300 ease-in-out",
+            isAdding ? "max-h-[500px] opacity-100" : "max-h-0 opacity-0"
+          )}
+        >
+          <div className="bg-card border border-border rounded-2xl p-6 shadow-sm space-y-4 mb-8">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="space-y-2">
                 <label className="text-sm font-medium">Text (Arabic)</label>
@@ -186,92 +229,142 @@ export default function AdminBannersPage() {
               </div>
             </div>
           </div>
-        )}
+        </div>
 
-        {/* List */}
+        {/* Active Banners */}
         <div className="space-y-3">
-          {banners.map((banner) => (
-            <div
-              key={banner.id}
-              className={cn(
-                "group flex items-center justify-between p-4 rounded-xl border transition-all",
-                banner.isActive
-                  ? "bg-card border-l-4 border-l-primary shadow-sm"
-                  : "bg-muted/30 border-dashed opacity-70"
-              )}
-            >
-              <div className="flex items-start gap-4">
-                <div
-                  className={cn(
-                    "p-2 rounded-full mt-1",
-                    banner.type === "urgent"
-                      ? "bg-red-100 text-red-600"
-                      : banner.type === "success"
-                      ? "bg-green-100 text-green-600"
-                      : banner.type === "warning"
-                      ? "bg-amber-100 text-amber-600"
-                      : "bg-blue-100 text-blue-600"
-                  )}
-                >
-                  {banner.type === "urgent" ? (
-                    <AlertCircle size={20} />
-                  ) : banner.type === "success" ? (
-                    <CheckCircle2 size={20} />
-                  ) : (
-                    <Megaphone size={20} />
-                  )}
-                </div>
-                <div>
-                  <div className="flex items-center gap-2 mb-1">
-                    <span
-                      className={cn(
-                        "text-xs px-2 py-0.5 rounded-full font-medium uppercase tracking-wider",
-                        banner.isActive
-                          ? "bg-green-100 text-green-700"
-                          : "bg-gray-100 text-gray-600"
-                      )}
-                    >
-                      {banner.isActive ? "Active" : "Inactive"}
-                    </span>
-                    <span className="text-xs text-muted-foreground">
-                      {banner.type}
-                    </span>
-                  </div>
-                  <h3 className="font-medium text-lg text-right" dir="rtl">
-                    {banner.textAr}
-                  </h3>
-                  <p className="text-muted-foreground text-sm">
-                    {banner.textEn}
-                  </p>
-                </div>
-              </div>
-
-              <div className="flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                <button
-                  onClick={() => toggleActive(banner.id, banner.isActive)}
-                  className="p-2 hover:bg-muted rounded-lg text-muted-foreground hover:text-foreground transition-colors"
-                  title={banner.isActive ? "Deactivate" : "Activate"}
-                >
-                  {banner.isActive ? <X size={18} /> : <Check size={18} />}
-                </button>
-                <button
-                  onClick={() => deleteBanner(banner.id)}
-                  className="p-2 hover:bg-red-50 text-red-400 hover:text-red-600 rounded-lg transition-colors"
-                >
-                  <Trash2 size={18} />
-                </button>
-              </div>
+          <h2 className="text-xl font-bold flex items-center gap-2">
+            <Megaphone className="w-5 h-5 text-green-500" />
+            {language === "ar" ? "نشط حالياً" : "Active Now"}
+          </h2>
+          {activeBanners.length === 0 ? (
+            <div className="text-center py-8 bg-muted/20 rounded-xl border border-dashed text-muted-foreground text-sm">
+              {language === "ar" ? "لا توجد إعلانات نشطة" : "No active banners"}
             </div>
-          ))}
+          ) : (
+            activeBanners.map((banner) => (
+              <BannerCard
+                key={banner.id}
+                banner={banner}
+                toggleActive={toggleActive}
+                deleteBanner={deleteBanner}
+              />
+            ))
+          )}
+        </div>
 
-          {banners.length === 0 && !loading && (
-            <div className="text-center py-12 text-muted-foreground">
-              <Megaphone size={48} className="mx-auto mb-4 opacity-20" />
-              <p>No banners yet</p>
+        {/* History / Inactive */}
+        <div className="space-y-3 pt-8 border-t">
+          <h2 className="text-xl font-bold flex items-center gap-2 text-muted-foreground">
+            <History className="w-5 h-5" />
+            {language === "ar" ? "السجل / غير نشط" : "History / Inactive"}
+          </h2>
+          {historyBanners.length === 0 ? (
+            <div className="text-center py-8 bg-muted/20 rounded-xl border border-dashed text-muted-foreground text-sm">
+              {language === "ar" ? "السجل فارغ" : "History is empty"}
             </div>
+          ) : (
+            historyBanners.map((banner) => (
+              <BannerCard
+                key={banner.id}
+                banner={banner}
+                toggleActive={toggleActive}
+                deleteBanner={deleteBanner}
+              />
+            ))
           )}
         </div>
       </div>
     </AppShell>
+  );
+}
+
+function BannerCard({
+  banner,
+  toggleActive,
+  deleteBanner,
+}: {
+  banner: Banner;
+  toggleActive: (id: string, current: boolean) => void;
+  deleteBanner: (id: string) => void;
+}) {
+  return (
+    <div
+      className={cn(
+        "group flex items-center justify-between p-4 rounded-xl border transition-all",
+        banner.isActive
+          ? "bg-card border-l-4 border-l-primary shadow-sm"
+          : "bg-muted/30 border-dashed opacity-70"
+      )}
+    >
+      <div className="flex items-start gap-4">
+        <div
+          className={cn(
+            "p-2 rounded-full mt-1",
+            banner.type === "urgent"
+              ? "bg-red-100 text-red-600"
+              : banner.type === "success"
+              ? "bg-green-100 text-green-600"
+              : banner.type === "warning"
+              ? "bg-amber-100 text-amber-600"
+              : "bg-blue-100 text-blue-600"
+          )}
+        >
+          {banner.type === "urgent" ? (
+            <AlertCircle size={20} />
+          ) : banner.type === "success" ? (
+            <CheckCircle2 size={20} />
+          ) : (
+            <Megaphone size={20} />
+          )}
+        </div>
+        <div>
+          <div className="flex items-center gap-2 mb-1">
+            <span
+              className={cn(
+                "text-xs px-2 py-0.5 rounded-full font-medium uppercase tracking-wider",
+                banner.isActive
+                  ? "bg-green-100 text-green-700"
+                  : "bg-gray-100 text-gray-600"
+              )}
+            >
+              {banner.isActive ? "Active" : "Inactive"}
+            </span>
+            <span className="text-xs text-muted-foreground">{banner.type}</span>
+            {/* Show Date */}
+            <span className="text-[10px] text-muted-foreground flex items-center gap-1">
+              <Clock size={10} />
+              {banner.createdAt &&
+                (typeof banner.createdAt === "object" &&
+                "seconds" in banner.createdAt
+                  ? new Date(
+                      banner.createdAt.seconds * 1000
+                    ).toLocaleDateString()
+                  : new Date(banner.createdAt as string).toLocaleDateString())}
+            </span>
+          </div>
+          <h3 className="font-medium text-lg text-right" dir="rtl">
+            {banner.textAr}
+          </h3>
+          <p className="text-muted-foreground text-sm">{banner.textEn}</p>
+        </div>
+      </div>
+
+      <div className="flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+        <button
+          onClick={() => toggleActive(banner.id, banner.isActive)}
+          className="p-2 hover:bg-muted rounded-lg text-muted-foreground hover:text-foreground transition-colors"
+          title={banner.isActive ? "Deactivate" : "Activate"}
+        >
+          {banner.isActive ? <X size={18} /> : <Check size={18} />}
+        </button>
+        <button
+          onClick={() => deleteBanner(banner.id)}
+          className="p-2 hover:bg-red-50 text-red-400 hover:text-red-600 rounded-lg transition-colors"
+        >
+          <Trash2 size={18} />
+        </button>
+      </div>
+    </div>
   );
 }

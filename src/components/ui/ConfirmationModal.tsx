@@ -29,16 +29,15 @@ export function ConfirmationModal({
 
   useEffect(() => {
     if (isOpen) {
-      // Small delay to allow mounting before animation
       const timer = setTimeout(() => setVisible(true), 10);
       return () => clearTimeout(timer);
     } else {
-      const timer = setTimeout(() => setVisible(false), 300);
+      const timer = setTimeout(() => setVisible(false), 300); // Wait for transition
       return () => clearTimeout(timer);
     }
   }, [isOpen]);
 
-  if (!visible) return null;
+  if (!visible && !isOpen) return null;
 
   return (
     <div

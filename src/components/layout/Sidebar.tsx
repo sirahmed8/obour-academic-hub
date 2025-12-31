@@ -68,7 +68,6 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
       icon: Bell,
       badge: unreadCount > 0 ? unreadCount : undefined,
     },
-    { name: t("nav.team"), path: "/team", icon: Users },
   ];
 
   // Helper function to check if path is active (handles both / and /main for home)
@@ -87,6 +86,7 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
       path: "/admin/banners",
       icon: Megaphone,
     },
+    { name: t("nav.team"), path: "/team", icon: Users },
     { name: t("admin.users"), path: "/admin/users", icon: Users },
     { name: t("admin.inbox"), path: "/admin/inbox", icon: MessageSquare },
     { name: t("admin.analytics"), path: "/admin/analytics", icon: BarChart3 },
