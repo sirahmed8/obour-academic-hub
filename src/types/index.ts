@@ -1,6 +1,6 @@
 // Type definitions for Obour Academic Hub
 
-export type UserRole = 'student' | 'admin' | 'owner';
+export type UserRole = "student" | "admin" | "owner";
 
 export interface User {
   uid: string;
@@ -8,9 +8,25 @@ export interface User {
   displayName: string;
   studentCode?: string;
   role: UserRole;
+  permissions?: string[];
+  notificationSettings?: {
+    push: boolean;
+    email: boolean;
+  };
   photoURL?: string;
   createdAt: string;
   lastLogin?: string;
+}
+
+export interface Notification {
+  id: string;
+  title: string;
+  message: string;
+  type: "info" | "warning" | "success";
+  target: "all" | "admins" | string; // userId or 'all'
+  readBy: string[]; // List of user IDs who have read this notification
+  createdAt: string;
+  createdBy?: string;
 }
 
 export interface Subject {
@@ -32,7 +48,7 @@ export interface Resource {
   description?: string;
   url: string;
   thumbnailUrl?: string;
-  type: 'pdf' | 'link' | 'video' | 'image';
+  type: "pdf" | "link" | "video" | "image";
   orderIndex: number;
   createdAt: string;
   downloads?: number;
@@ -40,10 +56,10 @@ export interface Resource {
 
 export interface ChatMessage {
   id: string;
-  role: 'user' | 'assistant' | 'system';
+  role: "user" | "assistant" | "system";
   content: string;
   timestamp: string;
-  mode?: 'ai' | 'offline' | 'live';
+  mode?: "ai" | "offline" | "live";
 }
 
 export interface InboxMessage {
@@ -53,7 +69,7 @@ export interface InboxMessage {
   userName: string;
   message: string;
   timestamp: string;
-  status: 'pending' | 'replied' | 'closed';
+  status: "pending" | "replied" | "closed";
   adminReply?: string;
   adminReplyAt?: string;
 }
@@ -78,13 +94,13 @@ export interface SystemError {
 
 export interface AdminPermissions {
   email: string;
-  role: 'admin' | 'owner';
+  role: "admin" | "owner";
   permissions: string[];
   addedAt: string;
 }
 
 export interface SiteSettings {
   announcement?: string;
-  announcementType?: 'info' | 'warning' | 'success';
+  announcementType?: "info" | "warning" | "success";
   maintenanceMode?: boolean;
 }

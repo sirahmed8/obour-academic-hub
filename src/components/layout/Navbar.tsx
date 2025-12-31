@@ -6,6 +6,7 @@ import { useTheme } from "next-themes";
 import { useAuth, useLanguage } from "@/contexts";
 import Image from "next/image";
 import { cn } from "@/lib/utils";
+import { toast } from "sonner";
 
 interface NavbarProps {
   onMenuClick: () => void;
@@ -126,6 +127,56 @@ export function Navbar({ onMenuClick }: NavbarProps) {
                       );
                     })}
                   </div>
+                </div>
+
+                <div className="space-y-2 pt-2 border-t border-border">
+                  <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
+                    {t("notifications.title")}
+                  </p>
+                  <button
+                    onClick={async () => {
+                      if (Notification.permission === "granted") {
+                        toast.info(
+                          language === "ar"
+                            ? "يجب إيقاف الإشعارات من إعدادات المتصفح"
+                            : "Please disable notifications from site settings"
+                        );
+                      } else {
+                        const result = await Notification.requestPermission();
+                        if (result === "granted") {
+                          toast.success(
+                            language === "ar"
+                              ? "تم تفعيل الإشعارات"
+                              : "Notifications enabled"
+                          );
+                        }
+                      }
+                    }}
+                    className="w-full flex items-center justify-between p-2 rounded-lg hover:bg-muted transition-colors text-sm"
+                  >
+                    <span className="flex items-center gap-2">
+                      <span
+                        className={cn(
+                          "w-2 h-2 rounded-full",
+                          typeof window !== "undefined" &&
+                            Notification.permission === "granted"
+                            ? "bg-green-500 shadow-[0_0_8px_rgba(34,197,94,0.5)]"
+                            : "bg-red-500"
+                        )}
+                      />
+                      {language === "ar" ? "الإشعارات" : "Notifications"}
+                    </span>
+                    <span className="text-xs text-muted-foreground">
+                      {typeof window !== "undefined" &&
+                      Notification.permission === "granted"
+                        ? language === "ar"
+                          ? "مفعل"
+                          : "On"
+                        : language === "ar"
+                        ? "معطل"
+                        : "Off"}
+                    </span>
+                  </button>
                 </div>
               </div>
 

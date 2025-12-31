@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import Image from "next/image";
@@ -14,7 +14,10 @@ import {
   AlertTriangle,
 } from "lucide-react";
 import { useAuth, useLanguage } from "@/contexts";
+import { Notification as AppNotification } from "@/types";
 import { cn } from "@/lib/utils";
+import { db } from "@/lib/firebase";
+import { collection, query, orderBy, onSnapshot } from "firebase/firestore";
 
 interface SidebarProps {
   isOpen: boolean;
@@ -23,12 +26,47 @@ interface SidebarProps {
 
 export function Sidebar({ isOpen, onClose }: SidebarProps) {
   const pathname = usePathname();
-  const { isAdmin, isOwner } = useAuth();
+  const { user, isAdmin, isOwner } = useAuth();
   const { t, language } = useLanguage();
+  const [unreadCount, setUnreadCount] = useState(0);
+
+  // Listen for unread notifications
+  useEffect(() => {
+    if (!user) return;
+
+    const q = query(
+      collection(db, "notifications"),
+      orderBy("createdAt", "desc")
+    );
+
+    const unsubscribe = onSnapshot(q, (snapshot) => {
+      const all = snapshot.docs.map(
+        (d) => ({ id: d.id, ...d.data() } as AppNotification)
+      );
+      const relevant = all.filter((n) => {
+        if (n.target === "all" || !n.target) return true;
+        if (n.target === "admins" && isAdmin) return true;
+        if (n.target === user.uid) return true;
+        return false;
+      });
+
+      const unread = relevant.filter(
+        (n) => !n.readBy?.includes(user.uid)
+      ).length;
+      setUnreadCount(unread);
+    });
+
+    return () => unsubscribe();
+  }, [user, isAdmin]);
 
   const navItems = [
     { name: t("nav.home"), path: "/main", icon: LayoutDashboard },
-    { name: t("nav.notifications"), path: "/notifications", icon: Bell },
+    {
+      name: t("nav.notifications"),
+      path: "/notifications",
+      icon: Bell,
+      badge: unreadCount > 0 ? unreadCount : undefined,
+    },
     { name: t("nav.team"), path: "/team", icon: Users },
   ];
 
@@ -127,7 +165,14 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
                         : "text-muted-foreground hover:bg-muted hover:text-foreground"
                     )}
                   >
-                    <Icon size={20} />
+                    <div className="relative">
+                      <Icon size={20} />
+                      {item.badge && (
+                        <span className="absolute -top-2 -right-2 bg-red-500 text-white text-[10px] w-4 h-4 rounded-full flex items-center justify-center">
+                          {item.badge > 9 ? "9+" : item.badge}
+                        </span>
+                      )}
+                    </div>
                     <span>{item.name}</span>
                   </Link>
                 );
