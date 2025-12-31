@@ -4,9 +4,9 @@ import { useState, useEffect, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth, useLanguage } from "@/contexts";
 import { Sidebar, Navbar } from "@/components/layout";
-import { LoginScreen } from "@/components/features/LoginScreen";
 import { StudentProfileSetup } from "@/components/features/StudentProfileSetup";
 import { AIChatbot } from "@/components/features/AIChatbot";
+import { LiveBanner } from "@/components/features/LiveBanner";
 import { Loader2 } from "lucide-react";
 
 export function AppShell({ children }: { children: React.ReactNode }) {
@@ -47,6 +47,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
       <Sidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
       <div className="flex-1 flex flex-col h-full overflow-hidden relative">
         <Navbar onMenuClick={() => setSidebarOpen(true)} />
+        <LiveBanner />
         <main className="flex-1 overflow-y-auto pb-24 lg:pb-10">
           {children}
         </main>

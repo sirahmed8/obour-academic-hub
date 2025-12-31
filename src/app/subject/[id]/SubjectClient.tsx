@@ -98,32 +98,43 @@ export function SubjectClient() {
     );
   }
 
-  if (isPlaceholder || fetchError) {
+  if (fetchError || !subject) {
     return (
       <AppShell>
-        <div className="flex flex-col items-center justify-center h-[60vh] text-center p-6">
-          <div className="text-8xl mb-4">📚</div>
-          <h1 className="text-3xl font-bold text-foreground mb-2">
+        <div className="flex flex-col items-center justify-center min-h-[60vh] text-muted-foreground animate-in fade-in zoom-in duration-500">
+          <div className="bg-muted p-6 rounded-full mb-6 relative overflow-hidden group">
+            <div className="absolute inset-0 bg-primary/10 translate-y-full group-hover:translate-y-0 transition-transform duration-500 rounded-full" />
+            <Icons.SearchX size={64} className="relative z-10" />
+          </div>
+          <h2 className="text-2xl font-bold text-foreground mb-2">
             {language === "ar" ? "المادة غير موجودة" : "Subject Not Found"}
-          </h1>
-          <p className="text-muted-foreground mb-6">
+          </h2>
+          <p className="mb-6 max-w-md text-center">
             {language === "ar"
-              ? "عذراً، المادة التي تبحث عنها غير متوفرة."
-              : "Sorry, the subject you are looking for does not exist."}
+              ? "عذراً، لم نتمكن من العثور على المادة المطلوبة. ربما تم حذفها أو أن الرابط غير صحيح."
+              : "Sorry, we couldn't find the page you're looking for."}
           </p>
-          <Link
-            href="/main"
-            className="px-6 py-3 bg-primary text-primary-foreground rounded-xl font-medium hover:bg-primary/90 transition flex items-center gap-2"
-          >
-            <ArrowLeft size={18} />
-            {language === "ar" ? "العودة للصفحة الرئيسية" : "Back to Home"}
-          </Link>
+          <p className="text-xs text-muted-foreground mb-4 font-mono bg-muted px-2 py-1 rounded">
+            ID: {subjectId}
+          </p>
+          <div className="flex gap-4">
+            <Link
+              href="/"
+              className="px-6 py-2.5 bg-primary text-primary-foreground rounded-xl hover:scale-105 active:scale-95 transition-all font-medium shadow-lg shadow-primary/25"
+            >
+              {language === "ar" ? "الرئيسية" : "Go Home"}
+            </Link>
+            <button
+              onClick={() => window.history.back()}
+              className="px-6 py-2.5 bg-muted hover:bg-muted/80 text-foreground rounded-xl transition-all font-medium"
+            >
+              {language === "ar" ? "رجوع" : "Go Back"}
+            </button>
+          </div>
         </div>
       </AppShell>
     );
   }
-
-  if (!subject) return null;
 
   const IconComponent =
     (Icons as unknown as Record<string, React.ElementType>)[subject.icon] ||

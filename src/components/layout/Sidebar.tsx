@@ -12,6 +12,7 @@ import {
   MessageSquare,
   FileText,
   AlertTriangle,
+  Megaphone,
 } from "lucide-react";
 import { useAuth, useLanguage } from "@/contexts";
 import { Notification as AppNotification } from "@/types";
@@ -81,6 +82,11 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
   const adminItems = [
     { name: t("admin.subjects"), path: "/admin/subjects", icon: FileText },
     { name: t("admin.resources"), path: "/admin/resources", icon: FileText },
+    {
+      name: language === "ar" ? "الإعلانات" : "Banners",
+      path: "/admin/banners",
+      icon: Megaphone,
+    },
     { name: t("admin.users"), path: "/admin/users", icon: Users },
     { name: t("admin.inbox"), path: "/admin/inbox", icon: MessageSquare },
     { name: t("admin.analytics"), path: "/admin/analytics", icon: BarChart3 },
@@ -124,25 +130,25 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
       >
         <div className="flex flex-col h-full">
           {/* Header */}
-          <div className="h-20 flex items-center justify-center border-b border-border px-4">
-            <div className="flex items-center gap-3">
+          <div className="p-4 flex items-center gap-3 border-b border-border/50">
+            <div className="relative w-10 h-10 flex-shrink-0 bg-white rounded-full p-1 overflow-hidden">
               <Image
                 src="/obour-logo.png"
                 alt="Obour Logo"
                 width={40}
                 height={40}
-                className="rounded-xl shadow-lg"
+                className="object-contain w-full h-full"
               />
-              <div>
-                <h1 className="font-bold text-foreground text-lg leading-tight">
-                  {language === "ar" ? "معاهد العبور" : "Obour Hub"}
-                </h1>
-                <p className="text-xs text-muted-foreground">
-                  {language === "ar"
-                    ? "نظام إدارة التعلم الذكي"
-                    : "Smart Learning System"}
-                </p>
-              </div>
+            </div>
+            <div>
+              <h1 className="font-bold text-foreground text-lg leading-tight truncate">
+                {language === "ar" ? "معاهد العبور" : "Obour Hub"}
+              </h1>
+              <p className="text-[10px] text-muted-foreground truncate opacity-80">
+                {language === "ar"
+                  ? "نظام إدارة التعلم الذكي"
+                  : "Smart Learning System"}
+              </p>
             </div>
           </div>
 

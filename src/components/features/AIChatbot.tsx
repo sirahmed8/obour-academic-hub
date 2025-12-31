@@ -339,7 +339,9 @@ export function AIChatbot() {
           </div>
 
           {/* Messages Area */}
-          <div className="flex-1 overflow-y-auto p-4 space-y-4 bg-muted/30 scroll-smooth">
+          <div className="flex-1 overflow-y-auto p-4 space-y-4 bg-muted/30 scroll-smooth pb-24">
+            {" "}
+            {/* Added pb-24 for input space */}
             {mode === "bot" ? (
               localMessages.map((msg, idx) => (
                 <div
@@ -412,7 +414,6 @@ export function AIChatbot() {
                 </div>
               ))
             )}
-
             {isTyping && (
               <div className="flex items-center gap-1 bg-card w-fit p-3 rounded-2xl rounded-bl-none animate-pulse">
                 <span className="w-2 h-2 bg-primary/40 rounded-full animate-bounce" />
@@ -423,9 +424,9 @@ export function AIChatbot() {
             <div ref={messagesEndRef} />
           </div>
 
-          {/* Input Area */}
-          <div className="p-3 bg-card border-t border-border space-y-2">
-            {/* Support Button */}
+          {/* Floating Input Area */}
+          <div className="absolute bottom-0 left-0 right-0 p-4 bg-background/80 backdrop-blur-md border-t border-border rounded-b-3xl">
+            {/* Support Button (Floating above input if needed) */}
             {showSupportButton && mode === "bot" && (
               <button
                 onClick={() => {
@@ -442,16 +443,14 @@ export function AIChatbot() {
                   };
                   setLocalMessages((prev) => [...prev, switchMsg]);
                 }}
-                className="w-full py-2.5 bg-primary/10 hover:bg-primary/20 text-primary font-medium rounded-xl transition-all flex items-center justify-center gap-2 active:scale-[0.98]"
+                className="w-full mb-3 py-2 bg-primary/10 hover:bg-primary/20 text-primary font-medium rounded-xl transition-all flex items-center justify-center gap-2 active:scale-[0.98]"
               >
-                <Headphones size={18} />
-                {language === "ar"
-                  ? "تحدث مع موظف حقيقي"
-                  : "Talk to a real person"}
+                <Headphones size={16} />
+                {language === "ar" ? "تحدث مع موظف" : "Talk to Human"}
               </button>
             )}
-            {/* Input */}
-            <div className="flex items-center gap-2 bg-background border border-input p-1.5 rounded-3xl focus-within:ring-2 focus-within:ring-primary/20 transition-all shadow-sm">
+
+            <div className="flex items-center gap-2">
               <input
                 value={input}
                 onChange={(e) => setInput(e.target.value)}
@@ -459,20 +458,20 @@ export function AIChatbot() {
                 placeholder={
                   mode === "bot"
                     ? language === "ar"
-                      ? "اسأل البوت..."
-                      : "Ask the bot..."
+                      ? "اكتب رسالتك..."
+                      : "Type a message..."
                     : language === "ar"
-                    ? "اكتب للدعم..."
+                    ? "مراسلة الدعم..."
                     : "Message support..."
                 }
-                className="flex-1 bg-transparent px-4 py-2.5 outline-none text-sm placeholder:text-muted-foreground"
+                className="flex-1 bg-muted/50 hover:bg-muted focus:bg-background px-4 py-3 rounded-full border border-transparent focus:border-primary/20 outline-none transition-all text-sm placeholder:text-muted-foreground"
               />
               <button
                 onClick={handleSend}
                 disabled={!input.trim()}
-                className="p-2.5 bg-primary text-primary-foreground rounded-full hover:scale-105 active:scale-95 transition-all disabled:opacity-50 disabled:hover:scale-100"
+                className="p-3 bg-primary text-primary-foreground rounded-full shadow-lg hover:shadow-xl hover:scale-105 active:scale-95 transition-all disabled:opacity-50 disabled:hover:scale-100 disabled:shadow-none"
               >
-                <Send size={18} />
+                <Send size={20} />
               </button>
             </div>
           </div>
