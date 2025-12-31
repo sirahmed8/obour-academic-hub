@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
+import { AnimatePresence, motion } from "framer-motion";
 import {
   MessageSquare,
   X,
@@ -378,30 +379,42 @@ export function AIChatbot() {
             {" "}
             {/* Added pb-24 for input space */}
             {mode === "bot" ? (
-              localMessages.map((msg, idx) => (
-                <div
-                  key={msg.id}
-                  className={cn(
-                    "flex flex-col max-w-[85%] animate-scale-in",
-                    msg.sender === "user" ? "ml-auto items-end" : "items-start"
-                  )}
-                  style={{ animationDelay: `${idx * 50}ms` }}
-                >
-                  <div
+              <AnimatePresence mode="popLayout">
+                {localMessages.map((msg, idx) => (
+                  <motion.div
+                    key={msg.id}
+                    layout
+                    initial={{ opacity: 0, scale: 0.8, y: 10 }}
+                    animate={{ opacity: 1, scale: 1, y: 0 }}
+                    transition={{
+                      type: "spring",
+                      stiffness: 300,
+                      damping: 25,
+                      delay: idx * 0.05,
+                    }}
                     className={cn(
-                      "p-3 rounded-2xl shadow-sm text-sm whitespace-pre-wrap leading-relaxed",
+                      "flex flex-col max-w-[85%]",
                       msg.sender === "user"
-                        ? "bg-primary text-primary-foreground rounded-br-none"
-                        : "bg-card text-foreground rounded-bl-none"
+                        ? "ml-auto items-end"
+                        : "items-start"
                     )}
                   >
-                    {msg.text}
-                  </div>
-                  <span className="text-[10px] text-muted-foreground mt-1 px-1">
-                    {formatTime(msg.timestamp)}
-                  </span>
-                </div>
-              ))
+                    <div
+                      className={cn(
+                        "p-3 rounded-2xl shadow-sm text-sm whitespace-pre-wrap leading-relaxed",
+                        msg.sender === "user"
+                          ? "bg-primary text-primary-foreground rounded-br-none"
+                          : "bg-card text-foreground rounded-bl-none"
+                      )}
+                    >
+                      {msg.text}
+                    </div>
+                    <span className="text-[10px] text-muted-foreground mt-1 px-1">
+                      {formatTime(msg.timestamp)}
+                    </span>
+                  </motion.div>
+                ))}
+              </AnimatePresence>
             ) : liveMessages.length === 0 ? (
               <div className="h-full flex flex-col items-center justify-center text-muted-foreground opacity-50 p-6 text-center">
                 <Headphones size={48} className="mb-4" />
@@ -412,47 +425,58 @@ export function AIChatbot() {
                 </p>
               </div>
             ) : (
-              liveMessages.map((msg) => (
-                <div
-                  key={msg.id}
-                  className={cn(
-                    "flex flex-col max-w-[85%] animate-scale-in",
-                    msg.senderId === user?.uid
-                      ? "ml-auto items-end"
-                      : "items-start"
-                  )}
-                >
-                  <div
+              <AnimatePresence mode="popLayout">
+                {liveMessages.map((msg) => (
+                  <motion.div
+                    key={msg.id}
+                    layout // This enables smooth layout animations
+                    initial={{ opacity: 0, scale: 0.8, y: 10 }}
+                    animate={{ opacity: 1, scale: 1, y: 0 }}
+                    exit={{
+                      opacity: 0,
+                      scale: 0.8,
+                      transition: { duration: 0.2 },
+                    }}
+                    transition={{ type: "spring", stiffness: 300, damping: 25 }}
                     className={cn(
-                      "p-3 rounded-2xl shadow-sm text-sm whitespace-pre-wrap leading-relaxed min-w-[60px]",
+                      "flex flex-col max-w-[85%]",
                       msg.senderId === user?.uid
-                        ? "bg-primary text-primary-foreground rounded-br-none"
-                        : "bg-card text-foreground rounded-bl-none"
+                        ? "ml-auto items-end"
+                        : "items-start"
                     )}
                   >
-                    {msg.text}
-                    {msg.senderId === user?.uid && (
-                      <div className="flex justify-end mt-1">
-                        {msg.status === "seen" ? (
-                          <CheckCheck size={14} className="text-blue-200" />
-                        ) : msg.status === "delivered" ? (
-                          <CheckCheck size={14} className="opacity-70" />
-                        ) : (
-                          <Check size={14} className="opacity-70" />
-                        )}
-                      </div>
-                    )}
-                  </div>
-                  <span className="text-[10px] text-muted-foreground mt-1 px-1">
-                    {formatTime(
-                      msg.timestamp as {
-                        seconds: number;
-                        nanoseconds: number;
-                      } | null
-                    )}
-                  </span>
-                </div>
-              ))
+                    <div
+                      className={cn(
+                        "p-3 rounded-2xl shadow-sm text-sm whitespace-pre-wrap leading-relaxed min-w-[60px]",
+                        msg.senderId === user?.uid
+                          ? "bg-primary text-primary-foreground rounded-br-none"
+                          : "bg-card text-foreground rounded-bl-none"
+                      )}
+                    >
+                      {msg.text}
+                      {msg.senderId === user?.uid && (
+                        <div className="flex justify-end mt-1">
+                          {msg.status === "seen" ? (
+                            <CheckCheck size={14} className="text-blue-200" />
+                          ) : msg.status === "delivered" ? (
+                            <CheckCheck size={14} className="opacity-70" />
+                          ) : (
+                            <Check size={14} className="opacity-70" />
+                          )}
+                        </div>
+                      )}
+                    </div>
+                    <span className="text-[10px] text-muted-foreground mt-1 px-1">
+                      {formatTime(
+                        msg.timestamp as {
+                          seconds: number;
+                          nanoseconds: number;
+                        } | null
+                      )}
+                    </span>
+                  </motion.div>
+                ))}
+              </AnimatePresence>
             )}
             {isTyping && (
               <div className="flex items-center gap-1 bg-card w-fit p-3 rounded-2xl rounded-bl-none animate-pulse">

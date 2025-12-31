@@ -52,7 +52,7 @@ export const sendMessage = async (
   isAdmin: boolean = false,
   replyTo?: ChatMessage["replyTo"]
 ) => {
-  const messagesRef = collection(db, `chats/${chatId}/messages`);
+  const messagesRef = collection(db, "chats", chatId, "messages");
   const chatRef = doc(db, "chats", chatId);
 
   // 1. Add Message
@@ -100,7 +100,7 @@ export const markMessagesAsSeen = async (chatId: string, isAdmin: boolean) => {
   // Query messages where sender is NOT the current viewer (isAdmin ? user : admin)
   // and status is NOT 'seen'.
 
-  const messagesRef = collection(db, `chats/${chatId}/messages`);
+  const messagesRef = collection(db, "chats", chatId, "messages");
   const q = query(
     messagesRef,
     // We want messages sent by the 'other' party that are not yet seen

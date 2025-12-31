@@ -54,8 +54,8 @@ export default function AdminBannersPage() {
 
   useEffect(() => {
     if (!isAdmin) {
-      setLoading(false); // Stop loading if not admin
-      return;
+      const timer = setTimeout(() => setLoading(false), 0);
+      return () => clearTimeout(timer);
     }
 
     // We rely on client-side sorting if mixing timestamp types,
@@ -237,12 +237,12 @@ export default function AdminBannersPage() {
             <Megaphone className="w-5 h-5 text-green-500" />
             {language === "ar" ? "نشط حالياً" : "Active Now"}
           </h2>
-          {activeBanners.length === 0 ? (
+          {(activeBanners || []).length === 0 ? (
             <div className="text-center py-8 bg-muted/20 rounded-xl border border-dashed text-muted-foreground text-sm">
               {language === "ar" ? "لا توجد إعلانات نشطة" : "No active banners"}
             </div>
           ) : (
-            activeBanners.map((banner) => (
+            (activeBanners || []).map((banner) => (
               <BannerCard
                 key={banner.id}
                 banner={banner}
@@ -259,12 +259,12 @@ export default function AdminBannersPage() {
             <History className="w-5 h-5" />
             {language === "ar" ? "السجل / غير نشط" : "History / Inactive"}
           </h2>
-          {historyBanners.length === 0 ? (
+          {(historyBanners || []).length === 0 ? (
             <div className="text-center py-8 bg-muted/20 rounded-xl border border-dashed text-muted-foreground text-sm">
               {language === "ar" ? "السجل فارغ" : "History is empty"}
             </div>
           ) : (
-            historyBanners.map((banner) => (
+            (historyBanners || []).map((banner) => (
               <BannerCard
                 key={banner.id}
                 banner={banner}
