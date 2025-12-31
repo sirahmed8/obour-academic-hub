@@ -60,7 +60,10 @@ export default function AdminAnalyticsPage() {
       }).sort((a, b) => b.views - a.views).slice(0, 10); // Show top 10
       setData(prev => ({ ...prev, subjectViews: views }));
       setLoading(false);
-    });
+      }, (error) => {
+        console.error("Error fetching subjects:", error);
+        setLoading(false);
+      });
 
     return () => {
       unsubPresence();
@@ -115,21 +118,28 @@ export default function AdminAnalyticsPage() {
                 {language === 'ar' ? 'مشاهدات المواد' : 'Subject Views'}
               </h2>
               <div className="h-80">
-                <ResponsiveContainer width="100%" height="100%">
-                  <BarChart data={data.subjectViews}>
-                    <CartesianGrid strokeDasharray="3 3" className="stroke-border" />
-                    <XAxis dataKey="name" className="text-xs" />
-                    <YAxis className="text-xs" />
-                    <Tooltip 
-                      contentStyle={{ 
-                        backgroundColor: 'hsl(var(--card))', 
-                        border: '1px solid hsl(var(--border))',
-                        borderRadius: '8px'
-                      }} 
-                    />
-                    <Bar dataKey="views" fill="hsl(var(--primary))" radius={[4, 4, 0, 0]} />
-                  </BarChart>
-                </ResponsiveContainer>
+                {data.subjectViews.length > 0 ? (
+                  <ResponsiveContainer width="100%" height="100%">
+                    <BarChart data={data.subjectViews}>
+                      <CartesianGrid strokeDasharray="3 3" className="stroke-border" />
+                      <XAxis dataKey="name" className="text-xs" />
+                      <YAxis className="text-xs" />
+                      <Tooltip 
+                        contentStyle={{ 
+                          backgroundColor: 'hsl(var(--card))', 
+                          border: '1px solid hsl(var(--border))',
+                          borderRadius: '8px'
+                        }} 
+                      />
+                      <Bar dataKey="views" fill="hsl(var(--primary))" radius={[4, 4, 0, 0]} />
+                    </BarChart>
+                  </ResponsiveContainer>
+                ) : (
+                  <div className="h-full flex flex-col items-center justify-center text-muted-foreground">
+                    <BarChart3 className="w-12 h-12 mb-2 opacity-20" />
+                    <p>{language === 'ar' ? 'لا توجد بيانات للمواد' : 'No subject data available'}</p>
+                  </div>
+                )}
               </div>
             </div>
           </>

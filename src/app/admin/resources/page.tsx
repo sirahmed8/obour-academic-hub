@@ -6,6 +6,7 @@ import { collection, addDoc, onSnapshot, query, orderBy } from 'firebase/firesto
 import { uploadToCloudinary } from '@/lib/cloudinary';
 import { useLanguage } from '@/contexts';
 import { AppShell } from '@/components/layout/AppShell';
+import { CustomSelect } from '@/components/ui/CustomSelect';
 import { FileText, Link as LinkIcon, Upload, Loader2, Plus } from 'lucide-react';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
@@ -106,18 +107,15 @@ export default function AdminResourcesPage() {
           <form onSubmit={handleSubmit} className="space-y-6">
             <div>
               <label className="block text-sm font-medium mb-1">{language === 'ar' ? 'اختر المادة' : 'Select Subject'}</label>
-              {loadingSubjects ? (
-                <div className="h-10 bg-muted rounded-lg animate-pulse" />
+                  {loadingSubjects ? (
+                <div className="h-12 bg-muted rounded-2xl animate-pulse" />
               ) : (
-                <select 
+                <CustomSelect
+                  options={subjects.map(s => ({ value: s.id, label: s.name }))}
                   value={form.subjectId}
-                  onChange={(e) => setForm({...form, subjectId: e.target.value})}
-                  className="w-full rounded-2xl border border-border px-4 py-3 bg-card focus:ring-2 focus:ring-primary/20 outline-none transition-all appearance-none"
-                >
-                  {subjects.map(sub => (
-                    <option key={sub.id} value={sub.id}>{sub.name}</option>
-                  ))}
-                </select>
+                  onChange={(val) => setForm({...form, subjectId: val})}
+                  placeholder={language === 'ar' ? 'اختر المادة' : 'Select Subject'}
+                />
               )}
             </div>
 
