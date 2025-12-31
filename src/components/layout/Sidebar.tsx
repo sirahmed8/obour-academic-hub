@@ -13,6 +13,7 @@ import {
   FileText,
   AlertTriangle,
   Megaphone,
+  LucideIcon,
 } from "lucide-react";
 import { useAuth, useLanguage } from "@/contexts";
 import { Notification as AppNotification } from "@/types";
@@ -30,17 +31,19 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
   const { user, isAdmin, isOwner } = useAuth();
   const { t, language } = useLanguage();
   const [unreadCount, setUnreadCount] = useState(0);
+  const [inboxUnreadCount, setInboxUnreadCount] = useState(0);
 
-  // Listen for unread notifications
+  // Listen for unread chats (Admin only) and Notifications
   useEffect(() => {
     if (!user) return;
 
-    const q = query(
+    // 1. Notifications Listener
+    const notifQuery = query(
       collection(db, "notifications"),
       orderBy("createdAt", "desc")
     );
 
-    const unsubscribe = onSnapshot(q, (snapshot) => {
+    const unsubNotif = onSnapshot(notifQuery, (snapshot) => {
       const all = snapshot.docs.map(
         (d) => ({ id: d.id, ...d.data() } as AppNotification)
       );
@@ -57,7 +60,30 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
       setUnreadCount(unread);
     });
 
-    return () => unsubscribe();
+    // 2. Chat Listener (For Admin Inbox Badge)
+    let unsubChats = () => {};
+    if (isAdmin) {
+      // In a real scenario, we might want a compound query or just filter client side for 'unread' chats.
+      // Assuming 'chats' collection documents have a field 'unreadCount' or similar.
+      // If not, we iterate.
+      const chatQuery = query(collection(db, "chats"));
+      unsubChats = onSnapshot(chatQuery, (snapshot) => {
+        // Count chats that have unread messages for admin.
+        // We look for a field like 'hasUnreadMessages' or 'adminUnread'
+        let count = 0;
+        snapshot.docs.forEach((doc) => {
+          const data = doc.data();
+          // Assuming 'hasUnreadMessages' is the field set by backend or sender
+          if (data.hasUnreadMessages) count++;
+        });
+        setInboxUnreadCount(count);
+      });
+    }
+
+    return () => {
+      unsubNotif();
+      unsubChats();
+    };
   }, [user, isAdmin]);
 
   const navItems = [
@@ -78,7 +104,14 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
     return pathname === itemPath;
   };
 
-  const adminItems = [
+  interface NavItem {
+    name: string;
+    path: string;
+    icon: LucideIcon;
+    badge?: number;
+  }
+
+  const adminItems: NavItem[] = [
     { name: t("admin.subjects"), path: "/admin/subjects", icon: FileText },
     { name: t("admin.resources"), path: "/admin/resources", icon: FileText },
     {
@@ -88,7 +121,12 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
     },
     { name: t("nav.team"), path: "/team", icon: Users },
     { name: t("admin.users"), path: "/admin/users", icon: Users },
-    { name: t("admin.inbox"), path: "/admin/inbox", icon: MessageSquare },
+    {
+      name: t("admin.inbox"),
+      path: "/admin/inbox",
+      icon: MessageSquare,
+      badge: inboxUnreadCount > 0 ? inboxUnreadCount : undefined,
+    },
     { name: t("admin.analytics"), path: "/admin/analytics", icon: BarChart3 },
   ];
 
@@ -206,7 +244,14 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
                           : "text-muted-foreground hover:bg-muted hover:text-foreground"
                       )}
                     >
-                      <Icon size={20} />
+                      <div className="relative">
+                        <Icon size={20} />
+                        {item.badge !== undefined && item.badge > 0 && (
+                          <span className="absolute -top-2 -right-2 bg-red-500 text-white text-[10px] w-4 h-4 rounded-full flex items-center justify-center">
+                            {item.badge > 9 ? "9+" : item.badge}
+                          </span>
+                        )}
+                      </div>
                       <span>{item.name}</span>
                     </Link>
                   );

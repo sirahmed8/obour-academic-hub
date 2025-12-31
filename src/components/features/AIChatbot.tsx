@@ -116,6 +116,27 @@ export function AIChatbot() {
     return () => unsubscribe();
   }, [user, isOpen]);
 
+  // Welcome Message Logic (Client-side check)
+  useEffect(() => {
+    if (isOpen && mode === "bot" && localMessages.length === 0) {
+      // Small delay for natural feel
+      const timer = setTimeout(() => {
+        setLocalMessages([
+          {
+            id: "welcome-init",
+            text:
+              language === "ar"
+                ? "مرحباً! أنا مساعدك الآلي. كيف يمكنني مساعدتك اليوم؟"
+                : "Welcome! I am your automated assistant. How can I help you today?",
+            sender: "bot",
+            timestamp: new Date().toISOString(),
+          },
+        ]);
+      }, 500);
+      return () => clearTimeout(timer);
+    }
+  }, [isOpen, mode, localMessages.length, language]);
+
   // Auto-scroll
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -223,8 +244,18 @@ export function AIChatbot() {
 
   const confirmClearHistory = () => {
     if (mode === "bot") {
-      setLocalMessages([]);
-      localStorage.removeItem("obour_local_chat");
+      // Re-inject welcome message
+      const welcomeMsg: LocalMessage = {
+        id: "welcome-" + Date.now(),
+        text:
+          language === "ar"
+            ? "مرحباً! أنا مساعدك الآلي. كيف يمكنني مساعدتك اليوم؟"
+            : "Welcome! I am your automated assistant. How can I help you today?",
+        sender: "bot",
+        timestamp: new Date().toISOString(),
+      };
+      setLocalMessages([welcomeMsg]);
+      localStorage.setItem("obour_local_chat", JSON.stringify([welcomeMsg]));
     }
     setShowClearModal(false);
   };

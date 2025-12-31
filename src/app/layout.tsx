@@ -14,6 +14,7 @@ export const metadata: Metadata = {
   description: "Smart Learning Management System - نظام إدارة التعلم الذكي",
   icons: {
     icon: "/obour-logo.png",
+    shortcut: "/obour-logo.png",
     apple: "/obour-logo.png",
   },
 };

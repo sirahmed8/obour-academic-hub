@@ -132,43 +132,54 @@ export default function AdminUsersPage() {
 
           <div className="flex gap-4 w-full md:w-auto items-center">
             {/* Invite Admin */}
-            <div className="flex gap-2">
+            {/* Invite Admin Form */}
+            <form
+              onSubmit={async (e) => {
+                e.preventDefault();
+                const form = e.currentTarget;
+                const emailInput = form.elements.namedItem(
+                  "invite-email"
+                ) as HTMLInputElement;
+                const email = emailInput.value;
+
+                if (!email || !email.includes("@"))
+                  return toast.error("Invalid email");
+
+                try {
+                  const { setDoc, doc, serverTimestamp } = await import(
+                    "firebase/firestore"
+                  );
+                  await setDoc(doc(db, "whitelisted_admins", email), {
+                    email,
+                    invitedBy: "admin",
+                    createdAt: serverTimestamp(),
+                  });
+                  toast.success("Admin invited successfully");
+                  form.reset();
+                } catch (err) {
+                  console.error(err);
+                  toast.error("Failed to invite");
+                }
+              }}
+              className="flex gap-2"
+            >
               <input
+                name="invite-email"
                 placeholder={
                   language === "ar"
                     ? "إضافة بريد إلكتروني كأدمن..."
                     : "Invite admin by email..."
                 }
-                id="invite-email"
                 className="px-4 py-2 rounded-xl border border-border bg-background focus:ring-2 focus:ring-primary/20 outline-none text-sm w-64"
-                onKeyDown={async (e) => {
-                  if (e.key === "Enter") {
-                    const email = e.currentTarget.value;
-                    if (!email.includes("@"))
-                      return toast.error("Invalid email");
-                    try {
-                      // We use setDoc to ensure idempotency using email as ID or just addDoc
-                      // Here using addDoc is fine, but maybe we want to avoid duplicates.
-                      // Let's us setDoc with email as ID.
-                      const { setDoc, doc, serverTimestamp } = await import(
-                        "firebase/firestore"
-                      );
-                      // Need to verify if we have access to 'whitelisted_admins' collection
-                      await setDoc(doc(db, "whitelisted_admins", email), {
-                        email,
-                        invitedBy: "admin",
-                        createdAt: serverTimestamp(),
-                      });
-                      toast.success("Admin invited successfully");
-                      e.currentTarget.value = "";
-                    } catch (err) {
-                      console.error(err);
-                      toast.error("Failed to invite");
-                    }
-                  }
-                }}
               />
-            </div>
+              <button
+                type="submit"
+                className="px-4 py-2 bg-primary text-primary-foreground rounded-xl text-sm font-medium hover:bg-primary/90 transition-colors"
+                title={language === "ar" ? "دعوة" : "Invite"}
+              >
+                +
+              </button>
+            </form>
 
             <input
               placeholder={

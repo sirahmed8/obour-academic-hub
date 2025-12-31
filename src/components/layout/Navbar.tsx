@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { Menu, Sun, Moon, Monitor } from "lucide-react";
+import { motion } from "framer-motion";
 import { useTheme } from "next-themes";
 import { useAuth, useLanguage } from "@/contexts";
 import Image from "next/image";
@@ -234,22 +235,36 @@ export function Navbar({ onMenuClick }: NavbarProps) {
                   <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
                     {t("profile.theme")}
                   </p>
-                  <div className="flex bg-muted/50 p-1 rounded-lg">
+                  <div className="flex bg-muted/50 p-1 rounded-lg relative">
                     {themes.map((t) => {
                       const Icon = t.icon;
+                      const isActive = theme === t.value;
                       return (
                         <button
                           key={t.value}
                           onClick={() => setTheme(t.value)}
                           className={cn(
-                            "flex-1 p-1.5 rounded-md flex items-center justify-center transition-all",
-                            theme === t.value
-                              ? "bg-background text-primary shadow-sm"
+                            "flex-1 p-1.5 rounded-md flex items-center justify-center transition-all relative z-10",
+                            isActive
+                              ? "text-primary"
                               : "text-muted-foreground hover:text-foreground"
                           )}
                           title={t.label}
                         >
-                          <Icon size={16} />
+                          {isActive && (
+                            <motion.div
+                              layoutId="theme-knob"
+                              className="absolute inset-0 bg-background shadow-sm rounded-md"
+                              transition={{
+                                type: "spring",
+                                stiffness: 300,
+                                damping: 25,
+                              }}
+                            />
+                          )}
+                          <span className="relative z-10">
+                            <Icon size={16} />
+                          </span>
                         </button>
                       );
                     })}
