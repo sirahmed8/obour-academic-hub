@@ -23,7 +23,7 @@ export function SubjectCard({ subject, resourceCount = 0 }: SubjectCardProps) {
 
   return (
     <Link href={`/subject/${subject.id}`}>
-      <div className="group bg-card rounded-2xl p-6 border border-border hover:shadow-xl hover:-translate-y-1 transition-all duration-300 cursor-pointer">
+      <div className="group bg-card rounded-2xl p-6 border border-border card-hover cursor-pointer">
         <div className="flex items-start gap-4">
           {/* Icon */}
           <div className={cn(

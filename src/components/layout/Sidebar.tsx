@@ -32,10 +32,18 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
   const { t, language } = useLanguage();
 
   const navItems = [
-    { name: t('nav.home'), path: '/', icon: LayoutDashboard },
+    { name: t('nav.home'), path: '/main', icon: LayoutDashboard },
     { name: t('nav.notifications'), path: '/notifications', icon: Bell },
     { name: t('nav.team'), path: '/team', icon: Users },
   ];
+
+  // Helper function to check if path is active (handles both / and /main for home)
+  const isActivePath = (itemPath: string) => {
+    if (itemPath === '/main') {
+      return pathname === '/main' || pathname === '/';
+    }
+    return pathname === itemPath;
+  };
 
   const adminItems = [
     { name: t('admin.subjects'), path: '/admin/subjects', icon: FileText },
@@ -95,7 +103,7 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
             <div className="space-y-2">
               {navItems.map((item) => {
                 const Icon = item.icon;
-                const isActive = pathname === item.path;
+                const isActive = isActivePath(item.path);
                 return (
                   <Link
                     key={item.path}
@@ -123,7 +131,7 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
                 </p>
                 {adminItems.map((item) => {
                   const Icon = item.icon;
-                  const isActive = pathname === item.path;
+                  const isActive = isActivePath(item.path);
                   return (
                     <Link
                       key={item.path}
@@ -152,7 +160,7 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
                 </p>
                 {ownerItems.map((item) => {
                   const Icon = item.icon;
-                  const isActive = pathname === item.path;
+                  const isActive = isActivePath(item.path);
                   return (
                     <Link
                       key={item.path}

@@ -3,6 +3,7 @@
     "site": "obour-institutesv3",
     "public": "out",
     "ignore": ["firebase.json", "**/.*", "**/node_modules/**"],
+    "cleanUrls": true,
     "rewrites": [],
     "headers": [
       {

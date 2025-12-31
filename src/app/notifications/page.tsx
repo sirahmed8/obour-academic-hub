@@ -65,7 +65,7 @@ export default function NotificationsPage() {
 
   return (
     <AppShell>
-      <div className="p-6 lg:p-10 max-w-4xl mx-auto space-y-8">
+      <div className="p-6 lg:p-10 max-w-4xl mx-auto space-y-8 page-transition">
         <div className="flex items-center gap-3">
           <div className="p-3 bg-primary/10 rounded-2xl">
             <Bell className="w-6 h-6 text-primary" />
@@ -89,7 +89,11 @@ export default function NotificationsPage() {
             {notifications.map((notif) => {
               const Icon = getIcon(notif.type);
               return (
-                <div key={notif.id} className="bg-card rounded-2xl p-6 border border-border shadow-sm">
+                <div 
+                  key={notif.id} 
+                  className="bg-card rounded-2xl p-6 border border-border shadow-sm animate-fade-in-up card-hover"
+                  style={{ animationDelay: `${notifications.indexOf(notif) * 100}ms` }}
+                >
                   <div className="flex items-start gap-4">
                     <div className={cn("p-3 rounded-xl", getColors(notif.type))}>
                       <Icon size={24} />

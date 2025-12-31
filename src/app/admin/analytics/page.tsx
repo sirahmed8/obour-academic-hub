@@ -114,24 +114,46 @@ export default function AdminAnalyticsPage() {
 
             {/* Subject Views Chart */}
             <div className="bg-card rounded-2xl p-6 border border-border">
-              <h2 className="text-lg font-bold text-foreground mb-6">
-                {language === 'ar' ? 'مشاهدات المواد' : 'Subject Views'}
-              </h2>
+              <div className="flex items-center justify-between mb-6">
+                <h2 className="text-lg font-bold text-foreground">
+                  {language === 'ar' ? 'مشاهدات المواد' : 'Subject Views'}
+                </h2>
+                <button
+                  onClick={() => {
+                    // Regenerate random views
+                    setData(prev => ({
+                      ...prev,
+                      subjectViews: prev.subjectViews.map(item => ({
+                        ...item,
+                        views: Math.floor(Math.random() * 100) + 10
+                      })).sort((a, b) => b.views - a.views)
+                    }));
+                  }}
+                  className="px-4 py-2 text-sm font-medium text-primary bg-primary/10 hover:bg-primary/20 rounded-xl transition-all duration-200 flex items-center gap-2"
+                >
+                  <BarChart3 size={16} />
+                  {language === 'ar' ? 'إعادة ضبط' : 'Reset Stats'}
+                </button>
+              </div>
               <div className="h-80">
                 {data.subjectViews.length > 0 ? (
                   <ResponsiveContainer width="100%" height="100%">
                     <BarChart data={data.subjectViews}>
                       <CartesianGrid strokeDasharray="3 3" className="stroke-border" />
-                      <XAxis dataKey="name" className="text-xs" />
-                      <YAxis className="text-xs" />
+                      <XAxis dataKey="name" className="text-xs" tick={{ fill: 'hsl(var(--muted-foreground))' }} />
+                      <YAxis className="text-xs" tick={{ fill: 'hsl(var(--muted-foreground))' }} />
                       <Tooltip 
                         contentStyle={{ 
                           backgroundColor: 'hsl(var(--card))', 
                           border: '1px solid hsl(var(--border))',
-                          borderRadius: '8px'
-                        }} 
+                          borderRadius: '12px',
+                          boxShadow: '0 10px 40px rgba(0,0,0,0.2)'
+                        }}
+                        labelStyle={{ color: 'hsl(var(--foreground))', fontWeight: 'bold' }}
+                        itemStyle={{ color: 'hsl(var(--primary))' }}
+                        cursor={{ fill: 'hsl(var(--primary) / 0.1)' }}
                       />
-                      <Bar dataKey="views" fill="hsl(var(--primary))" radius={[4, 4, 0, 0]} />
+                      <Bar dataKey="views" fill="hsl(var(--primary))" radius={[8, 8, 0, 0]} />
                     </BarChart>
                   </ResponsiveContainer>
                 ) : (

@@ -27,7 +27,7 @@ export default function TeamPage() {
 
   return (
     <AppShell>
-      <div className="p-6 lg:p-10 space-y-12 max-w-7xl mx-auto">
+      <div className="p-6 lg:p-10 space-y-12 max-w-7xl mx-auto page-transition">
         {/* Header */}
         <div className="text-center space-y-4 max-w-2xl mx-auto">
           <div className="inline-flex items-center justify-center p-4 bg-primary/10 rounded-2xl text-primary mb-4">
@@ -49,7 +49,11 @@ export default function TeamPage() {
         {/* Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
           {TEAM_MEMBERS.map((member, idx) => (
-            <div key={idx} className="bg-card rounded-3xl p-8 text-center shadow-lg border border-border hover:-translate-y-2 transition-transform duration-300">
+            <div 
+              key={idx} 
+              className="bg-card rounded-3xl p-8 text-center shadow-lg border border-border card-hover animate-fade-in-up"
+              style={{ animationDelay: `${idx * 150}ms` }}
+            >
               <div className="w-32 h-32 mx-auto mb-6 rounded-full p-1 bg-gradient-to-tr from-primary to-purple-500">
                 <Image 
                   src={member.image} 
