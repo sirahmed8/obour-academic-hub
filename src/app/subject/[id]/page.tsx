@@ -1,10 +1,10 @@
 import { SubjectClient } from "./SubjectClient";
 
-// For static export, we generate NO params at build time
-// This effectively makes it a "catch-all" that requires client-side data fetching
-// Firebase hosting rewrites will handle the routing to this page
+// For static export, provide a placeholder param to satisfy build requirements
+// The client handling will take over for any actual ID
+// Firebase hosting rewrites ensure correct routing
 export async function generateStaticParams() {
-  return [];
+  return [{ id: "placeholder" }];
 }
 
 export default function SubjectPage() {
