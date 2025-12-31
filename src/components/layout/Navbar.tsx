@@ -14,6 +14,7 @@ interface NavbarProps {
 
 export function Navbar({ onMenuClick }: NavbarProps) {
   const [showSettings, setShowSettings] = useState(false);
+  const [isClosing, setIsClosing] = useState(false);
   const { theme, setTheme } = useTheme();
   const { user, logout } = useAuth();
   const { language, setLanguage, t } = useLanguage();
@@ -23,6 +24,15 @@ export function Navbar({ onMenuClick }: NavbarProps) {
     { value: "dark", icon: Moon, label: t("profile.darkMode") },
     { value: "system", icon: Monitor, label: t("profile.systemMode") },
   ];
+
+  // Close menu with animation
+  const closeMenu = () => {
+    setIsClosing(true);
+    setTimeout(() => {
+      setShowSettings(false);
+      setIsClosing(false);
+    }, 150);
+  };
 
   return (
     <header className="h-16 bg-card border-b border-border flex items-center justify-between px-4 lg:px-8 sticky top-0 z-30">
@@ -38,7 +48,7 @@ export function Navbar({ onMenuClick }: NavbarProps) {
       {/* Settings Dropdown */}
       <div className="relative">
         <button
-          onClick={() => setShowSettings(!showSettings)}
+          onClick={() => (showSettings ? closeMenu() : setShowSettings(true))}
           className="flex items-center gap-2 p-2 hover:bg-muted rounded-xl transition-colors"
         >
           {user && (
@@ -57,16 +67,15 @@ export function Navbar({ onMenuClick }: NavbarProps) {
 
         {showSettings && (
           <>
-            <div
-              className="fixed inset-0 z-40"
-              onClick={() => setShowSettings(false)}
-            />
+            <div className="fixed inset-0 z-40" onClick={closeMenu} />
             <div
               className={cn(
                 "absolute top-full mt-2 w-72 bg-card border border-border rounded-2xl shadow-2xl z-50 p-4 space-y-4",
-                "transition-all duration-300 ease-out",
-                "animate-scale-in origin-top-right",
-                language === "ar" ? "left-0 origin-top-left" : "right-0"
+                "transition-all duration-150 ease-out",
+                isClosing ? "animate-scale-out" : "animate-scale-in",
+                language === "ar"
+                  ? "left-0 origin-top-left"
+                  : "right-0 origin-top-right"
               )}
             >
               <div className="pt-2 border-t border-border">

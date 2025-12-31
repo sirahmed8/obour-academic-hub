@@ -15,7 +15,11 @@ import { useAuth, useLanguage } from "@/contexts";
 import { cn } from "@/lib/utils";
 import { db } from "@/lib/firebase";
 import { collection, query, orderBy, onSnapshot } from "firebase/firestore";
-import { getLocalBotResponse, wantsLiveSupport } from "@/lib/localBot";
+import {
+  getLocalBotResponse,
+  wantsLiveSupport,
+  needsHelpSuggestion,
+} from "@/lib/localBot";
 import { sendMessage, ChatMessage } from "@/lib/chatUtils";
 import { ConfirmationModal } from "@/components/ui/ConfirmationModal";
 
@@ -44,6 +48,7 @@ export function AIChatbot() {
   const { user } = useAuth();
   const { language } = useLanguage();
   const [showClearModal, setShowClearModal] = useState(false);
+  const [showSupportButton, setShowSupportButton] = useState(false);
 
   // Initial state loaded from localStorage
   const getInitialMessages = (): LocalMessage[] => {
@@ -128,23 +133,40 @@ export function AIChatbot() {
       };
       setLocalMessages((prev) => [...prev, userMsg]);
 
-      // Check if user wants live support
+      // Check if user wants live support (explicit request)
       if (wantsLiveSupport(text)) {
-        setMode("live");
-        const switchMsg: LocalMessage = {
+        const confirmMsg: LocalMessage = {
           id: (Date.now() + 1).toString(),
           text:
             language === "ar"
-              ? "تم تحويلك للدعم المباشر. يمكنك الآن التحدث مع موظف حقيقي! 🎧"
-              : "Switching you to live support. You can now talk to a real person! 🎧",
+              ? "بالتأكيد! سأحولك للدعم المباشر الآن. 🎧"
+              : "Sure! Switching you to live support now. 🎧",
           sender: "bot",
           timestamp: new Date().toISOString(),
         };
-        setLocalMessages((prev) => [...prev, switchMsg]);
+        setLocalMessages((prev) => [...prev, confirmMsg]);
+        setTimeout(() => setMode("live"), 1000);
+        return;
+      }
+
+      // Check if user needs help suggestion (show button)
+      if (needsHelpSuggestion(text)) {
+        setShowSupportButton(true);
+        const helpMsg: LocalMessage = {
+          id: (Date.now() + 1).toString(),
+          text:
+            language === "ar"
+              ? "أنا هنا لمساعدتك! 🙌\n\nيمكنني الإجابة على أسئلة عن:\n• المعهد والموقع\n• الأقسام والتخصصات\n• المصاريف\n• الامتحانات والنتائج\n\nإذا أردت التحدث مع موظف حقيقي، اضغط الزر أدناه 👇"
+              : "I'm here to help you! 🙌\n\nI can answer questions about:\n• Institute & location\n• Departments & majors\n• Fees & tuition\n• Exams & results\n\nIf you need to talk to a real person, click the button below 👇",
+          sender: "bot",
+          timestamp: new Date().toISOString(),
+        };
+        setLocalMessages((prev) => [...prev, helpMsg]);
         return;
       }
 
       setIsTyping(true);
+      setShowSupportButton(false);
 
       // Simulate delay
       setTimeout(() => {
@@ -402,8 +424,34 @@ export function AIChatbot() {
           </div>
 
           {/* Input Area */}
-          <div className="p-3 bg-card border-t border-border">
-            <div className="flex items-center gap-2 bg-muted/50 p-1.5 rounded-full border border-border focus-within:ring-2 focus-within:ring-primary/20 focus-within:border-primary transition-all">
+          <div className="p-3 bg-card border-t border-border space-y-2">
+            {/* Support Button */}
+            {showSupportButton && mode === "bot" && (
+              <button
+                onClick={() => {
+                  setMode("live");
+                  setShowSupportButton(false);
+                  const switchMsg: LocalMessage = {
+                    id: Date.now().toString(),
+                    text:
+                      language === "ar"
+                        ? "تم تحويلك للدعم المباشر. يمكنك الآن التحدث مع موظف! 🎧"
+                        : "Switched to live support. You can now talk to an agent! 🎧",
+                    sender: "bot",
+                    timestamp: new Date().toISOString(),
+                  };
+                  setLocalMessages((prev) => [...prev, switchMsg]);
+                }}
+                className="w-full py-2.5 bg-primary/10 hover:bg-primary/20 text-primary font-medium rounded-xl transition-all flex items-center justify-center gap-2 active:scale-[0.98]"
+              >
+                <Headphones size={18} />
+                {language === "ar"
+                  ? "تحدث مع موظف حقيقي"
+                  : "Talk to a real person"}
+              </button>
+            )}
+            {/* Input */}
+            <div className="flex items-center gap-2 bg-muted p-1 rounded-full">
               <input
                 value={input}
                 onChange={(e) => setInput(e.target.value)}
@@ -417,12 +465,12 @@ export function AIChatbot() {
                     ? "اكتب للدعم..."
                     : "Message support..."
                 }
-                className="flex-1 bg-transparent px-4 py-2 outline-none text-sm placeholder:text-muted-foreground"
+                className="flex-1 bg-transparent px-4 py-2.5 outline-none text-sm placeholder:text-muted-foreground"
               />
               <button
                 onClick={handleSend}
                 disabled={!input.trim()}
-                className="p-2.5 bg-primary text-primary-foreground rounded-full hover:scale-105 active:scale-95 transition-all disabled:opacity-50 disabled:hover:scale-100 shadow-sm"
+                className="p-2.5 bg-primary text-primary-foreground rounded-full hover:scale-105 active:scale-95 transition-all disabled:opacity-50 disabled:hover:scale-100"
               >
                 <Send size={18} />
               </button>

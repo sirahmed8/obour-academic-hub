@@ -1,40 +1,34 @@
-'use client';
+"use client";
 
-import { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
-import { useAuth, useLanguage } from '@/contexts';
-import { Sidebar, Navbar } from '@/components/layout';
-import { LoginScreen } from '@/components/features/LoginScreen';
-import { StudentProfileSetup } from '@/components/features/StudentProfileSetup';
-import { AIChatbot } from '@/components/features/AIChatbot';
-import { Loader2 } from 'lucide-react';
+import { useState, useEffect, useMemo } from "react";
+import { useRouter } from "next/navigation";
+import { useAuth, useLanguage } from "@/contexts";
+import { Sidebar, Navbar } from "@/components/layout";
+import { LoginScreen } from "@/components/features/LoginScreen";
+import { StudentProfileSetup } from "@/components/features/StudentProfileSetup";
+import { AIChatbot } from "@/components/features/AIChatbot";
+import { Loader2 } from "lucide-react";
 
 export function AppShell({ children }: { children: React.ReactNode }) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
-  const [showProfileSetup, setShowProfileSetup] = useState(false);
+  const [profileSetupDismissed, setProfileSetupDismissed] = useState(false);
   const { user, loading } = useAuth();
   const { dir } = useLanguage();
 
   const router = useRouter();
 
-  // ... existing simple side effects ...
-
-  useEffect(() => {
-    // Check if profile is incomplete
-    if (user && (!user.studentCode || user.studentCode.length !== 6)) {
-      setShowProfileSetup(true);
-    } else {
-      setShowProfileSetup(false);
-    }
-  }, [user]);
+  // Check if profile is incomplete using useMemo (no effect)
+  const showProfileSetup = useMemo(() => {
+    if (profileSetupDismissed) return false;
+    return user && (!user.studentCode || user.studentCode.length !== 6);
+  }, [user, profileSetupDismissed]);
 
   // Protect route with useEffect to avoid render-loop
   useEffect(() => {
     if (!loading && !user) {
-      router.push('/');
+      router.push("/");
     }
   }, [user, loading, router]);
-
 
   if (loading) {
     return (
@@ -61,7 +55,9 @@ export function AppShell({ children }: { children: React.ReactNode }) {
 
       {/* Profile Setup Modal */}
       {showProfileSetup && (
-        <StudentProfileSetup onComplete={() => setShowProfileSetup(false)} />
+        <StudentProfileSetup
+          onComplete={() => setProfileSetupDismissed(true)}
+        />
       )}
     </div>
   );

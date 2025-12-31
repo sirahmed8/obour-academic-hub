@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { useParams, useRouter } from "next/navigation";
+import { useParams } from "next/navigation";
 import { db } from "@/lib/firebase";
 import {
   doc,
@@ -30,36 +30,50 @@ import Link from "next/link";
 
 export function SubjectClient() {
   const params = useParams();
-  const router = useRouter();
   const { language } = useLanguage();
+
+  // Compute placeholder check inline (stable across renders)
+  const subjectId = params.id as string | undefined;
+  const isPlaceholder = !subjectId || subjectId === "placeholder";
+
   const [subject, setSubject] = useState<Subject | null>(null);
   const [resources, setResources] = useState<Resource[]>([]);
-  const [loading, setLoading] = useState(true);
+  // If placeholder, start with loading = false
+  const [loading, setLoading] = useState(() => !isPlaceholder);
+  const [fetchError, setFetchError] = useState(false);
 
   useEffect(() => {
-    if (!params.id) return;
+    // Skip effect entirely for placeholder
+    if (isPlaceholder) return;
+
+    let cancelled = false;
 
     const fetchSubject = async () => {
-      const docRef = doc(db, "subjects", params.id as string);
-      const docSnap = await getDoc(docRef);
-      if (docSnap.exists()) {
-        setSubject({ id: docSnap.id, ...docSnap.data() } as Subject);
-      } else {
-        router.push("/");
+      try {
+        const docRef = doc(db, "subjects", subjectId);
+        const docSnap = await getDoc(docRef);
+        if (cancelled) return;
+        if (docSnap.exists()) {
+          setSubject({ id: docSnap.id, ...docSnap.data() } as Subject);
+        } else {
+          setFetchError(true);
+        }
+      } catch {
+        if (!cancelled) setFetchError(true);
       }
-      setLoading(false);
+      if (!cancelled) setLoading(false);
     };
 
     fetchSubject();
 
     // Increment views
-    updateDoc(doc(db, "subjects", params.id as string), {
+    updateDoc(doc(db, "subjects", subjectId), {
       views: increment(1),
     }).catch((err) => console.error("Error incrementing views:", err));
 
     // Resources subscription
     const q = query(
-      collection(db, "subjects", params.id as string, "resources"),
+      collection(db, "subjects", subjectId, "resources"),
       orderBy("orderIndex")
     );
     const unsubscribe = onSnapshot(q, (snapshot) => {
@@ -68,14 +82,42 @@ export function SubjectClient() {
       );
     });
 
-    return () => unsubscribe();
-  }, [params.id, router]);
+    return () => {
+      cancelled = true;
+      unsubscribe();
+    };
+  }, [subjectId, isPlaceholder]);
 
   if (loading) {
     return (
       <AppShell>
         <div className="flex items-center justify-center h-full">
           <Loader2 className="animate-spin text-primary" size={40} />
+        </div>
+      </AppShell>
+    );
+  }
+
+  if (isPlaceholder || fetchError) {
+    return (
+      <AppShell>
+        <div className="flex flex-col items-center justify-center h-[60vh] text-center p-6">
+          <div className="text-8xl mb-4">📚</div>
+          <h1 className="text-3xl font-bold text-foreground mb-2">
+            {language === "ar" ? "المادة غير موجودة" : "Subject Not Found"}
+          </h1>
+          <p className="text-muted-foreground mb-6">
+            {language === "ar"
+              ? "عذراً، المادة التي تبحث عنها غير متوفرة."
+              : "Sorry, the subject you are looking for does not exist."}
+          </p>
+          <Link
+            href="/main"
+            className="px-6 py-3 bg-primary text-primary-foreground rounded-xl font-medium hover:bg-primary/90 transition flex items-center gap-2"
+          >
+            <ArrowLeft size={18} />
+            {language === "ar" ? "العودة للصفحة الرئيسية" : "Back to Home"}
+          </Link>
         </div>
       </AppShell>
     );

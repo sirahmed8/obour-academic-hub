@@ -217,7 +217,7 @@
 
 /* Page Transition */
 .page-transition {
-  animation: fadeInUp 0.4s ease-out;
+  animation: fadeInUp 0.4s ease-out forwards;
 }
 
 /* Skeleton Loading Animation */
@@ -311,6 +311,22 @@ a,
 
 .animate-spring-bounce {
   animation: spring-bounce 0.4s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+}
+
+/* Scale out animation for closing menus */
+@keyframes scale-out {
+  0% {
+    transform: scale(1);
+    opacity: 1;
+  }
+  100% {
+    transform: scale(0.95);
+    opacity: 0;
+  }
+}
+
+.animate-scale-out {
+  animation: scale-out 0.15s ease-out forwards;
 }
 
 .animate-chatbot-open {
