@@ -1,166 +1,394 @@
-'use client';
+"use client";
 
-import { useState, useEffect } from 'react';
-import { db } from '@/lib/firebase';
-import { collection, onSnapshot, query, orderBy, doc, updateDoc } from 'firebase/firestore';
-import { useLanguage, useAuth } from '@/contexts';
-import { AppShell } from '@/components/layout/AppShell';
-import { MessageSquare, Send, Loader2, CheckCircle, Clock } from 'lucide-react';
-import { toast } from 'sonner';
-import { cn } from '@/lib/utils';
-import { InboxMessage } from '@/types';
-import { formatDate, formatDateArabic } from '@/lib/utils';
-import Image from 'next/image';
+import { useState, useEffect, useRef } from "react";
+import { db } from "@/lib/firebase";
+import {
+  collection,
+  onSnapshot,
+  query,
+  orderBy,
+  doc,
+  updateDoc,
+  writeBatch,
+} from "firebase/firestore";
+import { useLanguage, useAuth } from "@/contexts";
+import { AppShell } from "@/components/layout/AppShell";
+import {
+  MessageSquare,
+  Send,
+  Check,
+  CheckCheck,
+  Trash2,
+  Search,
+  User,
+  Loader2,
+} from "lucide-react";
+import { toast } from "sonner";
+import { cn } from "@/lib/utils";
+import {
+  ChatSession,
+  ChatMessage,
+  sendMessage,
+  markMessagesAsSeen,
+} from "@/lib/chatUtils";
+import Image from "next/image";
 
 export default function AdminInboxPage() {
-  const [messages, setMessages] = useState<InboxMessage[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [selectedMessage, setSelectedMessage] = useState<InboxMessage | null>(null);
-  const [reply, setReply] = useState('');
-  const [sending, setSending] = useState(false);
+  const [sessions, setSessions] = useState<ChatSession[]>([]);
+  const [selectedSessionId, setSelectedSessionId] = useState<string | null>(
+    null
+  );
+  const [messages, setMessages] = useState<ChatMessage[]>([]);
+  const [input, setInput] = useState("");
+  const [loadingSessions, setLoadingSessions] = useState(true);
+
+  const messagesEndRef = useRef<HTMLDivElement>(null);
   const { language, t } = useLanguage();
   const { user } = useAuth();
 
+  // 1. Listen to Chat Sessions (Users who messaged)
   useEffect(() => {
-    const q = query(collection(db, 'inbox'), orderBy('timestamp', 'desc'));
-    const unsubscribe = onSnapshot(q, 
-      (snapshot) => {
-        setMessages(snapshot.docs.map(d => ({ id: d.id, ...d.data() } as InboxMessage)));
-        setLoading(false);
-      },
-      (error) => {
-        console.error("Error fetching inbox:", error);
-        setLoading(false);
-      }
+    // We listen to the 'chats' collection
+    const q = query(
+      collection(db, "chats"),
+      orderBy("lastMessageTime", "desc")
     );
+    const unsubscribe = onSnapshot(q, (snapshot) => {
+      const data = snapshot.docs.map(
+        (doc) =>
+          ({
+            userId: doc.id,
+            ...doc.data(),
+          } as ChatSession)
+      );
+      setSessions(data);
+      setLoadingSessions(false);
+    });
+
     return () => unsubscribe();
   }, []);
 
-  const sendReply = async () => {
-    if (!selectedMessage || !reply.trim()) return;
+  // 2. Listen to Messages for Selected Session
+  useEffect(() => {
+    if (!selectedSessionId) {
+      setMessages([]);
+      return;
+    }
 
-    setSending(true);
+    // Mark as seen immediately when opening
+    markMessagesAsSeen(selectedSessionId, true);
+
+    const q = query(
+      collection(db, `chats/${selectedSessionId}/messages`),
+      orderBy("timestamp", "asc")
+    );
+
+    const unsubscribe = onSnapshot(q, (snapshot) => {
+      const msgs = snapshot.docs.map(
+        (doc) =>
+          ({
+            id: doc.id,
+            ...doc.data(),
+          } as ChatMessage)
+      );
+      setMessages(msgs);
+    });
+
+    return () => unsubscribe();
+  }, [selectedSessionId]);
+
+  // Auto-scroll
+  useEffect(() => {
+    if (selectedSessionId) {
+      messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+    }
+  }, [messages, selectedSessionId]);
+
+  const handleSend = async () => {
+    if (!input.trim() || !selectedSessionId || !user) return;
+
+    const text = input.trim();
+    setInput("");
+
+    // Optimistic UI update could happen here, but Firestore listener is fast enough usually
     try {
-      await updateDoc(doc(db, 'inbox', selectedMessage.id), {
-        status: 'replied',
-        adminReply: reply.trim(),
-        adminReplyAt: new Date().toISOString(),
-        repliedBy: user?.email,
-      });
-      toast.success(language === 'ar' ? 'تم إرسال الرد' : 'Reply sent');
-      setReply('');
-      setSelectedMessage(null);
-    } catch (error) {
-      toast.error(language === 'ar' ? 'فشل الإرسال' : 'Failed to send');
-    } finally {
-      setSending(false);
+      await sendMessage(
+        selectedSessionId,
+        text,
+        "admin",
+        "Admin Support",
+        true
+      );
+    } catch (err) {
+      toast.error("Failed to send message");
+      console.error(err);
     }
   };
 
+  const deleteChatForEveryone = async () => {
+    if (!selectedSessionId) return;
+
+    if (
+      confirm(
+        language === "ar"
+          ? "هل أنت متأكد من حذف هذا الشات للجميع؟"
+          : "Are you sure you want to delete this chat for everyone?"
+      )
+    ) {
+      const batch = writeBatch(db);
+
+      // We can't actually delete all messages efficiently in one go if thousands,
+      // but for this scale we'll just delete the session doc or messages.
+      // A "soft delete" or "clear" is safer.
+      // Let's implement deleting the Chat Session Document + Messages manually (client-side batch limited to 500).
+
+      // Simpler approach requested: "Delete for everyone".
+      // We will just clear the messages collection one by one (or batch).
+      messages.forEach((msg) => {
+        const ref = doc(db, `chats/${selectedSessionId}/messages`, msg.id);
+        batch.delete(ref);
+      });
+
+      // Reset the session metadata but keep the doc so we don't lose the user ref if needed?
+      // Or just delete the session doc too.
+      const sessionRef = doc(db, "chats", selectedSessionId);
+      batch.delete(sessionRef);
+
+      await batch.commit();
+      toast.success("Chat deleted");
+      setSelectedSessionId(null);
+    }
+  };
+
+  const formatTime = (timestamp: any) => {
+    if (!timestamp) return "";
+    const date = timestamp.toDate ? timestamp.toDate() : new Date(timestamp);
+    return date.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+  };
+
+  const selectedSession = sessions.find((s) => s.userId === selectedSessionId);
+
   return (
     <AppShell>
-      <div className="p-6 lg:p-10 max-w-6xl mx-auto">
-        <h1 className="text-2xl font-bold text-foreground mb-8 flex items-center gap-3">
-          <MessageSquare className="text-primary" />
-          {t('admin.inbox')}
-        </h1>
-
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          {/* Messages List */}
-          <div className="bg-card rounded-2xl border border-border overflow-hidden">
-            <div className="p-4 border-b border-border">
-              <h2 className="font-bold">{language === 'ar' ? 'الرسائل' : 'Messages'}</h2>
-            </div>
-            <div className="max-h-[600px] overflow-y-auto">
-              {loading ? (
-                <div className="p-10 text-center"><Loader2 className="animate-spin mx-auto text-primary" size={30} /></div>
-              ) : messages.length === 0 ? (
-                <div className="p-10 text-center text-muted-foreground">{language === 'ar' ? 'لا توجد رسائل' : 'No messages'}</div>
-              ) : (
-                messages.map(msg => (
-                  <div 
-                    key={msg.id}
-                    onClick={() => setSelectedMessage(msg)}
-                    className={cn(
-                      "p-4 border-b border-border cursor-pointer hover:bg-muted/30 transition-colors",
-                      selectedMessage?.id === msg.id && "bg-primary/5"
-                    )}
-                  >
-                    <div className="flex items-center gap-3">
-                      <Image 
-                        src={`https://ui-avatars.com/api/?name=${msg.userName}&background=6366f1&color=fff`}
-                        alt={msg.userName}
-                        width={40}
-                        height={40}
-                        className="rounded-full"
-                      />
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-center justify-between">
-                          <p className="font-bold text-foreground truncate">{msg.userName}</p>
-                          <span className={cn(
-                            "px-2 py-0.5 rounded-full text-xs font-medium",
-                            msg.status === 'replied' ? 'bg-green-100 text-green-700' : 'bg-yellow-100 text-yellow-700'
-                          )}>
-                            {msg.status === 'replied' ? <CheckCircle className="w-3 h-3 inline mr-1" /> : <Clock className="w-3 h-3 inline mr-1" />}
-                            {msg.status}
-                          </span>
-                        </div>
-                        <p className="text-sm text-muted-foreground truncate">{msg.message}</p>
-                        <p className="text-xs text-muted-foreground mt-1">
-                          {language === 'ar' ? formatDateArabic(msg.timestamp) : formatDate(msg.timestamp)}
-                        </p>
-                      </div>
-                    </div>
-                  </div>
-                ))
-              )}
+      <div className="flex h-[calc(100vh-theme(spacing.20))] max-w-[1600px] mx-auto overflow-hidden bg-background">
+        {/* Sidebar - Chat List */}
+        <div
+          className={cn(
+            "w-full lg:w-96 border-r border-border flex flex-col bg-card",
+            selectedSessionId ? "hidden lg:flex" : "flex"
+          )}
+        >
+          <div className="p-4 border-b border-border flex items-center justify-between">
+            <h1 className="font-bold text-xl flex items-center gap-2">
+              <MessageSquare className="text-primary" />
+              {t("admin.inbox")}
+            </h1>
+            <div className="bg-primary/10 text-primary px-3 py-1 rounded-full text-xs font-bold">
+              {sessions.reduce((acc, s) => acc + (s.adminUnreadCount || 0), 0)}{" "}
+              New
             </div>
           </div>
 
-          {/* Reply Panel */}
-          <div className="bg-card rounded-2xl border border-border p-6">
-            {selectedMessage ? (
-              <div className="space-y-6">
-                <div>
-                  <h3 className="font-bold text-foreground">{selectedMessage.userName}</h3>
-                  <p className="text-sm text-muted-foreground">{selectedMessage.userEmail}</p>
-                </div>
-                
-                <div className="bg-muted/30 p-4 rounded-xl">
-                  <p className="text-foreground">{selectedMessage.message}</p>
-                </div>
+          <div className="p-2">
+            <div className="relative">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground w-4 h-4" />
+              <input
+                placeholder={language === "ar" ? "بحث..." : "Search users..."}
+                className="w-full pl-9 pr-4 py-2 rounded-xl bg-muted/50 border-none text-sm focus:ring-2 focus:ring-primary/20"
+              />
+            </div>
+          </div>
 
-                {selectedMessage.adminReply ? (
-                  <div className="bg-primary/10 p-4 rounded-xl">
-                    <p className="text-sm font-medium text-primary mb-1">{language === 'ar' ? 'ردك:' : 'Your reply:'}</p>
-                    <p className="text-foreground">{selectedMessage.adminReply}</p>
-                  </div>
-                ) : (
-                  <div className="space-y-4">
-                    <textarea
-                      value={reply}
-                      onChange={(e) => setReply(e.target.value)}
-                      placeholder={language === 'ar' ? 'اكتب ردك...' : 'Write your reply...'}
-                      className="w-full rounded-xl border border-border px-4 py-3 bg-background h-32 resize-none"
-                    />
-                    <button
-                      onClick={sendReply}
-                      disabled={sending || !reply.trim()}
-                      className="w-full bg-primary hover:bg-primary/90 disabled:bg-muted text-primary-foreground font-bold py-3 rounded-xl transition-all flex items-center justify-center gap-2"
-                    >
-                      {sending ? <Loader2 className="w-5 h-5 animate-spin" /> : <Send size={20} />}
-                      {language === 'ar' ? 'إرسال الرد' : 'Send Reply'}
-                    </button>
-                  </div>
-                )}
+          <div className="flex-1 overflow-y-auto">
+            {loadingSessions ? (
+              <div className="p-8 flex justify-center">
+                <Loader2 className="animate-spin text-primary" />
+              </div>
+            ) : sessions.length === 0 ? (
+              <div className="p-8 text-center text-muted-foreground text-sm">
+                No active chats
               </div>
             ) : (
-              <div className="text-center py-20 text-muted-foreground">
-                <MessageSquare size={48} className="mx-auto mb-4 opacity-50" />
-                <p>{language === 'ar' ? 'اختر رسالة للرد عليها' : 'Select a message to reply'}</p>
-              </div>
+              sessions.map((session) => (
+                <div
+                  key={session.userId}
+                  onClick={() => setSelectedSessionId(session.userId)}
+                  className={cn(
+                    "flex items-center gap-3 p-4 hover:bg-muted/50 transition-colors cursor-pointer border-b border-border/50",
+                    selectedSessionId === session.userId &&
+                      "bg-primary/5 border-l-4 border-l-primary"
+                  )}
+                >
+                  <Image
+                    src={`https://ui-avatars.com/api/?name=${
+                      session.userName || "User"
+                    }&background=random`}
+                    alt={session.userName}
+                    width={48}
+                    height={48}
+                    className="rounded-full"
+                  />
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center justify-between mb-1">
+                      <h3 className="font-bold truncate text-sm">
+                        {session.userName}
+                      </h3>
+                      <span className="text-[10px] text-muted-foreground">
+                        {formatTime(session.lastMessageTime)}
+                      </span>
+                    </div>
+                    <p
+                      className={cn(
+                        "text-sm truncate",
+                        (session.adminUnreadCount || 0) > 0
+                          ? "text-foreground font-semibold"
+                          : "text-muted-foreground"
+                      )}
+                    >
+                      {session.lastMessage}
+                    </p>
+                  </div>
+                  {(session.adminUnreadCount || 0) > 0 && (
+                    <div className="min-w-[20px] h-5 bg-primary text-primary-foreground rounded-full text-[10px] flex items-center justify-center font-bold px-1.5 animate-pulse">
+                      {session.adminUnreadCount}
+                    </div>
+                  )}
+                </div>
+              ))
             )}
           </div>
+        </div>
+
+        {/* Main Chat Area */}
+        <div
+          className={cn(
+            "flex-1 flex flex-col bg-muted/10 h-full",
+            !selectedSessionId ? "hidden lg:flex" : "flex"
+          )}
+        >
+          {selectedSessionId ? (
+            <>
+              {/* Chat Header */}
+              <div className="h-16 border-b border-border bg-card flex items-center px-6 justify-between shadow-sm">
+                <div className="flex items-center gap-3">
+                  <button
+                    onClick={() => setSelectedSessionId(null)}
+                    className="lg:hidden p-2 -ml-2 hover:bg-muted rounded-full"
+                  >
+                    <svg
+                      className="w-5 h-5"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      stroke="currentColor"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M15 19l-7-7 7-7"
+                      />
+                    </svg>
+                  </button>
+                  <Image
+                    src={`https://ui-avatars.com/api/?name=${
+                      selectedSession?.userName || "User"
+                    }&background=random`}
+                    alt="User"
+                    width={40}
+                    height={40}
+                    className="rounded-full"
+                  />
+                  <div>
+                    <h2 className="font-bold leading-tight">
+                      {selectedSession?.userName}
+                    </h2>
+                    <p className="text-xs text-muted-foreground">
+                      {selectedSession?.userEmail}
+                    </p>
+                  </div>
+                </div>
+
+                <button
+                  onClick={deleteChatForEveryone}
+                  title="Delete chat for everyone"
+                  className="p-2 text-destructive bg-destructive/10 rounded-xl hover:bg-destructive/20 transition-colors"
+                >
+                  <Trash2 size={20} />
+                </button>
+              </div>
+
+              {/* Messages */}
+              <div className="flex-1 overflow-y-auto p-6 space-y-4 bg-muted/10">
+                {messages.map((msg, idx) => (
+                  <div
+                    key={msg.id}
+                    className={cn(
+                      "flex flex-col max-w-[70%]",
+                      msg.senderId === "admin"
+                        ? "ml-auto items-end"
+                        : "items-start"
+                    )}
+                  >
+                    <div
+                      className={cn(
+                        "p-3 rounded-2xl shadow-sm text-sm whitespace-pre-wrap leading-relaxed min-w-[80px]",
+                        msg.senderId === "admin"
+                          ? "bg-primary text-primary-foreground rounded-br-none"
+                          : "bg-card text-foreground rounded-bl-none"
+                      )}
+                    >
+                      {msg.text}
+                      {msg.senderId === "admin" && (
+                        <div className="flex justify-end mt-1">
+                          {msg.status === "seen" ? (
+                            <CheckCheck size={14} className="text-blue-200" />
+                          ) : msg.status === "delivered" ? (
+                            <CheckCheck size={14} className="opacity-70" />
+                          ) : (
+                            <Check size={14} className="opacity-70" />
+                          )}
+                        </div>
+                      )}
+                    </div>
+                    <span className="text-[10px] text-muted-foreground mt-1 px-1">
+                      {formatTime(msg.timestamp)}
+                    </span>
+                  </div>
+                ))}
+                <div ref={messagesEndRef} />
+              </div>
+
+              {/* Input */}
+              <div className="p-4 bg-card border-t border-border">
+                <div className="flex items-center gap-3 max-w-4xl mx-auto">
+                  <input
+                    value={input}
+                    onChange={(e) => setInput(e.target.value)}
+                    onKeyDown={(e) => e.key === "Enter" && handleSend()}
+                    placeholder="Type a message..."
+                    className="flex-1 bg-muted/50 px-4 py-3 rounded-xl border-none focus:ring-2 focus:ring-primary/20"
+                  />
+                  <button
+                    onClick={handleSend}
+                    disabled={!input.trim()}
+                    className="p-3 bg-primary text-primary-foreground rounded-xl hover:bg-primary/90 transition disabled:opacity-50"
+                  >
+                    <Send size={20} />
+                  </button>
+                </div>
+              </div>
+            </>
+          ) : (
+            <div className="flex-1 flex flex-col items-center justify-center text-muted-foreground">
+              <div className="w-20 h-20 bg-muted/50 rounded-full flex items-center justify-center mb-4">
+                <MessageSquare size={40} className="opacity-50" />
+              </div>
+              <h3 className="text-xl font-bold text-foreground">
+                Admin Chat Dashboard
+              </h3>
+              <p>Select a conversation to start messaging</p>
+            </div>
+          )}
         </div>
       </div>
     </AppShell>
