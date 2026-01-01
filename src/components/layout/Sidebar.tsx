@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import Image from "next/image";
@@ -130,7 +130,24 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
     { name: t("admin.errors"), path: "/admin/errors", icon: AlertTriangle },
   ];
 
-  // Removed auto-scroll effect to prevent glitches
+  const navRef = useRef<HTMLElement>(null);
+
+  // Persist scroll position across navigations
+  useEffect(() => {
+    const savedScroll = sessionStorage.getItem("sidebarScroll");
+    if (navRef.current && savedScroll) {
+      navRef.current.scrollTop = parseInt(savedScroll, 10);
+    }
+  }, []);
+
+  const handleScroll = () => {
+    if (navRef.current) {
+      sessionStorage.setItem(
+        "sidebarScroll",
+        navRef.current.scrollTop.toString()
+      );
+    }
+  };
 
   return (
     <>
@@ -180,7 +197,11 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
           </div>
 
           {/* Navigation */}
-          <nav className="flex-1 py-6 px-4 space-y-6 overflow-y-auto">
+          <nav
+            ref={navRef}
+            onScroll={handleScroll}
+            className="flex-1 py-6 px-4 space-y-6 overflow-y-auto"
+          >
             {/* Main Nav */}
             <div className="space-y-2">
               {navItems.map((item) => {
