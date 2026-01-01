@@ -51,6 +51,20 @@ export function AppShell({ children }: { children: React.ReactNode }) {
         <LiveBanner />
         <main className="flex-1 overflow-y-auto pb-24 lg:pb-10">
           {children}
+
+          <footer className="py-8 mt-auto text-center">
+            <a
+              href="https://linktr.ee/sir.ahmed"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-block mb-3 px-4 py-1.5 bg-primary/5 hover:bg-primary/10 text-primary rounded-full text-xs font-medium transition-colors"
+            >
+              Social Media
+            </a>
+            <p className="text-xs text-muted-foreground/60">
+              &copy; 2026 Obour Academic Hub. All rights reserved.
+            </p>
+          </footer>
         </main>
         <AIChatbot />
       </div>

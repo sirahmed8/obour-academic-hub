@@ -26,9 +26,9 @@ import {
   Link as LinkIcon,
   Loader2,
   Search,
-  SortAsc,
 } from "lucide-react";
 import Link from "next/link";
+import { CustomSelect } from "@/components/ui/CustomSelect";
 
 export function SubjectClient() {
   const searchParams = useSearchParams();
@@ -241,28 +241,29 @@ export function SubjectClient() {
                 className="w-full pl-10 pr-4 py-2.5 rounded-xl bg-muted/50 border border-border focus:ring-2 focus:ring-primary/20 outline-none transition-all"
               />
             </div>
-            <div className="relative">
-              <SortAsc
-                className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground"
-                size={18}
-              />
-              <select
+            <div className="w-48">
+              <CustomSelect
+                options={[
+                  {
+                    value: "default",
+                    label:
+                      language === "ar" ? "الترتيب الافتراضي" : "Default Order",
+                  },
+                  {
+                    value: "name",
+                    label: language === "ar" ? "الاسم" : "Name",
+                  },
+                  {
+                    value: "type",
+                    label: language === "ar" ? "النوع" : "Type",
+                  },
+                ]}
                 value={sortBy}
-                onChange={(e) =>
-                  setSortBy(e.target.value as "default" | "name" | "type")
+                onChange={(val) =>
+                  setSortBy(val as "default" | "name" | "type")
                 }
-                className="pl-10 pr-8 py-2.5 rounded-xl bg-muted/50 border border-border appearance-none cursor-pointer focus:ring-2 focus:ring-primary/20 outline-none transition-all"
-              >
-                <option value="default">
-                  {language === "ar" ? "الترتيب الافتراضي" : "Default Order"}
-                </option>
-                <option value="name">
-                  {language === "ar" ? "الاسم" : "Name"}
-                </option>
-                <option value="type">
-                  {language === "ar" ? "النوع" : "Type"}
-                </option>
-              </select>
+                placeholder={language === "ar" ? "الترتيب" : "Sort by"}
+              />
             </div>
           </div>
 

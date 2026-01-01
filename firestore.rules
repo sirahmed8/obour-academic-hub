@@ -52,6 +52,7 @@ service cloud.firestore {
     // System & Logs
     match /logs/{logId} {
       allow read: if isAdmin();
+      allow delete: if isAdmin();
       allow create: if request.auth != null; // Allow users to log errors
     }
     
