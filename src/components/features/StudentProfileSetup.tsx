@@ -120,7 +120,7 @@ export function StudentProfileSetup({ onComplete }: StudentProfileSetupProps) {
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
-            <label className="block text-sm font-medium text-foreground mb-2 flex items-center gap-2">
+            <label className="text-sm font-medium text-foreground mb-2 flex items-center gap-2">
               {language === "ar" ? "الاسم (بالعربية)" : "Name (Arabic)"}
               {isNameLocked && (
                 <Lock className="w-3 h-3 text-muted-foreground" />
@@ -153,7 +153,7 @@ export function StudentProfileSetup({ onComplete }: StudentProfileSetupProps) {
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-foreground mb-2 flex items-center gap-2">
+            <label className="text-sm font-medium text-foreground mb-2 flex items-center gap-2">
               {language === "ar"
                 ? "كود الطالب (6 أرقام)"
                 : "Student Code (6 digits)"}
