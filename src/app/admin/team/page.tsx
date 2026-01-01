@@ -40,7 +40,6 @@ export default function AdminTeamPage() {
 
   useEffect(() => {
     if (!isAdmin) {
-      setLoading(false);
       return;
     }
 
@@ -109,7 +108,7 @@ export default function AdminTeamPage() {
 
   if (!isAdmin) return null;
 
-  if (loading) {
+  if (loading && isAdmin) {
     return (
       <AppShell>
         <div className="flex justify-center items-center p-20">
