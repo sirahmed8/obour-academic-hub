@@ -216,8 +216,8 @@ export default function NotificationsPage() {
                     // Navigate to subject if available
                     if (notif.subjectId) {
                       const url = notif.resourceId
-                        ? `/subject/${notif.subjectId}?highlight=${notif.resourceId}`
-                        : `/subject/${notif.subjectId}`;
+                        ? `/subject?id=${notif.subjectId}&highlight=${notif.resourceId}`
+                        : `/subject?id=${notif.subjectId}`;
                       router.push(url);
                     }
                   }}

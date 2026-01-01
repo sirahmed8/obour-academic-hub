@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
-import { useParams, useSearchParams } from "next/navigation";
+import { useSearchParams } from "next/navigation";
 import { db } from "@/lib/firebase";
 import {
   doc,
@@ -31,12 +31,12 @@ import {
 import Link from "next/link";
 
 export function SubjectClient() {
-  const params = useParams();
+  const searchParams = useSearchParams();
   const { language } = useLanguage();
 
-  // Compute placeholder check inline (stable across renders)
-  const subjectId = params.id as string | undefined;
-  const isPlaceholder = !subjectId || subjectId === "placeholder";
+  // Get ID from query param
+  const subjectId = searchParams.get("id");
+  const isPlaceholder = !subjectId;
 
   const [subject, setSubject] = useState<Subject | null>(null);
   const [resources, setResources] = useState<Resource[]>([]);
@@ -46,7 +46,6 @@ export function SubjectClient() {
   const [sortBy, setSortBy] = useState<"default" | "name" | "type">("default");
 
   // Highlight from notification
-  const searchParams = useSearchParams();
   const highlightId = searchParams.get("highlight");
   const [highlightedId, setHighlightedId] = useState<string | null>(
     highlightId
