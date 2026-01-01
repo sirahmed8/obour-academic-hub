@@ -7,6 +7,7 @@ import { Sidebar, Navbar } from "@/components/layout";
 import { StudentProfileSetup } from "@/components/features/StudentProfileSetup";
 import { AIChatbot } from "@/components/features/AIChatbot";
 import { LiveBanner } from "@/components/features/LiveBanner";
+import { CookieConsent } from "@/components/ui/CookieConsent";
 import { Loader2 } from "lucide-react";
 
 export function AppShell({ children }: { children: React.ReactNode }) {
@@ -60,6 +61,9 @@ export function AppShell({ children }: { children: React.ReactNode }) {
           onComplete={() => setProfileSetupDismissed(true)}
         />
       )}
+
+      {/* Cookie Consent Banner */}
+      <CookieConsent />
     </div>
   );
 }

@@ -27,6 +27,8 @@ export interface Notification {
   readBy: string[]; // List of user IDs who have read this notification
   createdAt: string;
   createdBy?: string;
+  subjectId?: string; // For navigation to subject
+  resourceId?: string; // For highlighting specific resource
 }
 
 export interface Subject {

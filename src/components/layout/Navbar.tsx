@@ -28,17 +28,13 @@ export function Navbar({ onMenuClick }: NavbarProps) {
     { value: "system", icon: Monitor, label: t("profile.systemMode") },
   ];
 
-  const [nameInput, setNameInput] = useState("");
-  const [codeInput, setCodeInput] = useState("");
+  const [nameInput, setNameInput] = useState(user?.displayName || "");
+  const [codeInput, setCodeInput] = useState(user?.studentCode || "");
   const [isSaving, setIsSaving] = useState(false);
-
-  // Initialize inputs
-  useState(() => {
-    if (user) {
-      setNameInput(user.displayName || "");
-      setCodeInput(user.studentCode || "");
-    }
-  });
+  const [notifPermission, setNotifPermission] =
+    useState<NotificationPermission>(
+      typeof window !== "undefined" ? Notification.permission : "default"
+    );
 
   const handleSaveProfile = async () => {
     if (!user) return;
@@ -277,7 +273,7 @@ export function Navbar({ onMenuClick }: NavbarProps) {
                   </p>
                   <button
                     onClick={async () => {
-                      if (Notification.permission === "granted") {
+                      if (notifPermission === "granted") {
                         toast.info(
                           language === "ar"
                             ? "يجب إيقاف الإشعارات من إعدادات المتصفح"
@@ -285,6 +281,7 @@ export function Navbar({ onMenuClick }: NavbarProps) {
                         );
                       } else {
                         const result = await Notification.requestPermission();
+                        setNotifPermission(result); // Live update!
                         if (result === "granted") {
                           toast.success(
                             language === "ar"
@@ -300,8 +297,7 @@ export function Navbar({ onMenuClick }: NavbarProps) {
                       <span
                         className={cn(
                           "w-2.5 h-2.5 rounded-full transition-all",
-                          typeof window !== "undefined" &&
-                            Notification.permission === "granted"
+                          notifPermission === "granted"
                             ? "bg-green-500 shadow-[0_0_8px_rgba(34,197,94,0.5)]"
                             : "bg-red-500"
                         )}
@@ -312,8 +308,7 @@ export function Navbar({ onMenuClick }: NavbarProps) {
                     <div
                       className={cn(
                         "w-11 h-6 rounded-full p-0.5 transition-colors duration-200 relative",
-                        typeof window !== "undefined" &&
-                          Notification.permission === "granted"
+                        notifPermission === "granted"
                           ? "bg-green-500"
                           : "bg-gray-300 dark:bg-gray-600"
                       )}
@@ -321,8 +316,7 @@ export function Navbar({ onMenuClick }: NavbarProps) {
                       <div
                         className={cn(
                           "w-5 h-5 bg-white rounded-full shadow-sm transition-all duration-200 absolute top-0.5",
-                          typeof window !== "undefined" &&
-                            Notification.permission === "granted"
+                          notifPermission === "granted"
                             ? language === "ar"
                               ? "left-0.5"
                               : "right-0.5"

@@ -59,6 +59,7 @@ export const sendMessage = async (
   await addDoc(messagesRef, {
     text,
     senderId,
+    senderName, // Include sender name for display
     timestamp: serverTimestamp(),
     status: "sent",
     replyTo: replyTo || null,

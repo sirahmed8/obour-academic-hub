@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
 import { db } from "@/lib/firebase";
 import {
   collection,
@@ -30,6 +31,7 @@ import { formatDate, formatDateArabic } from "@/lib/utils";
 import { Notification } from "@/types";
 
 export default function NotificationsPage() {
+  const router = useRouter();
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [loading, setLoading] = useState(true);
   const { language, t } = useLanguage();
@@ -203,11 +205,29 @@ export default function NotificationsPage() {
               return (
                 <div
                   key={notif.id}
+                  onClick={async () => {
+                    // Mark as read on click
+                    if (!isRead && user) {
+                      const notifRef = doc(db, "notifications", notif.id);
+                      await updateDoc(notifRef, {
+                        readBy: arrayUnion(user.uid),
+                      });
+                    }
+                    // Navigate to subject if available
+                    if (notif.subjectId) {
+                      const url = notif.resourceId
+                        ? `/subject/${notif.subjectId}?highlight=${notif.resourceId}`
+                        : `/subject/${notif.subjectId}`;
+                      router.push(url);
+                    }
+                  }}
                   className={cn(
                     "rounded-2xl p-6 border transition-all duration-200 animate-fade-in-up",
                     isRead
                       ? "bg-card/50 border-border/50 opacity-70 hover:opacity-100"
-                      : "bg-card border-primary/20 shadow-sm ring-1 ring-primary/5"
+                      : "bg-card border-primary/20 shadow-sm ring-1 ring-primary/5",
+                    notif.subjectId &&
+                      "cursor-pointer hover:border-primary/40 hover:shadow-md"
                   )}
                   style={{
                     animationDelay: `${notifications.indexOf(notif) * 50}ms`,

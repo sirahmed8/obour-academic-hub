@@ -1,12 +1,14 @@
+"use client";
+
 import { SubjectClient } from "./SubjectClient";
 
-// For static export, provide a placeholder param to satisfy build requirements
-// The client handling will take over for any actual ID
-// Firebase hosting rewrites ensure correct routing
-export async function generateStaticParams() {
-  // Pre-render popular subjects
-  const popularSubjects = ["CS101", "Math1", "Phy1", "placeholder"];
-  return popularSubjects.map((id) => ({ id }));
+// Generate a placeholder for static export
+// Firebase hosting rewrites handle actual dynamic paths
+export const dynamicParams = true;
+
+export function generateStaticParams() {
+  // Return placeholder - Firebase SPA rewrites handle the rest
+  return [{ id: "placeholder" }];
 }
 
 export default function SubjectPage() {

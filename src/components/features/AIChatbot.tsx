@@ -11,6 +11,8 @@ import {
   Trash2,
   Check,
   CheckCheck,
+  Reply,
+  Smile,
 } from "lucide-react";
 import { useAuth, useLanguage } from "@/contexts";
 import { cn } from "@/lib/utils";
@@ -21,7 +23,13 @@ import {
   wantsLiveSupport,
   needsHelpSuggestion,
 } from "@/lib/localBot";
-import { sendMessage, ChatMessage } from "@/lib/chatUtils";
+import {
+  sendMessage,
+  ChatMessage,
+  toggleReaction,
+  markMessagesAsSeen,
+  deleteMessage,
+} from "@/lib/chatUtils";
 import { ConfirmationModal } from "@/components/ui/ConfirmationModal";
 import { toast } from "sonner";
 
@@ -51,6 +59,9 @@ export function AIChatbot() {
   const { language } = useLanguage();
   const [showClearModal, setShowClearModal] = useState(false);
   const [showSupportButton, setShowSupportButton] = useState(false);
+  const [replyTo, setReplyTo] = useState<ChatMessage | null>(null);
+  const [showEmojiPicker, setShowEmojiPicker] = useState<string | null>(null);
+  const QUICK_EMOJIS = ["❤️", "👍", "😂", "😮", "😢", "🙏"];
 
   // Initial state loaded from localStorage
   const getInitialMessages = (): LocalMessage[] => {
@@ -86,9 +97,11 @@ export function AIChatbot() {
     }
   }, [localMessages]);
 
-  // Live Chat Listener
+  // Live Chat Listener - with auto-open on new message
   useEffect(() => {
     if (!user) return;
+
+    let prevMessageCount = 0;
 
     const q = query(
       collection(db, `chats/${user.uid}/messages`),
@@ -102,19 +115,39 @@ export function AIChatbot() {
             ...doc.data(),
           } as ChatMessage)
       );
+
+      // Check for new admin message
+      if (msgs.length > prevMessageCount && prevMessageCount > 0) {
+        const lastMsg = msgs[msgs.length - 1];
+        if (lastMsg.senderId === "admin") {
+          // Auto-open chatbot to live support if closed
+          if (!isOpen) {
+            setIsOpen(true);
+            setMode("live");
+            setLiveUnread(0);
+            toast.info(
+              language === "ar"
+                ? "رسالة جديدة من الدعم! 🎧"
+                : "New message from support! 🎧"
+            );
+          }
+        }
+      }
+
+      prevMessageCount = msgs.length;
       setLiveMessages(msgs);
 
-      // Calculate unread (simple version: count Admin messages since last view)
+      // Calculate unread (only if chatbot is closed)
       if (!isOpen && msgs.length > 0) {
         const lastMsg = msgs[msgs.length - 1];
-        if (lastMsg.senderId !== user.uid) {
+        if (lastMsg.senderId !== user.uid && lastMsg.status !== "seen") {
           setLiveUnread((prev) => prev + 1);
         }
       }
     });
 
     return () => unsubscribe();
-  }, [user, isOpen]);
+  }, [user, isOpen, language]);
 
   // Welcome Message Logic (Client-side check)
   useEffect(() => {
@@ -136,6 +169,15 @@ export function AIChatbot() {
       return () => clearTimeout(timer);
     }
   }, [isOpen, mode, localMessages.length, language]);
+
+  // Mark messages as seen when opening live mode
+  useEffect(() => {
+    if (isOpen && mode === "live" && user) {
+      markMessagesAsSeen(user.uid, false)
+        .then(() => setLiveUnread(0))
+        .catch(console.error);
+    }
+  }, [isOpen, mode, user]);
 
   // Auto-scroll
   useEffect(() => {
@@ -215,14 +257,21 @@ export function AIChatbot() {
         return;
       }
       try {
-        // Ensure path matches chatUtils expectations
         await sendMessage(
           user.uid,
           text,
           user.uid,
           user.displayName || "Student",
-          false // isAdmin = false for user
+          false,
+          replyTo
+            ? {
+                id: replyTo.id,
+                text: replyTo.text,
+                senderName: replyTo.senderName || "Admin",
+              }
+            : undefined
         );
+        setReplyTo(null); // Clear reply after sending
       } catch (err) {
         console.error("Failed to send message:", err);
         toast.error(
@@ -460,7 +509,7 @@ export function AIChatbot() {
                 {liveMessages.map((msg) => (
                   <motion.div
                     key={msg.id}
-                    layout // This enables smooth layout animations
+                    layout
                     initial={{ opacity: 0, scale: 0.8, y: 10 }}
                     animate={{ opacity: 1, scale: 1, y: 0 }}
                     exit={{
@@ -470,15 +519,25 @@ export function AIChatbot() {
                     }}
                     transition={{ type: "spring", stiffness: 300, damping: 25 }}
                     className={cn(
-                      "flex flex-col max-w-[85%]",
+                      "flex flex-col max-w-[85%] group relative",
                       msg.senderId === user?.uid
                         ? "ml-auto items-end"
                         : "items-start"
                     )}
                   >
+                    {/* Reply Preview */}
+                    {msg.replyTo && (
+                      <div className="text-[10px] bg-muted/50 px-2 py-1 rounded-lg mb-1 border-l-2 border-primary max-w-full truncate">
+                        <span className="font-medium">
+                          {msg.replyTo.senderName}:
+                        </span>{" "}
+                        {msg.replyTo.text.slice(0, 40)}...
+                      </div>
+                    )}
+
                     <div
                       className={cn(
-                        "p-3 rounded-2xl shadow-sm text-sm whitespace-pre-wrap leading-relaxed min-w-[60px]",
+                        "p-3 rounded-2xl shadow-sm text-sm whitespace-pre-wrap leading-relaxed min-w-[60px] relative",
                         msg.senderId === user?.uid
                           ? "bg-primary text-primary-foreground rounded-br-none"
                           : "bg-card text-foreground rounded-bl-none"
@@ -496,7 +555,96 @@ export function AIChatbot() {
                           )}
                         </div>
                       )}
+
+                      {/* Reactions Display */}
+                      {msg.reactions &&
+                        Object.keys(msg.reactions).length > 0 && (
+                          <div className="absolute -bottom-3 left-2 flex gap-0.5 bg-card rounded-full px-1.5 py-0.5 shadow-sm border border-border">
+                            {Object.values(msg.reactions)
+                              .slice(0, 3)
+                              .map((emoji, i) => (
+                                <span key={i} className="text-xs">
+                                  {emoji}
+                                </span>
+                              ))}
+                          </div>
+                        )}
                     </div>
+
+                    {/* Action Buttons (on hover) */}
+                    <div
+                      className={cn(
+                        "opacity-0 group-hover:opacity-100 transition-opacity flex gap-1 mt-1",
+                        msg.senderId === user?.uid ? "flex-row-reverse" : ""
+                      )}
+                    >
+                      <button
+                        onClick={() => setReplyTo(msg)}
+                        className="p-1 hover:bg-muted rounded text-muted-foreground hover:text-foreground"
+                        title="Reply"
+                      >
+                        <Reply size={12} />
+                      </button>
+                      <button
+                        onClick={() =>
+                          setShowEmojiPicker(
+                            showEmojiPicker === msg.id ? null : msg.id
+                          )
+                        }
+                        className="p-1 hover:bg-muted rounded text-muted-foreground hover:text-foreground"
+                        title="React"
+                      >
+                        <Smile size={12} />
+                      </button>
+                      {msg.senderId === user?.uid && !msg.isDeleted && (
+                        <button
+                          onClick={() => {
+                            if (user) {
+                              deleteMessage(user.uid, msg.id);
+                              toast.info(
+                                language === "ar"
+                                  ? "تم حذف الرسالة"
+                                  : "Message deleted"
+                              );
+                            }
+                          }}
+                          className="p-1 hover:bg-destructive/10 rounded text-muted-foreground hover:text-destructive"
+                          title="Delete"
+                        >
+                          <Trash2 size={12} />
+                        </button>
+                      )}
+                    </div>
+
+                    {/* Emoji Picker */}
+                    {showEmojiPicker === msg.id && (
+                      <motion.div
+                        initial={{ opacity: 0, scale: 0.8 }}
+                        animate={{ opacity: 1, scale: 1 }}
+                        className="absolute top-full mt-1 flex gap-1 bg-card p-1 rounded-lg shadow-lg border border-border z-10"
+                      >
+                        {QUICK_EMOJIS.map((emoji) => (
+                          <button
+                            key={emoji}
+                            onClick={() => {
+                              if (user) {
+                                toggleReaction(
+                                  user.uid,
+                                  msg.id,
+                                  user.uid,
+                                  emoji
+                                );
+                              }
+                              setShowEmojiPicker(null);
+                            }}
+                            className="hover:bg-muted p-1 rounded transition-colors"
+                          >
+                            {emoji}
+                          </button>
+                        ))}
+                      </motion.div>
+                    )}
+
                     <span className="text-[10px] text-muted-foreground mt-1 px-1">
                       {formatTime(
                         msg.timestamp as {
@@ -545,13 +693,35 @@ export function AIChatbot() {
               </button>
             )}
 
+            {/* Reply Preview */}
+            {replyTo && (
+              <div className="flex items-center justify-between bg-muted/50 p-2 rounded-lg mb-2 border-l-2 border-primary">
+                <div className="text-xs truncate">
+                  <span className="font-medium">
+                    {language === "ar" ? "رد على:" : "Replying to:"}
+                  </span>{" "}
+                  {replyTo.text.slice(0, 50)}...
+                </div>
+                <button
+                  onClick={() => setReplyTo(null)}
+                  className="p-1 hover:bg-muted rounded"
+                >
+                  <X size={14} />
+                </button>
+              </div>
+            )}
+
             <div className="flex items-center gap-2">
               <input
                 value={input}
                 onChange={(e) => setInput(e.target.value)}
                 onKeyDown={(e) => e.key === "Enter" && handleSend()}
                 placeholder={
-                  mode === "bot"
+                  replyTo
+                    ? language === "ar"
+                      ? "اكتب ردك..."
+                      : "Type your reply..."
+                    : mode === "bot"
                     ? language === "ar"
                       ? "اكتب رسالتك..."
                       : "Type a message..."

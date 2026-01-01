@@ -63,18 +63,13 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
     // 2. Chat Listener (For Admin Inbox Badge)
     let unsubChats = () => {};
     if (isAdmin) {
-      // In a real scenario, we might want a compound query or just filter client side for 'unread' chats.
-      // Assuming 'chats' collection documents have a field 'unreadCount' or similar.
-      // If not, we iterate.
       const chatQuery = query(collection(db, "chats"));
       unsubChats = onSnapshot(chatQuery, (snapshot) => {
-        // Count chats that have unread messages for admin.
-        // We look for a field like 'hasUnreadMessages' or 'adminUnread'
+        // Sum all adminUnreadCount from all chat sessions
         let count = 0;
         snapshot.docs.forEach((doc) => {
           const data = doc.data();
-          // Assuming 'hasUnreadMessages' is the field set by backend or sender
-          if (data.hasUnreadMessages) count++;
+          count += data.adminUnreadCount || 0;
         });
         setInboxUnreadCount(count);
       });

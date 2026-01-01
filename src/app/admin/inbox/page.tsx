@@ -20,6 +20,9 @@ import {
   Trash2,
   Search,
   Loader2,
+  Reply,
+  Smile,
+  X,
 } from "lucide-react";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
@@ -28,6 +31,8 @@ import {
   ChatMessage,
   sendMessage,
   markMessagesAsSeen,
+  toggleReaction,
+  deleteMessage,
 } from "@/lib/chatUtils";
 import Image from "next/image";
 import { ConfirmationModal } from "@/components/ui/ConfirmationModal";
@@ -45,6 +50,9 @@ export default function AdminInboxPage() {
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const { language, t } = useLanguage();
   const { user } = useAuth();
+  const [replyTo, setReplyTo] = useState<ChatMessage | null>(null);
+  const [showEmojiPicker, setShowEmojiPicker] = useState<string | null>(null);
+  const QUICK_EMOJIS = ["❤️", "👍", "😂", "😮", "😢", "🙏"];
 
   // 1. Listen to Chat Sessions (Users who messaged)
   useEffect(() => {
@@ -131,8 +139,16 @@ export default function AdminInboxPage() {
         text,
         "admin",
         "Admin Support",
-        true
+        true,
+        replyTo
+          ? {
+              id: replyTo.id,
+              text: replyTo.text,
+              senderName: replyTo.senderName || "User",
+            }
+          : undefined
       );
+      setReplyTo(null);
     } catch (err) {
       toast.error("Failed to send message");
       console.error(err);
@@ -228,7 +244,6 @@ export default function AdminInboxPage() {
                 <div
                   key={session.userId}
                   onClick={() => {
-                    setMessages([]);
                     setSelectedSessionId(session.userId);
                   }}
                   className={cn(
@@ -291,7 +306,6 @@ export default function AdminInboxPage() {
                 <div className="flex items-center gap-3">
                   <button
                     onClick={() => {
-                      setMessages([]);
                       setSelectedSessionId(null);
                     }}
                     className="lg:hidden p-2 -ml-2 hover:bg-muted rounded-full"
@@ -344,15 +358,25 @@ export default function AdminInboxPage() {
                   <div
                     key={msg.id}
                     className={cn(
-                      "flex flex-col max-w-[70%]",
+                      "flex flex-col max-w-[70%] group relative",
                       msg.senderId === "admin"
                         ? "ml-auto items-end"
                         : "items-start"
                     )}
                   >
+                    {/* Reply Preview */}
+                    {msg.replyTo && (
+                      <div className="text-[10px] bg-muted/50 px-2 py-1 rounded-lg mb-1 border-l-2 border-primary max-w-full truncate">
+                        <span className="font-medium">
+                          {msg.replyTo.senderName}:
+                        </span>{" "}
+                        {msg.replyTo.text.slice(0, 40)}...
+                      </div>
+                    )}
+
                     <div
                       className={cn(
-                        "p-3 rounded-2xl shadow-sm text-sm whitespace-pre-wrap leading-relaxed min-w-[80px]",
+                        "p-3 rounded-2xl shadow-sm text-sm whitespace-pre-wrap leading-relaxed min-w-[80px] relative",
                         msg.senderId === "admin"
                           ? "bg-primary text-primary-foreground rounded-br-none"
                           : "bg-card text-foreground rounded-bl-none"
@@ -370,7 +394,92 @@ export default function AdminInboxPage() {
                           )}
                         </div>
                       )}
+
+                      {/* Reactions Display */}
+                      {msg.reactions &&
+                        Object.keys(msg.reactions).length > 0 && (
+                          <div className="absolute -bottom-3 left-2 flex gap-0.5 bg-card rounded-full px-1.5 py-0.5 shadow-sm border border-border">
+                            {Object.values(msg.reactions)
+                              .slice(0, 3)
+                              .map((emoji, i) => (
+                                <span key={i} className="text-xs">
+                                  {emoji}
+                                </span>
+                              ))}
+                          </div>
+                        )}
                     </div>
+
+                    {/* Action Buttons (on hover) */}
+                    <div
+                      className={cn(
+                        "opacity-0 group-hover:opacity-100 transition-opacity flex gap-1 mt-1",
+                        msg.senderId === "admin" ? "flex-row-reverse" : ""
+                      )}
+                    >
+                      <button
+                        onClick={() => setReplyTo(msg)}
+                        className="p-1 hover:bg-muted rounded text-muted-foreground hover:text-foreground"
+                        title="Reply"
+                      >
+                        <Reply size={12} />
+                      </button>
+                      <button
+                        onClick={() =>
+                          setShowEmojiPicker(
+                            showEmojiPicker === msg.id ? null : msg.id
+                          )
+                        }
+                        className="p-1 hover:bg-muted rounded text-muted-foreground hover:text-foreground"
+                        title="React"
+                      >
+                        <Smile size={12} />
+                      </button>
+                      {msg.senderId === "admin" && !msg.isDeleted && (
+                        <button
+                          onClick={() => {
+                            if (selectedSessionId) {
+                              deleteMessage(selectedSessionId, msg.id);
+                              toast.info(
+                                language === "ar"
+                                  ? "تم حذف الرسالة"
+                                  : "Message deleted"
+                              );
+                            }
+                          }}
+                          className="p-1 hover:bg-destructive/10 rounded text-muted-foreground hover:text-destructive"
+                          title="Delete"
+                        >
+                          <Trash2 size={12} />
+                        </button>
+                      )}
+                    </div>
+
+                    {/* Emoji Picker */}
+                    {showEmojiPicker === msg.id && (
+                      <div className="absolute top-full mt-1 flex gap-1 bg-card p-1 rounded-lg shadow-lg border border-border z-10">
+                        {QUICK_EMOJIS.map((emoji) => (
+                          <button
+                            key={emoji}
+                            onClick={() => {
+                              if (selectedSessionId) {
+                                toggleReaction(
+                                  selectedSessionId,
+                                  msg.id,
+                                  "admin",
+                                  emoji
+                                );
+                              }
+                              setShowEmojiPicker(null);
+                            }}
+                            className="hover:bg-muted p-1 rounded transition-colors"
+                          >
+                            {emoji}
+                          </button>
+                        ))}
+                      </div>
+                    )}
+
                     <span className="text-[10px] text-muted-foreground mt-1 px-1">
                       {formatTime(msg.timestamp)}
                     </span>
@@ -381,12 +490,36 @@ export default function AdminInboxPage() {
 
               {/* Input */}
               <div className="p-4 bg-card border-t border-border">
+                {/* Reply Preview */}
+                {replyTo && (
+                  <div className="flex items-center justify-between bg-muted/50 p-2 rounded-lg mb-2 border-l-2 border-primary max-w-4xl mx-auto">
+                    <div className="text-xs truncate">
+                      <span className="font-medium">
+                        {language === "ar" ? "رد على:" : "Replying to:"}
+                      </span>{" "}
+                      {replyTo.text.slice(0, 50)}...
+                    </div>
+                    <button
+                      onClick={() => setReplyTo(null)}
+                      className="p-1 hover:bg-muted rounded"
+                    >
+                      <X size={14} />
+                    </button>
+                  </div>
+                )}
+
                 <div className="flex items-center gap-3 max-w-4xl mx-auto">
                   <input
                     value={input}
                     onChange={(e) => setInput(e.target.value)}
                     onKeyDown={(e) => e.key === "Enter" && handleSend()}
-                    placeholder="Type a message..."
+                    placeholder={
+                      replyTo
+                        ? language === "ar"
+                          ? "اكتب ردك..."
+                          : "Type your reply..."
+                        : "Type a message..."
+                    }
                     className="flex-1 bg-muted/50 px-4 py-3 rounded-xl border-none focus:ring-2 focus:ring-primary/20"
                   />
                   <button
