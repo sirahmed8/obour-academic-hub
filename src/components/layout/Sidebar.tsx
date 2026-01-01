@@ -130,13 +130,7 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
     { name: t("admin.errors"), path: "/admin/errors", icon: AlertTriangle },
   ];
 
-  // Auto-scroll to active link
-  useEffect(() => {
-    const activeLink = document.querySelector(".active-link");
-    if (activeLink) {
-      activeLink.scrollIntoView({ block: "center", behavior: "smooth" });
-    }
-  }, [pathname]);
+  // Removed auto-scroll effect to prevent glitches
 
   return (
     <>
@@ -197,11 +191,12 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
                     key={item.path}
                     href={item.path}
                     onClick={onClose}
+                    prefetch={false}
                     className={cn(
-                      "flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 font-medium",
+                      "flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 font-medium select-none active:scale-95",
                       isActive
                         ? "bg-primary/10 text-primary border-l-4 border-primary active-link"
-                        : "text-muted-foreground hover:bg-muted hover:text-foreground"
+                        : "text-muted-foreground hover:bg-muted hover:text-foreground active:bg-muted/80"
                     )}
                   >
                     <div className="relative">
@@ -232,11 +227,12 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
                       key={item.path}
                       href={item.path}
                       onClick={onClose}
+                      prefetch={false}
                       className={cn(
-                        "flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 font-medium",
+                        "flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 font-medium select-none active:scale-95",
                         isActive
                           ? "bg-primary/10 text-primary border-l-4 border-primary"
-                          : "text-muted-foreground hover:bg-muted hover:text-foreground"
+                          : "text-muted-foreground hover:bg-muted hover:text-foreground active:bg-muted/80"
                       )}
                     >
                       <div className="relative">
@@ -268,11 +264,12 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
                       key={item.path}
                       href={item.path}
                       onClick={onClose}
+                      prefetch={false}
                       className={cn(
-                        "flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 font-medium",
+                        "flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 font-medium select-none active:scale-95",
                         isActive
                           ? "bg-primary/10 text-primary border-l-4 border-primary active-link"
-                          : "text-muted-foreground hover:bg-muted hover:text-foreground"
+                          : "text-muted-foreground hover:bg-muted hover:text-foreground active:bg-muted/80"
                       )}
                     >
                       <Icon size={20} />
