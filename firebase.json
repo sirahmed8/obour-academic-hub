@@ -1,15 +1,11 @@
 {
   "hosting": {
-    "site": "obour-institutesv3",
+    "site": "obourinstitutes",
     "public": "out",
     "ignore": ["firebase.json", "**/.*", "**/node_modules/**"],
     "cleanUrls": true,
     "trailingSlash": false,
     "rewrites": [
-      {
-        "source": "/subject/**",
-        "destination": "/index.html"
-      },
       {
         "source": "**",
         "destination": "/index.html"
