@@ -5,10 +5,6 @@
     "presence": {
       ".read": true,
       ".write": "auth != null"
-    },
-    "support_chats": {
-      ".read": "auth != null",
-      ".write": "auth != null"
     }
   }
 }
