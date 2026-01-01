@@ -1,5 +1,3 @@
-"use client";
-
 import { SubjectClient } from "./SubjectClient";
 
 // Generate a placeholder for static export
