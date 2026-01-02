@@ -9,10 +9,10 @@ import {
   doc,
   updateDoc,
 } from "firebase/firestore";
-import { useLanguage } from "@/contexts";
+import { useLanguage, useAuth } from "@/contexts";
 import { AppShell } from "@/components/layout/AppShell";
 import { ConfirmationModal } from "@/components/ui/ConfirmationModal";
-import { Users, Shield, User, Loader2 } from "lucide-react";
+import { Users, Shield, User, Loader2, Pencil, X } from "lucide-react";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { User as UserType } from "@/types";
@@ -34,7 +34,43 @@ export default function AdminUsersPage() {
   });
 
   const { language, t } = useLanguage();
+  const { isOwner } = useAuth();
   const [searchTerm, setSearchTerm] = useState("");
+
+  // Edit user modal state
+  const [editModal, setEditModal] = useState<{
+    isOpen: boolean;
+    user: UserType | null;
+    name: string;
+    code: string;
+  }>({
+    isOpen: false,
+    user: null,
+    name: "",
+    code: "",
+  });
+
+  // Check if current user can edit target user
+  const canEditUser = (targetUser: UserType): boolean => {
+    if (isOwner) return true; // Owner can edit anyone
+    // Admins can only edit students
+    return targetUser.role === "student";
+  };
+
+  const handleEditUser = async () => {
+    if (!editModal.user) return;
+
+    try {
+      await updateDoc(doc(db, "users", editModal.user.uid), {
+        displayName: editModal.name,
+        studentCode: editModal.code,
+      });
+      toast.success(language === "ar" ? "تم تحديث البيانات" : "User updated");
+      setEditModal({ isOpen: false, user: null, name: "", code: "" });
+    } catch {
+      toast.error(language === "ar" ? "فشل التحديث" : "Update failed");
+    }
+  };
 
   // Permissions configuration
   const PERMISSIONS = [
@@ -297,16 +333,34 @@ export default function AdminUsersPage() {
                       <td className="px-6 py-4">
                         {user.role !== "owner" && (
                           <div className="flex flex-col gap-2">
-                            <button
-                              onClick={() =>
-                                handleToggleRole(user.uid, user.role)
-                              }
-                              className="text-xs text-primary hover:text-primary/80 font-medium text-left"
-                            >
-                              {language === "ar"
-                                ? "تبديل الدور"
-                                : "Switch Role"}
-                            </button>
+                            <div className="flex items-center gap-3">
+                              <button
+                                onClick={() =>
+                                  handleToggleRole(user.uid, user.role)
+                                }
+                                className="text-xs text-primary hover:text-primary/80 font-medium"
+                              >
+                                {language === "ar"
+                                  ? "تبديل الدور"
+                                  : "Switch Role"}
+                              </button>
+                              {canEditUser(user) && (
+                                <button
+                                  onClick={() =>
+                                    setEditModal({
+                                      isOpen: true,
+                                      user: user,
+                                      name: user.displayName || "",
+                                      code: user.studentCode || "",
+                                    })
+                                  }
+                                  className="text-xs text-orange-500 hover:text-orange-600 font-medium flex items-center gap-1"
+                                >
+                                  <Pencil size={12} />
+                                  {language === "ar" ? "تعديل" : "Edit"}
+                                </button>
+                              )}
+                            </div>
 
                             {user.role === "admin" && (
                               <div className="space-y-1 mt-2 border-t pt-2">
@@ -357,6 +411,95 @@ export default function AdminUsersPage() {
           title={confirmModal.title}
           message={confirmModal.message}
         />
+
+        {/* Edit User Modal */}
+        {editModal.isOpen && (
+          <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+            <div className="bg-card rounded-2xl p-6 w-full max-w-md shadow-2xl">
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="text-lg font-bold">
+                  {language === "ar" ? "تعديل بيانات المستخدم" : "Edit User"}
+                </h3>
+                <button
+                  onClick={() =>
+                    setEditModal({
+                      isOpen: false,
+                      user: null,
+                      name: "",
+                      code: "",
+                    })
+                  }
+                  className="p-1 hover:bg-muted rounded-full"
+                >
+                  <X size={20} />
+                </button>
+              </div>
+
+              <div className="space-y-4">
+                <div>
+                  <label className="text-sm font-medium mb-1 block">
+                    {language === "ar" ? "الاسم" : "Name"}
+                  </label>
+                  <input
+                    value={editModal.name}
+                    onChange={(e) =>
+                      setEditModal((prev) => ({
+                        ...prev,
+                        name: e.target.value,
+                      }))
+                    }
+                    className="w-full p-3 rounded-xl border border-border bg-background"
+                    placeholder={
+                      language === "ar" ? "اسم المستخدم" : "User name"
+                    }
+                  />
+                </div>
+
+                <div>
+                  <label className="text-sm font-medium mb-1 block">
+                    {language === "ar" ? "كود الطالب" : "Student Code"}
+                  </label>
+                  <input
+                    value={editModal.code}
+                    onChange={(e) => {
+                      if (e.target.value.length <= 6) {
+                        setEditModal((prev) => ({
+                          ...prev,
+                          code: e.target.value,
+                        }));
+                      }
+                    }}
+                    className="w-full p-3 rounded-xl border border-border bg-background font-mono tracking-widest"
+                    placeholder="123456"
+                    maxLength={6}
+                  />
+                </div>
+
+                <div className="flex gap-3 pt-2">
+                  <button
+                    onClick={() =>
+                      setEditModal({
+                        isOpen: false,
+                        user: null,
+                        name: "",
+                        code: "",
+                      })
+                    }
+                    className="flex-1 py-3 rounded-xl border border-border hover:bg-muted transition-colors"
+                  >
+                    {language === "ar" ? "إلغاء" : "Cancel"}
+                  </button>
+                  <button
+                    onClick={handleEditUser}
+                    className="flex-1 py-3 rounded-xl bg-primary text-primary-foreground hover:bg-primary/90 transition-colors font-medium"
+                  >
+                    {language === "ar" ? "حفظ" : "Save"}
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     </AppShell>
   );

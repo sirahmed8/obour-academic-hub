@@ -119,9 +119,9 @@ export default function AdminInboxPage() {
     return () => unsubscribe();
   }, [selectedSessionId]);
 
-  // Auto-scroll
+  // Auto-scroll (only when messages exist)
   useEffect(() => {
-    if (selectedSessionId) {
+    if (selectedSessionId && messages.length > 0) {
       messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
     }
   }, [messages, selectedSessionId]);
