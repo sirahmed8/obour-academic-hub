@@ -4,14 +4,16 @@ import { useState, useEffect, useRef } from "react";
 import { useSearchParams } from "next/navigation";
 import { db } from "@/lib/firebase";
 import {
-  doc,
   getDoc,
+  doc,
   collection,
   query,
   orderBy,
   onSnapshot,
   updateDoc,
   increment,
+  where,
+  getDocs,
 } from "firebase/firestore";
 import { Subject, Resource } from "@/types";
 import { useLanguage } from "@/contexts";
@@ -30,13 +32,17 @@ import {
 import Link from "next/link";
 import { CustomSelect } from "@/components/ui/CustomSelect";
 
-export function SubjectClient() {
+interface SubjectClientProps {
+  subjectName?: string;
+}
+
+export function SubjectClient({ subjectName }: SubjectClientProps) {
   const searchParams = useSearchParams();
   const { language } = useLanguage();
 
   // Get ID from query param
-  const subjectId = searchParams.get("id");
-  const isPlaceholder = !subjectId;
+  const subjectIdParam = searchParams.get("id");
+  const isPlaceholder = !subjectIdParam && !subjectName;
 
   const [subject, setSubject] = useState<Subject | null>(null);
   const [resources, setResources] = useState<Resource[]>([]);
@@ -71,22 +77,60 @@ export function SubjectClient() {
   }, [highlightedId, resources]);
 
   useEffect(() => {
-    // Skip effect entirely for placeholder
     if (isPlaceholder) return;
 
     let cancelled = false;
 
     const fetchSubject = async () => {
       try {
-        const docRef = doc(db, "subjects", subjectId);
-        const docSnap = await getDoc(docRef);
+        let data: Subject | null = null;
+        let id = subjectIdParam;
+
+        if (subjectName) {
+          const q = query(
+            collection(db, "subjects"),
+            where("name", "==", decodeURIComponent(subjectName))
+          );
+          const querySnapshot = await getDocs(q);
+          if (!querySnapshot.empty) {
+            const docSnap = querySnapshot.docs[0];
+            data = { id: docSnap.id, ...docSnap.data() } as Subject;
+            id = docSnap.id;
+          }
+        } else if (subjectIdParam) {
+          const docRef = doc(db, "subjects", subjectIdParam);
+          const docSnap = await getDoc(docRef);
+          if (docSnap.exists()) {
+            data = { id: docSnap.id, ...docSnap.data() } as Subject;
+          }
+        }
+
         if (cancelled) return;
-        if (docSnap.exists()) {
-          setSubject({ id: docSnap.id, ...docSnap.data() } as Subject);
+
+        if (data) {
+          setSubject(data);
+
+          // Resources subscription
+          if (id) {
+            // Increment views
+            updateDoc(doc(db, "subjects", id), {
+              views: increment(1),
+            }).catch((err) => console.error("Error incrementing views:", err));
+
+            // We need to store unsubscribe to clean it up, but specific to this effect run...
+            // Actually, we can just set up a separate effect for resources if we have the ID?
+            // Or better, just utilize the ID we found.
+
+            // Since we have the ID now, we can setup the listener here or rely on state "subject".
+            // Relying on state "subject" is cleaner but might cause a flicker or delay.
+            // Let's rely on "subject" state change to trigger resource fetching in a separate effect?
+            // No, "subjectId" was used before.
+          }
         } else {
           setFetchError(true);
         }
-      } catch {
+      } catch (err) {
+        console.error(err);
         if (!cancelled) setFetchError(true);
       }
       if (!cancelled) setLoading(false);
@@ -94,14 +138,17 @@ export function SubjectClient() {
 
     fetchSubject();
 
-    // Increment views
-    updateDoc(doc(db, "subjects", subjectId), {
-      views: increment(1),
-    }).catch((err) => console.error("Error incrementing views:", err));
+    return () => {
+      cancelled = true;
+    };
+  }, [subjectIdParam, subjectName, isPlaceholder]);
 
-    // Resources subscription
+  // Separate effect for resources to handle the ID derived from name
+  useEffect(() => {
+    if (!subject?.id) return;
+
     const q = query(
-      collection(db, "subjects", subjectId, "resources"),
+      collection(db, "subjects", subject.id, "resources"),
       orderBy("orderIndex")
     );
     const unsubscribe = onSnapshot(q, (snapshot) => {
@@ -110,11 +157,8 @@ export function SubjectClient() {
       );
     });
 
-    return () => {
-      cancelled = true;
-      unsubscribe();
-    };
-  }, [subjectId, isPlaceholder]);
+    return () => unsubscribe();
+  }, [subject?.id]);
 
   if (loading) {
     return (
@@ -143,7 +187,7 @@ export function SubjectClient() {
               : "Sorry, we couldn't find the page you're looking for."}
           </p>
           <p className="text-xs text-muted-foreground mb-4 font-mono bg-muted px-2 py-1 rounded">
-            ID: {subjectId}
+            ID: {subjectIdParam || subjectName}
           </p>
           <div className="flex gap-4">
             <Link

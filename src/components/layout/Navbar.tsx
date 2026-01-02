@@ -100,16 +100,33 @@ export function Navbar({ onMenuClick }: NavbarProps) {
         >
           {user && (
             <>
-              <Image
-                src={
-                  user.photoURL ||
-                  `https://ui-avatars.com/api/?name=${user.displayName}&background=6366f1&color=fff`
-                }
-                alt={user.displayName}
-                width={36}
-                height={36}
-                className="rounded-full border-2 border-primary/20"
-              />
+              {user.photoURL ? (
+                <Image
+                  src={user.photoURL}
+                  alt={user.displayName}
+                  width={36}
+                  height={36}
+                  className="rounded-full border-2 border-primary/20"
+                />
+              ) : (
+                <div className="w-9 h-9 rounded-full border-2 border-primary/20 bg-muted flex items-center justify-center">
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    width="20"
+                    height="20"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    className="text-muted-foreground"
+                  >
+                    <path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2" />
+                    <circle cx="12" cy="7" r="4" />
+                  </svg>
+                </div>
+              )}
               {/* Red dot for incomplete profile */}
               {!user.studentCode && (
                 <span className="absolute top-1 right-1 w-3 h-3 bg-red-500 rounded-full border-2 border-card animate-pulse" />

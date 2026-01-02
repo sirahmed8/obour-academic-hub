@@ -19,7 +19,7 @@ import {
   onAuthStateChanged,
   User as FirebaseUser,
 } from "firebase/auth";
-import { doc, getDoc, setDoc, updateDoc } from "firebase/firestore";
+import { doc, getDoc, setDoc, updateDoc, onSnapshot } from "firebase/firestore";
 
 interface AuthContextType {
   user: User | null;
@@ -35,96 +35,120 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
+  const [firebaseUser, setFirebaseUser] = useState<FirebaseUser | null>(null);
   const [loading, setLoading] = useState(true);
   const { language } = useLanguage();
 
   const isAdmin = user?.role === "admin" || user?.role === "owner";
   const isOwner = user?.role === "owner";
 
+  // 1. Listen for Auth State Changes
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(
-      auth,
-      async (firebaseUser: FirebaseUser | null) => {
-        if (firebaseUser) {
-          const userDocRef = doc(db, "users", firebaseUser.uid);
-          const userDoc = await getDoc(userDocRef);
+    const unsubscribe = onAuthStateChanged(auth, (authUser) => {
+      setFirebaseUser(authUser);
+      if (!authUser) {
+        setUser(null);
+        setLoading(false);
+      }
+    });
+    return () => unsubscribe();
+  }, []);
 
-          if (userDoc.exists()) {
-            const userData = userDoc.data() as User;
-            // Check if user is owner
-            if (
-              firebaseUser.email === process.env.NEXT_PUBLIC_OWNER_EMAIL ||
-              firebaseUser.email === "a7medorabe7@gmail.com"
-            ) {
-              userData.role = "owner";
-              // Update last login and ensure role is synced to DB
-              await updateDoc(userDocRef, {
-                lastLogin: new Date().toISOString(),
-                role: "owner",
-              });
-            } else {
-              // Update last login only
-              await updateDoc(userDocRef, {
-                lastLogin: new Date().toISOString(),
-              });
+  // 2. Listen for User Document Changes (Live Updates)
+  useEffect(() => {
+    if (!firebaseUser) return;
+
+    setLoading(true);
+    const userDocRef = doc(db, "users", firebaseUser.uid);
+
+    const unsubscribe = onSnapshot(
+      userDocRef,
+      async (docSnap) => {
+        if (docSnap.exists()) {
+          const userData = docSnap.data() as User;
+
+          // Owner Override Logic (Ensures owner always has access)
+          if (
+            firebaseUser.email === process.env.NEXT_PUBLIC_OWNER_EMAIL ||
+            firebaseUser.email === "a7medorabe7@gmail.com"
+          ) {
+            if (userData.role !== "owner") {
+              await updateDoc(userDocRef, { role: "owner" }); // Will trigger snapshot again
+              return;
             }
-            setUser(userData);
-          } else {
-            // Create new user
-            const isOwnerEmail = firebaseUser.email === "a7medorabe7@gmail.com";
-            let role: "student" | "admin" | "owner" = isOwnerEmail
-              ? "owner"
-              : "student";
-            let permissions: string[] = [];
-
-            // Check if whitelisted
-            if (!isOwnerEmail && firebaseUser.email) {
-              try {
-                const whitelistDoc = await getDoc(
-                  doc(db, "whitelisted_admins", firebaseUser.email)
-                );
-                if (whitelistDoc.exists()) {
-                  role = "admin";
-                  // Assign default permissions
-                  permissions = [
-                    "manage_subjects",
-                    "manage_resources",
-                    "send_notifications",
-                  ];
-                }
-              } catch (e) {
-                console.error("Error checking whitelist", e);
-              }
-            }
-
-            const newUser: User = {
-              uid: firebaseUser.uid,
-              email: firebaseUser.email || "",
-              displayName: firebaseUser.displayName || "New Student",
-              role: role,
-              permissions: permissions.length > 0 ? permissions : undefined,
-              photoURL: firebaseUser.photoURL || undefined,
-              createdAt: new Date().toISOString(),
-            };
-            await setDoc(userDocRef, newUser);
-            setUser(newUser);
           }
+
+          setUser({ ...userData, uid: firebaseUser.uid });
         } else {
-          setUser(null);
+          // Create New User Logic
+          const isOwnerEmail =
+            firebaseUser.email === "a7medorabe7@gmail.com" ||
+            firebaseUser.email === process.env.NEXT_PUBLIC_OWNER_EMAIL;
+
+          let role: "student" | "admin" | "owner" = isOwnerEmail
+            ? "owner"
+            : "student";
+          let permissions: string[] = [];
+
+          // Whitelist Check
+          if (!isOwnerEmail && firebaseUser.email) {
+            try {
+              const whitelistDoc = await getDoc(
+                doc(db, "whitelisted_admins", firebaseUser.email)
+              );
+              if (whitelistDoc.exists()) {
+                role = "admin";
+                permissions = [
+                  "manage_subjects",
+                  "manage_resources",
+                  "send_notifications",
+                ];
+              }
+            } catch (e) {
+              console.error("Error checking whitelist", e);
+            }
+          }
+
+          const newUser: User = {
+            uid: firebaseUser.uid,
+            email: firebaseUser.email || "",
+            displayName: firebaseUser.displayName || "New Student",
+            role: role,
+            permissions: permissions.length > 0 ? permissions : undefined,
+            photoURL: firebaseUser.photoURL || undefined,
+            createdAt: new Date().toISOString(),
+            lastLogin: new Date().toISOString(),
+          };
+
+          await setDoc(userDocRef, newUser);
+          // Snapshot will fire again with the new user
         }
+        setLoading(false);
+      },
+      (error) => {
+        console.error("Error in user snapshot:", error);
         setLoading(false);
       }
     );
 
+    // Update lastLogin on initial load (optional, to avoid loop, we do it separately or just let it be)
+    // To be safe and avoid infinite loops with snapshot, we can update lastLogin ONLY if it's old?
+    // For now, let's skip automatic lastLogin update on EVERY session to avoid write-loop if we included it in snapshot trigger?
+    // Actually, updating lastLogin causes a write -> snapshot -> update -> write loop if we are not careful.
+    // The previous code verified existence then updated.
+    // We can interact with DB once here.
+    updateDoc(userDocRef, {
+      lastLogin: new Date().toISOString(),
+    }).catch(() => {}); // catch error if doc doesn't exist yet (handled in create)
+
     return () => unsubscribe();
-  }, []);
+  }, [firebaseUser]);
 
   const login = useCallback(async () => {
     try {
       await signInWithPopup(auth, googleProvider);
     } catch (error: unknown) {
       console.error("Login failed:", error);
-      // Cast error to any safely to check code property since FirebaseError isn't easily imported as type here without more changes
       const err = error as { code?: string };
       if (err?.code === "auth/unauthorized-domain") {
         toast.error(

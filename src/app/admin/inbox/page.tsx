@@ -407,7 +407,7 @@ export default function AdminInboxPage() {
                     key={msg.id}
                     className={cn(
                       "flex flex-col max-w-[70%] group relative",
-                      msg.senderId === "admin"
+                      msg.senderId === "admin" || msg.senderId === "bot"
                         ? "ml-auto items-end"
                         : "items-start"
                     )}
@@ -425,9 +425,10 @@ export default function AdminInboxPage() {
                     <div
                       className={cn(
                         "p-3 rounded-2xl shadow-sm text-sm whitespace-pre-wrap leading-relaxed min-w-[80px] relative",
-                        msg.senderId === "admin"
+                        msg.senderId === "admin" || msg.senderId === "bot"
                           ? "bg-primary text-primary-foreground rounded-br-none"
-                          : "bg-card text-foreground rounded-bl-none"
+                          : "bg-card text-foreground rounded-bl-none",
+                        msg.senderId === "bot" && "bg-primary/80"
                       )}
                     >
                       {msg.text}

@@ -201,6 +201,17 @@ export function AIChatbot() {
       };
       setLocalMessages((prev) => [...prev, userMsg]);
 
+      // PERSIST FOR ADMIN VISIBILITY
+      if (user) {
+        sendMessage(
+          user.uid,
+          text,
+          user.uid,
+          user.displayName || "User",
+          false
+        ).catch((e) => console.error("Failed to persist user msg", e));
+      }
+
       // Check if user wants live support (explicit request)
       if (wantsLiveSupport(text)) {
         const confirmMsg: LocalMessage = {
@@ -213,6 +224,17 @@ export function AIChatbot() {
           timestamp: new Date().toISOString(),
         };
         setLocalMessages((prev) => [...prev, confirmMsg]);
+
+        if (user) {
+          sendMessage(
+            user.uid,
+            confirmMsg.text,
+            "bot",
+            language === "ar" ? "بوت المعهد" : "College Bot",
+            true
+          ).catch((e) => console.error("Failed to persist bot msg", e));
+        }
+
         setTimeout(() => setMode("live"), 1000);
         return;
       }
@@ -230,6 +252,16 @@ export function AIChatbot() {
           timestamp: new Date().toISOString(),
         };
         setLocalMessages((prev) => [...prev, helpMsg]);
+
+        if (user) {
+          sendMessage(
+            user.uid,
+            helpMsg.text,
+            "bot",
+            language === "ar" ? "بوت المعهد" : "College Bot",
+            true
+          ).catch(console.error);
+        }
         return;
       }
 
@@ -246,6 +278,17 @@ export function AIChatbot() {
           timestamp: new Date().toISOString(),
         };
         setLocalMessages((prev) => [...prev, botMsg]);
+
+        if (user) {
+          sendMessage(
+            user.uid,
+            response,
+            "bot",
+            language === "ar" ? "بوت المعهد" : "College Bot",
+            true
+          ).catch(console.error);
+        }
+
         setIsTyping(false);
       }, 800);
     } else {
@@ -630,8 +673,11 @@ export function AIChatbot() {
                     {/* Action Buttons (on hover) */}
                     <div
                       className={cn(
-                        "opacity-0 group-hover:opacity-100 transition-opacity flex gap-1 mt-1",
-                        msg.senderId === user?.uid ? "flex-row-reverse" : ""
+                        "opacity-0 group-hover:opacity-100 transition-opacity flex gap-1",
+                        msg.senderId === user?.uid ? "flex-row-reverse" : "",
+                        msg.reactions && Object.keys(msg.reactions).length > 0
+                          ? "mt-4"
+                          : "mt-1"
                       )}
                     >
                       <button

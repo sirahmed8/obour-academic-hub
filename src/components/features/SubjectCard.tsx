@@ -26,7 +26,7 @@ export function SubjectCard({ subject, resourceCount = 0 }: SubjectCardProps) {
     .replace("500", "600");
 
   return (
-    <Link href={`/subject?id=${subject.id}`}>
+    <Link href={`/subject/${encodeURIComponent(subject.name)}`}>
       <div className="group bg-card rounded-2xl p-6 border border-border card-hover cursor-pointer relative overflow-hidden">
         {/* Accent bar */}
         <div
