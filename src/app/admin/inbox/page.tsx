@@ -199,6 +199,10 @@ export default function AdminInboxPage() {
 
   const selectedSession = sessions.find((s) => s.userId === selectedSessionId);
 
+  // Tab state for Support vs Bot Monitoring
+  const [activeTab, setActiveTab] = useState<"support" | "bot">("support");
+  const { isOwner } = useAuth();
+
   return (
     <AppShell>
       <div className="flex h-[calc(100vh-theme(spacing.20))] max-w-[1600px] mx-auto overflow-hidden bg-background">
@@ -220,6 +224,36 @@ export default function AdminInboxPage() {
             </div>
           </div>
 
+          {/* Tabs */}
+          <div className="flex p-2 gap-2 bg-muted/30">
+            <button
+              onClick={() => setActiveTab("support")}
+              className={cn(
+                "flex-1 py-2 px-3 rounded-xl text-sm font-medium transition-all flex items-center justify-center gap-2",
+                activeTab === "support"
+                  ? "bg-background shadow-sm text-primary"
+                  : "text-muted-foreground hover:bg-background/50"
+              )}
+            >
+              <MessageSquare size={16} />
+              {language === "ar" ? "الدعم الفني" : "Support"}
+            </button>
+            {isOwner && (
+              <button
+                onClick={() => setActiveTab("bot")}
+                className={cn(
+                  "flex-1 py-2 px-3 rounded-xl text-sm font-medium transition-all flex items-center justify-center gap-2",
+                  activeTab === "bot"
+                    ? "bg-background shadow-sm text-primary"
+                    : "text-muted-foreground hover:bg-background/50"
+                )}
+              >
+                🤖
+                {language === "ar" ? "البوت" : "Bot Logs"}
+              </button>
+            )}
+          </div>
+
           <div className="p-2">
             <div className="relative">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground w-4 h-4" />
@@ -231,7 +265,21 @@ export default function AdminInboxPage() {
           </div>
 
           <div className="flex-1 overflow-y-auto">
-            {loadingSessions ? (
+            {activeTab === "bot" ? (
+              /* Bot Monitoring View - Owner Only */
+              <div className="p-8 text-center text-muted-foreground">
+                <p className="text-sm mb-2">
+                  {language === "ar"
+                    ? "سجلات محادثات البوت"
+                    : "Bot Conversation Logs"}
+                </p>
+                <p className="text-xs opacity-70">
+                  {language === "ar"
+                    ? "هذه الميزة قيد التطوير"
+                    : "Feature coming soon"}
+                </p>
+              </div>
+            ) : loadingSessions ? (
               <div className="p-8 flex justify-center">
                 <Loader2 className="animate-spin text-primary" />
               </div>

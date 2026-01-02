@@ -97,16 +97,36 @@ export function AIChatbot() {
     }
   }, [localMessages]);
 
-  // Live Chat Listener - with auto-open on new message
+  // Listen for external open trigger (from Navbar "Contact Support" link)
+  useEffect(() => {
+    const handleOpenChatbot = (event: CustomEvent<{ mode?: ChatMode }>) => {
+      setIsOpen(true);
+      if (event.detail?.mode) {
+        setMode(event.detail.mode);
+      }
+      setLiveUnread(0);
+    };
+
+    window.addEventListener("openChatbot", handleOpenChatbot as EventListener);
+    return () => {
+      window.removeEventListener(
+        "openChatbot",
+        handleOpenChatbot as EventListener
+      );
+    };
+  }, []);
+
+  // Live Chat Listener - show badge on new message (NO auto-open)
   useEffect(() => {
     if (!user) return;
-
-    let prevMessageCount = 0;
 
     const q = query(
       collection(db, `chats/${user.uid}/messages`),
       orderBy("timestamp", "asc")
     );
+
+    let prevMessageCount = 0;
+
     const unsubscribe = onSnapshot(q, (snapshot) => {
       const msgs = snapshot.docs.map(
         (doc) =>
@@ -116,38 +136,21 @@ export function AIChatbot() {
           } as ChatMessage)
       );
 
-      // Check for new admin message
+      // Check for new admin message - show badge instead of auto-open
       if (msgs.length > prevMessageCount && prevMessageCount > 0) {
         const lastMsg = msgs[msgs.length - 1];
-        if (lastMsg.senderId === "admin") {
-          // Auto-open chatbot to live support if closed
-          if (!isOpen) {
-            setIsOpen(true);
-            setMode("live");
-            setLiveUnread(0);
-            toast.info(
-              language === "ar"
-                ? "رسالة جديدة من الدعم! 🎧"
-                : "New message from support! 🎧"
-            );
-          }
+        if (lastMsg.senderId === "admin" && !isOpen) {
+          // Just increment badge, don't auto-open
+          setLiveUnread((prev) => prev + 1);
         }
       }
 
       prevMessageCount = msgs.length;
       setLiveMessages(msgs);
-
-      // Calculate unread (only if chatbot is closed)
-      if (!isOpen && msgs.length > 0) {
-        const lastMsg = msgs[msgs.length - 1];
-        if (lastMsg.senderId !== user.uid && lastMsg.status !== "seen") {
-          setLiveUnread((prev) => prev + 1);
-        }
-      }
     });
 
     return () => unsubscribe();
-  }, [user, isOpen, language]);
+  }, [user, isOpen]);
 
   // Welcome Message Logic (Client-side check)
   useEffect(() => {
@@ -459,42 +462,88 @@ export function AIChatbot() {
             {" "}
             {/* Added pb-24 for input space */}
             {mode === "bot" ? (
-              <AnimatePresence mode="popLayout">
-                {localMessages.map((msg, idx) => (
-                  <motion.div
-                    key={msg.id}
-                    layout
-                    initial={{ opacity: 0, scale: 0.8, y: 10 }}
-                    animate={{ opacity: 1, scale: 1, y: 0 }}
-                    transition={{
-                      type: "spring",
-                      stiffness: 300,
-                      damping: 25,
-                      delay: idx * 0.05,
-                    }}
-                    className={cn(
-                      "flex flex-col max-w-[85%]",
-                      msg.sender === "user"
-                        ? "ml-auto items-end"
-                        : "items-start"
-                    )}
-                  >
-                    <div
+              <>
+                <AnimatePresence mode="popLayout">
+                  {localMessages.map((msg, idx) => (
+                    <motion.div
+                      key={msg.id}
+                      layout
+                      initial={{ opacity: 0, scale: 0.8, y: 10 }}
+                      animate={{ opacity: 1, scale: 1, y: 0 }}
+                      transition={{
+                        type: "spring",
+                        stiffness: 300,
+                        damping: 25,
+                        delay: idx * 0.05,
+                      }}
                       className={cn(
-                        "p-3 rounded-2xl shadow-sm text-sm whitespace-pre-wrap leading-relaxed",
+                        "flex flex-col max-w-[85%]",
                         msg.sender === "user"
-                          ? "bg-primary text-primary-foreground rounded-br-none"
-                          : "bg-card text-foreground rounded-bl-none"
+                          ? "ml-auto items-end"
+                          : "items-start"
                       )}
                     >
-                      {msg.text}
-                    </div>
-                    <span className="text-[10px] text-muted-foreground mt-1 px-1">
-                      {formatTime(msg.timestamp)}
-                    </span>
-                  </motion.div>
-                ))}
-              </AnimatePresence>
+                      <div
+                        className={cn(
+                          "p-3 rounded-2xl shadow-sm text-sm whitespace-pre-wrap leading-relaxed",
+                          msg.sender === "user"
+                            ? "bg-primary text-primary-foreground rounded-br-none"
+                            : "bg-card text-foreground rounded-bl-none"
+                        )}
+                      >
+                        {msg.text}
+                      </div>
+                      <span className="text-[10px] text-muted-foreground mt-1 px-1">
+                        {formatTime(msg.timestamp)}
+                      </span>
+                    </motion.div>
+                  ))}
+                </AnimatePresence>
+
+                {/* Human Handoff Button */}
+                {showSupportButton && (
+                  <motion.button
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    onClick={async () => {
+                      // Get the last user message for context
+                      const lastUserMsg = [...localMessages]
+                        .reverse()
+                        .find((m) => m.sender === "user");
+
+                      // Switch to live mode
+                      setMode("live");
+                      setShowSupportButton(false);
+
+                      // Send escalation message to support if user is logged in
+                      if (user && lastUserMsg) {
+                        try {
+                          await sendMessage(
+                            user.uid,
+                            `[Escalated from Bot] ${lastUserMsg.text}`,
+                            user.uid,
+                            user.displayName || "User",
+                            false
+                          );
+                          toast.success(
+                            language === "ar"
+                              ? "تم تحويلك للدعم الفني"
+                              : "You've been connected to support"
+                          );
+                        } catch (err) {
+                          console.error("Escalation failed:", err);
+                        }
+                      }
+                    }}
+                    className="mx-auto mt-4 px-6 py-3 bg-gradient-to-r from-primary to-primary/80 text-primary-foreground rounded-full font-medium shadow-lg hover:shadow-xl hover:scale-105 transition-all flex items-center gap-2"
+                  >
+                    <Headphones size={18} />
+                    {language === "ar"
+                      ? "تحدث مع موظف حقيقي"
+                      : "Talk to a Real Person"}
+                  </motion.button>
+                )}
+              </>
             ) : liveMessages.length === 0 ? (
               <div className="h-full flex flex-col items-center justify-center text-muted-foreground opacity-50 p-6 text-center">
                 <Headphones size={48} className="mb-4" />

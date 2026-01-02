@@ -13,6 +13,7 @@ import {
   getDocs,
   writeBatch,
 } from "firebase/firestore";
+import { filterProfanity } from "./profanityFilter";
 
 // Types
 export interface ChatMessage {
@@ -55,9 +56,12 @@ export const sendMessage = async (
   const messagesRef = collection(db, "chats", chatId, "messages");
   const chatRef = doc(db, "chats", chatId);
 
+  // Filter profanity before saving
+  const filteredText = filterProfanity(text);
+
   // 1. Add Message
   await addDoc(messagesRef, {
-    text,
+    text: filteredText,
     senderId,
     senderName, // Include sender name for display
     timestamp: serverTimestamp(),

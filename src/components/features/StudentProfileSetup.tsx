@@ -18,8 +18,19 @@ export function StudentProfileSetup({ onComplete }: StudentProfileSetupProps) {
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState<{ name?: string; code?: string }>({});
 
-  // Check if fields are locked (already set)
-  const isNameLocked = !!user?.studentCode && !!user?.displayName;
+  // Check if name looks valid (not generic, not empty)
+  const isValidGoogleName = (name?: string): boolean => {
+    if (!name || name.trim().length < 3) return false;
+    const genericNames = ["new student", "user", "student", "guest", "unknown"];
+    if (genericNames.includes(name.toLowerCase().trim())) return false;
+    // Must contain at least one letter (not just numbers/symbols)
+    if (!/[a-zA-Z\u0600-\u06FF]/.test(name)) return false;
+    return true;
+  };
+
+  // Lock name if code is set AND name looks valid from Google
+  const isNameLocked =
+    !!user?.studentCode && isValidGoogleName(user?.displayName);
   const isCodeLocked = !!user?.studentCode;
 
   // Arabic character regex

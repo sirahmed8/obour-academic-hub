@@ -96,19 +96,25 @@ export function Navbar({ onMenuClick }: NavbarProps) {
       <div className="relative">
         <button
           onClick={() => (showSettings ? closeMenu() : setShowSettings(true))}
-          className="flex items-center gap-2 p-2 hover:bg-muted rounded-xl transition-colors"
+          className="flex items-center gap-2 p-2 hover:bg-muted rounded-xl transition-colors relative"
         >
           {user && (
-            <Image
-              src={
-                user.photoURL ||
-                `https://ui-avatars.com/api/?name=${user.displayName}&background=6366f1&color=fff`
-              }
-              alt={user.displayName}
-              width={36}
-              height={36}
-              className="rounded-full border-2 border-primary/20"
-            />
+            <>
+              <Image
+                src={
+                  user.photoURL ||
+                  `https://ui-avatars.com/api/?name=${user.displayName}&background=6366f1&color=fff`
+                }
+                alt={user.displayName}
+                width={36}
+                height={36}
+                className="rounded-full border-2 border-primary/20"
+              />
+              {/* Red dot for incomplete profile */}
+              {!user.studentCode && (
+                <span className="absolute top-1 right-1 w-3 h-3 bg-red-500 rounded-full border-2 border-card animate-pulse" />
+              )}
+            </>
           )}
         </button>
 
@@ -147,11 +153,22 @@ export function Navbar({ onMenuClick }: NavbarProps) {
                             {user.studentCode}
                           </p>
                         </div>
-                        <div className="text-[10px] text-muted-foreground text-center px-2">
+                        <button
+                          onClick={() => {
+                            closeMenu();
+                            // Dispatch custom event to open chatbot
+                            window.dispatchEvent(
+                              new CustomEvent("openChatbot", {
+                                detail: { mode: "live" },
+                              })
+                            );
+                          }}
+                          className="text-[10px] text-primary hover:underline text-center w-full cursor-pointer"
+                        >
                           {language === "ar"
-                            ? "لتغيير هذه البيانات يرجى التواصل مع الدعم"
-                            : "Contact support to change these details"}
-                        </div>
+                            ? "تواصل مع الدعم لتغيير البيانات"
+                            : "Contact support to change details"}
+                        </button>
                       </div>
                     ) : (
                       /* Edit Mode (Unlocked) */

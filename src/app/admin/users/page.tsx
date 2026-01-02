@@ -6,7 +6,6 @@ import {
   collection,
   onSnapshot,
   query,
-  orderBy,
   doc,
   updateDoc,
 } from "firebase/firestore";
@@ -58,11 +57,20 @@ export default function AdminUsersPage() {
   ];
 
   useEffect(() => {
-    const q = query(collection(db, "users"), orderBy("createdAt", "desc"));
+    // Don't orderBy createdAt server-side - some users may not have it
+    // Fetch ALL users then sort client-side
+    const q = query(collection(db, "users"));
     const unsubscribe = onSnapshot(q, (snapshot) => {
-      setUsers(
-        snapshot.docs.map((d) => ({ ...d.data(), uid: d.id } as UserType))
+      const allUsers = snapshot.docs.map(
+        (d) => ({ ...d.data(), uid: d.id } as UserType)
       );
+      // Sort by createdAt descending (newest first), handle missing dates
+      allUsers.sort((a, b) => {
+        const dateA = a.createdAt ? new Date(a.createdAt).getTime() : 0;
+        const dateB = b.createdAt ? new Date(b.createdAt).getTime() : 0;
+        return dateB - dateA;
+      });
+      setUsers(allUsers);
       setLoading(false);
     });
     return () => unsubscribe();
