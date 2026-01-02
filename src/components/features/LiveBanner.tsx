@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { X, Megaphone, AlertCircle, CheckCircle2 } from "lucide-react";
+import { X, Megaphone, AlertCircle, CheckCircle2, XCircle } from "lucide-react";
 import { collection, query, where, onSnapshot } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import { useLanguage } from "@/contexts";
@@ -17,7 +17,25 @@ interface Banner {
 export function LiveBanner() {
   const [banners, setBanners] = useState<Banner[]>([]);
   const { language } = useLanguage();
-  const [closedBanners, setClosedBanners] = useState<string[]>([]);
+  const [sessionClosedBanners, setSessionClosedBanners] = useState<string[]>(
+    []
+  );
+
+  // Load permanently closed banners from localStorage (lazy initializer)
+  const [permanentlyClosedBanners, setPermanentlyClosedBanners] = useState<
+    string[]
+  >(() => {
+    if (typeof window === "undefined") return [];
+    const stored = localStorage.getItem("obour_closed_banners");
+    if (stored) {
+      try {
+        return JSON.parse(stored);
+      } catch {
+        return [];
+      }
+    }
+    return [];
+  });
 
   useEffect(() => {
     // Listen for ACTIVE banners
@@ -32,11 +50,23 @@ export function LiveBanner() {
     return () => unsubscribe();
   }, []);
 
-  const handleClose = (id: string) => {
-    setClosedBanners((prev) => [...prev, id]);
+  // Close temporarily (session only)
+  const handleSessionClose = (id: string) => {
+    setSessionClosedBanners((prev) => [...prev, id]);
   };
 
-  const visibleBanners = banners.filter((b) => !closedBanners.includes(b.id));
+  // Close permanently (localStorage)
+  const handlePermanentClose = (id: string) => {
+    const updated = [...permanentlyClosedBanners, id];
+    setPermanentlyClosedBanners(updated);
+    localStorage.setItem("obour_closed_banners", JSON.stringify(updated));
+  };
+
+  const visibleBanners = banners.filter(
+    (b) =>
+      !sessionClosedBanners.includes(b.id) &&
+      !permanentlyClosedBanners.includes(b.id)
+  );
 
   if (visibleBanners.length === 0) return null;
 
@@ -71,12 +101,24 @@ export function LiveBanner() {
               {language === "ar" ? banner.textAr : banner.textEn}
             </p>
           </div>
-          <button
-            onClick={() => handleClose(banner.id)}
-            className="p-1.5 hover:bg-white/20 rounded-lg transition-colors ml-4"
-          >
-            <X size={18} />
-          </button>
+          <div className="flex items-center gap-1 ml-4">
+            {/* Permanent close */}
+            <button
+              onClick={() => handlePermanentClose(banner.id)}
+              className="p-1.5 hover:bg-white/20 rounded-lg transition-colors text-[10px] opacity-70 hover:opacity-100"
+              title={language === "ar" ? "لا تظهر مجددا" : "Don't show again"}
+            >
+              <XCircle size={16} />
+            </button>
+            {/* Session close */}
+            <button
+              onClick={() => handleSessionClose(banner.id)}
+              className="p-1.5 hover:bg-white/20 rounded-lg transition-colors"
+              title={language === "ar" ? "إخفاء مؤقت" : "Hide for now"}
+            >
+              <X size={18} />
+            </button>
+          </div>
         </div>
       ))}
     </div>

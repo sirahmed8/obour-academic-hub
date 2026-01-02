@@ -11,6 +11,7 @@ import {
   query,
   orderBy,
   updateDoc,
+  serverTimestamp,
 } from "firebase/firestore";
 import { useLanguage } from "@/contexts";
 import { AppShell } from "@/components/layout/AppShell";
@@ -115,11 +116,24 @@ export default function AdminSubjectsPage() {
     if (!validateForm()) return;
 
     try {
-      await addDoc(collection(db, "subjects"), {
+      const docRef = await addDoc(collection(db, "subjects"), {
         ...formData,
         createdAt: new Date().toISOString(),
         orderIndex: subjects.length,
       });
+
+      // Create notification for new subject
+      await addDoc(collection(db, "notifications"), {
+        titleAr: "🏫 مادة جديدة",
+        titleEn: "🏫 New Subject",
+        messageAr: `تم إضافة مادة جديدة: ${formData.nameAr || formData.name}`,
+        messageEn: `New subject added: ${formData.name}`,
+        type: "info",
+        subjectId: docRef.id,
+        createdAt: serverTimestamp(),
+        isRead: false,
+      });
+
       toast.success(
         language === "ar"
           ? "تم إنشاء المادة بنجاح"

@@ -8,6 +8,7 @@ import {
   onSnapshot,
   query,
   orderBy,
+  serverTimestamp,
 } from "firebase/firestore";
 import { uploadToCloudinary } from "@/lib/cloudinary";
 import { useLanguage } from "@/contexts";
@@ -101,6 +102,26 @@ export default function AdminResourcesPage() {
         thumbnailUrl,
         orderIndex: 0,
         createdAt: new Date().toISOString(),
+      });
+
+      // Get subject name for notification
+      const subject = subjects.find((s) => s.id === form.subjectId);
+      const subjectName = subject?.name || "Unknown";
+
+      // Create notification for new resource
+      await addDoc(collection(db, "notifications"), {
+        titleAr: "📚 ملف جديد",
+        titleEn: "📚 New Resource",
+        messageAr: `تم إضافة ${form.type === "pdf" ? "ملف" : "رابط"} جديد "${
+          form.title
+        }" في مادة ${subjectName}`,
+        messageEn: `New ${form.type === "pdf" ? "file" : "link"} "${
+          form.title
+        }" added to ${subjectName}`,
+        type: "info",
+        subjectId: form.subjectId,
+        createdAt: serverTimestamp(),
+        isRead: false,
       });
 
       toast.success(language === "ar" ? "تم إضافة المورد" : "Resource added");

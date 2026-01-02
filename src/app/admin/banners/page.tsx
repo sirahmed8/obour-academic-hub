@@ -12,7 +12,9 @@ import {
   doc,
   updateDoc,
   onSnapshot,
+  serverTimestamp,
 } from "firebase/firestore";
+import { ConfirmationModal } from "@/components/ui/ConfirmationModal";
 import {
   Megaphone,
   Plus,
@@ -45,11 +47,25 @@ export default function AdminBannersPage() {
 
   // Edit/Add state
   const [isAdding, setIsAdding] = useState(false);
-  const [formData, setFormData] = useState({
+  const [formData, setFormData] = useState<{
+    textAr: string;
+    textEn: string;
+    type: Banner["type"];
+    isActive: boolean;
+  }>({
     textAr: "",
     textEn: "",
-    type: "info" as Banner["type"],
+    type: "info",
     isActive: true,
+  });
+
+  // Delete confirmation modal
+  const [deleteModal, setDeleteModal] = useState<{
+    isOpen: boolean;
+    bannerId: string | null;
+  }>({
+    isOpen: false,
+    bannerId: null,
   });
 
   useEffect(() => {
@@ -96,10 +112,37 @@ export default function AdminBannersPage() {
     if (!formData.textAr || !formData.textEn) return;
 
     try {
+      // Create banner
       await addDoc(collection(db, "banners"), {
         ...formData,
-        createdAt: new Date().toISOString(), // Use simple ISO string
+        createdAt: new Date().toISOString(),
       });
+
+      // Also create a notification for this banner
+      await addDoc(collection(db, "notifications"), {
+        titleAr:
+          formData.type === "urgent"
+            ? "🚨 إعلان عاجل"
+            : formData.type === "warning"
+            ? "⚠️ تنبيه"
+            : formData.type === "success"
+            ? "✅ أخبار سارة"
+            : "📢 إعلان جديد",
+        titleEn:
+          formData.type === "urgent"
+            ? "🚨 Urgent Announcement"
+            : formData.type === "warning"
+            ? "⚠️ Warning"
+            : formData.type === "success"
+            ? "✅ Good News"
+            : "📢 New Announcement",
+        messageAr: formData.textAr,
+        messageEn: formData.textEn,
+        type: formData.type,
+        createdAt: serverTimestamp(),
+        isRead: false,
+      });
+
       toast.success(language === "ar" ? "تم نشر الإعلان" : "Banner published");
       setIsAdding(false);
       setFormData({
@@ -119,9 +162,14 @@ export default function AdminBannersPage() {
   };
 
   const deleteBanner = async (id: string) => {
-    if (confirm("Delete this banner?")) {
-      await deleteDoc(doc(db, "banners", id));
-    }
+    setDeleteModal({ isOpen: true, bannerId: id });
+  };
+
+  const confirmDelete = async () => {
+    if (!deleteModal.bannerId) return;
+    await deleteDoc(doc(db, "banners", deleteModal.bannerId));
+    toast.success(language === "ar" ? "تم حذف الإعلان" : "Banner deleted");
+    setDeleteModal({ isOpen: false, bannerId: null });
   };
 
   if (!isAdmin) return null;
@@ -253,6 +301,33 @@ export default function AdminBannersPage() {
           )}
         </div>
 
+        {/* Social Media Link */}
+        <div className="flex justify-center py-6">
+          <a
+            href="https://linktr.ee/sir.ahmed"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="px-6 py-3 bg-gradient-to-r from-primary to-purple-600 text-primary-foreground rounded-full font-medium hover:opacity-90 transition-all flex items-center gap-2 shadow-lg"
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="18"
+              height="18"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            >
+              <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6" />
+              <polyline points="15 3 21 3 21 9" />
+              <line x1="10" y1="14" x2="21" y2="3" />
+            </svg>
+            {language === "ar" ? "تواصل مع المطور" : "Connect with Developer"}
+          </a>
+        </div>
+
         {/* History / Inactive */}
         <div className="space-y-3 pt-8 border-t">
           <h2 className="text-xl font-bold flex items-center gap-2 text-muted-foreground">
@@ -275,6 +350,19 @@ export default function AdminBannersPage() {
           )}
         </div>
       </div>
+
+      {/* Delete Confirmation Modal */}
+      <ConfirmationModal
+        isOpen={deleteModal.isOpen}
+        onClose={() => setDeleteModal({ isOpen: false, bannerId: null })}
+        onConfirm={confirmDelete}
+        title={language === "ar" ? "حذف الإعلان" : "Delete Banner"}
+        message={
+          language === "ar"
+            ? "هل أنت متأكد من حذف هذا الإعلان؟"
+            : "Are you sure you want to delete this banner?"
+        }
+      />
     </AppShell>
   );
 }

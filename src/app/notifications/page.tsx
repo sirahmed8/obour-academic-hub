@@ -131,6 +131,8 @@ export default function NotificationsPage() {
         return AlertTriangle;
       case "success":
         return CheckCircle;
+      case "urgent":
+        return AlertTriangle;
       default:
         return Info;
     }
@@ -142,6 +144,8 @@ export default function NotificationsPage() {
         return "bg-yellow-100 text-yellow-600 dark:bg-yellow-900/30 dark:text-yellow-400";
       case "success":
         return "bg-green-100 text-green-600 dark:bg-green-900/30 dark:text-green-400";
+      case "urgent":
+        return "bg-red-100 text-red-600 dark:bg-red-900/30 dark:text-red-400";
       default:
         return "bg-blue-100 text-blue-600 dark:bg-blue-900/30 dark:text-blue-400";
     }
@@ -251,7 +255,9 @@ export default function NotificationsPage() {
                               !isRead && "text-primary"
                             )}
                           >
-                            {notif.title}
+                            {language === "ar"
+                              ? notif.titleAr || notif.title || "إشعار"
+                              : notif.titleEn || notif.title || "Notification"}
                             {!isRead && (
                               <span className="ml-2 inline-block w-2 h-2 rounded-full bg-red-500 align-middle" />
                             )}
@@ -273,7 +279,9 @@ export default function NotificationsPage() {
                         </span>
                       </div>
                       <p className="text-muted-foreground mt-1 text-sm leading-relaxed">
-                        {notif.message}
+                        {language === "ar"
+                          ? notif.messageAr || notif.message || ""
+                          : notif.messageEn || notif.message || ""}
                       </p>
                     </div>
                   </div>

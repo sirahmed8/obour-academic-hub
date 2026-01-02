@@ -20,15 +20,20 @@ export interface User {
 
 export interface Notification {
   id: string;
-  title: string;
-  message: string;
-  type: "info" | "warning" | "success";
-  target: "all" | "admins" | string; // userId or 'all'
-  readBy: string[]; // List of user IDs who have read this notification
+  title?: string;
+  titleAr?: string;
+  titleEn?: string;
+  message?: string;
+  messageAr?: string;
+  messageEn?: string;
+  type: "info" | "warning" | "success" | "urgent";
+  target?: "all" | "admins" | string;
+  readBy?: string[];
+  isRead?: boolean;
   createdAt: string;
   createdBy?: string;
-  subjectId?: string; // For navigation to subject
-  resourceId?: string; // For highlighting specific resource
+  subjectId?: string;
+  resourceId?: string;
 }
 
 export interface Subject {
