@@ -5,14 +5,7 @@ import { db } from "@/lib/firebase";
 import { collection, query, where, getDocs } from "firebase/firestore";
 import { useLanguage, useAuth } from "@/contexts";
 import { AppShell } from "@/components/layout/AppShell";
-import {
-  Code2,
-  Coffee,
-  Heart,
-  Loader2,
-  ExternalLink,
-  Settings,
-} from "lucide-react";
+import { Code2, Coffee, Heart, Loader2, Settings } from "lucide-react";
 import { cn } from "@/lib/utils";
 import Image from "next/image";
 import Link from "next/link";
@@ -163,25 +156,6 @@ export default function TeamPage() {
               </div>
             ))
           )}
-        </div>
-
-        {/* Footer Note */}
-        <div className="text-center pt-10 border-t border-border space-y-4 animate-fade-in-up animate-delay-300">
-          <p className="text-muted-foreground">
-            © {new Date().getFullYear()} Obour Academic Hub. All rights
-            reserved.
-          </p>
-          <div className="flex justify-center">
-            <a
-              href="https://linktr.ee/sir.ahmed"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="inline-flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-primary to-purple-500 text-white font-medium rounded-xl hover:opacity-90 transition-all duration-200 active:scale-[0.98] shadow-lg"
-            >
-              <ExternalLink className="w-4 h-4" />
-              {language === "ar" ? "تواصل مع المطور" : "Connect with Developer"}
-            </a>
-          </div>
         </div>
       </div>
     </AppShell>

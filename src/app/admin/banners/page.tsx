@@ -301,33 +301,6 @@ export default function AdminBannersPage() {
           )}
         </div>
 
-        {/* Social Media Link */}
-        <div className="flex justify-center py-6">
-          <a
-            href="https://linktr.ee/sir.ahmed"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="px-6 py-3 bg-gradient-to-r from-primary to-purple-600 text-primary-foreground rounded-full font-medium hover:opacity-90 transition-all flex items-center gap-2 shadow-lg"
-          >
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              width="18"
-              height="18"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            >
-              <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6" />
-              <polyline points="15 3 21 3 21 9" />
-              <line x1="10" y1="14" x2="21" y2="3" />
-            </svg>
-            {language === "ar" ? "تواصل مع المطور" : "Connect with Developer"}
-          </a>
-        </div>
-
         {/* History / Inactive */}
         <div className="space-y-3 pt-8 border-t">
           <h2 className="text-xl font-bold flex items-center gap-2 text-muted-foreground">

@@ -8,13 +8,13 @@ import { StudentProfileSetup } from "@/components/features/StudentProfileSetup";
 import { AIChatbot } from "@/components/features/AIChatbot";
 import { LiveBanner } from "@/components/features/LiveBanner";
 import { CookieConsent } from "@/components/ui/CookieConsent";
-import { Loader2 } from "lucide-react";
+import { Loader2, ExternalLink } from "lucide-react";
 
 export function AppShell({ children }: { children: React.ReactNode }) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [profileSetupDismissed, setProfileSetupDismissed] = useState(false);
   const { user, loading } = useAuth();
-  const { dir } = useLanguage();
+  const { dir, language } = useLanguage();
 
   const router = useRouter();
 
@@ -52,7 +52,16 @@ export function AppShell({ children }: { children: React.ReactNode }) {
         <main className="flex-1 overflow-y-auto pb-24 lg:pb-10">
           {children}
 
-          <footer className="py-6 mt-auto text-center">
+          <footer className="py-8 mt-auto text-center space-y-4">
+            <a
+              href="https://linktr.ee/sir.ahmed"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-primary to-purple-600 text-primary-foreground rounded-full font-medium hover:opacity-90 transition-all shadow-lg"
+            >
+              <ExternalLink className="w-4 h-4" />
+              {language === "ar" ? "تواصل مع المطور" : "Connect with Developer"}
+            </a>
             <p className="text-xs text-muted-foreground/60">
               &copy; 2026 Obour Academic Hub. All rights reserved.
             </p>
