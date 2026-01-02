@@ -7,6 +7,10 @@
     "trailingSlash": false,
     "rewrites": [
       {
+        "source": "/subject/**",
+        "destination": "/subject.html"
+      },
+      {
         "source": "**",
         "destination": "/index.html"
       }

@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
-import { useSearchParams } from "next/navigation";
+import { useSearchParams, usePathname } from "next/navigation";
 import { db } from "@/lib/firebase";
 import {
   getDoc,
@@ -38,11 +38,19 @@ interface SubjectClientProps {
 
 export function SubjectClient({ subjectName }: SubjectClientProps) {
   const searchParams = useSearchParams();
+  const pathname = usePathname();
   const { language } = useLanguage();
 
   // Get ID from query param
   const subjectIdParam = searchParams.get("id");
-  const isPlaceholder = !subjectIdParam && !subjectName;
+
+  // Fallback: Try to get name from URL path if not provided prop
+  // /subject/Computer%20Science -> Computer Science
+  const pathName = pathname?.split("/subject/")[1];
+  const decodedPathName = pathName ? decodeURIComponent(pathName) : undefined;
+
+  const finalSubjectName = subjectName || decodedPathName;
+  const isPlaceholder = !subjectIdParam && !finalSubjectName;
 
   const [subject, setSubject] = useState<Subject | null>(null);
   const [resources, setResources] = useState<Resource[]>([]);
@@ -86,10 +94,10 @@ export function SubjectClient({ subjectName }: SubjectClientProps) {
         let data: Subject | null = null;
         let id = subjectIdParam;
 
-        if (subjectName) {
+        if (finalSubjectName) {
           const q = query(
             collection(db, "subjects"),
-            where("name", "==", decodeURIComponent(subjectName))
+            where("name", "==", decodeURIComponent(finalSubjectName))
           );
           const querySnapshot = await getDocs(q);
           if (!querySnapshot.empty) {
@@ -141,7 +149,7 @@ export function SubjectClient({ subjectName }: SubjectClientProps) {
     return () => {
       cancelled = true;
     };
-  }, [subjectIdParam, subjectName, isPlaceholder]);
+  }, [subjectIdParam, finalSubjectName, isPlaceholder]);
 
   // Separate effect for resources to handle the ID derived from name
   useEffect(() => {
@@ -187,7 +195,7 @@ export function SubjectClient({ subjectName }: SubjectClientProps) {
               : "Sorry, we couldn't find the page you're looking for."}
           </p>
           <p className="text-xs text-muted-foreground mb-4 font-mono bg-muted px-2 py-1 rounded">
-            ID: {subjectIdParam || subjectName}
+            ID: {subjectIdParam || finalSubjectName}
           </p>
           <div className="flex gap-4">
             <Link
