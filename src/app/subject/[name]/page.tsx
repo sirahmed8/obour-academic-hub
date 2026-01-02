@@ -2,19 +2,20 @@ import { Suspense } from "react";
 import { SubjectClient } from "../SubjectClient";
 
 interface PageProps {
-  params: {
+  params: Promise<{
     name: string;
-  };
+  }>;
 }
 
 export async function generateStaticParams() {
   return [];
 }
 
-export default function SubjectPage({ params }: PageProps) {
+export default async function SubjectPage({ params }: PageProps) {
+  const { name } = await params;
   return (
     <Suspense>
-      <SubjectClient subjectName={params.name} />
+      <SubjectClient subjectName={name} />
     </Suspense>
   );
 }
