@@ -458,8 +458,15 @@ export function AIChatbot() {
           </div>
 
           {/* Messages Area */}
-          <div className="flex-1 overflow-y-auto p-4 space-y-4 bg-muted/30 scroll-smooth pb-24">
-            {" "}
+          <div
+            className={cn(
+              "flex-1 p-4 space-y-4 bg-muted/30 scroll-smooth pb-24",
+              (mode === "live" && liveMessages.length === 0) ||
+                (mode === "bot" && localMessages.length === 0)
+                ? "overflow-hidden"
+                : "overflow-y-auto"
+            )}
+          >
             {/* Added pb-24 for input space */}
             {mode === "bot" ? (
               <>
