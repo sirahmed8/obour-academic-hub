@@ -1,6 +1,13 @@
 "use client";
 
-import { createContext, useContext, useState, ReactNode } from "react";
+import {
+  createContext,
+  useContext,
+  useState,
+  ReactNode,
+  useMemo,
+  useCallback,
+} from "react";
 
 type Language = "en" | "ar";
 
@@ -17,7 +24,7 @@ const translations: Record<Language, Record<string, string>> = {
     "nav.home": "Home",
     "nav.notifications": "Notifications",
     "nav.admin": "Admin Dashboard",
-    "nav.aiStudio": "AI Studio",
+
     "nav.team": "Team",
     "nav.logout": "Logout",
 
@@ -81,7 +88,7 @@ const translations: Record<Language, Record<string, string>> = {
     "nav.home": "الرئيسية",
     "nav.notifications": "الإشعارات",
     "nav.admin": "لوحة التحكم",
-    "nav.aiStudio": "استوديو الذكاء",
+
     "nav.team": "الفريق",
     "nav.logout": "تسجيل الخروج",
 
@@ -160,14 +167,27 @@ export function LanguageProvider({ children }: { children: ReactNode }) {
     document.documentElement.lang = lang;
   };
 
-  const t = (key: string): string => {
-    return translations[language][key] || key;
-  };
+  const t = useCallback(
+    (key: string): string => {
+      return translations[language][key] || key;
+    },
+    [language]
+  );
 
   const dir = language === "ar" ? "rtl" : "ltr";
 
+  const value = useMemo(
+    () => ({
+      language,
+      setLanguage,
+      t,
+      dir: dir as "ltr" | "rtl",
+    }),
+    [language, t, dir]
+  );
+
   return (
-    <LanguageContext.Provider value={{ language, setLanguage, t, dir }}>
+    <LanguageContext.Provider value={value}>
       {children}
     </LanguageContext.Provider>
   );

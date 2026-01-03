@@ -11,7 +11,7 @@ import {
 } from "react";
 import { toast } from "sonner";
 import { useLanguage } from "@/contexts/LanguageContext";
-import { User } from "@/types";
+import { User, UserPermission } from "@/types";
 import { auth, googleProvider, db } from "@/lib/firebase";
 import {
   signInWithPopup,
@@ -66,20 +66,24 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       userDocRef,
       async (docSnap) => {
         if (docSnap.exists()) {
-          const userData = docSnap.data() as User;
-
-          // Owner Override Logic (Ensures owner always has access)
+          const userData = docSnap.data();
+          if (userData) {
+            setUser({
+              uid: docSnap.id,
+              ...userData,
+              permissions: (userData.permissions || []) as UserPermission[],
+            } as User);
+          }
           if (
             firebaseUser.email === process.env.NEXT_PUBLIC_OWNER_EMAIL ||
             firebaseUser.email === "a7medorabe7@gmail.com"
           ) {
-            if (userData.role !== "owner") {
+            if (userData?.role !== "owner") {
               await updateDoc(userDocRef, { role: "owner" }); // Will trigger snapshot again
               return;
             }
           }
-
-          setUser({ ...userData, uid: firebaseUser.uid });
+          // Removed redundant setUser here
         } else {
           // Create New User Logic
           const isOwnerEmail =
@@ -89,7 +93,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           let role: "student" | "admin" | "owner" = isOwnerEmail
             ? "owner"
             : "student";
-          let permissions: string[] = [];
+          let permissions: UserPermission[] = [];
 
           // Whitelist Check
           if (!isOwnerEmail && firebaseUser.email) {

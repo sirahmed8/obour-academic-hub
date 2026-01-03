@@ -4,8 +4,15 @@ import { useState, useEffect, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth, useLanguage } from "@/contexts";
 import { Sidebar, Navbar } from "@/components/layout";
+import dynamic from "next/dynamic";
 import { StudentProfileSetup } from "@/components/features/StudentProfileSetup";
-import { AIChatbot } from "@/components/features/AIChatbot";
+// Lazy load AIChatbot for better initial bundle size
+const AIChatbot = dynamic(
+  () => import("@/components/features/AIChatbot").then((mod) => mod.AIChatbot),
+  {
+    ssr: false, // It's a client-side component anyway
+  }
+);
 import { LiveBanner } from "@/components/features/LiveBanner";
 import { CookieConsent } from "@/components/ui/CookieConsent";
 import { Loader2, ExternalLink } from "lucide-react";

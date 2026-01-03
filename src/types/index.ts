@@ -2,13 +2,20 @@
 
 export type UserRole = "student" | "admin" | "owner";
 
+export type UserPermission =
+  | "manage_subjects"
+  | "manage_resources"
+  | "send_notifications"
+  | "delete_chats"
+  | "manage_users";
+
 export interface User {
   uid: string;
   email: string;
   displayName: string;
   studentCode?: string;
   role: UserRole;
-  permissions?: string[];
+  permissions?: UserPermission[];
   notificationSettings?: {
     push: boolean;
     email: boolean;

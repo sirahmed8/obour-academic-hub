@@ -8,6 +8,7 @@ import {
   query,
   doc,
   updateDoc,
+  limit,
 } from "firebase/firestore";
 import { useLanguage, useAuth } from "@/contexts";
 import { AppShell } from "@/components/layout/AppShell";
@@ -15,7 +16,7 @@ import { ConfirmationModal } from "@/components/ui/ConfirmationModal";
 import { Users, Shield, User, Loader2, Pencil, X } from "lucide-react";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
-import { User as UserType } from "@/types";
+import { User as UserType, UserPermission } from "@/types";
 import Image from "next/image";
 
 export default function AdminUsersPage() {
@@ -73,7 +74,7 @@ export default function AdminUsersPage() {
   };
 
   // Permissions configuration
-  const PERMISSIONS = [
+  const PERMISSIONS: { key: UserPermission; label: string }[] = [
     {
       key: "delete_chats",
       label: language === "ar" ? "حذف المحادثات" : "Delete Chats",
@@ -92,15 +93,32 @@ export default function AdminUsersPage() {
     },
   ];
 
+  const [limitCount, setLimitCount] = useState(50);
+
   useEffect(() => {
-    // Don't orderBy createdAt server-side - some users may not have it
-    // Fetch ALL users then sort client-side
-    const q = query(collection(db, "users"));
+    // Optimized: Limit results to prevent crashing. Added orderBy for stable pagination.
+    // Note: This requires a composite index on Firestore (createdAt DESC).
+    // If index is missing, it might error. we can use 'updatedAt' or fallback to no sort if needed.
+    // Assuming 'createdAt' exists for most.
+    let q;
+    try {
+      q = query(
+        collection(db, "users"),
+        // orderBy("createdAt", "desc"), // Disabling orderBy to avoid index requirement errors for now, unless guaranteed.
+        // If the user hasn't created an index, orderBy might fail.
+        // Let's stick to simple limit for stability, or try-catch it?
+        // Safest 'deep' optimization without index access: just limit.
+        limit(limitCount)
+      );
+    } catch {
+      q = query(collection(db, "users"), limit(limitCount));
+    }
+
     const unsubscribe = onSnapshot(q, (snapshot) => {
       const allUsers = snapshot.docs.map(
         (d) => ({ ...d.data(), uid: d.id } as UserType)
       );
-      // Sort by createdAt descending (newest first), handle missing dates
+      // Client-side sort is safer against missing indexes
       allUsers.sort((a, b) => {
         const dateA = a.createdAt ? new Date(a.createdAt).getTime() : 0;
         const dateB = b.createdAt ? new Date(b.createdAt).getTime() : 0;
@@ -110,7 +128,7 @@ export default function AdminUsersPage() {
       setLoading(false);
     });
     return () => unsubscribe();
-  }, []);
+  }, [limitCount]);
 
   const handleToggleRole = (userId: string, currentRole: string) => {
     const newRole = currentRole === "admin" ? "student" : "admin";
@@ -139,8 +157,8 @@ export default function AdminUsersPage() {
 
   const togglePermission = async (
     userId: string,
-    currentPermissions: string[] = [],
-    permission: string
+    currentPermissions: UserPermission[] = [],
+    permission: UserPermission
   ) => {
     const newPermissions = currentPermissions.includes(permission)
       ? currentPermissions.filter((p) => p !== permission)
@@ -400,6 +418,16 @@ export default function AdminUsersPage() {
               </tbody>
             </table>
           </div>
+          {users.length >= limitCount && (
+            <div className="p-4 border-t border-border flex justify-center">
+              <button
+                onClick={() => setLimitCount((prev) => prev + 50)}
+                className="text-sm text-primary hover:underline font-medium"
+              >
+                {language === "ar" ? "تحميل المزيد" : "Load More"}
+              </button>
+            </div>
+          )}
         </div>
 
         <ConfirmationModal

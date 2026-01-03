@@ -74,7 +74,7 @@ export const sendMessage = async (
 
   // 2. Update Chat Session Metadata
   const chatUpdate: Record<string, unknown> = {
-    lastMessage: text,
+    lastMessage: filteredText,
     lastMessageTime: serverTimestamp(),
     isTyping: false,
   };
