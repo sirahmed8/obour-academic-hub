@@ -102,21 +102,23 @@ export function LiveBanner() {
             </p>
           </div>
           <div className="flex items-center gap-1 ml-4">
-            {/* Permanent close */}
-            <button
-              onClick={() => handlePermanentClose(banner.id)}
-              className="p-1.5 hover:bg-white/20 rounded-lg transition-colors text-[10px] opacity-70 hover:opacity-100"
-              title={language === "ar" ? "لا تظهر مجددا" : "Don't show again"}
-            >
-              <XCircle size={16} />
-            </button>
             {/* Session close */}
             <button
               onClick={() => handleSessionClose(banner.id)}
-              className="p-1.5 hover:bg-white/20 rounded-lg transition-colors"
+              className="px-3 py-1.5 bg-white/10 hover:bg-white/20 text-white rounded-lg text-xs font-medium transition-colors flex items-center gap-1.5"
               title={language === "ar" ? "إخفاء مؤقت" : "Hide for now"}
             >
-              <X size={18} />
+              <X size={14} />
+              {language === "ar" ? "إغلاق" : "Close"}
+            </button>
+            {/* Permanent close */}
+            <button
+              onClick={() => handlePermanentClose(banner.id)}
+              className="px-3 py-1.5 bg-black/20 hover:bg-black/30 text-white/90 rounded-lg text-xs font-medium transition-colors flex items-center gap-1.5"
+              title={language === "ar" ? "لا تظهر مجددا" : "Don't show again"}
+            >
+              <XCircle size={14} />
+              {language === "ar" ? "عدم الإظهار مجدداً" : "Don't show again"}
             </button>
           </div>
         </div>

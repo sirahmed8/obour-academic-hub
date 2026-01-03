@@ -202,6 +202,8 @@ export function AIChatbot() {
       setLocalMessages((prev) => [...prev, userMsg]);
 
       // PERSIST FOR ADMIN VISIBILITY
+      // PERSIST FOR ADMIN VISIBILITY - DISABLED FOR BOT CHAT to fix issue where bot chats appear in support
+      /* 
       if (user) {
         sendMessage(
           user.uid,
@@ -211,6 +213,7 @@ export function AIChatbot() {
           false
         ).catch((e) => console.error("Failed to persist user msg", e));
       }
+      */
 
       // Check if user wants live support (explicit request)
       if (wantsLiveSupport(text)) {
@@ -225,6 +228,8 @@ export function AIChatbot() {
         };
         setLocalMessages((prev) => [...prev, confirmMsg]);
 
+        // Bot confirmation message - Local only
+        /*
         if (user) {
           sendMessage(
             user.uid,
@@ -234,6 +239,7 @@ export function AIChatbot() {
             true
           ).catch((e) => console.error("Failed to persist bot msg", e));
         }
+        */
 
         setTimeout(() => setMode("live"), 1000);
         return;
@@ -253,6 +259,8 @@ export function AIChatbot() {
         };
         setLocalMessages((prev) => [...prev, helpMsg]);
 
+        // Bot help suggestion - Local only
+        /*
         if (user) {
           sendMessage(
             user.uid,
@@ -262,6 +270,7 @@ export function AIChatbot() {
             true
           ).catch(console.error);
         }
+        */
         return;
       }
 
@@ -279,6 +288,8 @@ export function AIChatbot() {
         };
         setLocalMessages((prev) => [...prev, botMsg]);
 
+        // Bot response - Local only
+        /*
         if (user) {
           sendMessage(
             user.uid,
@@ -288,6 +299,7 @@ export function AIChatbot() {
             true
           ).catch(console.error);
         }
+        */
 
         setIsTyping(false);
       }, 800);
