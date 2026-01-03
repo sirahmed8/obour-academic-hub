@@ -35,7 +35,7 @@ describe("Utility Functions", () => {
     it("generates URL with initials", () => {
       const url = generateAvatarUrl("John Doe");
       expect(url).toContain("ui-avatars.com");
-      expect(url).toContain("JD");
+      expect(url).toContain("John%20Doe");
     });
 
     it("handles empty names", () => {

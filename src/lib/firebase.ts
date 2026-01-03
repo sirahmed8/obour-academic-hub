@@ -7,14 +7,14 @@ import { getAnalytics, isSupported } from "firebase/analytics";
 import { getPerformance } from "firebase/performance";
 
 const firebaseConfig = {
-  apiKey: "AIzaSyDSJeoNeXeGF8OegC5xp2AHQ2qmUWjq_OE",
-  authDomain: "obour-institutes-a607d.firebaseapp.com",
-  databaseURL: "https://obour-institutes-a607d-default-rtdb.firebaseio.com",
-  projectId: "obour-institutes-a607d",
-  storageBucket: "obour-institutes-a607d.firebasestorage.app",
-  messagingSenderId: "761134603194",
-  appId: "1:761134603194:web:a434d916518caa86935b83",
-  measurementId: "G-6KWJB42P4N",
+  apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
+  authDomain: process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN,
+  databaseURL: process.env.NEXT_PUBLIC_FIREBASE_DATABASE_URL,
+  projectId: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID,
+  storageBucket: process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET,
+  messagingSenderId: process.env.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID,
+  appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID,
+  measurementId: process.env.NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID,
 };
 
 // Singleton initialization

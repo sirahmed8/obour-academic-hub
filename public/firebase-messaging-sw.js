@@ -5,14 +5,18 @@ importScripts("https://www.gstatic.com/firebasejs/9.0.0/firebase-app-compat.js")
 importScripts("https://www.gstatic.com/firebasejs/9.0.0/firebase-messaging-compat.js");
 
 // Initialize Firebase in Service Worker
-firebase.initializeApp({
-  apiKey: "AIzaSyDSJeoNeXeGF8OegC5xp2AHQ2qmUWjq_OE",
+// Initialize Firebase in Service Worker
+// Credentials should be passed via URL parameters or updated manually
+const firebaseConfig = {
+  apiKey: "REPLACE_WITH_YOUR_KEY", // TODO: Rotate key and use environment injection
   authDomain: "obour-institutes-a607d.firebaseapp.com",
   projectId: "obour-institutes-a607d",
   storageBucket: "obour-institutes-a607d.firebasestorage.app",
   messagingSenderId: "761134603194",
   appId: "1:761134603194:web:a434d916518caa86935b83",
-});
+};
+
+firebase.initializeApp(firebaseConfig);
 
 const messaging = firebase.messaging();
 

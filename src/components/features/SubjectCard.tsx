@@ -36,11 +36,7 @@ export function SubjectCard({ subject, resourceCount = 0 }: SubjectCardProps) {
         <div className="flex items-start gap-4">
           {/* Icon */}
           <div
-            className={cn(
-              "p-4 rounded-2xl flex-shrink-0",
-              bgColorClass.replace("bg-", "bg-") + "/10",
-              textColorClass
-            )}
+            className={cn("p-4 rounded-2xl flex-shrink-0", bgColorClass + "/10", textColorClass)}
           >
             <IconComponent size={28} />
           </div>
@@ -66,7 +62,7 @@ export function SubjectCard({ subject, resourceCount = 0 }: SubjectCardProps) {
               <div
                 className={cn(
                   "px-3 py-1 rounded-full text-xs font-medium",
-                  bgColorClass.replace("bg-", "bg-") + "/10",
+                  bgColorClass + "/10",
                   textColorClass
                 )}
               >
