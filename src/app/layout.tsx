@@ -50,6 +50,8 @@ export const metadata: Metadata = {
 
 import { ErrorBoundary } from "@/components/ErrorBoundary";
 
+import { Analytics } from "@vercel/analytics/next";
+
 export default function RootLayout({
   children,
 }: Readonly<{
