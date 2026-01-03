@@ -24,7 +24,7 @@ export function Dashboard() {
           ({
             id: doc.id,
             ...doc.data(),
-          } as Subject)
+          }) as Subject
       );
       setSubjects(data);
       setLoading(false);
@@ -48,8 +48,7 @@ export function Dashboard() {
           </div>
 
           <h1 className="text-3xl lg:text-4xl font-black text-foreground">
-            {language === "ar" ? greeting.ar : greeting.en},{" "}
-            {user?.displayName?.split(" ")[0]} 👋
+            {language === "ar" ? greeting.ar : greeting.en}, {user?.displayName?.split(" ")[0]} 👋
           </h1>
 
           <p className="text-muted-foreground mt-2 text-lg">
@@ -79,10 +78,7 @@ export function Dashboard() {
         {loading ? (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {[1, 2, 3, 4, 5, 6].map((i) => (
-              <div
-                key={i}
-                className="bg-card rounded-2xl p-6 border border-border"
-              >
+              <div key={i} className="bg-card rounded-2xl p-6 border border-border">
                 <div className="flex items-start gap-4">
                   <div className="skeleton w-16 h-16 rounded-2xl" />
                   <div className="flex-1 space-y-3">
@@ -96,13 +92,8 @@ export function Dashboard() {
           </div>
         ) : subjects.length === 0 ? (
           <div className="text-center py-20 bg-muted/30 rounded-2xl border-2 border-dashed border-border">
-            <BookOpen
-              size={48}
-              className="mx-auto text-muted-foreground mb-4"
-            />
-            <p className="text-muted-foreground text-lg">
-              {t("dashboard.noSubjects")}
-            </p>
+            <BookOpen size={48} className="mx-auto text-muted-foreground mb-4" />
+            <p className="text-muted-foreground text-lg">{t("dashboard.noSubjects")}</p>
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">

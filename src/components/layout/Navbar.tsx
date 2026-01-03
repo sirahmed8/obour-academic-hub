@@ -31,10 +31,9 @@ export function Navbar({ onMenuClick }: NavbarProps) {
   const [nameInput, setNameInput] = useState(user?.displayName || "");
   const [codeInput, setCodeInput] = useState(user?.studentCode || "");
   const [isSaving, setIsSaving] = useState(false);
-  const [notifPermission, setNotifPermission] =
-    useState<NotificationPermission>(
-      typeof window !== "undefined" ? Notification.permission : "default"
-    );
+  const [notifPermission, setNotifPermission] = useState<NotificationPermission>(
+    typeof window !== "undefined" ? Notification.permission : "default"
+  );
 
   const handleSaveProfile = async () => {
     if (!user) return;
@@ -42,17 +41,13 @@ export function Navbar({ onMenuClick }: NavbarProps) {
     // Validation
     if (!codeInput || codeInput.length !== 6 || !/^\d+$/.test(codeInput)) {
       toast.error(
-        language === "ar"
-          ? "كود الطالب يجب أن يكون 6 أرقام"
-          : "Student code must be 6 digits"
+        language === "ar" ? "كود الطالب يجب أن يكون 6 أرقام" : "Student code must be 6 digits"
       );
       return;
     }
     if (!nameInput.trim() || !/^[\p{L}\s]+$/u.test(nameInput)) {
       toast.error(
-        language === "ar"
-          ? "الاسم يجب أن يحتوي على أحرف فقط"
-          : "Name must contain letters only"
+        language === "ar" ? "الاسم يجب أن يحتوي على أحرف فقط" : "Name must contain letters only"
       );
       return;
     }
@@ -63,9 +58,7 @@ export function Navbar({ onMenuClick }: NavbarProps) {
         displayName: nameInput,
         studentCode: codeInput,
       });
-      toast.success(
-        language === "ar" ? "تم تحديث الملف الشخصي" : "Profile updated"
-      );
+      toast.success(language === "ar" ? "تم تحديث الملف الشخصي" : "Profile updated");
     } catch {
       toast.error(language === "ar" ? "حدث خطأ" : "Error updating profile");
     }
@@ -143,9 +136,7 @@ export function Navbar({ onMenuClick }: NavbarProps) {
                 "absolute top-full mt-2 w-72 bg-card border border-border rounded-2xl shadow-2xl z-50 p-4 space-y-4",
                 "transition-all duration-150 ease-out",
                 isClosing ? "animate-scale-out" : "animate-scale-in",
-                language === "ar"
-                  ? "left-0 origin-top-left"
-                  : "right-0 origin-top-right"
+                language === "ar" ? "left-0 origin-top-left" : "right-0 origin-top-right"
               )}
             >
               <div className="pt-2 border-t border-border">
@@ -158,9 +149,7 @@ export function Navbar({ onMenuClick }: NavbarProps) {
                           <p className="text-[10px] text-muted-foreground uppercase tracking-wider font-semibold mb-0.5">
                             {language === "ar" ? "الاسم" : "Name"}
                           </p>
-                          <p className="text-sm font-bold truncate">
-                            {user.displayName}
-                          </p>
+                          <p className="text-sm font-bold truncate">{user.displayName}</p>
                         </div>
                         <div className="p-2 bg-muted/50 rounded-lg border border-border">
                           <p className="text-[10px] text-muted-foreground uppercase tracking-wider font-semibold mb-0.5">
@@ -203,15 +192,12 @@ export function Navbar({ onMenuClick }: NavbarProps) {
                         </div>
                         <div>
                           <label className="text-xs font-medium ml-1">
-                            {language === "ar"
-                              ? "كود الطالب (6 أرقام)"
-                              : "Student Code (6 digits)"}
+                            {language === "ar" ? "كود الطالب (6 أرقام)" : "Student Code (6 digits)"}
                           </label>
                           <input
                             value={codeInput}
                             onChange={(e) => {
-                              if (e.target.value.length <= 6)
-                                setCodeInput(e.target.value);
+                              if (e.target.value.length <= 6) setCodeInput(e.target.value);
                             }}
                             className="w-full mt-1 p-2 rounded-lg border border-border bg-background text-sm font-mono tracking-widest focus:ring-2 focus:ring-primary/20 outline-none"
                             placeholder="123456"
@@ -225,15 +211,13 @@ export function Navbar({ onMenuClick }: NavbarProps) {
                           {isSaving
                             ? "Saving..."
                             : language === "ar"
-                            ? "حفظ وتثبيت"
-                            : "Save & Lock"}
+                              ? "حفظ وتثبيت"
+                              : "Save & Lock"}
                         </button>
                       </div>
                     )}
                     <div className="h-px bg-border my-1" />
-                    <p className="text-xs text-muted-foreground px-1 truncate">
-                      {user.email}
-                    </p>
+                    <p className="text-xs text-muted-foreground px-1 truncate">{user.email}</p>
                   </div>
                 )}
                 <div className="flex gap-2 mb-4">
@@ -318,9 +302,7 @@ export function Navbar({ onMenuClick }: NavbarProps) {
                         setNotifPermission(result); // Live update!
                         if (result === "granted") {
                           toast.success(
-                            language === "ar"
-                              ? "تم تفعيل الإشعارات"
-                              : "Notifications enabled"
+                            language === "ar" ? "تم تفعيل الإشعارات" : "Notifications enabled"
                           );
                         }
                       }
@@ -355,8 +337,8 @@ export function Navbar({ onMenuClick }: NavbarProps) {
                               ? "left-0.5"
                               : "right-0.5"
                             : language === "ar"
-                            ? "right-0.5"
-                            : "left-0.5"
+                              ? "right-0.5"
+                              : "left-0.5"
                         )}
                       />
                     </div>

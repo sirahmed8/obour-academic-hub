@@ -15,15 +15,7 @@ import {
 } from "firebase/firestore";
 import { useLanguage } from "@/contexts";
 import { AppShell } from "@/components/layout/AppShell";
-import {
-  Plus,
-  Trash2,
-  BookOpen,
-  Loader2,
-  Pencil,
-  X,
-  Check,
-} from "lucide-react";
+import { Plus, Trash2, BookOpen, Loader2, Pencil, X, Check } from "lucide-react";
 import * as Icons from "lucide-react";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
@@ -81,9 +73,7 @@ export default function AdminSubjectsPage() {
     color: "bg-blue-500",
   });
 
-  const [errors, setErrors] = useState<{ name?: string; profName?: string }>(
-    {}
-  );
+  const [errors, setErrors] = useState<{ name?: string; profName?: string }>({});
   const [deleteId, setDeleteId] = useState<string | null>(null);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editData, setEditData] = useState<typeof formData | null>(null);
@@ -91,9 +81,7 @@ export default function AdminSubjectsPage() {
   useEffect(() => {
     const q = query(collection(db, "subjects"), orderBy("orderIndex"));
     const unsubscribe = onSnapshot(q, (snapshot) => {
-      setSubjects(
-        snapshot.docs.map((d) => ({ id: d.id, ...d.data() } as Subject))
-      );
+      setSubjects(snapshot.docs.map((d) => ({ id: d.id, ...d.data() }) as Subject));
       setLoading(false);
     });
     return () => unsubscribe();
@@ -134,11 +122,7 @@ export default function AdminSubjectsPage() {
         isRead: false,
       });
 
-      toast.success(
-        language === "ar"
-          ? "تم إنشاء المادة بنجاح"
-          : "Subject created successfully"
-      );
+      toast.success(language === "ar" ? "تم إنشاء المادة بنجاح" : "Subject created successfully");
       setFormData({
         name: "",
         nameAr: "",
@@ -187,11 +171,7 @@ export default function AdminSubjectsPage() {
   const saveEdit = async () => {
     if (!editingId || !editData) return;
     if (!editData.name.trim() || !editData.profName.trim()) {
-      toast.error(
-        language === "ar"
-          ? "يرجى ملء الحقول المطلوبة"
-          : "Please fill required fields"
-      );
+      toast.error(language === "ar" ? "يرجى ملء الحقول المطلوبة" : "Please fill required fields");
       return;
     }
 
@@ -231,37 +211,28 @@ export default function AdminSubjectsPage() {
                     value={formData.name}
                     onChange={(e) => {
                       setFormData({ ...formData, name: e.target.value });
-                      if (errors.name)
-                        setErrors({ ...errors, name: undefined });
+                      if (errors.name) setErrors({ ...errors, name: undefined });
                     }}
                     className={cn(
                       "w-full rounded-lg border px-4 py-2 bg-background transition-all duration-200",
                       "focus:ring-2 focus:ring-primary/50 focus:border-primary outline-none",
                       errors.name ? "border-red-500" : "border-border"
                     )}
-                    placeholder={
-                      language === "ar" ? "علوم الحاسب" : "Computer Science"
-                    }
+                    placeholder={language === "ar" ? "علوم الحاسب" : "Computer Science"}
                   />
                   {errors.name && (
-                    <p className="text-red-500 text-xs mt-1 animate-fade-in">
-                      {errors.name}
-                    </p>
+                    <p className="text-red-500 text-xs mt-1 animate-fade-in">{errors.name}</p>
                   )}
                 </div>
 
                 <div>
                   <label className="block text-sm font-medium mb-1">
-                    {language === "ar"
-                      ? "اسم المادة (بالعربية)"
-                      : "Subject Name (Arabic)"}
+                    {language === "ar" ? "اسم المادة (بالعربية)" : "Subject Name (Arabic)"}
                   </label>
                   <input
                     type="text"
                     value={formData.nameAr}
-                    onChange={(e) =>
-                      setFormData({ ...formData, nameAr: e.target.value })
-                    }
+                    onChange={(e) => setFormData({ ...formData, nameAr: e.target.value })}
                     className="w-full rounded-lg border border-border px-4 py-2 bg-background transition-all duration-200 focus:ring-2 focus:ring-primary/50 focus:border-primary outline-none"
                     placeholder="علوم الحاسب"
                   />
@@ -276,8 +247,7 @@ export default function AdminSubjectsPage() {
                     value={formData.profName}
                     onChange={(e) => {
                       setFormData({ ...formData, profName: e.target.value });
-                      if (errors.profName)
-                        setErrors({ ...errors, profName: undefined });
+                      if (errors.profName) setErrors({ ...errors, profName: undefined });
                     }}
                     className={cn(
                       "w-full rounded-lg border px-4 py-2 bg-background transition-all duration-200",
@@ -286,24 +256,18 @@ export default function AdminSubjectsPage() {
                     )}
                   />
                   {errors.profName && (
-                    <p className="text-red-500 text-xs mt-1 animate-fade-in">
-                      {errors.profName}
-                    </p>
+                    <p className="text-red-500 text-xs mt-1 animate-fade-in">{errors.profName}</p>
                   )}
                 </div>
 
                 <div>
                   <label className="block text-sm font-medium mb-1">
-                    {language === "ar"
-                      ? "اسم الدكتور (بالعربية)"
-                      : "Professor Name (Arabic)"}
+                    {language === "ar" ? "اسم الدكتور (بالعربية)" : "Professor Name (Arabic)"}
                   </label>
                   <input
                     type="text"
                     value={formData.profNameAr}
-                    onChange={(e) =>
-                      setFormData({ ...formData, profNameAr: e.target.value })
-                    }
+                    onChange={(e) => setFormData({ ...formData, profNameAr: e.target.value })}
                     className="w-full rounded-lg border border-border px-4 py-2 bg-background transition-all duration-200 focus:ring-2 focus:ring-primary/50 focus:border-primary outline-none"
                   />
                 </div>
@@ -314,9 +278,7 @@ export default function AdminSubjectsPage() {
                   </label>
                   <textarea
                     value={formData.description}
-                    onChange={(e) =>
-                      setFormData({ ...formData, description: e.target.value })
-                    }
+                    onChange={(e) => setFormData({ ...formData, description: e.target.value })}
                     className="w-full rounded-lg border border-border px-4 py-2 bg-background h-24 resize-none transition-all duration-200 focus:ring-2 focus:ring-primary/50 focus:border-primary outline-none"
                   />
                 </div>
@@ -339,9 +301,7 @@ export default function AdminSubjectsPage() {
                           <button
                             key={iconName}
                             type="button"
-                            onClick={() =>
-                              setFormData({ ...formData, icon: iconName })
-                            }
+                            onClick={() => setFormData({ ...formData, icon: iconName })}
                             className={cn(
                               "p-2 rounded-md flex items-center justify-center transition-all duration-200 active:scale-95",
                               formData.icon === iconName
@@ -365,9 +325,7 @@ export default function AdminSubjectsPage() {
                         <button
                           key={color.value}
                           type="button"
-                          onClick={() =>
-                            setFormData({ ...formData, color: color.value })
-                          }
+                          onClick={() => setFormData({ ...formData, color: color.value })}
                           className={cn(
                             "w-7 h-7 rounded-full ring-2 ring-offset-2 transition-all duration-200 active:scale-95",
                             color.value,
@@ -394,8 +352,7 @@ export default function AdminSubjectsPage() {
           {/* List */}
           <div className="lg:col-span-2 animate-fade-in-up animate-delay-200">
             <h2 className="text-xl font-bold mb-6">
-              {language === "ar" ? "المواد الحالية" : "Existing Subjects"} (
-              {subjects.length})
+              {language === "ar" ? "المواد الحالية" : "Existing Subjects"} ({subjects.length})
             </h2>
 
             {loading ? (
@@ -440,17 +397,10 @@ export default function AdminSubjectsPage() {
                           >
                             <IconComp className="w-6 h-6" />
                           </div>
-                          <div
-                            className={cn(
-                              "w-2 h-12 rounded-full",
-                              subject.color
-                            )}
-                          />
+                          <div className={cn("w-2 h-12 rounded-full", subject.color)} />
                           <div>
                             <h3 className="font-bold text-lg text-foreground">
-                              {language === "ar" && subject.nameAr
-                                ? subject.nameAr
-                                : subject.name}
+                              {language === "ar" && subject.nameAr ? subject.nameAr : subject.name}
                             </h3>
                             <p className="text-sm text-muted-foreground">
                               {language === "ar" ? "د." : "Dr."}{" "}
@@ -463,9 +413,7 @@ export default function AdminSubjectsPage() {
 
                         <div className="flex items-center gap-2">
                           <button
-                            onClick={() =>
-                              isEditing ? cancelEdit() : startEdit(subject)
-                            }
+                            onClick={() => (isEditing ? cancelEdit() : startEdit(subject))}
                             className={cn(
                               "p-2 rounded-lg transition-all duration-200 active:scale-95",
                               isEditing
@@ -473,11 +421,7 @@ export default function AdminSubjectsPage() {
                                 : "text-muted-foreground hover:text-primary hover:bg-primary/10"
                             )}
                           >
-                            {isEditing ? (
-                              <X className="w-5 h-5" />
-                            ) : (
-                              <Pencil className="w-5 h-5" />
-                            )}
+                            {isEditing ? <X className="w-5 h-5" /> : <Pencil className="w-5 h-5" />}
                           </button>
                           <button
                             onClick={() => setDeleteId(subject.id)}
@@ -492,9 +436,7 @@ export default function AdminSubjectsPage() {
                       <div
                         className={cn(
                           "overflow-hidden transition-all duration-300 ease-out",
-                          isEditing
-                            ? "max-h-[500px] opacity-100"
-                            : "max-h-0 opacity-0"
+                          isEditing ? "max-h-[500px] opacity-100" : "max-h-0 opacity-0"
                         )}
                       >
                         {editData && (
@@ -509,11 +451,7 @@ export default function AdminSubjectsPage() {
                                     name: e.target.value,
                                   })
                                 }
-                                placeholder={
-                                  language === "ar"
-                                    ? "اسم المادة"
-                                    : "Subject Name"
-                                }
+                                placeholder={language === "ar" ? "اسم المادة" : "Subject Name"}
                                 className="rounded-lg border border-border px-3 py-2 bg-background text-sm focus:ring-2 focus:ring-primary/50 focus:border-primary outline-none transition-all"
                               />
                               <input
@@ -526,9 +464,7 @@ export default function AdminSubjectsPage() {
                                   })
                                 }
                                 placeholder={
-                                  language === "ar"
-                                    ? "اسم المادة (عربي)"
-                                    : "Subject Name (Arabic)"
+                                  language === "ar" ? "اسم المادة (عربي)" : "Subject Name (Arabic)"
                                 }
                                 className="rounded-lg border border-border px-3 py-2 bg-background text-sm focus:ring-2 focus:ring-primary/50 focus:border-primary outline-none transition-all"
                               />
@@ -541,11 +477,7 @@ export default function AdminSubjectsPage() {
                                     profName: e.target.value,
                                   })
                                 }
-                                placeholder={
-                                  language === "ar"
-                                    ? "اسم الدكتور"
-                                    : "Professor Name"
-                                }
+                                placeholder={language === "ar" ? "اسم الدكتور" : "Professor Name"}
                                 className="rounded-lg border border-border px-3 py-2 bg-background text-sm focus:ring-2 focus:ring-primary/50 focus:border-primary outline-none transition-all"
                               />
                               <input

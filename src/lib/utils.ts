@@ -6,9 +6,7 @@ export function cn(...inputs: ClassValue[]) {
 }
 
 // Helper to safely convert Firestore Timestamp or string to Date
-type Timestamp =
-  | { seconds: number; nanoseconds: number }
-  | { toDate: () => Date };
+type Timestamp = { seconds: number; nanoseconds: number } | { toDate: () => Date };
 type DateInput = string | Date | Timestamp | null | undefined;
 
 function toDate(date: DateInput): Date {

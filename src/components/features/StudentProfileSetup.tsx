@@ -29,8 +29,7 @@ export function StudentProfileSetup({ onComplete }: StudentProfileSetupProps) {
   };
 
   // Lock name if code is set AND name looks valid from Google
-  const isNameLocked =
-    !!user?.studentCode && isValidGoogleName(user?.displayName);
+  const isNameLocked = !!user?.studentCode && isValidGoogleName(user?.displayName);
   const isCodeLocked = !!user?.studentCode;
 
   // Arabic character regex
@@ -44,21 +43,16 @@ export function StudentProfileSetup({ onComplete }: StudentProfileSetupProps) {
         newErrors.name = language === "ar" ? "الاسم مطلوب" : "Name is required";
       } else if (!arabicRegex.test(displayName.trim())) {
         newErrors.name =
-          language === "ar"
-            ? "يجب أن يكون الاسم بالعربية فقط"
-            : "Name must be in Arabic only";
+          language === "ar" ? "يجب أن يكون الاسم بالعربية فقط" : "Name must be in Arabic only";
       }
     }
 
     if (!isCodeLocked) {
       if (!studentCode.trim()) {
-        newErrors.code =
-          language === "ar" ? "كود الطالب مطلوب" : "Student code is required";
+        newErrors.code = language === "ar" ? "كود الطالب مطلوب" : "Student code is required";
       } else if (!/^\d{6}$/.test(studentCode.trim())) {
         newErrors.code =
-          language === "ar"
-            ? "يجب أن يكون الكود 6 أرقام"
-            : "Code must be exactly 6 digits";
+          language === "ar" ? "يجب أن يكون الكود 6 أرقام" : "Code must be exactly 6 digits";
       }
     }
 
@@ -78,11 +72,7 @@ export function StudentProfileSetup({ onComplete }: StudentProfileSetupProps) {
 
       if (Object.keys(updates).length > 0) {
         await updateProfile(updates);
-        toast.success(
-          language === "ar"
-            ? "تم حفظ الملف الشخصي"
-            : "Profile saved successfully"
-        );
+        toast.success(language === "ar" ? "تم حفظ الملف الشخصي" : "Profile saved successfully");
       }
       onComplete();
     } catch {
@@ -115,8 +105,8 @@ export function StudentProfileSetup({ onComplete }: StudentProfileSetupProps) {
                 ? "ملفك الشخصي"
                 : "Your Profile"
               : language === "ar"
-              ? "أكمل ملفك الشخصي"
-              : "Complete Your Profile"}
+                ? "أكمل ملفك الشخصي"
+                : "Complete Your Profile"}
           </h2>
           <p className="text-muted-foreground mt-2">
             {isCodeLocked
@@ -124,8 +114,8 @@ export function StudentProfileSetup({ onComplete }: StudentProfileSetupProps) {
                 ? "البيانات مقفلة. تواصل مع الدعم للتعديل."
                 : "Data is locked. Contact support to edit."
               : language === "ar"
-              ? "يرجى إدخال اسمك الحقيقي وكود الطالب"
-              : "Please enter your real name and student code"}
+                ? "يرجى إدخال اسمك الحقيقي وكود الطالب"
+                : "Please enter your real name and student code"}
           </p>
         </div>
 
@@ -133,21 +123,15 @@ export function StudentProfileSetup({ onComplete }: StudentProfileSetupProps) {
           <div>
             <label className="text-sm font-medium text-foreground mb-2 flex items-center gap-2">
               {language === "ar" ? "الاسم (بالعربية)" : "Name (Arabic)"}
-              {isNameLocked && (
-                <Lock className="w-3 h-3 text-muted-foreground" />
-              )}
+              {isNameLocked && <Lock className="w-3 h-3 text-muted-foreground" />}
             </label>
             <div className="relative">
               <User className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
               <input
                 type="text"
                 value={displayName}
-                onChange={(e) =>
-                  !isNameLocked && setDisplayName(e.target.value)
-                }
-                placeholder={
-                  language === "ar" ? "أحمد محمد علي" : "Ahmed Mohamed Ali"
-                }
+                onChange={(e) => !isNameLocked && setDisplayName(e.target.value)}
+                placeholder={language === "ar" ? "أحمد محمد علي" : "Ahmed Mohamed Ali"}
                 disabled={isNameLocked}
                 className={cn(
                   "w-full pl-10 pr-4 py-3 rounded-xl border border-border bg-background transition",
@@ -158,19 +142,13 @@ export function StudentProfileSetup({ onComplete }: StudentProfileSetupProps) {
                 dir="rtl"
               />
             </div>
-            {errors.name && (
-              <p className="text-destructive text-sm mt-1">{errors.name}</p>
-            )}
+            {errors.name && <p className="text-destructive text-sm mt-1">{errors.name}</p>}
           </div>
 
           <div>
             <label className="text-sm font-medium text-foreground mb-2 flex items-center gap-2">
-              {language === "ar"
-                ? "كود الطالب (6 أرقام)"
-                : "Student Code (6 digits)"}
-              {isCodeLocked && (
-                <Lock className="w-3 h-3 text-muted-foreground" />
-              )}
+              {language === "ar" ? "كود الطالب (6 أرقام)" : "Student Code (6 digits)"}
+              {isCodeLocked && <Lock className="w-3 h-3 text-muted-foreground" />}
             </label>
             <div className="relative">
               <Hash className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
@@ -178,8 +156,7 @@ export function StudentProfileSetup({ onComplete }: StudentProfileSetupProps) {
                 type="text"
                 value={studentCode}
                 onChange={(e) =>
-                  !isCodeLocked &&
-                  setStudentCode(e.target.value.replace(/\D/g, "").slice(0, 6))
+                  !isCodeLocked && setStudentCode(e.target.value.replace(/\D/g, "").slice(0, 6))
                 }
                 placeholder="123456"
                 maxLength={6}
@@ -192,9 +169,7 @@ export function StudentProfileSetup({ onComplete }: StudentProfileSetupProps) {
                 )}
               />
             </div>
-            {errors.code && (
-              <p className="text-destructive text-sm mt-1">{errors.code}</p>
-            )}
+            {errors.code && <p className="text-destructive text-sm mt-1">{errors.code}</p>}
           </div>
 
           {isCodeLocked ? (
@@ -226,8 +201,8 @@ export function StudentProfileSetup({ onComplete }: StudentProfileSetupProps) {
                   ? "جارٍ الحفظ..."
                   : "Saving..."
                 : language === "ar"
-                ? "حفظ والمتابعة"
-                : "Save & Continue"}
+                  ? "حفظ والمتابعة"
+                  : "Save & Continue"}
             </button>
           )}
         </form>

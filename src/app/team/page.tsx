@@ -28,10 +28,7 @@ export default function TeamPage() {
     const fetchTeam = async () => {
       try {
         // Simple query without orderBy to avoid index requirement
-        const q = query(
-          collection(db, "users"),
-          where("role", "in", ["admin", "owner"])
-        );
+        const q = query(collection(db, "users"), where("role", "in", ["admin", "owner"]));
         const snapshot = await getDocs(q);
         const members = snapshot.docs.map((d) => d.data() as TeamMember);
         // Sort client-side: owners first, then by name
@@ -79,9 +76,7 @@ export default function TeamPage() {
                 className="inline-flex items-center gap-2 px-6 py-2 bg-muted hover:bg-muted/80 text-foreground font-semibold rounded-full transition-all text-sm"
               >
                 <Settings className="w-4 h-4" />
-                {language === "ar"
-                  ? "إدارة الأعضاء والصلاحيات"
-                  : "Manage Members & Permissions"}
+                {language === "ar" ? "إدارة الأعضاء والصلاحيات" : "Manage Members & Permissions"}
               </Link>
             </div>
           )}
@@ -95,15 +90,11 @@ export default function TeamPage() {
             </div>
           ) : error ? (
             <div className="col-span-full text-center py-20 text-muted-foreground">
-              {language === "ar"
-                ? "حدث خطأ في تحميل الفريق"
-                : "Error loading team"}
+              {language === "ar" ? "حدث خطأ في تحميل الفريق" : "Error loading team"}
             </div>
           ) : teamMembers.length === 0 ? (
             <div className="col-span-full text-center py-20 text-muted-foreground">
-              {language === "ar"
-                ? "لا يوجد أعضاء فريق حالياً"
-                : "No team members yet"}
+              {language === "ar" ? "لا يوجد أعضاء فريق حالياً" : "No team members yet"}
             </div>
           ) : (
             teamMembers.map((member, idx) => (
@@ -127,9 +118,7 @@ export default function TeamPage() {
                   />
                 </div>
 
-                <h3 className="text-2xl font-bold text-foreground mb-2">
-                  {member.displayName}
-                </h3>
+                <h3 className="text-2xl font-bold text-foreground mb-2">{member.displayName}</h3>
                 <span
                   className={cn(
                     "inline-block px-4 py-1.5 rounded-full text-sm font-medium mb-4",
@@ -143,8 +132,8 @@ export default function TeamPage() {
                       ? "المالك"
                       : "Owner"
                     : language === "ar"
-                    ? "مسؤول"
-                    : "Admin"}
+                      ? "مسؤول"
+                      : "Admin"}
                 </span>
 
                 <p className="text-muted-foreground leading-relaxed">

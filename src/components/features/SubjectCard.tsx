@@ -16,14 +16,11 @@ export function SubjectCard({ subject, resourceCount = 0 }: SubjectCardProps) {
 
   // Dynamic icon
   const IconComponent =
-    (Icons as unknown as Record<string, React.ElementType>)[subject.icon] ||
-    Icons.BookOpen;
+    (Icons as unknown as Record<string, React.ElementType>)[subject.icon] || Icons.BookOpen;
 
   // Color classes
   const bgColorClass = subject.color || "bg-blue-500";
-  const textColorClass = bgColorClass
-    .replace("bg-", "text-")
-    .replace("500", "600");
+  const textColorClass = bgColorClass.replace("bg-", "text-").replace("500", "600");
 
   return (
     <Link href={`/subject?id=${subject.id}`}>
@@ -51,15 +48,11 @@ export function SubjectCard({ subject, resourceCount = 0 }: SubjectCardProps) {
           {/* Content */}
           <div className="flex-1 min-w-0">
             <h3 className="font-bold text-lg text-foreground group-hover:text-primary transition-colors truncate">
-              {language === "ar" && subject.nameAr
-                ? subject.nameAr
-                : subject.name}
+              {language === "ar" && subject.nameAr ? subject.nameAr : subject.name}
             </h3>
             <p className="text-sm text-muted-foreground mt-1">
               {language === "ar" ? "د." : "Dr."}{" "}
-              {language === "ar" && subject.profNameAr
-                ? subject.profNameAr
-                : subject.profName}
+              {language === "ar" && subject.profNameAr ? subject.profNameAr : subject.profName}
             </p>
 
             {subject.description && (

@@ -17,14 +17,10 @@ interface Banner {
 export function LiveBanner() {
   const [banners, setBanners] = useState<Banner[]>([]);
   const { language } = useLanguage();
-  const [sessionClosedBanners, setSessionClosedBanners] = useState<string[]>(
-    []
-  );
+  const [sessionClosedBanners, setSessionClosedBanners] = useState<string[]>([]);
 
   // Load permanently closed banners from localStorage (lazy initializer)
-  const [permanentlyClosedBanners, setPermanentlyClosedBanners] = useState<
-    string[]
-  >(() => {
+  const [permanentlyClosedBanners, setPermanentlyClosedBanners] = useState<string[]>(() => {
     if (typeof window === "undefined") return [];
     const stored = localStorage.getItem("obour_closed_banners");
     if (stored) {
@@ -42,9 +38,7 @@ export function LiveBanner() {
     const q = query(collection(db, "banners"), where("isActive", "==", true));
 
     const unsubscribe = onSnapshot(q, (snapshot) => {
-      setBanners(
-        snapshot.docs.map((d) => ({ id: d.id, ...d.data() } as Banner))
-      );
+      setBanners(snapshot.docs.map((d) => ({ id: d.id, ...d.data() }) as Banner));
     });
 
     return () => unsubscribe();
@@ -63,9 +57,7 @@ export function LiveBanner() {
   };
 
   const visibleBanners = banners.filter(
-    (b) =>
-      !sessionClosedBanners.includes(b.id) &&
-      !permanentlyClosedBanners.includes(b.id)
+    (b) => !sessionClosedBanners.includes(b.id) && !permanentlyClosedBanners.includes(b.id)
   );
 
   if (visibleBanners.length === 0) return null;
@@ -80,10 +72,10 @@ export function LiveBanner() {
             banner.type === "urgent"
               ? "bg-red-500/90 text-white border-red-600"
               : banner.type === "success"
-              ? "bg-green-500/90 text-white border-green-600"
-              : banner.type === "warning"
-              ? "bg-amber-500/90 text-white border-amber-600"
-              : "bg-blue-500/90 text-white border-blue-600"
+                ? "bg-green-500/90 text-white border-green-600"
+                : banner.type === "warning"
+                  ? "bg-amber-500/90 text-white border-amber-600"
+                  : "bg-blue-500/90 text-white border-blue-600"
           )}
           style={{ animationDelay: `${idx * 100}ms` }}
         >

@@ -5,14 +5,7 @@ import { addDoc, collection } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import { AppShell } from "@/components/layout/AppShell";
 import { useAuth } from "@/contexts";
-import {
-  Bell,
-  Send,
-  Loader2,
-  CheckCircle,
-  AlertTriangle,
-  Info,
-} from "lucide-react";
+import { Bell, Send, Loader2, CheckCircle, AlertTriangle, Info } from "lucide-react";
 import { toast } from "sonner";
 
 export default function AdminNotificationsPage() {
@@ -108,9 +101,7 @@ export default function AdminNotificationsPage() {
                     <button
                       key={option.val}
                       type="button"
-                      onClick={() =>
-                        setType(option.val as "info" | "warning" | "success")
-                      }
+                      onClick={() => setType(option.val as "info" | "warning" | "success")}
                       className={`flex-1 p-2 rounded-lg border flex justify-center items-center gap-2 transition-all ${
                         type === option.val
                           ? "bg-primary/10 border-primary ring-1 ring-primary"
@@ -128,9 +119,7 @@ export default function AdminNotificationsPage() {
                 <label className="text-sm font-medium">Target Audience</label>
                 <select
                   value={target}
-                  onChange={(e) =>
-                    setTarget(e.target.value as "all" | "admins")
-                  }
+                  onChange={(e) => setTarget(e.target.value as "all" | "admins")}
                   className="w-full p-2.5 rounded-lg border border-input bg-background focus:ring-2 focus:ring-primary/20"
                 >
                   <option value="all">All Users</option>

@@ -13,12 +13,7 @@ import { toast } from "sonner";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { User, UserPermission } from "@/types";
 import { auth, googleProvider, db } from "@/lib/firebase";
-import {
-  signInWithPopup,
-  signOut,
-  onAuthStateChanged,
-  User as FirebaseUser,
-} from "firebase/auth";
+import { signInWithPopup, signOut, onAuthStateChanged, User as FirebaseUser } from "firebase/auth";
 import { doc, getDoc, setDoc, updateDoc, onSnapshot } from "firebase/firestore";
 
 interface AuthContextType {
@@ -90,24 +85,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             firebaseUser.email === "a7medorabe7@gmail.com" ||
             firebaseUser.email === process.env.NEXT_PUBLIC_OWNER_EMAIL;
 
-          let role: "student" | "admin" | "owner" = isOwnerEmail
-            ? "owner"
-            : "student";
+          let role: "student" | "admin" | "owner" = isOwnerEmail ? "owner" : "student";
           let permissions: UserPermission[] = [];
 
           // Whitelist Check
           if (!isOwnerEmail && firebaseUser.email) {
             try {
-              const whitelistDoc = await getDoc(
-                doc(db, "whitelisted_admins", firebaseUser.email)
-              );
+              const whitelistDoc = await getDoc(doc(db, "whitelisted_admins", firebaseUser.email));
               if (whitelistDoc.exists()) {
                 role = "admin";
-                permissions = [
-                  "manage_subjects",
-                  "manage_resources",
-                  "send_notifications",
-                ];
+                permissions = ["manage_subjects", "manage_resources", "send_notifications"];
               }
             } catch (e) {
               console.error("Error checking whitelist", e);
@@ -162,15 +149,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             : "Unauthorized Domain. Please add to Firebase Console."
         );
       } else if (err?.code === "auth/popup-closed-by-user") {
-        toast.warning(
-          language === "ar" ? "تم إغلاق النافذة" : "Login popup closed"
-        );
+        toast.warning(language === "ar" ? "تم إغلاق النافذة" : "Login popup closed");
       } else {
-        toast.error(
-          language === "ar"
-            ? "فشل تسجيل الدخول"
-            : "Login failed. Check console."
-        );
+        toast.error(language === "ar" ? "فشل تسجيل الدخول" : "Login failed. Check console.");
       }
       throw error;
     }

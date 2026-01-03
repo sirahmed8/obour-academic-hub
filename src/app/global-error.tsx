@@ -50,12 +50,9 @@ export default function GlobalError({
           </div>
 
           <div className="space-y-2">
-            <h1 className="text-2xl font-bold tracking-tight">
-              Something went wrong!
-            </h1>
+            <h1 className="text-2xl font-bold tracking-tight">Something went wrong!</h1>
             <p className="text-muted-foreground">
-              We apologize for the inconvenience. An unexpected error has
-              occurred.
+              We apologize for the inconvenience. An unexpected error has occurred.
             </p>
           </div>
 
@@ -75,9 +72,7 @@ export default function GlobalError({
               onClick={reportError}
               disabled={isReporting || isReported}
               className={`px-4 py-2 border border-input bg-background hover:bg-accent hover:text-accent-foreground rounded-lg transition-colors font-medium flex items-center justify-center gap-2 ${
-                isReported
-                  ? "text-green-600 border-green-200 bg-green-50 hover:bg-green-100"
-                  : ""
+                isReported ? "text-green-600 border-green-200 bg-green-50 hover:bg-green-100" : ""
               }`}
             >
               {isReporting ? (

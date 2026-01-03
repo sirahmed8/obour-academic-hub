@@ -41,9 +41,7 @@ export function CookieConsent() {
             </div>
             <div className="flex-1 text-center md:text-start">
               <h4 className="font-bold text-sm mb-1">
-                {language === "ar"
-                  ? "نحن نهتم بخصوصيتك"
-                  : "We value your privacy"}
+                {language === "ar" ? "نحن نهتم بخصوصيتك" : "We value your privacy"}
               </h4>
               <p className="text-xs text-muted-foreground">
                 {language === "ar"

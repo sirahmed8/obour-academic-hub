@@ -53,9 +53,7 @@ export default function AdminResourcesPage() {
   useEffect(() => {
     const q = query(collection(db, "subjects"), orderBy("name"));
     const unsubscribe = onSnapshot(q, (snapshot) => {
-      const subs = snapshot.docs.map(
-        (d) => ({ id: d.id, ...d.data() } as Subject)
-      );
+      const subs = snapshot.docs.map((d) => ({ id: d.id, ...d.data() }) as Subject);
       setSubjects(subs);
       setLoadingSubjects(false);
       setForm((prev) => {
@@ -73,11 +71,7 @@ export default function AdminResourcesPage() {
     if (form.linkUrl) {
       const lower = form.linkUrl.toLowerCase();
       if (lower.endsWith(".pdf")) setForm((prev) => ({ ...prev, type: "pdf" }));
-      else if (
-        lower.endsWith(".png") ||
-        lower.endsWith(".jpg") ||
-        lower.endsWith(".jpeg")
-      )
+      else if (lower.endsWith(".png") || lower.endsWith(".jpg") || lower.endsWith(".jpeg"))
         setForm((prev) => ({ ...prev, type: "image" }));
       else if (lower.includes("youtube") || lower.endsWith(".mp4"))
         setForm((prev) => ({ ...prev, type: "video" }));
@@ -96,15 +90,9 @@ export default function AdminResourcesPage() {
       return;
     }
 
-    if (
-      (form.type === "link" || form.type === "video") &&
-      !form.linkUrl &&
-      !form.file
-    ) {
+    if ((form.type === "link" || form.type === "video") && !form.linkUrl && !form.file) {
       toast.error(
-        language === "ar"
-          ? "يرجى إدخال الرابط أو رفع ملف"
-          : "Please enter URL or upload a file"
+        language === "ar" ? "يرجى إدخال الرابط أو رفع ملف" : "Please enter URL or upload a file"
       );
       return;
     }
@@ -233,9 +221,7 @@ export default function AdminResourcesPage() {
                   }))}
                   value={form.subjectId}
                   onChange={(val) => setForm({ ...form, subjectId: val })}
-                  placeholder={
-                    language === "ar" ? "اختر المادة" : "Select Subject"
-                  }
+                  placeholder={language === "ar" ? "اختر المادة" : "Select Subject"}
                 />
               )}
             </div>
@@ -289,9 +275,7 @@ export default function AdminResourcesPage() {
                 <input
                   type="text"
                   value={form.titleAr}
-                  onChange={(e) =>
-                    setForm({ ...form, titleAr: e.target.value })
-                  }
+                  onChange={(e) => setForm({ ...form, titleAr: e.target.value })}
                   className="w-full rounded-lg border border-border px-4 py-2.5 bg-background focus:ring-2 focus:ring-primary/20 outline-none transition-all"
                   placeholder="مثال: مذكرات الفصل الأول"
                   dir="rtl"
@@ -309,24 +293,18 @@ export default function AdminResourcesPage() {
                 </label>
                 <textarea
                   value={form.description}
-                  onChange={(e) =>
-                    setForm({ ...form, description: e.target.value })
-                  }
+                  onChange={(e) => setForm({ ...form, description: e.target.value })}
                   className="w-full rounded-lg border border-border px-4 py-2.5 bg-background h-24 resize-none focus:ring-2 focus:ring-primary/20 outline-none transition-all"
                   placeholder="Brief description..."
                 />
               </div>
               <div>
                 <label className="block text-sm font-medium mb-1">
-                  {language === "ar"
-                    ? "الوصف (عربي) - اختياري"
-                    : "Description (Arabic) - Optional"}
+                  {language === "ar" ? "الوصف (عربي) - اختياري" : "Description (Arabic) - Optional"}
                 </label>
                 <textarea
                   value={form.descriptionAr}
-                  onChange={(e) =>
-                    setForm({ ...form, descriptionAr: e.target.value })
-                  }
+                  onChange={(e) => setForm({ ...form, descriptionAr: e.target.value })}
                   className="w-full rounded-lg border border-border px-4 py-2.5 bg-background h-24 resize-none focus:ring-2 focus:ring-primary/20 outline-none transition-all"
                   placeholder="وصف مختصر..."
                   dir="rtl"
@@ -349,14 +327,10 @@ export default function AdminResourcesPage() {
                   <input
                     type="url"
                     value={form.linkUrl}
-                    onChange={(e) =>
-                      setForm({ ...form, linkUrl: e.target.value })
-                    }
+                    onChange={(e) => setForm({ ...form, linkUrl: e.target.value })}
                     className="w-full rounded-lg border border-border pl-10 pr-4 py-2.5 bg-background focus:ring-2 focus:ring-primary/20 outline-none transition-all"
                     placeholder={
-                      language === "ar"
-                        ? "رابط (Drive, YouTube...)"
-                        : "URL (Drive, YouTube...)"
+                      language === "ar" ? "رابط (Drive, YouTube...)" : "URL (Drive, YouTube...)"
                     }
                   />
                 </div>
@@ -365,9 +339,7 @@ export default function AdminResourcesPage() {
                 <div className="border-2 border-dashed border-border rounded-xl p-4 text-center hover:bg-muted/30 transition-colors cursor-pointer relative group">
                   <input
                     type="file"
-                    onChange={(e) =>
-                      setForm({ ...form, file: e.target.files?.[0] || null })
-                    }
+                    onChange={(e) => setForm({ ...form, file: e.target.files?.[0] || null })}
                     className="absolute inset-0 opacity-0 cursor-pointer z-10"
                   />
                   <div className="flex items-center justify-center gap-2 text-muted-foreground group-hover:text-primary transition-colors">
@@ -376,8 +348,8 @@ export default function AdminResourcesPage() {
                       {form.file
                         ? form.file.name
                         : language === "ar"
-                        ? "أو ارفع ملف مباشرة"
-                        : "Or upload file directly"}
+                          ? "أو ارفع ملف مباشرة"
+                          : "Or upload file directly"}
                     </span>
                   </div>
                 </div>
@@ -387,9 +359,7 @@ export default function AdminResourcesPage() {
             {/* Thumbnail Upload (Optional) */}
             <div>
               <label className="block text-sm font-medium mb-2">
-                {language === "ar"
-                  ? "صورة مصغرة (اختياري)"
-                  : "Thumbnail (Optional)"}
+                {language === "ar" ? "صورة مصغرة (اختياري)" : "Thumbnail (Optional)"}
               </label>
               <div className="flex items-center gap-4">
                 <div className="w-16 h-16 rounded-lg border-2 border-dashed border-border flex items-center justify-center bg-muted/20 relative overflow-hidden">
@@ -420,15 +390,9 @@ export default function AdminResourcesPage() {
                   />
                 </div>
                 <div className="text-sm text-muted-foreground">
-                  <p>
-                    {language === "ar"
-                      ? "اضغط لرفع صورة"
-                      : "Click to upload image"}
-                  </p>
+                  <p>{language === "ar" ? "اضغط لرفع صورة" : "Click to upload image"}</p>
                   <p className="text-xs opacity-70">
-                    {language === "ar"
-                      ? "يفضل أبعاد 16:9"
-                      : "Aspect ratio 16:9 preferred"}
+                    {language === "ar" ? "يفضل أبعاد 16:9" : "Aspect ratio 16:9 preferred"}
                   </p>
                 </div>
               </div>

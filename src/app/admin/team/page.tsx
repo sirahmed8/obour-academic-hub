@@ -4,22 +4,8 @@ import { useState, useEffect } from "react";
 import { AppShell } from "@/components/layout/AppShell";
 import { useAuth, useLanguage } from "@/contexts";
 import { db } from "@/lib/firebase";
-import {
-  collection,
-  onSnapshot,
-  setDoc,
-  deleteDoc,
-  doc,
-} from "firebase/firestore";
-import {
-  Users,
-  UserPlus,
-  Trash2,
-  Shield,
-  Mail,
-  Loader2,
-  CheckCircle2,
-} from "lucide-react";
+import { collection, onSnapshot, setDoc, deleteDoc, doc } from "firebase/firestore";
+import { Users, UserPlus, Trash2, Shield, Mail, Loader2, CheckCircle2 } from "lucide-react";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 
@@ -43,17 +29,14 @@ export default function AdminTeamPage() {
       return;
     }
 
-    const unsubscribe = onSnapshot(
-      collection(db, "whitelisted_admins"),
-      (snapshot) => {
-        const data = snapshot.docs.map((d) => ({
-          email: d.id,
-          ...d.data(),
-        })) as WhitelistedAdmin[];
-        setAdmins(data);
-        setLoading(false);
-      }
-    );
+    const unsubscribe = onSnapshot(collection(db, "whitelisted_admins"), (snapshot) => {
+      const data = snapshot.docs.map((d) => ({
+        email: d.id,
+        ...d.data(),
+      })) as WhitelistedAdmin[];
+      setAdmins(data);
+      setLoading(false);
+    });
 
     return () => unsubscribe();
   }, [isAdmin]);
@@ -64,26 +47,19 @@ export default function AdminTeamPage() {
     // Basic email validation
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(newEmail.trim())) {
-      toast.error(
-        language === "ar" ? "بريد إلكتروني غير صالح" : "Invalid email address"
-      );
+      toast.error(language === "ar" ? "بريد إلكتروني غير صالح" : "Invalid email address");
       return;
     }
 
     setAdding(true);
     try {
-      await setDoc(
-        doc(db, "whitelisted_admins", newEmail.trim().toLowerCase()),
-        {
-          role: "admin",
-          addedBy: user.uid,
-          addedAt: new Date().toISOString(),
-        }
-      );
+      await setDoc(doc(db, "whitelisted_admins", newEmail.trim().toLowerCase()), {
+        role: "admin",
+        addedBy: user.uid,
+        addedAt: new Date().toISOString(),
+      });
       toast.success(
-        language === "ar"
-          ? `تمت إضافة ${newEmail} كمسؤول`
-          : `Added ${newEmail} as admin`
+        language === "ar" ? `تمت إضافة ${newEmail} كمسؤول` : `Added ${newEmail} as admin`
       );
       setNewEmail("");
     } catch (err) {
@@ -94,8 +70,7 @@ export default function AdminTeamPage() {
   };
 
   const handleRemoveAdmin = async (email: string) => {
-    if (!confirm(language === "ar" ? `إزالة ${email}؟` : `Remove ${email}?`))
-      return;
+    if (!confirm(language === "ar" ? `إزالة ${email}؟` : `Remove ${email}?`)) return;
 
     try {
       await deleteDoc(doc(db, "whitelisted_admins", email));
@@ -149,9 +124,7 @@ export default function AdminTeamPage() {
                 onChange={(e) => setNewEmail(e.target.value)}
                 onKeyDown={(e) => e.key === "Enter" && handleAddAdmin()}
                 placeholder={
-                  language === "ar"
-                    ? "البريد الإلكتروني للمسؤول الجديد..."
-                    : "Enter admin email..."
+                  language === "ar" ? "البريد الإلكتروني للمسؤول الجديد..." : "Enter admin email..."
                 }
                 className="w-full bg-background border border-border rounded-xl pl-10 pr-4 py-3 outline-none focus:ring-2 ring-primary/20 transition-all"
               />
@@ -181,16 +154,12 @@ export default function AdminTeamPage() {
           <h2 className="text-lg font-semibold mb-4 flex items-center gap-2">
             <Users className="w-5 h-5 text-blue-500" />
             {language === "ar" ? "المسؤولون الحاليون" : "Current Admins"}
-            <span className="text-sm text-muted-foreground font-normal">
-              ({admins.length})
-            </span>
+            <span className="text-sm text-muted-foreground font-normal">({admins.length})</span>
           </h2>
 
           {admins.length === 0 ? (
             <div className="text-center py-8 text-muted-foreground">
-              {language === "ar"
-                ? "لا يوجد مسؤولون مضافون بعد"
-                : "No admins added yet"}
+              {language === "ar" ? "لا يوجد مسؤولون مضافون بعد" : "No admins added yet"}
             </div>
           ) : (
             <div className="space-y-3">

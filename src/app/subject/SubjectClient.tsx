@@ -61,9 +61,7 @@ export function SubjectClient({ subjectName }: SubjectClientProps) {
 
   // Highlight from notification
   const highlightId = searchParams.get("highlight");
-  const [highlightedId, setHighlightedId] = useState<string | null>(
-    highlightId
-  );
+  const [highlightedId, setHighlightedId] = useState<string | null>(highlightId);
   const highlightRef = useRef<HTMLDivElement>(null);
 
   // Clear highlight after 3 seconds
@@ -155,14 +153,9 @@ export function SubjectClient({ subjectName }: SubjectClientProps) {
   useEffect(() => {
     if (!subject?.id) return;
 
-    const q = query(
-      collection(db, "subjects", subject.id, "resources"),
-      orderBy("orderIndex")
-    );
+    const q = query(collection(db, "subjects", subject.id, "resources"), orderBy("orderIndex"));
     const unsubscribe = onSnapshot(q, (snapshot) => {
-      setResources(
-        snapshot.docs.map((d) => ({ id: d.id, ...d.data() } as Resource))
-      );
+      setResources(snapshot.docs.map((d) => ({ id: d.id, ...d.data() }) as Resource));
     });
 
     return () => unsubscribe();
@@ -217,8 +210,7 @@ export function SubjectClient({ subjectName }: SubjectClientProps) {
   }
 
   const IconComponent =
-    (Icons as unknown as Record<string, React.ElementType>)[subject.icon] ||
-    Icons.BookOpen;
+    (Icons as unknown as Record<string, React.ElementType>)[subject.icon] || Icons.BookOpen;
   const bgColorClass = subject.color || "bg-blue-500";
 
   return (
@@ -234,12 +226,7 @@ export function SubjectClient({ subjectName }: SubjectClientProps) {
         </Link>
 
         {/* Header */}
-        <div
-          className={cn(
-            "rounded-3xl p-8 text-white relative overflow-hidden",
-            bgColorClass
-          )}
-        >
+        <div className={cn("rounded-3xl p-8 text-white relative overflow-hidden", bgColorClass)}>
           <div className="absolute top-0 right-0 w-64 h-64 bg-white/10 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2" />
 
           <div className="relative z-10 flex items-start gap-6">
@@ -248,20 +235,14 @@ export function SubjectClient({ subjectName }: SubjectClientProps) {
             </div>
             <div>
               <h1 className="text-3xl font-black">
-                {language === "ar" && subject.nameAr
-                  ? subject.nameAr
-                  : subject.name}
+                {language === "ar" && subject.nameAr ? subject.nameAr : subject.name}
               </h1>
               <p className="text-white/80 mt-2">
                 {language === "ar" ? "د." : "Dr."}{" "}
-                {language === "ar" && subject.profNameAr
-                  ? subject.profNameAr
-                  : subject.profName}
+                {language === "ar" && subject.profNameAr ? subject.profNameAr : subject.profName}
               </p>
               {subject.description && (
-                <p className="text-white/70 mt-4 max-w-xl">
-                  {subject.description}
-                </p>
+                <p className="text-white/70 mt-4 max-w-xl">{subject.description}</p>
               )}
             </div>
           </div>
@@ -285,11 +266,7 @@ export function SubjectClient({ subjectName }: SubjectClientProps) {
                 type="text"
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                placeholder={
-                  language === "ar"
-                    ? "بحث في الموارد..."
-                    : "Search resources..."
-                }
+                placeholder={language === "ar" ? "بحث في الموارد..." : "Search resources..."}
                 className="w-full pl-10 pr-4 py-2.5 rounded-xl bg-muted/50 border border-border focus:ring-2 focus:ring-primary/20 outline-none transition-all"
               />
             </div>
@@ -298,8 +275,7 @@ export function SubjectClient({ subjectName }: SubjectClientProps) {
                 options={[
                   {
                     value: "default",
-                    label:
-                      language === "ar" ? "الترتيب الافتراضي" : "Default Order",
+                    label: language === "ar" ? "الترتيب الافتراضي" : "Default Order",
                   },
                   {
                     value: "name",
@@ -311,9 +287,7 @@ export function SubjectClient({ subjectName }: SubjectClientProps) {
                   },
                 ]}
                 value={sortBy}
-                onChange={(val) =>
-                  setSortBy(val as "default" | "name" | "type")
-                }
+                onChange={(val) => setSortBy(val as "default" | "name" | "type")}
                 placeholder={language === "ar" ? "الترتيب" : "Sort by"}
               />
             </div>
@@ -323,39 +297,28 @@ export function SubjectClient({ subjectName }: SubjectClientProps) {
             // Filter and sort resources
             let filtered = resources.filter(
               (r) =>
-                (r.title?.toLowerCase() || "").includes(
-                  searchTerm.toLowerCase()
-                ) ||
-                (r.description?.toLowerCase() || "").includes(
-                  searchTerm.toLowerCase()
-                )
+                (r.title?.toLowerCase() || "").includes(searchTerm.toLowerCase()) ||
+                (r.description?.toLowerCase() || "").includes(searchTerm.toLowerCase())
             );
 
             if (sortBy === "name") {
-              filtered = [...filtered].sort((a, b) =>
-                (a.title || "").localeCompare(b.title || "")
-              );
+              filtered = [...filtered].sort((a, b) => (a.title || "").localeCompare(b.title || ""));
             } else if (sortBy === "type") {
-              filtered = [...filtered].sort((a, b) =>
-                (a.type || "").localeCompare(b.type || "")
-              );
+              filtered = [...filtered].sort((a, b) => (a.type || "").localeCompare(b.type || ""));
             }
 
             if (filtered.length === 0) {
               return (
                 <div className="text-center py-16 bg-muted/30 rounded-2xl border-2 border-dashed border-border">
-                  <FileText
-                    size={48}
-                    className="mx-auto text-muted-foreground mb-4"
-                  />
+                  <FileText size={48} className="mx-auto text-muted-foreground mb-4" />
                   <p className="text-muted-foreground">
                     {searchTerm
                       ? language === "ar"
                         ? "لا توجد نتائج"
                         : "No results found"
                       : language === "ar"
-                      ? "لا توجد موارد حالياً"
-                      : "No resources available yet"}
+                        ? "لا توجد موارد حالياً"
+                        : "No resources available yet"}
                   </p>
                 </div>
               );
@@ -366,9 +329,7 @@ export function SubjectClient({ subjectName }: SubjectClientProps) {
                 {filtered.map((resource) => (
                   <div
                     key={resource.id}
-                    ref={
-                      resource.id === highlightedId ? highlightRef : undefined
-                    }
+                    ref={resource.id === highlightedId ? highlightRef : undefined}
                     className={cn(
                       "group bg-card p-4 rounded-xl border border-border hover:shadow-lg transition-all flex items-center justify-between",
                       resource.id === highlightedId &&
@@ -384,20 +345,12 @@ export function SubjectClient({ subjectName }: SubjectClientProps) {
                             : "bg-blue-100 text-blue-600"
                         )}
                       >
-                        {resource.type === "pdf" ? (
-                          <FileText size={24} />
-                        ) : (
-                          <LinkIcon size={24} />
-                        )}
+                        {resource.type === "pdf" ? <FileText size={24} /> : <LinkIcon size={24} />}
                       </div>
                       <div>
-                        <h3 className="font-medium text-foreground">
-                          {resource.title}
-                        </h3>
+                        <h3 className="font-medium text-foreground">{resource.title}</h3>
                         {resource.description && (
-                          <p className="text-sm text-muted-foreground">
-                            {resource.description}
-                          </p>
+                          <p className="text-sm text-muted-foreground">{resource.description}</p>
                         )}
                       </div>
                     </div>

@@ -1,9 +1,9 @@
-'use client';
+"use client";
 
-import { useState, useRef, useEffect } from 'react';
-import { ChevronDown, Check } from 'lucide-react';
-import { cn } from '@/lib/utils';
-import { useLanguage } from '@/contexts';
+import { useState, useRef, useEffect } from "react";
+import { ChevronDown, Check } from "lucide-react";
+import { cn } from "@/lib/utils";
+import { useLanguage } from "@/contexts";
 
 interface Option {
   value: string;
@@ -18,12 +18,18 @@ interface CustomSelectProps {
   className?: string;
 }
 
-export function CustomSelect({ options, value, onChange, placeholder, className }: CustomSelectProps) {
+export function CustomSelect({
+  options,
+  value,
+  onChange,
+  placeholder,
+  className,
+}: CustomSelectProps) {
   const [isOpen, setIsOpen] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
   const { language } = useLanguage();
 
-  const selectedOption = options.find(opt => opt.value === value);
+  const selectedOption = options.find((opt) => opt.value === value);
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -31,8 +37,8 @@ export function CustomSelect({ options, value, onChange, placeholder, className 
         setIsOpen(false);
       }
     };
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
   return (
@@ -42,14 +48,21 @@ export function CustomSelect({ options, value, onChange, placeholder, className 
         onClick={() => setIsOpen(!isOpen)}
         className={cn(
           "w-full flex items-center justify-between px-4 py-3 rounded-2xl border transition-all duration-200",
-          isOpen ? "border-primary ring-2 ring-primary/20 bg-background" : "border-border bg-card hover:bg-muted/50"
+          isOpen
+            ? "border-primary ring-2 ring-primary/20 bg-background"
+            : "border-border bg-card hover:bg-muted/50"
         )}
       >
         <span className={cn("block truncate", !selectedOption && "text-muted-foreground")}>
-          {selectedOption ? selectedOption.label : placeholder || (language === 'ar' ? 'اختر...' : 'Select...')}
+          {selectedOption
+            ? selectedOption.label
+            : placeholder || (language === "ar" ? "اختر..." : "Select...")}
         </span>
-        <ChevronDown 
-          className={cn("w-4 h-4 text-muted-foreground transition-transform duration-200", isOpen && "rotate-180")} 
+        <ChevronDown
+          className={cn(
+            "w-4 h-4 text-muted-foreground transition-transform duration-200",
+            isOpen && "rotate-180"
+          )}
         />
       </button>
 
@@ -58,7 +71,7 @@ export function CustomSelect({ options, value, onChange, placeholder, className 
           <div className="p-1">
             {options.length === 0 ? (
               <div className="p-3 text-center text-sm text-muted-foreground">
-                {language === 'ar' ? 'لا توجد خيارات' : 'No options'}
+                {language === "ar" ? "لا توجد خيارات" : "No options"}
               </div>
             ) : (
               options.map((option) => (
@@ -71,8 +84,8 @@ export function CustomSelect({ options, value, onChange, placeholder, className 
                   }}
                   className={cn(
                     "w-full flex items-center justify-between px-3 py-2.5 rounded-xl text-sm transition-colors",
-                    option.value === value 
-                      ? "bg-primary/10 text-primary font-medium" 
+                    option.value === value
+                      ? "bg-primary/10 text-primary font-medium"
                       : "text-foreground hover:bg-muted"
                   )}
                 >

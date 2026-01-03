@@ -80,22 +80,16 @@ export default function AdminBannersPage() {
     const q = query(collection(db, "banners"));
 
     const unsubscribe = onSnapshot(q, (snapshot) => {
-      const data = snapshot.docs.map(
-        (d) => ({ id: d.id, ...d.data() } as Banner)
-      );
+      const data = snapshot.docs.map((d) => ({ id: d.id, ...d.data() }) as Banner);
       // Sort in memory to handle different date formats safely
       data.sort((a, b) => {
         const dateA =
-          a.createdAt &&
-          typeof a.createdAt === "object" &&
-          "seconds" in a.createdAt
+          a.createdAt && typeof a.createdAt === "object" && "seconds" in a.createdAt
             ? new Date(a.createdAt.seconds * 1000).getTime()
             : new Date((a.createdAt as string) || 0).getTime();
 
         const dateB =
-          b.createdAt &&
-          typeof b.createdAt === "object" &&
-          "seconds" in b.createdAt
+          b.createdAt && typeof b.createdAt === "object" && "seconds" in b.createdAt
             ? new Date(b.createdAt.seconds * 1000).getTime()
             : new Date((b.createdAt as string) || 0).getTime();
 
@@ -124,18 +118,18 @@ export default function AdminBannersPage() {
           formData.type === "urgent"
             ? "🚨 إعلان عاجل"
             : formData.type === "warning"
-            ? "⚠️ تنبيه"
-            : formData.type === "success"
-            ? "✅ أخبار سارة"
-            : "📢 إعلان جديد",
+              ? "⚠️ تنبيه"
+              : formData.type === "success"
+                ? "✅ أخبار سارة"
+                : "📢 إعلان جديد",
         titleEn:
           formData.type === "urgent"
             ? "🚨 Urgent Announcement"
             : formData.type === "warning"
-            ? "⚠️ Warning"
-            : formData.type === "success"
-            ? "✅ Good News"
-            : "📢 New Announcement",
+              ? "⚠️ Warning"
+              : formData.type === "success"
+                ? "✅ Good News"
+                : "📢 New Announcement",
         messageAr: formData.textAr,
         messageEn: formData.textEn,
         type: formData.type,
@@ -222,9 +216,7 @@ export default function AdminBannersPage() {
                 <label className="text-sm font-medium">Text (Arabic)</label>
                 <input
                   value={formData.textAr}
-                  onChange={(e) =>
-                    setFormData({ ...formData, textAr: e.target.value })
-                  }
+                  onChange={(e) => setFormData({ ...formData, textAr: e.target.value })}
                   placeholder="نص الإعلان..."
                   className="w-full bg-background border border-border rounded-lg px-3 py-2 outline-none focus:ring-2 ring-primary/20 text-right"
                   dir="rtl"
@@ -234,9 +226,7 @@ export default function AdminBannersPage() {
                 <label className="text-sm font-medium">Text (English)</label>
                 <input
                   value={formData.textEn}
-                  onChange={(e) =>
-                    setFormData({ ...formData, textEn: e.target.value })
-                  }
+                  onChange={(e) => setFormData({ ...formData, textEn: e.target.value })}
                   placeholder="Announcement text..."
                   className="w-full bg-background border border-border rounded-lg px-3 py-2 outline-none focus:ring-2 ring-primary/20"
                 />
@@ -247,22 +237,20 @@ export default function AdminBannersPage() {
               <div className="space-y-2 flex-1">
                 <label className="text-sm font-medium">Type</label>
                 <div className="flex gap-2">
-                  {(["info", "warning", "success", "urgent"] as const).map(
-                    (t) => (
-                      <button
-                        key={t}
-                        onClick={() => setFormData({ ...formData, type: t })}
-                        className={cn(
-                          "px-3 py-1.5 rounded-lg text-sm transition-all border",
-                          formData.type === t
-                            ? "bg-primary text-primary-foreground border-primary"
-                            : "bg-muted text-muted-foreground border-transparent hover:bg-muted/80"
-                        )}
-                      >
-                        {t}
-                      </button>
-                    )
-                  )}
+                  {(["info", "warning", "success", "urgent"] as const).map((t) => (
+                    <button
+                      key={t}
+                      onClick={() => setFormData({ ...formData, type: t })}
+                      className={cn(
+                        "px-3 py-1.5 rounded-lg text-sm transition-all border",
+                        formData.type === t
+                          ? "bg-primary text-primary-foreground border-primary"
+                          : "bg-muted text-muted-foreground border-transparent hover:bg-muted/80"
+                      )}
+                    >
+                      {t}
+                    </button>
+                  ))}
                 </div>
               </div>
               <div className="flex items-end pt-8">
@@ -365,10 +353,10 @@ function BannerCard({
             banner.type === "urgent"
               ? "bg-red-100 text-red-600"
               : banner.type === "success"
-              ? "bg-green-100 text-green-600"
-              : banner.type === "warning"
-              ? "bg-amber-100 text-amber-600"
-              : "bg-blue-100 text-blue-600"
+                ? "bg-green-100 text-green-600"
+                : banner.type === "warning"
+                  ? "bg-amber-100 text-amber-600"
+                  : "bg-blue-100 text-blue-600"
           )}
         >
           {banner.type === "urgent" ? (
@@ -384,9 +372,7 @@ function BannerCard({
             <span
               className={cn(
                 "text-xs px-2 py-0.5 rounded-full font-medium uppercase tracking-wider",
-                banner.isActive
-                  ? "bg-green-100 text-green-700"
-                  : "bg-gray-100 text-gray-600"
+                banner.isActive ? "bg-green-100 text-green-700" : "bg-gray-100 text-gray-600"
               )}
             >
               {banner.isActive ? "Active" : "Inactive"}
@@ -396,11 +382,8 @@ function BannerCard({
             <span className="text-[10px] text-muted-foreground flex items-center gap-1">
               <Clock size={10} />
               {banner.createdAt &&
-                (typeof banner.createdAt === "object" &&
-                "seconds" in banner.createdAt
-                  ? new Date(
-                      banner.createdAt.seconds * 1000
-                    ).toLocaleDateString()
+                (typeof banner.createdAt === "object" && "seconds" in banner.createdAt
+                  ? new Date(banner.createdAt.seconds * 1000).toLocaleDateString()
                   : new Date(banner.createdAt as string).toLocaleDateString())}
             </span>
           </div>

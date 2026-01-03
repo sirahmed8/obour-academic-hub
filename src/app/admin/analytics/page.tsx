@@ -7,23 +7,8 @@ import { ref, onValue } from "firebase/database";
 import { useLanguage } from "@/contexts";
 import { AppShell } from "@/components/layout/AppShell";
 import { Subject } from "@/types";
-import {
-  BarChart3,
-  Users,
-  BookOpen,
-  Activity,
-  Loader2,
-  RefreshCw,
-} from "lucide-react";
-import {
-  BarChart,
-  Bar,
-  XAxis,
-  YAxis,
-  CartesianGrid,
-  Tooltip,
-  ResponsiveContainer,
-} from "recharts";
+import { BarChart3, Users, BookOpen, Activity, Loader2, RefreshCw } from "lucide-react";
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
 import { cn } from "@/lib/utils";
 
 interface AnalyticsData {
@@ -136,9 +121,7 @@ export default function AdminAnalyticsPage() {
             className="p-2 rounded-xl bg-muted hover:bg-muted/80 transition-all active:scale-95 disabled:opacity-50"
             title={language === "ar" ? "تحديث" : "Refresh"}
           >
-            <RefreshCw
-              className={cn("w-5 h-5", refreshing && "animate-spin")}
-            />
+            <RefreshCw className={cn("w-5 h-5", refreshing && "animate-spin")} />
           </button>
         </div>
 
@@ -153,23 +136,14 @@ export default function AdminAnalyticsPage() {
               {stats.map((stat, idx) => {
                 const Icon = stat.icon;
                 return (
-                  <div
-                    key={idx}
-                    className="bg-card rounded-2xl p-6 border border-border"
-                  >
+                  <div key={idx} className="bg-card rounded-2xl p-6 border border-border">
                     <div className="flex items-center gap-4">
-                      <div
-                        className={cn("p-3 rounded-xl text-white", stat.color)}
-                      >
+                      <div className={cn("p-3 rounded-xl text-white", stat.color)}>
                         <Icon size={24} />
                       </div>
                       <div>
-                        <p className="text-sm text-muted-foreground">
-                          {stat.label}
-                        </p>
-                        <p className="text-3xl font-bold text-foreground">
-                          {stat.value}
-                        </p>
+                        <p className="text-sm text-muted-foreground">{stat.label}</p>
+                        <p className="text-3xl font-bold text-foreground">{stat.value}</p>
                       </div>
                     </div>
                   </div>
@@ -188,19 +162,13 @@ export default function AdminAnalyticsPage() {
                 {data.subjectViews.length > 0 ? (
                   <ResponsiveContainer width="100%" height="100%">
                     <BarChart data={data.subjectViews}>
-                      <CartesianGrid
-                        strokeDasharray="3 3"
-                        className="stroke-border"
-                      />
+                      <CartesianGrid strokeDasharray="3 3" className="stroke-border" />
                       <XAxis
                         dataKey="name"
                         className="text-xs"
                         tick={{ fill: "hsl(var(--muted-foreground))" }}
                       />
-                      <YAxis
-                        className="text-xs"
-                        tick={{ fill: "hsl(var(--muted-foreground))" }}
-                      />
+                      <YAxis className="text-xs" tick={{ fill: "hsl(var(--muted-foreground))" }} />
                       <Tooltip
                         contentStyle={{
                           backgroundColor: "hsl(var(--card))",
@@ -215,20 +183,14 @@ export default function AdminAnalyticsPage() {
                         itemStyle={{ color: "hsl(var(--primary))" }}
                         cursor={{ fill: "hsl(var(--primary) / 0.1)" }}
                       />
-                      <Bar
-                        dataKey="views"
-                        fill="hsl(var(--primary))"
-                        radius={[8, 8, 0, 0]}
-                      />
+                      <Bar dataKey="views" fill="hsl(var(--primary))" radius={[8, 8, 0, 0]} />
                     </BarChart>
                   </ResponsiveContainer>
                 ) : (
                   <div className="h-full flex flex-col items-center justify-center text-muted-foreground">
                     <BarChart3 className="w-12 h-12 mb-2 opacity-20" />
                     <p>
-                      {language === "ar"
-                        ? "لا توجد بيانات للمواد"
-                        : "No subject data available"}
+                      {language === "ar" ? "لا توجد بيانات للمواد" : "No subject data available"}
                     </p>
                   </div>
                 )}

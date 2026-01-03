@@ -15,15 +15,7 @@ import {
 } from "firebase/firestore";
 import { useLanguage, useAuth } from "@/contexts";
 import { AppShell } from "@/components/layout/AppShell";
-import {
-  Bell,
-  Info,
-  AlertTriangle,
-  CheckCircle,
-  Loader2,
-  Trash2,
-  CheckCheck,
-} from "lucide-react";
+import { Bell, Info, AlertTriangle, CheckCircle, Loader2, Trash2, CheckCheck } from "lucide-react";
 import { ConfirmationModal } from "@/components/ui/ConfirmationModal";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
@@ -41,10 +33,7 @@ export default function NotificationsPage() {
   useEffect(() => {
     if (!user) return;
 
-    const q = query(
-      collection(db, "notifications"),
-      orderBy("createdAt", "desc")
-    );
+    const q = query(collection(db, "notifications"), orderBy("createdAt", "desc"));
 
     const unsubscribe = onSnapshot(
       q,
@@ -54,7 +43,7 @@ export default function NotificationsPage() {
             ({
               id: d.id,
               ...d.data(),
-            } as Notification)
+            }) as Notification
         );
 
         // Filter notifications relevant to the user
@@ -104,17 +93,11 @@ export default function NotificationsPage() {
     try {
       await deleteDoc(doc(db, "notifications", deleteId));
       toast.success(
-        language === "ar"
-          ? "تم حذف الإشعار بنجاح"
-          : "Notification deleted successfully"
+        language === "ar" ? "تم حذف الإشعار بنجاح" : "Notification deleted successfully"
       );
     } catch (error) {
       console.error("Error deleting notification:", error);
-      toast.error(
-        language === "ar"
-          ? "حدث خطأ أثناء حذف الإشعار"
-          : "Error deleting notification"
-      );
+      toast.error(language === "ar" ? "حدث خطأ أثناء حذف الإشعار" : "Error deleting notification");
     } finally {
       setDeleteId(null);
     }
@@ -151,9 +134,7 @@ export default function NotificationsPage() {
     }
   };
 
-  const unreadCount = notifications.filter(
-    (n) => !n.readBy?.includes(user?.uid || "")
-  ).length;
+  const unreadCount = notifications.filter((n) => !n.readBy?.includes(user?.uid || "")).length;
 
   return (
     <AppShell>
@@ -167,9 +148,7 @@ export default function NotificationsPage() {
               )}
             </div>
             <div>
-              <h1 className="text-2xl font-bold text-foreground">
-                {t("nav.notifications")}
-              </h1>
+              <h1 className="text-2xl font-bold text-foreground">{t("nav.notifications")}</h1>
               <p className="text-sm text-muted-foreground">
                 {unreadCount} {language === "ar" ? "غير مقروءة" : "unread"}
               </p>
@@ -180,9 +159,7 @@ export default function NotificationsPage() {
             <button
               onClick={markAllAsRead}
               className="p-3 bg-primary/10 text-primary rounded-xl hover:bg-primary/20 transition-colors"
-              title={
-                language === "ar" ? "تحديد الكل كمقروء" : "Mark all as read"
-              }
+              title={language === "ar" ? "تحديد الكل كمقروء" : "Mark all as read"}
             >
               <CheckCheck className="w-5 h-5" />
             </button>
@@ -230,30 +207,21 @@ export default function NotificationsPage() {
                     isRead
                       ? "bg-card/50 border-border/50 opacity-70 hover:opacity-100"
                       : "bg-card border-primary/20 shadow-sm ring-1 ring-primary/5",
-                    notif.subjectId &&
-                      "cursor-pointer hover:border-primary/40 hover:shadow-md"
+                    notif.subjectId && "cursor-pointer hover:border-primary/40 hover:shadow-md"
                   )}
                   style={{
                     animationDelay: `${notifications.indexOf(notif) * 50}ms`,
                   }}
                 >
                   <div className="flex items-start gap-4">
-                    <div
-                      className={cn(
-                        "p-3 rounded-xl flex-shrink-0",
-                        getColors(notif.type)
-                      )}
-                    >
+                    <div className={cn("p-3 rounded-xl flex-shrink-0", getColors(notif.type))}>
                       <Icon size={24} />
                     </div>
                     <div className="flex-1">
                       <div className="flex justify-between items-start">
                         <div className="flex items-center gap-2">
                           <h3
-                            className={cn(
-                              "font-bold text-foreground",
-                              !isRead && "text-primary"
-                            )}
+                            className={cn("font-bold text-foreground", !isRead && "text-primary")}
                           >
                             {language === "ar"
                               ? notif.titleAr || notif.title || "إشعار"

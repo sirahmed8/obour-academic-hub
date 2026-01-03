@@ -38,15 +38,10 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
     if (!user) return;
 
     // 1. Notifications Listener
-    const notifQuery = query(
-      collection(db, "notifications"),
-      orderBy("createdAt", "desc")
-    );
+    const notifQuery = query(collection(db, "notifications"), orderBy("createdAt", "desc"));
 
     const unsubNotif = onSnapshot(notifQuery, (snapshot) => {
-      const all = snapshot.docs.map(
-        (d) => ({ id: d.id, ...d.data() } as AppNotification)
-      );
+      const all = snapshot.docs.map((d) => ({ id: d.id, ...d.data() }) as AppNotification);
       const relevant = all.filter((n) => {
         if (n.target === "all" || !n.target) return true;
         if (n.target === "admins" && isAdmin) return true;
@@ -54,9 +49,7 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
         return false;
       });
 
-      const unread = relevant.filter(
-        (n) => !n.readBy?.includes(user.uid)
-      ).length;
+      const unread = relevant.filter((n) => !n.readBy?.includes(user.uid)).length;
       setUnreadCount(unread);
     });
 
@@ -142,10 +135,7 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
 
   const handleScroll = () => {
     if (navRef.current) {
-      sessionStorage.setItem(
-        "sidebarScroll",
-        navRef.current.scrollTop.toString()
-      );
+      sessionStorage.setItem("sidebarScroll", navRef.current.scrollTop.toString());
     }
   };
 
@@ -165,11 +155,7 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
           "fixed top-0 h-full w-72 bg-card shadow-2xl z-50 transform transition-transform duration-300 ease-in-out",
           "lg:translate-x-0 lg:static lg:shadow-none border-r border-border",
           language === "ar" ? "right-0" : "left-0",
-          isOpen
-            ? "translate-x-0"
-            : language === "ar"
-            ? "translate-x-full"
-            : "-translate-x-full"
+          isOpen ? "translate-x-0" : language === "ar" ? "translate-x-full" : "-translate-x-full"
         )}
       >
         <div className="flex flex-col h-full">
@@ -177,10 +163,7 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
           <div className="p-4 flex items-center gap-3 border-b border-border/50">
             <div className="relative w-10 h-10 flex-shrink-0 bg-white rounded-full p-1 overflow-hidden">
               <Image
-                src={
-                  user?.photoURL ||
-                  generateAvatarUrl(user?.displayName || "User")
-                }
+                src={user?.photoURL || generateAvatarUrl(user?.displayName || "User")}
                 alt="Profile"
                 width={40}
                 height={40}
@@ -192,9 +175,7 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
                 {language === "ar" ? "معاهد العبور" : "Obour Hub"}
               </h1>
               <p className="text-[10px] text-muted-foreground truncate opacity-80">
-                {language === "ar"
-                  ? "نظام إدارة التعلم الذكي"
-                  : "Smart Learning System"}
+                {language === "ar" ? "نظام إدارة التعلم الذكي" : "Smart Learning System"}
               </p>
             </div>
           </div>

@@ -63,17 +63,15 @@ export function ConfirmationModal({
                   type === "danger"
                     ? "bg-red-100 text-red-600"
                     : type === "warning"
-                    ? "bg-amber-100 text-amber-600"
-                    : "bg-blue-100 text-blue-600"
+                      ? "bg-amber-100 text-amber-600"
+                      : "bg-blue-100 text-blue-600"
                 )}
               >
                 <AlertTriangle className="w-6 h-6" />
               </div>
               <div className="flex-1 space-y-2">
                 <h3 className="text-xl font-bold text-foreground">{title}</h3>
-                <p className="text-muted-foreground leading-relaxed">
-                  {message}
-                </p>
+                <p className="text-muted-foreground leading-relaxed">{message}</p>
               </div>
               <button
                 onClick={onClose}
@@ -100,8 +98,8 @@ export function ConfirmationModal({
                   type === "danger"
                     ? "bg-red-500 hover:bg-red-600 shadow-red-500/20"
                     : type === "warning"
-                    ? "bg-amber-500 hover:bg-amber-600 shadow-amber-500/20"
-                    : "bg-blue-500 hover:bg-blue-600 shadow-blue-500/20"
+                      ? "bg-amber-500 hover:bg-amber-600 shadow-amber-500/20"
+                      : "bg-blue-500 hover:bg-blue-600 shadow-blue-500/20"
                 )}
               >
                 {confirmText}

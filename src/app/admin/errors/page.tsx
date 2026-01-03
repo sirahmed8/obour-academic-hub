@@ -2,15 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { db } from "@/lib/firebase";
-import {
-  collection,
-  onSnapshot,
-  query,
-  orderBy,
-  doc,
-  updateDoc,
-  limit,
-} from "firebase/firestore";
+import { collection, onSnapshot, query, orderBy, doc, updateDoc, limit } from "firebase/firestore";
 import { useLanguage } from "@/contexts";
 import { AppShell } from "@/components/layout/AppShell";
 import { AlertTriangle, CheckCircle, Loader2 } from "lucide-react";
@@ -25,17 +17,11 @@ export default function AdminErrorsPage() {
   const { language, t } = useLanguage();
 
   useEffect(() => {
-    const q = query(
-      collection(db, "system_errors"),
-      orderBy("timestamp", "desc"),
-      limit(100)
-    );
+    const q = query(collection(db, "system_errors"), orderBy("timestamp", "desc"), limit(100));
     const unsubscribe = onSnapshot(
       q,
       (snapshot) => {
-        setErrors(
-          snapshot.docs.map((d) => ({ id: d.id, ...d.data() } as SystemError))
-        );
+        setErrors(snapshot.docs.map((d) => ({ id: d.id, ...d.data() }) as SystemError));
         setLoading(false);
       },
       () => {
@@ -49,9 +35,7 @@ export default function AdminErrorsPage() {
   const markResolved = async (id: string) => {
     try {
       await updateDoc(doc(db, "system_errors", id), { resolved: true });
-      toast.success(
-        language === "ar" ? "تم التحديد كمحلول" : "Marked as resolved"
-      );
+      toast.success(language === "ar" ? "تم التحديد كمحلول" : "Marked as resolved");
     } catch {
       toast.error(language === "ar" ? "فشل التحديث" : "Update failed");
     }
@@ -77,10 +61,7 @@ export default function AdminErrorsPage() {
         <div className="bg-card rounded-2xl border border-border overflow-hidden">
           {loading ? (
             <div className="p-10 text-center">
-              <Loader2
-                className="animate-spin mx-auto text-primary"
-                size={40}
-              />
+              <Loader2 className="animate-spin mx-auto text-primary" size={40} />
             </div>
           ) : errors.length === 0 ? (
             <div className="p-10 text-center text-muted-foreground">
@@ -102,19 +83,11 @@ export default function AdminErrorsPage() {
                       <div className="flex items-center gap-2">
                         <AlertTriangle
                           size={16}
-                          className={
-                            error.resolved
-                              ? "text-muted-foreground"
-                              : "text-destructive"
-                          }
+                          className={error.resolved ? "text-muted-foreground" : "text-destructive"}
                         />
-                        <p className="font-medium text-foreground truncate">
-                          {error.error}
-                        </p>
+                        <p className="font-medium text-foreground truncate">{error.error}</p>
                       </div>
-                      <p className="text-sm text-muted-foreground mt-1">
-                        {error.context}
-                      </p>
+                      <p className="text-sm text-muted-foreground mt-1">{error.context}</p>
                       {error.stack && (
                         <pre className="text-xs text-muted-foreground mt-2 bg-muted p-2 rounded overflow-x-auto max-h-20">
                           {error.stack}

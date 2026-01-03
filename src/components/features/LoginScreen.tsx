@@ -31,9 +31,7 @@ export function LoginScreen() {
 
         <div>
           <h1 className="text-2xl font-black text-foreground">
-            {language === "ar"
-              ? "مرحباً في معاهد العبور"
-              : "Welcome to Obour Hub"}
+            {language === "ar" ? "مرحباً في معاهد العبور" : "Welcome to Obour Hub"}
           </h1>
           <p className="text-muted-foreground mt-2">
             {language === "ar"
@@ -84,9 +82,7 @@ export function LoginScreen() {
               />
             </svg>
           )}
-          {language === "ar"
-            ? "تسجيل الدخول باستخدام Google"
-            : "Sign in with Google"}
+          {language === "ar" ? "تسجيل الدخول باستخدام Google" : "Sign in with Google"}
         </button>
       </div>
     </div>

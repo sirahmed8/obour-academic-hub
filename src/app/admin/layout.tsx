@@ -5,11 +5,7 @@ import { useRouter } from "next/navigation";
 import { useAuth } from "@/contexts";
 import { Loader2 } from "lucide-react";
 
-export default function AdminLayout({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
+export default function AdminLayout({ children }: { children: React.ReactNode }) {
   const { user, loading, isAdmin } = useAuth();
   const router = useRouter();
 
