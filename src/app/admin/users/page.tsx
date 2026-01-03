@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { AppShell } from "@/components/layout/AppShell";
 import { useLanguage, useAuth } from "@/contexts";
 import { db } from "@/lib/firebase";
@@ -13,11 +13,7 @@ import { cn } from "@/lib/utils";
 import { ConfirmationModal } from "@/components/ui/ConfirmationModal";
 import { useTranslations } from "next-intl";
 import { BulkActionsBar } from "@/components/admin/BulkActionsBar";
-import * as ReactWindow from "react-window";
-import { AutoSizer } from "react-virtualized-auto-sizer";
-
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-const List = (ReactWindow as any).FixedSizeList;
+import { FixedSizeList } from "react-window";
 
 // Define permissions
 const PERMISSIONS: { key: UserPermission; label: string }[] = [
@@ -37,6 +33,28 @@ export default function AdminUsersPage() {
   const [limitCount, setLimitCount] = useState(50);
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedUsers, setSelectedUsers] = useState<Set<string>>(new Set());
+
+  // Custom Resize Logic Replaces AutoSizer
+  const [containerSize, setContainerSize] = useState({ width: 0, height: 0 });
+  const listContainerRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const container = listContainerRef.current;
+    if (!container) return;
+
+    const resizeObserver = new ResizeObserver((entries) => {
+      for (const entry of entries) {
+        setContainerSize({
+          width: entry.contentRect.width,
+          height: entry.contentRect.height,
+        });
+      }
+    });
+
+    resizeObserver.observe(container);
+    return () => resizeObserver.disconnect();
+  }, []);
+
   const [confirmModal, setConfirmModal] = useState<{
     isOpen: boolean;
     title: string;
@@ -414,7 +432,7 @@ export default function AdminUsersPage() {
           </div>
 
           {/* List Content */}
-          <div className="flex-1 w-full min-h-0">
+          <div ref={listContainerRef} className="flex-1 w-full min-h-0">
             {loading ? (
               <div className="flex items-center justify-center h-full">
                 <Loader2 className="animate-spin text-primary" size={40} />
@@ -424,23 +442,14 @@ export default function AdminUsersPage() {
                 {language === "ar" ? "لا يوجد مستخدمين" : "No users found"}
               </div>
             ) : (
-              <>
-                {/* @ts-expect-error: react-virtualized-auto-sizer types mismatch with react 18 render prop */}
-                <AutoSizer>
-                  {({ height, width }: { height: number; width: number }) => (
-                    <List
-                      height={height}
-                      itemCount={filteredUsers.length}
-                      itemSize={64}
-                      width={width}
-                    >
-                      {({ index, style }: { index: number; style: React.CSSProperties }) => (
-                        <Row index={index} style={style} />
-                      )}
-                    </List>
-                  )}
-                </AutoSizer>
-              </>
+              <FixedSizeList
+                height={containerSize.height}
+                itemCount={filteredUsers.length}
+                itemSize={64}
+                width={containerSize.width}
+              >
+                {Row}
+              </FixedSizeList>
             )}
           </div>
 
