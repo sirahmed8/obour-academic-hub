@@ -10,24 +10,26 @@ type Timestamp = { seconds: number; nanoseconds: number } | { toDate: () => Date
 type DateInput = string | Date | Timestamp | null | undefined;
 
 function toDate(date: DateInput): Date {
-  if (!date) return new Date();
+  if (date === null || date === undefined) return new Date(NaN);
   if (date instanceof Date) return date;
   if (typeof date === "string") return new Date(date);
 
   // Handle Firestore Timestamp (both raw object and SDK class)
-  if ("toDate" in date && typeof date.toDate === "function") {
-    return date.toDate();
-  }
-  if ("seconds" in date) {
-    return new Date(date.seconds * 1000);
+  if (date && typeof date === "object") {
+    if ("toDate" in date && typeof date.toDate === "function") {
+      return date.toDate();
+    }
+    if ("seconds" in date) {
+      return new Date(date.seconds * 1000);
+    }
   }
 
-  return new Date();
+  return new Date(NaN);
 }
 
 export function formatDate(date: DateInput): string {
   const validDate = toDate(date);
-  if (isNaN(validDate.getTime())) return "Invalid Date";
+  if (isNaN(validDate.getTime())) return "N/A";
 
   return new Intl.DateTimeFormat("en-US", {
     year: "numeric",
@@ -57,5 +59,5 @@ export function getGreeting(): { en: string; ar: string } {
 export function generateAvatarUrl(name: string, bgColor = "6366f1"): string {
   return `https://ui-avatars.com/api/?name=${encodeURIComponent(
     name
-  )}&background=${bgColor}&color=fff`;
+  )}&background=${bgColor}&color=fff&uppercase=true`;
 }

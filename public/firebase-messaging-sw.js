@@ -5,8 +5,10 @@ importScripts("https://www.gstatic.com/firebasejs/9.0.0/firebase-app-compat.js")
 importScripts("https://www.gstatic.com/firebasejs/9.0.0/firebase-messaging-compat.js");
 
 // Initialize Firebase in Service Worker
+// TODO: Update these with your rotated Firebase credentials
+// Note: Environment variables are not natively available in /public static files.
 firebase.initializeApp({
-  apiKey: "AIzaSyDSJeoNeXeGF8OegC5xp2AHQ2qmUWjq_OE",
+  apiKey: "YOUR_ROTATED_API_KEY",
   authDomain: "obour-institutes-a607d.firebaseapp.com",
   projectId: "obour-institutes-a607d",
   storageBucket: "obour-institutes-a607d.firebasestorage.app",

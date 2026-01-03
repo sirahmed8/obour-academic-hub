@@ -4,6 +4,7 @@ import "./globals.css";
 import { ThemeProvider, AuthProvider, LanguageProvider } from "@/contexts";
 import { Toaster } from "sonner";
 import { Analytics } from "@vercel/analytics/next";
+import { ErrorBoundary } from "@/components/ErrorBoundary";
 
 const geist = Geist({
   subsets: ["latin"],
@@ -47,10 +48,6 @@ export const metadata: Metadata = {
     images: ["/obour-logo.png"],
   },
 };
-
-import { ErrorBoundary } from "@/components/ErrorBoundary";
-
-import { Analytics } from "@vercel/analytics/next";
 
 export default function RootLayout({
   children,
