@@ -49,6 +49,8 @@ export const metadata: Metadata = {
 
 import { ErrorBoundary } from "@/components/ErrorBoundary";
 
+import { Analytics } from "@vercel/analytics/next";
+
 export default function RootLayout({
   children,
 }: Readonly<{
@@ -63,6 +65,7 @@ export default function RootLayout({
               <AuthProvider>
                 {children}
                 <Toaster position="top-center" richColors />
+                <Analytics />
               </AuthProvider>
             </LanguageProvider>
           </ThemeProvider>
