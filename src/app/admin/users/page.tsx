@@ -414,7 +414,7 @@ export default function AdminUsersPage() {
           </div>
 
           {/* List Content */}
-          <div className="flex-1">
+          <div className="flex-1 w-full min-h-0">
             {loading ? (
               <div className="flex items-center justify-center h-full">
                 <Loader2 className="animate-spin text-primary" size={40} />

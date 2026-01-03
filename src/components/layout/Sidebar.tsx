@@ -17,7 +17,7 @@ import {
 } from "lucide-react";
 import { useAuth, useLanguage } from "@/contexts";
 import { Notification as AppNotification } from "@/types";
-import { cn, generateAvatarUrl } from "@/lib/utils";
+import { cn } from "@/lib/utils";
 import { db } from "@/lib/firebase";
 import { collection, query, orderBy, onSnapshot } from "firebase/firestore";
 
@@ -163,8 +163,8 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
           <div className="p-4 flex items-center gap-3 border-b border-border/50">
             <div className="relative w-10 h-10 flex-shrink-0 bg-white rounded-full p-1 overflow-hidden">
               <Image
-                src={user?.photoURL || generateAvatarUrl(user?.displayName || "User")}
-                alt="Profile"
+                src="/obour-logo.png"
+                alt="Obour Logo"
                 width={40}
                 height={40}
                 className="object-cover w-full h-full"
