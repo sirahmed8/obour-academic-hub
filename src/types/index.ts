@@ -74,10 +74,25 @@ export interface Resource {
 
 export interface ChatMessage {
   id: string;
-  role: "user" | "assistant" | "system";
-  content: string;
-  timestamp: string;
-  mode?: "ai" | "offline" | "live";
+  text: string;
+  senderId: string;
+  senderName?: string;
+  timestamp: { seconds: number; nanoseconds: number } | null;
+  status: "sent" | "delivered" | "seen";
+  replyTo?: {
+    id: string;
+    text: string;
+    senderName: string;
+  };
+  reactions?: Record<string, string>;
+  isDeleted?: boolean;
+  type?: "text" | "image" | "file" | "system";
+  context?: "bot" | "live";
+  attachmentUrl?: string;
+  attachmentName?: string;
+  attachmentSize?: number;
+  attachmentType?: string;
+  role?: "user" | "assistant" | "system"; // Keep for backward compatibility if needed, or remove if unused
 }
 
 export interface InboxMessage {
@@ -121,4 +136,15 @@ export interface SiteSettings {
   announcement?: string;
   announcementType?: "info" | "warning" | "success";
   maintenanceMode?: boolean;
+}
+
+export interface ChatSession {
+  userId: string;
+  userName: string;
+  userEmail: string;
+  lastMessage: string;
+  lastMessageTime: { seconds: number; nanoseconds: number } | null;
+  unreadCount: number; // For User (how many admin messages they haven't seen)
+  adminUnreadCount: number; // For Admin (how many user messages admin hasn't seen)
+  isTyping?: boolean;
 }

@@ -52,7 +52,8 @@ service cloud.firestore {
     
     // Admin Whitelist - needed for AuthContext to check and auto-promote
     match /whitelisted_admins/{email} {
-      allow read: if request.auth != null;
+      // Only allow reading if the document ID matches the user's email
+      allow read: if request.auth != null && request.auth.token.email == email;
       allow write: if isAdmin();
     }
     

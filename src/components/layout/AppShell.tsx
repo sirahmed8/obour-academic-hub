@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { useAuth, useLanguage } from "@/contexts";
 import { Sidebar, Navbar } from "@/components/layout";
 import dynamic from "next/dynamic";
-import { StudentProfileSetup } from "@/components/features/StudentProfileSetup";
+import { SkipLink } from "@/components/ui/SkipLink";
 // Lazy load AIChatbot for better initial bundle size
 const AIChatbot = dynamic(
   () => import("@/components/features/AIChatbot").then((mod) => mod.AIChatbot),
@@ -13,6 +13,14 @@ const AIChatbot = dynamic(
     ssr: false, // It's a client-side component anyway
   }
 );
+
+const StudentProfileSetup = dynamic(
+  () => import("@/components/features/StudentProfileSetup").then((mod) => mod.StudentProfileSetup),
+  {
+    ssr: false,
+  }
+);
+
 import { LiveBanner } from "@/components/features/LiveBanner";
 import { CookieConsent } from "@/components/ui/CookieConsent";
 import { Loader2, ExternalLink } from "lucide-react";
@@ -52,11 +60,12 @@ export function AppShell({ children }: { children: React.ReactNode }) {
 
   return (
     <div className="flex h-screen bg-background overflow-hidden" dir={dir}>
+      <SkipLink />
       <Sidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
       <div className="flex-1 flex flex-col h-full overflow-hidden relative">
         <Navbar onMenuClick={() => setSidebarOpen(true)} />
         <LiveBanner />
-        <main className="flex-1 overflow-y-auto pb-24 lg:pb-10">
+        <main id="main-content" className="flex-1 overflow-y-auto pb-24 lg:pb-10">
           {children}
 
           <footer className="py-8 mt-auto text-center space-y-4">
@@ -79,9 +88,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
 
       {/* Profile Setup Modal */}
       {showProfileSetup && (
-        <StudentProfileSetup
-          onComplete={() => setProfileSetupDismissed(true)}
-        />
+        <StudentProfileSetup onComplete={() => setProfileSetupDismissed(true)} />
       )}
 
       {/* Cookie Consent Banner */}

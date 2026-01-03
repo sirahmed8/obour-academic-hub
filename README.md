@@ -1,36 +1,67 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Obour Academic Hub
 
-## Getting Started
+A modern educational platform for Obour Institutes students, built with Next.js and Firebase.
 
-First, run the development server:
+## 🚀 Tech Stack
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+- **Framework**: Next.js 16 (App Router)
+- **Styling**: Tailwind CSS + Custom CSS
+- **Backend**: Firebase (Auth, Firestore, Storage, Hosting)
+- **Media**: Cloudinary (Image optimization)
+- **Animations**: Framer Motion
+- **Language**: TypeScript
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## 📁 Project Structure
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+\`\`\`
+src/
+├── app/ # Next.js App Router pages
+│ ├── admin/ # Admin dashboard pages
+│ ├── main/ # Main dashboard
+│ └── ...
+├── components/
+│ ├── features/ # Feature components (Chatbot, Dashboard, etc.)
+│ ├── layout/ # Layout components (Navbar, Sidebar, AppShell)
+│ └── ui/ # Reusable UI components
+├── contexts/ # React Context providers
+├── hooks/ # Custom React hooks
+├── lib/ # Utility functions & Firebase config
+└── types/ # TypeScript type definitions
+\`\`\`
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## 🔧 Setup
 
-## Learn More
+1. Clone the repository
+2. Copy \`.env.example\` to \`.env.local\` and fill in your credentials
+3. Install dependencies:
+   \`\`\`bash
+   npm install
+   \`\`\`
+4. Run the development server:
+   \`\`\`bash
+   npm run dev
+   \`\`\`
 
-To learn more about Next.js, take a look at the following resources:
+## 🔐 Environment Variables
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+See \`.env.example\` for required environment variables.
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## 📱 Features
 
-## Deploy on Vercel
+- **Student Dashboard**: View subjects, resources, and notifications
+- **AI Chatbot**: Bilingual support bot with live support handoff
+- **Admin Panel**: Manage users, resources, notifications, and banners
+- **Real-time Chat**: Live support with message replies and reactions
+- **Responsive Design**: Optimized for mobile and desktop
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+## 🌐 Deployment
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+Deploy to Firebase Hosting:
+\`\`\`bash
+npm run build
+firebase deploy
+\`\`\`
+
+## 📄 License
+
+Proprietary - Obour Institutes

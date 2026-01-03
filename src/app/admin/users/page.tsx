@@ -1,27 +1,42 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { db } from "@/lib/firebase";
-import {
-  collection,
-  onSnapshot,
-  query,
-  doc,
-  updateDoc,
-  limit,
-} from "firebase/firestore";
-import { useLanguage, useAuth } from "@/contexts";
 import { AppShell } from "@/components/layout/AppShell";
-import { ConfirmationModal } from "@/components/ui/ConfirmationModal";
-import { Users, Shield, User, Loader2, Pencil, X } from "lucide-react";
+import { useLanguage, useAuth } from "@/contexts";
+import { db } from "@/lib/firebase";
+import { collection, query, limit, onSnapshot, updateDoc, doc, orderBy } from "firebase/firestore";
+import { User as UserType, UserPermission } from "@/types";
+import { Loader2, Shield, User, Pencil, X, Users } from "lucide-react";
+import Image from "next/image";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
-import { User as UserType, UserPermission } from "@/types";
-import Image from "next/image";
+import { ConfirmationModal } from "@/components/ui/ConfirmationModal";
+import { useTranslations } from "next-intl";
+import { BulkActionsBar } from "@/components/admin/BulkActionsBar";
+import * as ReactWindow from "react-window";
+import { AutoSizer } from "react-virtualized-auto-sizer";
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const List = (ReactWindow as any).FixedSizeList;
+
+// Define permissions
+const PERMISSIONS: { key: UserPermission; label: string }[] = [
+  { key: "manage_users", label: "Manage Users" },
+  { key: "manage_subjects", label: "Manage Subjects" },
+  { key: "manage_resources", label: "Manage Resources" },
+  { key: "send_notifications", label: "Send Notifications" },
+  { key: "delete_chats", label: "Delete Chats" },
+];
 
 export default function AdminUsersPage() {
+  const { language } = useLanguage();
+  const t = useTranslations();
+  const { user: currentUser } = useAuth();
   const [users, setUsers] = useState<UserType[]>([]);
   const [loading, setLoading] = useState(true);
+  const [limitCount, setLimitCount] = useState(50);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [selectedUsers, setSelectedUsers] = useState<Set<string>>(new Set());
   const [confirmModal, setConfirmModal] = useState<{
     isOpen: boolean;
     title: string;
@@ -34,11 +49,6 @@ export default function AdminUsersPage() {
     action: () => {},
   });
 
-  const { language, t } = useLanguage();
-  const { isOwner } = useAuth();
-  const [searchTerm, setSearchTerm] = useState("");
-
-  // Edit user modal state
   const [editModal, setEditModal] = useState<{
     isOpen: boolean;
     user: UserType | null;
@@ -51,16 +61,58 @@ export default function AdminUsersPage() {
     code: "",
   });
 
-  // Check if current user can edit target user
-  const canEditUser = (targetUser: UserType): boolean => {
-    if (isOwner) return true; // Owner can edit anyone
-    // Admins can only edit students
-    return targetUser.role === "student";
+  const canEditUser = (targetUser: UserType) => {
+    if (!currentUser) return false;
+    if (currentUser.role === "owner") return true;
+    if (currentUser.role === "admin") {
+      return targetUser.role === "student";
+    }
+    return false;
+  };
+
+  const handleBulkRoleChange = async (newRole: "student" | "admin" | "owner") => {
+    const batchPromises = Array.from(selectedUsers).map((uid) =>
+      updateDoc(doc(db, "users", uid), {
+        role: newRole,
+        permissions: newRole === "student" ? [] : undefined,
+      })
+    );
+
+    try {
+      await Promise.all(batchPromises);
+      toast.success(
+        language === "ar"
+          ? `تم تحديث ${selectedUsers.size} مستخدم`
+          : `Updated ${selectedUsers.size} users`
+      );
+      setSelectedUsers(new Set());
+    } catch (error) {
+      console.error(error);
+      toast.error(language === "ar" ? "فشل التحديث الجماعي" : "Bulk update failed");
+    }
+  };
+
+  const handleExportCSV = () => {
+    const headers = ["ID", "Name", "Email", "Role", "Student Code"];
+    const rows = filteredUsers
+      .filter((u) => selectedUsers.has(u.uid))
+      .map((u) => [u.uid, u.displayName, u.email, u.role, u.studentCode || ""]);
+
+    const csvContent =
+      "data:text/csv;charset=utf-8," +
+      [headers.join(","), ...rows.map((e) => e.join(","))].join("\n");
+
+    const encodedUri = encodeURI(csvContent);
+    const link = document.createElement("a");
+    link.setAttribute("href", encodedUri);
+    link.setAttribute("download", "users_export.csv");
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
   };
 
   const handleEditUser = async () => {
     if (!editModal.user) return;
-
     try {
       await updateDoc(doc(db, "users", editModal.user.uid), {
         displayName: editModal.name,
@@ -73,52 +125,17 @@ export default function AdminUsersPage() {
     }
   };
 
-  // Permissions configuration
-  const PERMISSIONS: { key: UserPermission; label: string }[] = [
-    {
-      key: "delete_chats",
-      label: language === "ar" ? "حذف المحادثات" : "Delete Chats",
-    },
-    {
-      key: "send_notifications",
-      label: language === "ar" ? "إرسال إشعارات" : "Send Notifications",
-    },
-    {
-      key: "manage_subjects",
-      label: language === "ar" ? "إدارة المواد" : "Manage Subjects",
-    },
-    {
-      key: "manage_resources",
-      label: language === "ar" ? "إدارة المصادر" : "Manage Resources",
-    },
-  ];
-
-  const [limitCount, setLimitCount] = useState(50);
-
   useEffect(() => {
-    // Optimized: Limit results to prevent crashing. Added orderBy for stable pagination.
-    // Note: This requires a composite index on Firestore (createdAt DESC).
-    // If index is missing, it might error. we can use 'updatedAt' or fallback to no sort if needed.
-    // Assuming 'createdAt' exists for most.
+    setLoading(true);
     let q;
     try {
-      q = query(
-        collection(db, "users"),
-        // orderBy("createdAt", "desc"), // Disabling orderBy to avoid index requirement errors for now, unless guaranteed.
-        // If the user hasn't created an index, orderBy might fail.
-        // Let's stick to simple limit for stability, or try-catch it?
-        // Safest 'deep' optimization without index access: just limit.
-        limit(limitCount)
-      );
+      q = query(collection(db, "users"), orderBy("createdAt", "desc"), limit(limitCount));
     } catch {
       q = query(collection(db, "users"), limit(limitCount));
     }
 
     const unsubscribe = onSnapshot(q, (snapshot) => {
-      const allUsers = snapshot.docs.map(
-        (d) => ({ ...d.data(), uid: d.id } as UserType)
-      );
-      // Client-side sort is safer against missing indexes
+      const allUsers = snapshot.docs.map((d) => ({ ...d.data(), uid: d.id }) as UserType);
       allUsers.sort((a, b) => {
         const dateA = a.createdAt ? new Date(a.createdAt).getTime() : 0;
         const dateB = b.createdAt ? new Date(b.createdAt).getTime() : 0;
@@ -137,9 +154,7 @@ export default function AdminUsersPage() {
       title: language === "ar" ? "تغيير الدور" : "Change Role",
       message:
         language === "ar"
-          ? `هل أنت متأكد من تغيير دور المستخدم إلى ${
-              newRole === "admin" ? "مسؤول" : "طالب"
-            }؟`
+          ? `هل أنت متأكد من تغيير دور المستخدم إلى ${newRole === "admin" ? "مسؤول" : "طالب"}؟`
           : `Are you sure you want to change user role to ${newRole}?`,
       action: async () => {
         try {
@@ -168,9 +183,7 @@ export default function AdminUsersPage() {
       await updateDoc(doc(db, "users", userId), {
         permissions: newPermissions,
       });
-      toast.success(
-        language === "ar" ? "تم تحديث الصلاحيات" : "Permissions updated"
-      );
+      toast.success(language === "ar" ? "تم تحديث الصلاحيات" : "Permissions updated");
     } catch {
       toast.error(language === "ar" ? "فشل التحديث" : "Update failed");
     }
@@ -183,34 +196,160 @@ export default function AdminUsersPage() {
       user.studentCode?.includes(searchTerm)
   );
 
+  // Row selection handler
+  const toggleUserSelection = (uid: string) => {
+    const newSelected = new Set(selectedUsers);
+    if (newSelected.has(uid)) newSelected.delete(uid);
+    else newSelected.add(uid);
+    setSelectedUsers(newSelected);
+  };
+
+  // Virtualizer Row Component
+  const Row = ({ index, style }: { index: number; style: React.CSSProperties }) => {
+    const user = filteredUsers[index];
+    if (!user) return null;
+
+    const isSelected = selectedUsers.has(user.uid);
+
+    return (
+      <div
+        style={style}
+        className={cn(
+          "grid grid-cols-[3fr_1.5fr_1.5fr_2fr] border-b border-border transition-colors items-center",
+          isSelected ? "bg-primary/5" : "hover:bg-muted/30"
+        )}
+      >
+        {/* User Column */}
+        <div className="px-6 py-4 flex items-center gap-3 overflow-hidden">
+          <input
+            type="checkbox"
+            checked={isSelected}
+            onChange={() => toggleUserSelection(user.uid)}
+            className="rounded border-input text-primary w-4 h-4 mr-2"
+          />
+          <Image
+            src={
+              user.photoURL ||
+              `https://ui-avatars.com/api/?name=${user.displayName}&background=6366f1&color=fff`
+            }
+            alt={user.displayName}
+            width={40}
+            height={40}
+            className="rounded-full shrink-0"
+          />
+          <div className="truncate">
+            <div className="font-bold text-foreground truncate">{user.displayName}</div>
+            <div className="text-sm text-muted-foreground truncate">{user.email}</div>
+          </div>
+        </div>
+
+        {/* Student Code Column */}
+        <div className="px-6 py-4 font-mono text-sm truncate">
+          {user.studentCode || (
+            <span className="text-muted-foreground italic">
+              {language === "ar" ? "غير محدد" : "Not set"}
+            </span>
+          )}
+        </div>
+
+        {/* Role Column */}
+        <div className="px-6 py-4">
+          <span
+            className={cn(
+              "inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium whitespace-nowrap",
+              user.role === "owner"
+                ? "bg-amber-100 text-amber-800"
+                : user.role === "admin"
+                  ? "bg-purple-100 text-purple-800"
+                  : "bg-green-100 text-green-800"
+            )}
+          >
+            {user.role === "admin" ? (
+              <Shield className="w-3 h-3 mr-1" />
+            ) : (
+              <User className="w-3 h-3 mr-1" />
+            )}
+            {user.role}
+          </span>
+        </div>
+
+        {/* Actions Column */}
+        <div className="px-6 py-4">
+          {user.role !== "owner" && (
+            <div className="flex flex-col gap-2">
+              <div className="flex items-center gap-3">
+                <button
+                  onClick={() => handleToggleRole(user.uid, user.role)}
+                  className="text-xs text-primary hover:text-primary/80 font-medium"
+                >
+                  {language === "ar" ? "تبديل الدور" : "Switch Role"}
+                </button>
+                {canEditUser(user) && (
+                  <button
+                    onClick={() =>
+                      setEditModal({
+                        isOpen: true,
+                        user: user,
+                        name: user.displayName || "",
+                        code: user.studentCode || "",
+                      })
+                    }
+                    className="text-xs text-orange-500 hover:text-orange-600 font-medium flex items-center gap-1"
+                  >
+                    <Pencil size={12} />
+                    {language === "ar" ? "تعديل" : "Edit"}
+                  </button>
+                )}
+              </div>
+
+              {user.role === "admin" && (
+                <div className="space-y-1 mt-2 border-t pt-2">
+                  <p className="text-[10px] uppercase text-muted-foreground font-semibold">
+                    Permissions
+                  </p>
+                  {PERMISSIONS.map((def) => (
+                    <label key={def.key} className="flex items-center gap-2 cursor-pointer">
+                      <input
+                        type="checkbox"
+                        className="rounded border-input text-primary focus:ring-primary w-3 h-3"
+                        checked={user.permissions?.includes(def.key)}
+                        onChange={() => togglePermission(user.uid, user.permissions, def.key)}
+                      />
+                      <span className="text-xs">{def.label}</span>
+                    </label>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
+        </div>
+      </div>
+    );
+  };
+
   return (
     <AppShell>
-      <div className="p-6 lg:p-10 max-w-6xl mx-auto">
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
+      <div className="p-6 lg:p-10 max-w-6xl mx-auto h-[calc(100vh-100px)] flex flex-col">
+        {/* Header Section */}
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8 shrink-0">
           <h1 className="text-2xl font-bold text-foreground flex items-center gap-3">
             <Users className="text-primary" />
             {t("admin.users")}
           </h1>
 
           <div className="flex gap-4 w-full md:w-auto items-center">
-            {/* Invite Admin */}
             {/* Invite Admin Form */}
             <form
               onSubmit={async (e) => {
                 e.preventDefault();
                 const form = e.currentTarget;
-                const emailInput = form.elements.namedItem(
-                  "invite-email"
-                ) as HTMLInputElement;
+                const emailInput = form.elements.namedItem("invite-email") as HTMLInputElement;
                 const email = emailInput.value;
 
-                if (!email || !email.includes("@"))
-                  return toast.error("Invalid email");
+                if (!email || !email.includes("@")) return toast.error("Invalid email");
 
                 try {
-                  const { setDoc, doc, serverTimestamp } = await import(
-                    "firebase/firestore"
-                  );
+                  const { setDoc, doc, serverTimestamp } = await import("firebase/firestore");
                   await setDoc(doc(db, "whitelisted_admins", email), {
                     email,
                     invitedBy: "admin",
@@ -228,9 +367,7 @@ export default function AdminUsersPage() {
               <input
                 name="invite-email"
                 placeholder={
-                  language === "ar"
-                    ? "إضافة بريد إلكتروني كأدمن..."
-                    : "Invite admin by email..."
+                  language === "ar" ? "إضافة بريد إلكتروني كأدمن..." : "Invite admin by email..."
                 }
                 className="px-4 py-2 rounded-xl border border-border bg-background focus:ring-2 focus:ring-primary/20 outline-none text-sm w-64"
               />
@@ -244,9 +381,7 @@ export default function AdminUsersPage() {
             </form>
 
             <input
-              placeholder={
-                language === "ar" ? "بحث عن مستخدم..." : "Search users..."
-              }
+              placeholder={language === "ar" ? "بحث عن مستخدم..." : "Search users..."}
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               className="flex-1 md:w-64 px-4 py-2 rounded-xl border border-border bg-background focus:ring-2 focus:ring-primary/20 outline-none"
@@ -254,177 +389,69 @@ export default function AdminUsersPage() {
           </div>
         </div>
 
-        <div className="bg-card rounded-2xl border border-border overflow-hidden">
-          <div className="overflow-x-auto">
-            <table className="w-full text-left">
-              <thead className="bg-muted/50">
-                <tr>
-                  <th className="px-6 py-4 text-sm font-semibold text-muted-foreground">
-                    {language === "ar" ? "المستخدم" : "User"}
-                  </th>
-                  <th className="px-6 py-4 text-sm font-semibold text-muted-foreground">
-                    {language === "ar" ? "كود الطالب" : "Student Code"}
-                  </th>
-                  <th className="px-6 py-4 text-sm font-semibold text-muted-foreground">
-                    {language === "ar" ? "الدور" : "Role"}
-                  </th>
-                  <th className="px-6 py-4 text-sm font-semibold text-muted-foreground">
-                    {language === "ar" ? "الإجراءات" : "Actions"}
-                  </th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-border">
-                {loading ? (
-                  <tr>
-                    <td colSpan={4} className="p-10 text-center">
-                      <Loader2
-                        className="animate-spin mx-auto text-primary"
-                        size={30}
-                      />
-                    </td>
-                  </tr>
-                ) : filteredUsers.length === 0 ? (
-                  <tr>
-                    <td
-                      colSpan={4}
-                      className="p-10 text-center text-muted-foreground"
-                    >
-                      {language === "ar"
-                        ? "لا يوجد مستخدمين"
-                        : "No users found"}
-                    </td>
-                  </tr>
-                ) : (
-                  filteredUsers.map((user) => (
-                    <tr
-                      key={user.uid}
-                      className="hover:bg-muted/30 transition-colors"
-                    >
-                      <td className="px-6 py-4">
-                        <div className="flex items-center gap-3">
-                          <Image
-                            src={
-                              user.photoURL ||
-                              `https://ui-avatars.com/api/?name=${user.displayName}&background=6366f1&color=fff`
-                            }
-                            alt={user.displayName}
-                            width={40}
-                            height={40}
-                            className="rounded-full"
-                          />
-                          <div>
-                            <div className="font-bold text-foreground">
-                              {user.displayName}
-                            </div>
-                            <div className="text-sm text-muted-foreground">
-                              {user.email}
-                            </div>
-                          </div>
-                        </div>
-                      </td>
-                      <td className="px-6 py-4 font-mono text-sm">
-                        {user.studentCode || (
-                          <span className="text-muted-foreground italic">
-                            {language === "ar" ? "غير محدد" : "Not set"}
-                          </span>
-                        )}
-                      </td>
-                      <td className="px-6 py-4">
-                        <span
-                          className={cn(
-                            "inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium",
-                            user.role === "owner"
-                              ? "bg-amber-100 text-amber-800"
-                              : user.role === "admin"
-                              ? "bg-purple-100 text-purple-800"
-                              : "bg-green-100 text-green-800"
-                          )}
-                        >
-                          {user.role === "admin" ? (
-                            <Shield className="w-3 h-3 mr-1" />
-                          ) : (
-                            <User className="w-3 h-3 mr-1" />
-                          )}
-                          {user.role}
-                        </span>
-                      </td>
-                      <td className="px-6 py-4">
-                        {user.role !== "owner" && (
-                          <div className="flex flex-col gap-2">
-                            <div className="flex items-center gap-3">
-                              <button
-                                onClick={() =>
-                                  handleToggleRole(user.uid, user.role)
-                                }
-                                className="text-xs text-primary hover:text-primary/80 font-medium"
-                              >
-                                {language === "ar"
-                                  ? "تبديل الدور"
-                                  : "Switch Role"}
-                              </button>
-                              {canEditUser(user) && (
-                                <button
-                                  onClick={() =>
-                                    setEditModal({
-                                      isOpen: true,
-                                      user: user,
-                                      name: user.displayName || "",
-                                      code: user.studentCode || "",
-                                    })
-                                  }
-                                  className="text-xs text-orange-500 hover:text-orange-600 font-medium flex items-center gap-1"
-                                >
-                                  <Pencil size={12} />
-                                  {language === "ar" ? "تعديل" : "Edit"}
-                                </button>
-                              )}
-                            </div>
-
-                            {user.role === "admin" && (
-                              <div className="space-y-1 mt-2 border-t pt-2">
-                                <p className="text-[10px] uppercase text-muted-foreground font-semibold">
-                                  Permissions
-                                </p>
-                                {PERMISSIONS.map((def) => (
-                                  <label
-                                    key={def.key}
-                                    className="flex items-center gap-2 cursor-pointer"
-                                  >
-                                    <input
-                                      type="checkbox"
-                                      className="rounded border-input text-primary focus:ring-primary w-3 h-3"
-                                      checked={user.permissions?.includes(
-                                        def.key
-                                      )}
-                                      onChange={() =>
-                                        togglePermission(
-                                          user.uid,
-                                          user.permissions,
-                                          def.key
-                                        )
-                                      }
-                                    />
-                                    <span className="text-xs">{def.label}</span>
-                                  </label>
-                                ))}
-                              </div>
-                            )}
-                          </div>
-                        )}
-                      </td>
-                    </tr>
-                  ))
-                )}
-              </tbody>
-            </table>
+        {/* Virtualized User List */}
+        <div className="bg-card rounded-2xl border border-border overflow-hidden flex-1 flex flex-col min-h-[500px]">
+          {/* Table Header */}
+          <div className="grid grid-cols-[3fr_1.5fr_1.5fr_2fr] bg-muted/50 border-b border-border font-semibold text-muted-foreground text-sm">
+            <div className="px-6 py-4 flex items-center gap-2">
+              <input
+                type="checkbox"
+                checked={selectedUsers.size === filteredUsers.length && filteredUsers.length > 0}
+                onChange={() => {
+                  if (selectedUsers.size === filteredUsers.length) {
+                    setSelectedUsers(new Set());
+                  } else {
+                    setSelectedUsers(new Set(filteredUsers.map((u) => u.uid)));
+                  }
+                }}
+                className="rounded border-input text-primary w-4 h-4 mr-2"
+              />
+              {language === "ar" ? "المستخدم" : "User"}
+            </div>
+            <div className="px-6 py-4">{language === "ar" ? "كود الطالب" : "Student Code"}</div>
+            <div className="px-6 py-4">{language === "ar" ? "الدور" : "Role"}</div>
+            <div className="px-6 py-4">{language === "ar" ? "الإجراءات" : "Actions"}</div>
           </div>
-          {users.length >= limitCount && (
-            <div className="p-4 border-t border-border flex justify-center">
+
+          {/* List Content */}
+          <div className="flex-1">
+            {loading ? (
+              <div className="flex items-center justify-center h-full">
+                <Loader2 className="animate-spin text-primary" size={40} />
+              </div>
+            ) : filteredUsers.length === 0 ? (
+              <div className="flex items-center justify-center h-full text-muted-foreground">
+                {language === "ar" ? "لا يوجد مستخدمين" : "No users found"}
+              </div>
+            ) : (
+              <>
+                {/* @ts-expect-error: react-virtualized-auto-sizer types mismatch with react 18 render prop */}
+                <AutoSizer>
+                  {({ height, width }: { height: number; width: number }) => (
+                    <List
+                      height={height}
+                      itemCount={filteredUsers.length}
+                      itemSize={64}
+                      width={width}
+                    >
+                      {({ index, style }: { index: number; style: React.CSSProperties }) => (
+                        <Row index={index} style={style} />
+                      )}
+                    </List>
+                  )}
+                </AutoSizer>
+              </>
+            )}
+          </div>
+
+          {/* Load More Footer */}
+          {users.length >= limitCount && !loading && (
+            <div className="p-2 border-t border-border flex justify-center bg-muted/10">
               <button
                 onClick={() => setLimitCount((prev) => prev + 50)}
-                className="text-sm text-primary hover:underline font-medium"
+                className="text-xs text-primary hover:underline font-medium"
               >
-                {language === "ar" ? "تحميل المزيد" : "Load More"}
+                {language === "ar" ? "تحميل المزيد من قاعدة البيانات" : "Load more from database"}
               </button>
             </div>
           )}
@@ -432,9 +459,7 @@ export default function AdminUsersPage() {
 
         <ConfirmationModal
           isOpen={confirmModal.isOpen}
-          onClose={() =>
-            setConfirmModal((prev) => ({ ...prev, isOpen: false }))
-          }
+          onClose={() => setConfirmModal((prev) => ({ ...prev, isOpen: false }))}
           onConfirm={confirmModal.action}
           title={confirmModal.title}
           message={confirmModal.message}
@@ -477,9 +502,7 @@ export default function AdminUsersPage() {
                       }))
                     }
                     className="w-full p-3 rounded-xl border border-border bg-background"
-                    placeholder={
-                      language === "ar" ? "اسم المستخدم" : "User name"
-                    }
+                    placeholder={language === "ar" ? "اسم المستخدم" : "User name"}
                   />
                 </div>
 
@@ -529,6 +552,16 @@ export default function AdminUsersPage() {
           </div>
         )}
       </div>
+
+      {/* Bulk Actions Bar */}
+      <BulkActionsBar
+        selectedUsers={selectedUsers}
+        users={filteredUsers}
+        onClearSelection={() => setSelectedUsers(new Set())}
+        onBulkRoleChange={handleBulkRoleChange}
+        onExportCSV={handleExportCSV}
+        language={language}
+      />
     </AppShell>
   );
 }

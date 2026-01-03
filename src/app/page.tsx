@@ -1,10 +1,20 @@
 "use client";
 
 import { useEffect } from "react";
+import dynamic from "next/dynamic";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/contexts";
-import { LoginScreen } from "@/components/features/LoginScreen";
 import { Loader2 } from "lucide-react";
+const LoginScreen = dynamic(
+  () => import("@/components/features/LoginScreen").then((mod) => mod.LoginScreen),
+  {
+    loading: () => (
+      <div className="h-screen w-full flex items-center justify-center bg-background">
+        <Loader2 className="animate-spin text-primary" size={40} />
+      </div>
+    ),
+  }
+);
 
 export default function HomePage() {
   const router = useRouter();

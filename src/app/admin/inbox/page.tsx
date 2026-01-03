@@ -2,14 +2,7 @@
 
 import { useState, useEffect, useRef } from "react";
 import { db } from "@/lib/firebase";
-import {
-  collection,
-  onSnapshot,
-  query,
-  orderBy,
-  doc,
-  writeBatch,
-} from "firebase/firestore";
+import { collection, onSnapshot, query, orderBy, doc, writeBatch } from "firebase/firestore";
 import { useLanguage, useAuth } from "@/contexts";
 import { AppShell } from "@/components/layout/AppShell";
 import {
@@ -26,26 +19,19 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
-import {
-  ChatSession,
-  ChatMessage,
-  sendMessage,
-  markMessagesAsSeen,
-  toggleReaction,
-  deleteMessage,
-} from "@/lib/chatUtils";
+import { sendMessage, markMessagesAsSeen, toggleReaction, deleteMessage } from "@/lib/chatUtils";
+import { ChatSession, ChatMessage } from "@/types";
 import Image from "next/image";
 import { ConfirmationModal } from "@/components/ui/ConfirmationModal";
 
 export default function AdminInboxPage() {
   const [sessions, setSessions] = useState<ChatSession[]>([]);
-  const [selectedSessionId, setSelectedSessionId] = useState<string | null>(
-    null
-  );
+  const [selectedSessionId, setSelectedSessionId] = useState<string | null>(null);
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [input, setInput] = useState("");
   const [loadingSessions, setLoadingSessions] = useState(true);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [activeTab, setActiveTab] = useState<"support" | "bot">("support");
 
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const { language, t } = useLanguage();
@@ -57,10 +43,7 @@ export default function AdminInboxPage() {
   // 1. Listen to Chat Sessions (Users who messaged)
   useEffect(() => {
     // We listen to the 'chats' collection
-    const q = query(
-      collection(db, "chats"),
-      orderBy("lastMessageTime", "desc")
-    );
+    const q = query(collection(db, "chats"), orderBy("lastMessageTime", "desc"));
     const unsubscribe = onSnapshot(
       q,
       (snapshot) => {
@@ -69,7 +52,7 @@ export default function AdminInboxPage() {
             ({
               userId: doc.id,
               ...doc.data(),
-            } as ChatSession)
+            }) as ChatSession
         );
         setSessions(data);
         setLoadingSessions(false);
@@ -101,14 +84,24 @@ export default function AdminInboxPage() {
     const unsubscribe = onSnapshot(
       q,
       (snapshot) => {
-        const msgs = snapshot.docs.map(
+        const allMsgs = snapshot.docs.map(
           (doc) =>
             ({
               id: doc.id,
               ...doc.data(),
-            } as ChatMessage)
+            }) as ChatMessage
         );
-        setMessages(msgs);
+
+        // Filter based on Active Tab
+        const filteredMsgs = allMsgs.filter((msg) => {
+          if (activeTab === "bot") {
+            return msg.context === "bot";
+          } else {
+            return msg.context === "live" || !msg.context; // Legacy or explicit live
+          }
+        });
+
+        setMessages(filteredMsgs);
       },
       (error) => {
         console.error("Error fetching messages:", error);
@@ -117,7 +110,7 @@ export default function AdminInboxPage() {
     );
 
     return () => unsubscribe();
-  }, [selectedSessionId]);
+  }, [selectedSessionId, activeTab]);
 
   // Auto-scroll (only when messages exist)
   useEffect(() => {
@@ -139,14 +132,15 @@ export default function AdminInboxPage() {
         text,
         "admin",
         "Admin Support",
-        true,
+        false, // Mark as unread for the user
         replyTo
           ? {
               id: replyTo.id,
               text: replyTo.text,
               senderName: replyTo.senderName || "User",
             }
-          : undefined
+          : undefined,
+        activeTab === "bot" ? "bot" : "live" // Map 'support' tab to 'live' context
       );
       setReplyTo(null);
     } catch (err) {
@@ -183,11 +177,7 @@ export default function AdminInboxPage() {
   const formatTime = (timestamp: unknown) => {
     if (!timestamp) return "";
     let date: Date;
-    if (
-      typeof timestamp === "object" &&
-      timestamp !== null &&
-      "toDate" in timestamp
-    ) {
+    if (typeof timestamp === "object" && timestamp !== null && "toDate" in timestamp) {
       date = (timestamp as { toDate: () => Date }).toDate();
     } else if (timestamp instanceof Date) {
       date = timestamp;
@@ -199,8 +189,6 @@ export default function AdminInboxPage() {
 
   const selectedSession = sessions.find((s) => s.userId === selectedSessionId);
 
-  // Tab state for Support vs Bot Monitoring
-  const [activeTab, setActiveTab] = useState<"support" | "bot">("support");
   const { isOwner } = useAuth();
 
   return (
@@ -219,8 +207,7 @@ export default function AdminInboxPage() {
               {t("admin.inbox")}
             </h1>
             <div className="bg-primary/10 text-primary px-3 py-1 rounded-full text-xs font-bold">
-              {sessions.reduce((acc, s) => acc + (s.adminUnreadCount || 0), 0)}{" "}
-              New
+              {sessions.reduce((acc, s) => acc + (s.adminUnreadCount || 0), 0)} New
             </div>
           </div>
 
@@ -265,78 +252,69 @@ export default function AdminInboxPage() {
           </div>
 
           <div className="flex-1 overflow-y-auto">
-            {activeTab === "bot" ? (
-              /* Bot Monitoring View - Owner Only */
-              <div className="p-8 text-center text-muted-foreground">
-                <p className="text-sm mb-2">
-                  {language === "ar"
-                    ? "سجلات محادثات البوت"
-                    : "Bot Conversation Logs"}
-                </p>
-                <p className="text-xs opacity-70">
-                  {language === "ar"
-                    ? "هذه الميزة قيد التطوير"
-                    : "Feature coming soon"}
-                </p>
-              </div>
-            ) : loadingSessions ? (
-              <div className="p-8 flex justify-center">
-                <Loader2 className="animate-spin text-primary" />
-              </div>
-            ) : sessions.length === 0 ? (
-              <div className="p-8 text-center text-muted-foreground text-sm">
-                No active chats
-              </div>
-            ) : (
-              sessions.map((session) => (
-                <div
-                  key={session.userId}
-                  onClick={() => {
-                    setSelectedSessionId(session.userId);
-                  }}
-                  className={cn(
-                    "flex items-center gap-3 p-4 hover:bg-muted/50 transition-colors cursor-pointer border-b border-border/50",
-                    selectedSessionId === session.userId &&
-                      "bg-primary/5 border-l-4 border-l-primary"
-                  )}
-                >
-                  <Image
-                    src={`https://ui-avatars.com/api/?name=${
-                      session.userName || "User"
-                    }&background=random`}
-                    alt={session.userName}
-                    width={48}
-                    height={48}
-                    className="rounded-full"
-                  />
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center justify-between mb-1">
-                      <h3 className="font-bold truncate text-sm">
-                        {session.userName}
-                      </h3>
-                      <span className="text-[10px] text-muted-foreground">
-                        {formatTime(session.lastMessageTime)}
-                      </span>
-                    </div>
-                    <p
-                      className={cn(
-                        "text-sm truncate",
-                        (session.adminUnreadCount || 0) > 0
-                          ? "text-foreground font-semibold"
-                          : "text-muted-foreground"
-                      )}
-                    >
-                      {session.lastMessage}
-                    </p>
-                  </div>
-                  {(session.adminUnreadCount || 0) > 0 && (
-                    <div className="min-w-[20px] h-5 bg-primary text-primary-foreground rounded-full text-[10px] flex items-center justify-center font-bold px-1.5 animate-pulse">
-                      {session.adminUnreadCount}
-                    </div>
-                  )}
+            {activeTab === "bot" || activeTab === "support" ? (
+              /* Unified List for now, but selection triggers difference in filtering */
+              /* Ideally we filter sessions that HAVE bot messages? 
+                But since we haven't tracked 'hasBotMessages' in session metadata, 
+                we simply show all users and let admin check. 
+             */
+              loadingSessions ? (
+                <div className="p-8 flex justify-center">
+                  <Loader2 className="animate-spin text-primary" />
                 </div>
-              ))
-            )}
+              ) : sessions.length === 0 ? (
+                <div className="p-8 text-center text-muted-foreground text-sm">No active chats</div>
+              ) : (
+                sessions.map((session) => (
+                  <div
+                    key={session.userId}
+                    onClick={() => {
+                      setSelectedSessionId(session.userId);
+                    }}
+                    className={cn(
+                      "flex items-center gap-3 p-4 hover:bg-muted/50 transition-colors cursor-pointer border-b border-border/50",
+                      selectedSessionId === session.userId &&
+                        "bg-primary/5 border-l-4 border-l-primary"
+                    )}
+                  >
+                    <Image
+                      src={`https://ui-avatars.com/api/?name=${
+                        session.userName || "User"
+                      }&background=random`}
+                      alt={session.userName}
+                      width={48}
+                      height={48}
+                      className="rounded-full"
+                    />
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center justify-between mb-1">
+                        <h3 className="font-bold truncate text-sm">{session.userName}</h3>
+                        <span className="text-[10px] text-muted-foreground">
+                          {formatTime(session.lastMessageTime)}
+                        </span>
+                      </div>
+                      <p
+                        className={cn(
+                          "text-sm truncate",
+                          (session.adminUnreadCount || 0) > 0
+                            ? "text-foreground font-semibold"
+                            : "text-muted-foreground"
+                        )}
+                      >
+                        {activeTab === "bot"
+                          ? session.lastMessage || "View Bot History"
+                          : session.lastMessage || "No messages"}
+                      </p>
+                    </div>
+                    {activeTab === "support" && (session.adminUnreadCount || 0) > 0 && (
+                      <div className="min-w-[20px] h-5 bg-primary text-primary-foreground rounded-full text-[10px] flex items-center justify-center font-bold px-1.5 animate-pulse">
+                        {session.adminUnreadCount}
+                      </div>
+                    )}
+                  </div>
+                ))
+              )
+            ) : null}
           </div>
         </div>
 
@@ -358,12 +336,7 @@ export default function AdminInboxPage() {
                     }}
                     className="lg:hidden p-2 -ml-2 hover:bg-muted rounded-full"
                   >
-                    <svg
-                      className="w-5 h-5"
-                      fill="none"
-                      viewBox="0 0 24 24"
-                      stroke="currentColor"
-                    >
+                    <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                       <path
                         strokeLinecap="round"
                         strokeLinejoin="round"
@@ -382,12 +355,8 @@ export default function AdminInboxPage() {
                     className="rounded-full"
                   />
                   <div>
-                    <h2 className="font-bold leading-tight">
-                      {selectedSession?.userName}
-                    </h2>
-                    <p className="text-xs text-muted-foreground">
-                      {selectedSession?.userEmail}
-                    </p>
+                    <h2 className="font-bold leading-tight">{selectedSession?.userName}</h2>
+                    <p className="text-xs text-muted-foreground">{selectedSession?.userEmail}</p>
                   </div>
                 </div>
 
@@ -415,9 +384,7 @@ export default function AdminInboxPage() {
                     {/* Reply Preview */}
                     {msg.replyTo && (
                       <div className="text-[10px] bg-muted/50 px-2 py-1 rounded-lg mb-1 border-l-2 border-primary max-w-full truncate">
-                        <span className="font-medium">
-                          {msg.replyTo.senderName}:
-                        </span>{" "}
+                        <span className="font-medium">{msg.replyTo.senderName}:</span>{" "}
                         {msg.replyTo.text.slice(0, 40)}...
                       </div>
                     )}
@@ -445,18 +412,17 @@ export default function AdminInboxPage() {
                       )}
 
                       {/* Reactions Display */}
-                      {msg.reactions &&
-                        Object.keys(msg.reactions).length > 0 && (
-                          <div className="absolute -bottom-3 left-2 flex gap-0.5 bg-card rounded-full px-1.5 py-0.5 shadow-sm border border-border">
-                            {Object.values(msg.reactions)
-                              .slice(0, 3)
-                              .map((emoji, i) => (
-                                <span key={i} className="text-xs">
-                                  {emoji}
-                                </span>
-                              ))}
-                          </div>
-                        )}
+                      {msg.reactions && Object.keys(msg.reactions).length > 0 && (
+                        <div className="absolute -bottom-3 left-2 flex gap-0.5 bg-card rounded-full px-1.5 py-0.5 shadow-sm border border-border">
+                          {Object.values(msg.reactions)
+                            .slice(0, 3)
+                            .map((emoji, i) => (
+                              <span key={i} className="text-xs">
+                                {emoji}
+                              </span>
+                            ))}
+                        </div>
+                      )}
                     </div>
 
                     {/* Action Buttons (on hover) */}
@@ -475,9 +441,7 @@ export default function AdminInboxPage() {
                       </button>
                       <button
                         onClick={() =>
-                          setShowEmojiPicker(
-                            showEmojiPicker === msg.id ? null : msg.id
-                          )
+                          setShowEmojiPicker(showEmojiPicker === msg.id ? null : msg.id)
                         }
                         className="p-1 hover:bg-muted rounded text-muted-foreground hover:text-foreground"
                         title="React"
@@ -489,11 +453,7 @@ export default function AdminInboxPage() {
                           onClick={() => {
                             if (selectedSessionId) {
                               deleteMessage(selectedSessionId, msg.id);
-                              toast.info(
-                                language === "ar"
-                                  ? "تم حذف الرسالة"
-                                  : "Message deleted"
-                              );
+                              toast.info(language === "ar" ? "تم حذف الرسالة" : "Message deleted");
                             }
                           }}
                           className="p-1 hover:bg-destructive/10 rounded text-muted-foreground hover:text-destructive"
@@ -512,12 +472,7 @@ export default function AdminInboxPage() {
                             key={emoji}
                             onClick={() => {
                               if (selectedSessionId) {
-                                toggleReaction(
-                                  selectedSessionId,
-                                  msg.id,
-                                  "admin",
-                                  emoji
-                                );
+                                toggleReaction(selectedSessionId, msg.id, "admin", emoji);
                               }
                               setShowEmojiPicker(null);
                             }}
@@ -548,10 +503,7 @@ export default function AdminInboxPage() {
                       </span>{" "}
                       {replyTo.text.slice(0, 50)}...
                     </div>
-                    <button
-                      onClick={() => setReplyTo(null)}
-                      className="p-1 hover:bg-muted rounded"
-                    >
+                    <button onClick={() => setReplyTo(null)} className="p-1 hover:bg-muted rounded">
                       <X size={14} />
                     </button>
                   </div>
@@ -586,9 +538,7 @@ export default function AdminInboxPage() {
               <div className="w-20 h-20 bg-muted/50 rounded-full flex items-center justify-center mb-4">
                 <MessageSquare size={40} className="opacity-50" />
               </div>
-              <h3 className="text-xl font-bold text-foreground">
-                Admin Chat Dashboard
-              </h3>
+              <h3 className="text-xl font-bold text-foreground">Admin Chat Dashboard</h3>
               <p>Select a conversation to start messaging</p>
             </div>
           )}

@@ -16,81 +16,77 @@ import {
 import { filterProfanity } from "./profanityFilter";
 
 // Types
-export interface ChatMessage {
-  id: string;
-  text: string;
-  senderId: string;
-  senderName?: string;
-  timestamp: { seconds: number; nanoseconds: number } | null; // Firestore Timestamp
-  status: "sent" | "delivered" | "seen";
-  replyTo?: {
-    id: string;
-    text: string;
-    senderName: string;
-  };
-  reactions?: Record<string, string>; // userId -> emoji
-  isDeleted?: boolean;
-  type?: "text" | "image" | "system";
-}
-
-export interface ChatSession {
-  userId: string;
-  userName: string;
-  userEmail: string;
-  lastMessage: string;
-  lastMessageTime: { seconds: number; nanoseconds: number } | null;
-  unreadCount: number; // For User (how many admin messages they haven't seen)
-  adminUnreadCount: number; // For Admin (how many user messages admin hasn't seen)
-  isTyping?: boolean;
-}
+import { ChatMessage } from "@/types";
 
 // Helpers
+// Add context to the function signature
 export const sendMessage = async (
   chatId: string,
   text: string,
   senderId: string,
   senderName: string,
   isAdmin: boolean = false,
-  replyTo?: ChatMessage["replyTo"]
+  replyTo: ChatMessage["replyTo"] = undefined,
+  context: "bot" | "live" = "live",
+  attachment?: { url: string; name: string; size: number; type: string }
 ) => {
-  const messagesRef = collection(db, "chats", chatId, "messages");
-  const chatRef = doc(db, "chats", chatId);
+  if (!text.trim() && !attachment) return;
 
-  // Filter profanity before saving
+  const messagesRef = collection(db, `chats/${chatId}/messages`);
+  const timestamp = serverTimestamp();
+
+  // Filter profanity before saving for the message content
   const filteredText = filterProfanity(text);
 
   // 1. Add Message
   await addDoc(messagesRef, {
     text: filteredText,
     senderId,
-    senderName, // Include sender name for display
-    timestamp: serverTimestamp(),
-    status: "sent",
-    replyTo: replyTo || null,
+    senderName,
+    timestamp,
+    status: isAdmin ? "seen" : "sent", // Admin msgs are seen by definition (by admin)
+    replyTo: replyTo || null, // Ensure explicit null if undefined
     reactions: {},
     isDeleted: false,
-    type: "text",
+    type: attachment ? (attachment.type.startsWith("image") ? "image" : "file") : "text",
+    context, // Save the context
+    ...(attachment
+      ? {
+          attachmentUrl: attachment.url,
+          attachmentName: attachment.name,
+          attachmentSize: attachment.size,
+          attachmentType: attachment.type,
+        }
+      : {}),
   });
 
   // 2. Update Chat Session Metadata
-  const chatUpdate: Record<string, unknown> = {
-    lastMessage: filteredText,
-    lastMessageTime: serverTimestamp(),
-    isTyping: false,
+  const chatRef = doc(db, "chats", chatId);
+
+  // Only update notification counts if it is NOT a bot message (unless we want to track bot usage?)
+  // For now, let's track everything but maybe distinguishing in UI is better.
+  const updateData: Record<string, unknown> = {
+    lastMessage: filteredText, // Use filtered text for last message
+    lastMessageTime: timestamp,
+    userName: senderName, // Keep name updated
+    isTyping: false, // Ensure isTyping is reset
   };
 
-  // Increment unread counts
-  if (isAdmin) {
-    chatUpdate.unreadCount = increment(1); // User has 1 new message
+  if (!isAdmin) {
+    if (context === "live") {
+      updateData.adminUnreadCount = increment(1);
+    }
+    // Ensure basic info is set if it's the first message from user
+    updateData.userId = chatId;
+    updateData.userName = senderName;
+    // We might want to track separate unread counts for bot?
+    // updateData.botUnreadCount = increment(1);
   } else {
-    chatUpdate.adminUnreadCount = increment(1); // Admin has 1 new message
-    // Ensure basic info is set if it's the first message
-    chatUpdate.userId = chatId;
-    chatUpdate.userName = senderName;
+    updateData.unreadCount = increment(1);
   }
 
   // Use setDoc with merge to handle creation if it doesn't exist
-  await setDoc(chatRef, chatUpdate, { merge: true });
+  await setDoc(chatRef, updateData, { merge: true });
 };
 
 // Mark messages as seen (both session count and individual messages)
@@ -99,7 +95,8 @@ export const markMessagesAsSeen = async (chatId: string, isAdmin: boolean) => {
 
   // 1. Reset relevant unread count on the session
   const update = isAdmin ? { adminUnreadCount: 0 } : { unreadCount: 0 };
-  await updateDoc(chatRef, update);
+  // Use setDoc with merge to safely update or create if missing (prevent 'No document to update')
+  await setDoc(chatRef, update, { merge: true });
 
   // 2. Mark individual messages as seen (Client-side implementation)
   // Query messages where sender is NOT the current viewer (isAdmin ? user : admin)
@@ -123,9 +120,7 @@ export const markMessagesAsSeen = async (chatId: string, isAdmin: boolean) => {
     // Only mark as seen if the sender is NOT the person viewing it
     // If isAdmin is true, we want to mark messages sent by user (senderId !== 'admin')
     // If isAdmin is false, we want to mark messages sent by 'admin'
-    const isMessageFromOther = isAdmin
-      ? data.senderId !== "admin"
-      : data.senderId === "admin";
+    const isMessageFromOther = isAdmin ? data.senderId !== "admin" : data.senderId === "admin";
 
     if (isMessageFromOther) {
       batch.update(docSnapshot.ref, { status: "seen" });
@@ -180,12 +175,16 @@ export const clearChatHistory = async (userId: string) => {
 
   // Reset session metadata
   const chatRef = doc(db, "chats", userId);
-  batch.update(chatRef, {
-    lastMessage: "",
-    lastMessageTime: null,
-    unreadCount: 0,
-    adminUnreadCount: 0,
-  });
+  batch.set(
+    chatRef,
+    {
+      lastMessage: "",
+      lastMessageTime: null,
+      unreadCount: 0,
+      adminUnreadCount: 0,
+    },
+    { merge: true }
+  );
 
   await batch.commit();
 };

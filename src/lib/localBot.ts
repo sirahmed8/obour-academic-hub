@@ -111,31 +111,14 @@ const KNOWLEDGE_BASE: QA[] = [
     },
   },
   {
-    questions: [
-      "how are you",
-      "keefak",
-      "kefak",
-      "اخبارك",
-      "كيف حالك",
-      "عامل ايه",
-      "شلونك",
-    ],
+    questions: ["how are you", "keefak", "kefak", "اخبارك", "كيف حالك", "عامل ايه", "شلونك"],
     answer: {
       ar: "أنا مجرد بوت، بس أموري تمام طول ما أنا أساعدك! 😄",
       en: "I'm just a bot, but I'm doing great as long as I'm helping you! 😄",
     },
   },
   {
-    questions: [
-      "thank",
-      "merci",
-      "shukran",
-      "thx",
-      "شكرا",
-      "تسلم",
-      "يعطيك العافية",
-      "مشكور",
-    ],
+    questions: ["thank", "merci", "shukran", "thx", "شكرا", "تسلم", "يعطيك العافية", "مشكور"],
     answer: {
       ar: "العفو! واجبي. بالتوفيق يا بطل! 🚀",
       en: "You're welcome! Good luck, champion! 🚀",
@@ -151,32 +134,14 @@ const KNOWLEDGE_BASE: QA[] = [
 
   // --- IDENTITY ---
   {
-    questions: [
-      "who are you",
-      "what is this",
-      "bot",
-      "من انت",
-      "مين انت",
-      "شنو هذا",
-      "انت مين",
-    ],
+    questions: ["who are you", "what is this", "bot", "من انت", "مين انت", "شنو هذا", "انت مين"],
     answer: {
       ar: "أنا المساعد الذكي لمنصة العبور 🤖. أعرف كل كبيرة وصغيرة في الموقع وأقدر أساعدك في المواد والدعم الفني.",
       en: "I am the Obour Platform Smart Assistant 🤖. I know the ins and outs of the site and can help you with subjects and support.",
     },
   },
   {
-    questions: [
-      "owner",
-      "admin",
-      "dev",
-      "ahmed",
-      "من صنع",
-      "المطور",
-      "المالك",
-      "احمد",
-      "مين سواك",
-    ],
+    questions: ["owner", "admin", "dev", "ahmed", "من صنع", "المطور", "المالك", "احمد", "مين سواك"],
     answer: {
       ar: "تم تطوير المنصة بجهود المبدعين في معاهد العبور، بقيادة فريق التطوير التقني المتميز.",
       en: "The platform was built by the innovators at Obour Institutes, led by our tech dev team.",
@@ -204,17 +169,7 @@ const KNOWLEDGE_BASE: QA[] = [
     },
   },
   {
-    questions: [
-      "gpa",
-      "grade",
-      "score",
-      "grades",
-      "معدل",
-      "درجات",
-      "درجة",
-      "حساب المعدل",
-      "تقدير",
-    ],
+    questions: ["gpa", "grade", "score", "grades", "معدل", "درجات", "درجة", "حساب المعدل", "تقدير"],
     answer: {
       ar: "المعدل التراكمي (GPA) مهم جداً. حاول دائماً تبقي درجاتك فوق الـ C لضمان التخرج بتقدير طيب. شد حيلك!",
       en: "Your GPA is crucial. Try to keep your grades above C to ensure a good graduating score. Keep it up!",
@@ -228,15 +183,7 @@ const KNOWLEDGE_BASE: QA[] = [
     },
   },
   {
-    questions: [
-      "absence",
-      "attend",
-      "attendance",
-      "غيب",
-      "غياب",
-      "حضور",
-      "حرمان",
-    ],
+    questions: ["absence", "attend", "attendance", "غيب", "غياب", "حضور", "حرمان"],
     answer: {
       ar: "انتبه من الغياب! تجاوز نسبة الغياب المسموحة (25%) قد يعرضك للحرمان من دخول الاختبار النهائي.",
       en: "Watch your attendance! Exceeding 25% absence might get you barred from the final exam.",
@@ -306,17 +253,7 @@ const KNOWLEDGE_BASE: QA[] = [
     },
   },
   {
-    questions: [
-      "dark mode",
-      "theme",
-      "light mode",
-      "color",
-      "لون",
-      "ثيم",
-      "داكن",
-      "فاتي",
-      "ليلي",
-    ],
+    questions: ["dark mode", "theme", "light mode", "color", "لون", "ثيم", "داكن", "فاتي", "ليلي"],
     answer: {
       ar: "تقدر تغير الثيم (ليلي/نهاري) من القائمة الجانبية أو من إعدادات البروفايل.",
       en: "You can toggle the theme (Dark/Light) from the sidebar or profile settings.",
@@ -353,6 +290,77 @@ const KNOWLEDGE_BASE: QA[] = [
     answer: {
       ar: "تابع قسم الإشعارات (الجرس) لمعرفة آخر الأخبار والمواد المضافة حديثاً.",
       en: "Check the Notifications (Bell icon) for the latest news and added materials.",
+    },
+  },
+  // --- NEW ADDITIONS ---
+  {
+    questions: ["schedule", "timetable", "class", "جدول", "جدول المحاضرات", "مواعيد", "حصص"],
+    answer: {
+      ar: "للاطلاع على جدول المحاضرات، تواصل مع شؤون الطلاب أو راجع لوحة الإعلانات في المعهد.",
+      en: "For the class schedule, contact Student Affairs or check the bulletin board at the institute.",
+    },
+  },
+  {
+    questions: ["payment", "fees", "tuition", "money", "مصاريف", "رسوم", "دفع", "فلوس"],
+    answer: {
+      ar: "للاستفسار عن الرسوم الدراسية أو طرق الدفع، يرجى التواصل مع قسم الشؤون المالية مباشرة.",
+      en: "For tuition fees or payment methods, please contact the Financial Affairs department directly.",
+    },
+  },
+  {
+    questions: ["certificate", "transcript", "document", "شهادة", "افادة", "بيان درجات", "وثيقة"],
+    answer: {
+      ar: "للحصول على الشهادات أو بيان الدرجات، قدم طلب في شؤون الطلاب وانتظر المعالجة (عادة 3-5 أيام عمل).",
+      en: "For certificates or transcripts, submit a request to Student Affairs and wait for processing (usually 3-5 business days).",
+    },
+  },
+  {
+    questions: ["library", "book", "borrow", "مكتبة", "كتب", "استعارة"],
+    answer: {
+      ar: "المكتبة متاحة لجميع الطلاب. يمكنك استعارة الكتب بالبطاقة الجامعية لمدة أسبوعين.",
+      en: "The library is open to all students. You can borrow books with your student ID for two weeks.",
+    },
+  },
+  {
+    questions: ["contact", "email", "phone", "call", "تواصل", "ايميل", "رقم", "اتصال"],
+    answer: {
+      ar: "للتواصل مع الإدارة: راسلنا عبر الموقع أو اتصل بالرقم الموحد للمعهد.",
+      en: "To contact administration: message us through the site or call the institute's unified number.",
+    },
+  },
+  {
+    questions: ["internship", "training", "work", "تدريب", "شغل", "وظيفة", "تيرم"],
+    answer: {
+      ar: "برنامج التدريب الصيفي متاح لطلاب السنوات النهائية. تابع الإعلانات أو راجع مكتب شؤون الطلاب.",
+      en: "Summer internship programs are available for final-year students. Follow announcements or visit Student Affairs.",
+    },
+  },
+  {
+    questions: ["wifi", "internet", "network", "واي فاي", "نت", "انترنت"],
+    answer: {
+      ar: "شبكة الـ WiFi متاحة داخل الحرم. اسأل الـ IT عن بيانات الاتصال إذا واجهتك مشكلة.",
+      en: "WiFi is available on campus. Ask IT for credentials if you have trouble connecting.",
+    },
+  },
+  {
+    questions: ["study tips", "how to study", "advice", "نصائح", "ازاي اذاكر", "طريقة المذاكرة"],
+    answer: {
+      ar: "نصيحة ذهبية: ذاكر يومياً ولو ساعة واحدة بتركيز. استخدم تقنية Pomodoro (25 دقيقة مذاكرة + 5 راحة). بالتوفيق! 📚",
+      en: "Golden tip: Study at least one focused hour daily. Try the Pomodoro technique (25 min study + 5 min break). Good luck! 📚",
+    },
+  },
+  {
+    questions: ["deadline", "due date", "submission", "ديدلاين", "موعد التسليم", "تسليم"],
+    answer: {
+      ar: "تأكد من مواعيد التسليم من صفحة المادة أو من الدكتور مباشرة. التأخير قد يؤثر على درجاتك!",
+      en: "Check deadlines on the subject page or directly from the instructor. Late submissions may affect your grades!",
+    },
+  },
+  {
+    questions: ["team", "about us", "developers", "فريق", "من نحن", "المطورين"],
+    answer: {
+      ar: "تم بناء هذه المنصة بحب ❤️ من فريق مبدعي العبور. شكراً لدعمكم!",
+      en: "This platform was built with love ❤️ by the Obour Innovators team. Thanks for your support!",
     },
   },
 ];
@@ -413,8 +421,7 @@ export async function getLocalBotResponse(
     return {
       text: language === "ar" ? match.answer.ar : match.answer.en,
       confidence: 1, // High confidence since it matched rules
-      suggestions:
-        language === "ar" ? match.suggestions?.ar : match.suggestions?.en,
+      suggestions: language === "ar" ? match.suggestions?.ar : match.suggestions?.en,
     };
   }
 
@@ -456,15 +463,6 @@ export function wantsLiveSupport(input: string): boolean {
 
 export function needsHelpSuggestion(input: string): boolean {
   const norm = normalizeArabic(input);
-  const keywords = [
-    "help",
-    "what",
-    "how",
-    "مساعدة",
-    "كيف",
-    "ماذا",
-    "ليه",
-    "why",
-  ];
+  const keywords = ["help", "what", "how", "مساعدة", "كيف", "ماذا", "ليه", "why"];
   return keywords.some((k) => norm.includes(k));
 }
