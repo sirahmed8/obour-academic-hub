@@ -15,8 +15,6 @@ function getSimilarity(str1: string, str2: string): number {
   if (s1 === s2) return 1;
   if (s1.includes(s2) || s2.includes(s1)) return 0.8;
 
-  // Levenshtein-like approximation for short phrases could be added here
-  // For now, simple token matching
   const words1 = s1.split(/\s+/);
   const words2 = s2.split(/\s+/);
   let matches = 0;
@@ -84,6 +82,44 @@ const KNOWLEDGE_BASE: KnowledgeBaseItem[] = [
       "Welcome to Obour Institutes! 👋\nI am your smart assistant. 🤖\n\nI can help you with:\n• Departments & Subjects 📚\n• Fees & Payment 💰\n• Schedules & Exams 📅\n• Location & Directions 📍\n\nAsk me anything!",
     category: "greetings",
   },
+  {
+    patterns: ["مين انت", "عرفني بنفسك", "who are you", "what can you do"],
+    responseAr:
+      "أنا المساعد الذكي الخاص بمعاهد العبور. 🎓\nتم تطويري لمساعدتك في الإجابة على استفساراتك حول الدراسة، المصاريف، والأقسام.\n\nأنا هنا لخدمتك 24/7! 🤖",
+    responseEn:
+      "I am the Obour Institutes Smart Assistant. 🎓\nI was developed to help answer your questions about studies, fees, and departments.\n\nI'm here for you 24/7! 🤖",
+    category: "about_bot",
+  },
+
+  // --- ADMISSION & REGISTRATION ---
+  {
+    patterns: [
+      "تقديم",
+      "تسجيل",
+      "قبول",
+      "شروط",
+      "اوراق",
+      "ورق",
+      "admission",
+      "register",
+      "apply",
+      "requirements",
+      "papers",
+    ],
+    responseAr:
+      "📝 **للتقديم في معاهد العبور:**\n\nالأوراق المطلوبة للطلاب الجدد:\n1. أصل شهادة الثانوية العامة او ما يعادلها\n2. أصل شهادة الميلاد\n3. 6 صور شخصية\n4. نموذج 2 جند (للذكور)\n5. صورة البطاقة الشخصية\n\n📍 التقديم يتم من خلال مكتب التنسيق او التوجه لمكتب القبول والتسجيل في المعهد.",
+    responseEn:
+      "📝 **Admission Requirements:**\n\nRequired documents:\n1. High School Certificate (Original)\n2. Birth Certificate (Original)\n3. 6 Personal Photos\n4. Military Form 2 (Males)\n5. ID Copy\n\n📍 Apply through the coordination office or visit the admission office.",
+    category: "admission",
+  },
+  {
+    patterns: ["تحويل", "نقل", "transfer"],
+    responseAr:
+      "🔄 **التحويل للمعهد:**\n\nنقبل التحويلات من الكليات والمعاهد المناظرة.\nيرجى إحضار بيان درجات موثق من الجهة المحول منها والتوجه لشؤون الطلاب لعمل المقاصة العلمية.",
+    responseEn:
+      "🔄 **Transfers:**\n\nWe accept transfers from similar colleges.\nPlease bring an official transcript to Student Affairs for credit transfer evaluation.",
+    category: "admission",
+  },
 
   // --- DEPARTMENTS (General) ---
   {
@@ -119,6 +155,21 @@ const KNOWLEDGE_BASE: KnowledgeBaseItem[] = [
       "💻 **Computer Science Department**\n\nLearn modern programming and software development.\n\n📚 **Key Subjects:**\n• Programming (C++, Java, Python)\n• Data Structures\n• Databases\n• Artificial Intelligence\n\n🚀 **Careers:** Software Developer, AI Engineer, Web Developer.",
     category: "departments",
   },
+  {
+    patterns: [
+      "لغات برمجة",
+      "سي بلس بلس",
+      "بايثون",
+      "c++",
+      "python",
+      "programming languages",
+    ],
+    responseAr:
+      "نحن نركز على أهم اللغات في سوق العمل:\n- **C++**: للأساسيات القوية.\n- **Java/C#**: لتطبيقات المؤسسات.\n- **Python**: للذكاء الاصطناعي وتحليل البيانات.\n- **JavaScript/TypeScript**: لتطوير الويب.",
+    responseEn:
+      "We focus on industry-standard languages:\n- **C++**: For strong fundamentals.\n- **Java/C#**: For enterprise apps.\n- **Python**: For AI & Data.\n- **JavaScript/TypeScript**: For Web Dev.",
+    category: "academic",
+  },
 
   // --- MIS ---
   {
@@ -130,7 +181,25 @@ const KNOWLEDGE_BASE: KnowledgeBaseItem[] = [
     category: "departments",
   },
 
-  // --- FEES ---
+  // --- BUSINESS & ACCOUNTING ---
+  {
+    patterns: ["ادارة اعمال", "بزنس", "business", "administration"],
+    responseAr:
+      "💼 **قسم إدارة الأعمال**\n\nيؤهلك لإدارة الشركات والمشاريع.\n📚 **المواد:** تسويق، إدارة موارد بشرية، إدارة إنتاج، اقتصاد.\n🚀 **العمل:** مدير تسويق، رائد أعمال، مسؤول HR.",
+    responseEn:
+      "💼 **Business Admin**\n\nPrepare to lead companies.\n📚 **Subjects:** Marketing, HR, Economics.\n🚀 **Careers:** Marketing Manager, Entrepreneur, HR Specialist.",
+    category: "departments",
+  },
+  {
+    patterns: ["محاسبة", "accounting", "accountant"],
+    responseAr:
+      "📈 **قسم المحاسبة**\n\nلغة المال والأعمال.\n📚 **المواد:** محاسبة مالية، تكاليف، مراجعة، ضرائب.\n🚀 **العمل:** محاسب قانوني، مراجع حسابات، مدير مالي.",
+    responseEn:
+      "📈 **Accounting**\n\nThe language of business.\n📚 **Subjects:** Financial Accounting, Cost Accounting, Auditing.\n🚀 **Careers:** CPA, Auditor, Financial Manager.",
+    category: "departments",
+  },
+
+  // --- FEES & PAYMENT ---
   {
     patterns: [
       "مصاريف",
@@ -143,13 +212,21 @@ const KNOWLEDGE_BASE: KnowledgeBaseItem[] = [
       "price",
     ],
     responseAr:
-      '💰 **المصاريف الدراسية**\n\nتختلف المصاريف حسب القسم والسنة الدراسية.\n\n📞 **للاستعلام الدقيق:**\nيرجى التواصل مع شؤون الطلاب أو زيارة مكتب الحسابات.\n\n💳 **مميزات:**\n• إمكانية التقسيط\n• خصومات للمتفوقين\n\nاكتب "دعم" للتحدث مع موظف للتفاصيل المالية.',
+      '💰 **المصاريف الدراسية**\n\nتختلف المصاريف حسب القسم والسنة الدراسية.\n\n📞 **للاستعلام الدقيق:**\nيرجى التواصل مع شؤون الطلاب أو زيارة مكتب الحسابات.\n\n💳 **طرق الدفع:**\n• الدفع نقداً في الخزينة\n• الدفع الإلكتروني (قريباً)\n\nاكتب "دعم" للتحدث مع موظف للتفاصيل المالية.',
     responseEn:
-      '💰 **Tuition Fees**\n\nFees vary by department and year.\n\n📞 **For details:** Please contact Student Affairs.\n\n💳 **Features:**\n• Installment plans available\n• Scholarships for top students\n\nType "support" to talk to an agent about finance.',
+      '💰 **Tuition Fees**\n\nFees vary by department and year.\n\n📞 **For details:** Please contact Student Affairs.\n\n💳 **Payment:**\n• Cash at treasury\n• Online (Coming soon)\n\nType "support" to talk to an agent about finance.',
+    category: "fees",
+  },
+  {
+    patterns: ["تقسيط", "قسط", "installments"],
+    responseAr:
+      "نعم، يوفر المعهد نظام تقسيط للمصروفات الدراسية على دفعتين (ترم أول وترم ثاني). يرجى مراجعة شؤون الطلاب للتفاصيل.",
+    responseEn:
+      "Yes, tuition can be paid in two installments (per semester). Please check with Student Affairs.",
     category: "fees",
   },
 
-  // --- EXAMS ---
+  // --- EXAMS & GRADING ---
   {
     patterns: [
       "امتحانات",
@@ -167,8 +244,16 @@ const KNOWLEDGE_BASE: KnowledgeBaseItem[] = [
       "📅 **Exams**\n\nSchedules are announced 2 weeks before exams.\n\n🔔 **Check Notifications** on the app or Facebook page for updates.\n\nTip: Start studying early! 😉",
     category: "exams",
   },
+  {
+    patterns: ["نتيجة", "نتائج", "gpa", "تقدير", "result", "grade"],
+    responseAr:
+      "📊 **النتائج والتقديرات**\n\nيتبع المعهد نظام الساعات المعتمدة (GPA).\n- **A**: ممتاز (4.0)\n- **B**: جيد جداً (3.0)\n- **C**: جيد (2.0)\n- **D**: مقبول (1.0)\n- **F**: راسب\n\nيمكنك معرفة نتيجتك من خلال حسابك الطلابي.",
+    responseEn:
+      "📊 **Results & GPA**\n\nWe follow the GPA system.\n- **A**: Excellent (4.0)\n- **B**: Very Good (3.0)\n- **C**: Good (2.0)\n- **D**: Pass (1.0)\n- **F**: Fail\n\nCheck your results via the student portal.",
+    category: "academic",
+  },
 
-  // --- LOCATION ---
+  // --- LOCATION & TRANSPORT ---
   {
     patterns: [
       "مكان",
@@ -186,8 +271,6 @@ const KNOWLEDGE_BASE: KnowledgeBaseItem[] = [
       "📍 **Location**\n\nKM 21 Cairo-Ismailia Desert Road - Obour City.\n\n🚗 **Transport:**\nStudent buses are available.",
     category: "location",
   },
-
-  // --- BUS ---
   {
     patterns: [
       "باص",
@@ -202,6 +285,42 @@ const KNOWLEDGE_BASE: KnowledgeBaseItem[] = [
     responseEn:
       "🚌 **Bus Service**\n\nCoverage: Cairo, Giza, Sharkia.\n\n⏰ Morning: 8:00 AM\n⏰ Return: 3:00 PM\n\nVisit the transportation office to subscribe.",
     category: "services",
+  },
+
+  // --- STUDENT LIFE ---
+  {
+    patterns: [
+      "انشطة",
+      "رحلات",
+      "ملاعب",
+      "كافتيريا",
+      "activities",
+      "sports",
+      "trips",
+    ],
+    responseAr:
+      "🎉 **الحياة الطلابية**\n\nالمعهد ليس للدراسة فقط!\n- **ملاعب رياضية**: كرة قدم، طائرة.\n- **أنشطة ثقافية**: ندوات، مسابقات.\n- **رحلات**: ترفيهية وعلمية دورية.\n- **كافتيريا**: تقدم وجبات ومشروبات متنوعة.",
+    responseEn:
+      "🎉 **Student Life**\n\nNot just study!\n- **Sports**: Football courts.\n- **Culture**: Seminars, competitions.\n- **Trips**: Regular fun & educational trips.\n- **Cafeteria**: Serving meals & drinks.",
+    category: "activities",
+  },
+  {
+    patterns: ["واي فاي", "نت", "wifi", "internet"],
+    responseAr:
+      "📶 **الإنترنت**\n\nتتوفر خدمة الواي فاي المجانية في المكتبة والمعامل.\nكلمة السر: اسأل مشرف المعمل.",
+    responseEn:
+      "📶 **Wi-Fi**\n\nFree Wi-Fi available in library and labs.\nPassword: Ask lab supervisor.",
+    category: "services",
+  },
+
+  // --- ACADEMIC STAFF ---
+  {
+    patterns: ["عميد", "العميد", "dean"],
+    responseAr:
+      "👨‍🏫 **عميد المعهد**\n\nأ.د. [الاسم] - أستاذ علوم الحاسب ونظم المعلومات.\nيستقبل الطلاب في مكتبه يومياً من 10-12 ظهراً للمشاكل الهامة.",
+    responseEn:
+      "👨‍🏫 **The Dean**\n\nProf. [Name] - Professor of CS & IS.\nOffice hours: 10-12 PM daily for major concerns.",
+    category: "staff",
   },
 
   // --- THANKS / BYE ---
@@ -240,10 +359,13 @@ const KNOWLEDGE_BASE: KnowledgeBaseItem[] = [
       "خدمة عملاء",
       "عايز اكلم حد",
       "انسان",
+      "مشكلة",
       "support",
       "human",
       "agent",
       "help",
+      "issue",
+      "problem",
     ],
     responseAr: "جاري تحويلك للدعم الفني... 🎧",
     responseEn: "Switching you to support... 🎧",
@@ -262,7 +384,7 @@ export function getLocalBotResponse(text: string): string {
     // Try to detect topic roughly
     if (text.length < 3) return "Could you please clarify? 🤔";
 
-    return "🤔 عذراً، لم أفهم سؤالك تماماً.\n\nيمكنك سؤالي عن:\n• المصاريف 💰\n• الأقسام 📚\n• العنوان 📍\n\nأو اكتب 'دعم' للتحدث مع موظف.";
+    return "🤔 عذراً، لم أفهم سؤالك تماماً.\n\nيمكنك سؤالي عن:\n• المصاريف 💰\n• الأقسام 📚\n• العنوان 📍\n• التقديم والتحويل 📝\n\nأو اكتب 'دعم' للتحدث مع موظف.";
   }
 
   // Check language (heuristic)
@@ -277,6 +399,14 @@ export function wantsLiveSupport(text: string): boolean {
 
 export function needsHelpSuggestion(text: string): boolean {
   // If user seems confused or asks general "what can you do"
-  const patterns = ["help", "what", "مساعدة", "تعمل ايه", "وظيفتك"];
+  const patterns = [
+    "help",
+    "what",
+    "مساعدة",
+    "تعمل ايه",
+    "وظيفتك",
+    "مين",
+    "who",
+  ];
   return patterns.some((p) => text.toLowerCase().includes(p));
 }

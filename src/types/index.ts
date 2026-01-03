@@ -54,10 +54,12 @@ export interface Resource {
   id: string;
   subjectId: string;
   title: string;
+  titleAr?: string;
   description?: string;
+  descriptionAr?: string;
   url: string;
   thumbnailUrl?: string;
-  type: "pdf" | "link" | "video" | "image";
+  type: "pdf" | "link" | "video" | "image" | "document" | "other";
   orderIndex: number;
   createdAt: string;
   downloads?: number;

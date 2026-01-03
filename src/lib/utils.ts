@@ -6,18 +6,28 @@ export function cn(...inputs: ClassValue[]) {
 }
 
 // Helper to safely convert Firestore Timestamp or string to Date
-function toDate(date: any): Date {
+type Timestamp =
+  | { seconds: number; nanoseconds: number }
+  | { toDate: () => Date };
+type DateInput = string | Date | Timestamp | null | undefined;
+
+function toDate(date: DateInput): Date {
   if (!date) return new Date();
-  if (typeof date === "object" && "seconds" in date) {
-    return new Date(date.seconds * 1000); // Firestore Timestamp
+  if (date instanceof Date) return date;
+  if (typeof date === "string") return new Date(date);
+
+  // Handle Firestore Timestamp (both raw object and SDK class)
+  if ("toDate" in date && typeof date.toDate === "function") {
+    return date.toDate();
   }
-  if (typeof date === "object" && "toDate" in date) {
-    return date.toDate(); // Firestore Timestamp (client SDK)
+  if ("seconds" in date) {
+    return new Date(date.seconds * 1000);
   }
-  return new Date(date);
+
+  return new Date();
 }
 
-export function formatDate(date: any): string {
+export function formatDate(date: DateInput): string {
   const validDate = toDate(date);
   if (isNaN(validDate.getTime())) return "Invalid Date";
 
@@ -28,7 +38,7 @@ export function formatDate(date: any): string {
   }).format(validDate);
 }
 
-export function formatDateArabic(date: any): string {
+export function formatDateArabic(date: DateInput): string {
   const validDate = toDate(date);
   if (isNaN(validDate.getTime())) return "تاريخ غير صالح";
 

@@ -428,8 +428,8 @@ export function AIChatbot() {
       {isOpen && (
         <div
           className={cn(
-            "fixed bottom-6 z-50 w-[380px] max-w-[calc(100vw-2rem)] h-[600px] bg-card border border-border rounded-3xl shadow-2xl flex flex-col overflow-hidden animate-slide-in-right",
-            language === "ar" ? "left-6 animate-slide-in-left" : "right-6"
+            "fixed bottom-6 z-50 w-[380px] max-w-[calc(100vw-2rem)] h-[600px] bg-card border border-border rounded-3xl shadow-2xl flex flex-col overflow-hidden animate-chatbot-open",
+            language === "ar" ? "left-6" : "right-6"
           )}
         >
           {/* Header */}
