@@ -75,7 +75,7 @@ function levenshteinDistance(s1: string, s2: string): number {
 }
 
 // ----------------------------------------------------------------------
-// 3. Knowledge Base
+// 3. Knowledge Base (Expanded)
 // ----------------------------------------------------------------------
 interface QA {
   questions: string[];
@@ -87,7 +87,7 @@ interface QA {
 }
 
 const KNOWLEDGE_BASE: QA[] = [
-  // Greeting
+  // --- GREETINGS & SOCIAL ---
   {
     questions: [
       "hello",
@@ -98,17 +98,58 @@ const KNOWLEDGE_BASE: QA[] = [
       "هلا",
       "السلام عليكم",
       "اهلين",
+      "سلام",
+      "هاي",
     ],
     answer: {
-      ar: "مرحباً بك في منصة العبور! أنا مساعدك الذكي. كيف يمكنني مساعدتك اليوم؟\nيمكنك سؤالي عن الخدمات، المواد، أو الدعم الفني.",
-      en: "Welcome to Obour Platform! I'm your smart assistant. How can I help you today?\nYou can ask me about services, subjects, or technical support.",
+      ar: "وعليكم السلام! 👋 يا هلا بك في منصة العبور. أنا جاهز لأي استفسار.",
+      en: "Hello there! 👋 Welcome to Obour Platform. I'm ready to help.",
     },
     suggestions: {
-      ar: ["كيف اسجل؟", "ما هي المواد؟", "مشكلة تقنية"],
-      en: ["How to register?", "What are subjects?", "Technical issue"],
+      ar: ["كيف أذاكر؟", "المواد", "مشكلة تقنية"],
+      en: ["How to study?", "Subjects", "Technical error"],
     },
   },
-  // Who are you
+  {
+    questions: [
+      "how are you",
+      "keefak",
+      "kefak",
+      "اخبارك",
+      "كيف حالك",
+      "عامل ايه",
+      "شلونك",
+    ],
+    answer: {
+      ar: "أنا مجرد بوت، بس أموري تمام طول ما أنا أساعدك! 😄",
+      en: "I'm just a bot, but I'm doing great as long as I'm helping you! 😄",
+    },
+  },
+  {
+    questions: [
+      "thank",
+      "merci",
+      "shukran",
+      "thx",
+      "شكرا",
+      "تسلم",
+      "يعطيك العافية",
+      "مشكور",
+    ],
+    answer: {
+      ar: "العفو! واجبي. بالتوفيق يا بطل! 🚀",
+      en: "You're welcome! Good luck, champion! 🚀",
+    },
+  },
+  {
+    questions: ["love you", "حبك", "احبك", "تحبني"],
+    answer: {
+      ar: "وأنا أحب مساعدة كل طلاب العبور! 💙",
+      en: "And I love helping all Obour students! 💙",
+    },
+  },
+
+  // --- IDENTITY ---
   {
     questions: [
       "who are you",
@@ -117,93 +158,32 @@ const KNOWLEDGE_BASE: QA[] = [
       "من انت",
       "مين انت",
       "شنو هذا",
+      "انت مين",
     ],
     answer: {
-      ar: "أنا المساعد الذكي الخاص بمنصة العبور، موجود لمساعدتك في الوصول للمعلومات والدعم بسرعة.",
-      en: "I am the smart assistant for Obour Platform, here to help you access information and support quickly.",
+      ar: "أنا المساعد الذكي لمنصة العبور 🤖. أعرف كل كبيرة وصغيرة في الموقع وأقدر أساعدك في المواد والدعم الفني.",
+      en: "I am the Obour Platform Smart Assistant 🤖. I know the ins and outs of the site and can help you with subjects and support.",
     },
   },
-  // Registration / Sign up
-  {
-    questions: [
-      "register",
-      "sign up",
-      "login",
-      "account",
-      "تسجيل",
-      "دخول",
-      "حساب",
-      "انشاء حساب",
-    ],
-    answer: {
-      ar: "يمكنك تسجيل الدخول أو إنشاء حساب جديد بسهولة عبر زر 'Login' في القائمة العلوية باستخدام حساب Google الجامعي أو الشخصي.",
-      en: "You can login or create a new account easily via the 'Login' button in the top menu using your Google University or personal account.",
-    },
-  },
-  // Subjects / Materials
-  {
-    questions: [
-      "material",
-      "subject",
-      "course",
-      "resource",
-      "pdf",
-      "مواد",
-      "مادة",
-      "مقرر",
-      "ملخصات",
-    ],
-    answer: {
-      ar: "تتوفر جميع المواد الدراسية في قسم 'Subjects'. يمكنك تصفح التلخيصات، الأسئلة السابقة، والمصادر هناك.",
-      en: "All study materials are available in the 'Subjects' section. You can browse summaries, past questions, and resources there.",
-    },
-  },
-  // Technical Support
-  {
-    questions: [
-      "problem",
-      "issue",
-      "bug",
-      "error",
-      "help",
-      "chat",
-      "live",
-      "support",
-      "مشكلة",
-      "خطأ",
-      "مساعدة",
-      "دعم",
-      "فني",
-      "تحدث",
-    ],
-    answer: {
-      ar: "إذا كنت تواجه مشكلة تقنية، يمكنك التحدث مباشرة مع فريق الدعم الفني. هل تود أن أحولك للدعم المباشر؟",
-      en: "If you are facing a technical issue, you can chat directly with our support team. Would you like me to switch you to Live Support?",
-    },
-    suggestions: {
-      ar: ["تحويل للدعم المباشر"],
-      en: ["Switch to Live Support"],
-    },
-  },
-  // Owners / About
   {
     questions: [
       "owner",
-      "creator",
       "admin",
       "dev",
+      "ahmed",
       "من صنع",
       "المطور",
       "المالك",
       "احمد",
-      "ahmed",
+      "مين سواك",
     ],
     answer: {
-      ar: "تم تطوير هذه المنصة بواسطة المبدعين في معاهد العبور لتسهيل الرحلة التعليمية للطلاب.",
-      en: "This platform was developed by the innovators at Obour Institutes to facilitate the educational journey for students.",
+      ar: "تم تطوير المنصة بجهود المبدعين في معاهد العبور، بقيادة فريق التطوير التقني المتميز.",
+      en: "The platform was built by the innovators at Obour Institutes, led by our tech dev team.",
     },
   },
-  // Exams
+
+  // --- ACADEMIC & EXAMS ---
   {
     questions: [
       "exam",
@@ -216,10 +196,163 @@ const KNOWLEDGE_BASE: QA[] = [
       "كويز",
       "مدتيرم",
       "فاينل",
+      "موعد الاختبار",
     ],
     answer: {
-      ar: "يمكنك العثور على نماذج اختبارات سابقة وتجميعات في صفحة المادة الخاصة بها تحت قسم 'Resources'.",
-      en: "You can find past exam papers and collections on the specific subject page under the 'Resources' section.",
+      ar: "الاختبارات والتجميعات السابقة موجودة داخل صفحة كل مادة في قسم 'المصادر' (Resources). لا تنسى تذاكر أول بأول! 📝",
+      en: "Exams and past papers are inside each Subject page under 'Resources'. Don't forget to study regularly! 📝",
+    },
+  },
+  {
+    questions: [
+      "gpa",
+      "grade",
+      "score",
+      "grades",
+      "معدل",
+      "درجات",
+      "درجة",
+      "حساب المعدل",
+      "تقدير",
+    ],
+    answer: {
+      ar: "المعدل التراكمي (GPA) مهم جداً. حاول دائماً تبقي درجاتك فوق الـ C لضمان التخرج بتقدير طيب. شد حيلك!",
+      en: "Your GPA is crucial. Try to keep your grades above C to ensure a good graduating score. Keep it up!",
+    },
+  },
+  {
+    questions: ["fail", "f", "رسوب", "رسبت", "سقطت", "حامل مادة"],
+    answer: {
+      ar: "لا سمح الله! إذا رسبت في مادة، لازم تعيدها. راجع المرشد الأكاديمي لشرح الإجراءات بالتفصيل.",
+      en: "God forbid! If you fail a subject, you must retake it. Check with your academic advisor for details.",
+    },
+  },
+  {
+    questions: [
+      "absence",
+      "attend",
+      "attendance",
+      "غيب",
+      "غياب",
+      "حضور",
+      "حرمان",
+    ],
+    answer: {
+      ar: "انتبه من الغياب! تجاوز نسبة الغياب المسموحة (25%) قد يعرضك للحرمان من دخول الاختبار النهائي.",
+      en: "Watch your attendance! Exceeding 25% absence might get you barred from the final exam.",
+    },
+  },
+
+  // --- PLATFORM / TECHNICAL ---
+  {
+    questions: [
+      "login",
+      "sign in",
+      "register",
+      "signup",
+      "تسجيل",
+      "دخول",
+      "حساب",
+      "انشاء حساب",
+      "باسورد",
+      "password",
+    ],
+    answer: {
+      ar: "التسجيل متاح عبر حساب Google (الجامعي أو الشخصي). اضغط على زر 'Login' في الأعلى.",
+      en: "Login is available via Google (University or Personal). Click the 'Login' button above.",
+    },
+  },
+  {
+    questions: [
+      "material",
+      "subject",
+      "course",
+      "pdf",
+      "file",
+      "download",
+      "مواد",
+      "مادة",
+      "مقرر",
+      "ملخصات",
+      "تحميل",
+      "بي دي اف",
+    ],
+    answer: {
+      ar: "كل المواد الدراسية موجودة في صفحة 'Subjects'. اختر المادة وتصفح الملفات والمحاضرات.",
+      en: "All subjects are in the 'Subjects' page. Select a subject to browse files and lectures.",
+    },
+  },
+  {
+    questions: [
+      "problem",
+      "bug",
+      "error",
+      "issue",
+      "crash",
+      "not working",
+      "مشكلة",
+      "خطأ",
+      "عطل",
+      "ما يفتح",
+      "خربان",
+    ],
+    answer: {
+      ar: "واجهت مشكلة؟ بسيط. يمكنك التحدث مع الدعم المباشر الآن لحلها. هل أحولك؟",
+      en: "Facing an issue? No worries. You can talk to Live Support now. Shall I switch you?",
+    },
+    suggestions: {
+      ar: ["تحويل للدعم المباشر"],
+      en: ["Switch to Live Support"],
+    },
+  },
+  {
+    questions: [
+      "dark mode",
+      "theme",
+      "light mode",
+      "color",
+      "لون",
+      "ثيم",
+      "داكن",
+      "فاتي",
+      "ليلي",
+    ],
+    answer: {
+      ar: "تقدر تغير الثيم (ليلي/نهاري) من القائمة الجانبية أو من إعدادات البروفايل.",
+      en: "You can toggle the theme (Dark/Light) from the sidebar or profile settings.",
+    },
+  },
+  {
+    questions: [
+      "profile",
+      "name",
+      "picture",
+      "photo",
+      "avatar",
+      "بروفايل",
+      "اسم",
+      "صورة",
+      "تغيير الصورة",
+    ],
+    answer: {
+      ar: "لتغيير صورتك أو اسمك، اضغط على أيقونة المستخدم في الزاوية وادخل على 'Profile'.",
+      en: "To change your photo or name, click the user icon in the corner and go to 'Profile'.",
+    },
+  },
+
+  // --- MISC / FUN ---
+  {
+    questions: ["joke", "funny", "نكتة", "ضحكني", "مزحة"],
+    answer: {
+      ar: "مره واحد طالب هندسة دخل الامتحان أخذ معاه ملعقة.. ليش؟ عشان يقلب المعلومات! 😂",
+      en: "Why did the developer go broke? Because he used up all his cache! 😂",
+    },
+  },
+  {
+    questions: ["news", "update", "new", "اخبار", "جديد", "تحديث"],
+    answer: {
+      ar: "تابع قسم الإشعارات (الجرس) لمعرفة آخر الأخبار والمواد المضافة حديثاً.",
+      en: "Check the Notifications (Bell icon) for the latest news and added materials.",
     },
   },
 ];
@@ -315,6 +448,8 @@ export function wantsLiveSupport(input: string): boolean {
     "تحدث",
     "شات",
     "لايف",
+    "ادمن",
+    "admin",
   ];
   return keywords.some((k) => norm.includes(k));
 }

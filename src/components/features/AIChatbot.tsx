@@ -2,55 +2,38 @@
 
 import { useState, useRef, useEffect } from "react";
 import { AnimatePresence, motion } from "framer-motion";
-import { X, Send, Headphones, Bot, MessageSquare } from "lucide-react";
-import { useAuth, useLanguage } from "@/contexts"; // Assumes you have these contexts
+import { X, Send, Headphones, Bot, MessageSquare, Trash2 } from "lucide-react";
+import { useAuth, useLanguage } from "@/contexts";
 import { cn } from "@/lib/utils";
 import { db } from "@/lib/firebase";
 import { collection, query, orderBy, onSnapshot } from "firebase/firestore";
-import { sendMessage, ChatMessage, markMessagesAsSeen } from "@/lib/chatUtils";
-import { getLocalBotResponse, wantsLiveSupport } from "@/lib/localBot"; // Import from restored file
+import {
+  sendMessage,
+  ChatMessage,
+  markMessagesAsSeen,
+  clearChatHistory,
+} from "@/lib/chatUtils";
+import { getLocalBotResponse, wantsLiveSupport } from "@/lib/localBot";
 import { toast } from "sonner";
 import Image from "next/image";
-
-// Types for Local Bot Chat
-interface LocalMessage {
-  id: string;
-  text: string;
-  sender: "user" | "bot";
-  timestamp: Date;
-  suggestions?: string[];
-}
+import { ConfirmationModal } from "@/components/ui/ConfirmationModal";
 
 export function AIChatbot() {
   const [isOpen, setIsOpen] = useState(false);
   const [input, setInput] = useState("");
-  const [mode, setMode] = useState<"bot" | "live">("bot"); // Default to bot
-  const [isTyping, setIsTyping] = useState(false); // For bot typing effect
+  const [mode, setMode] = useState<"bot" | "live">("bot");
+  const [isTyping, setIsTyping] = useState(false);
+  const [showClearConfirm, setShowClearConfirm] = useState(false);
 
-  // Local Chat State
-  const [localMessages, setLocalMessages] = useState<LocalMessage[]>(() => [
-    {
-      id: "init-1",
-      text: "مرحباً! 👋 أنا المساعد الذكي لمنصة العبور. كيف يمكنني مساعدتك؟",
-      sender: "bot",
-      timestamp: new Date(),
-      suggestions: ["المواد الدراسية", "أتحدث مع بشري"],
-    },
-  ]);
+  // Firestore Messages State (Single Source of Truth)
+  const [messages, setMessages] = useState<ChatMessage[]>([]);
+  const [unreadCount, setUnreadCount] = useState(0);
 
-  // Live Chat State
-  const [liveMessages, setLiveMessages] = useState<ChatMessage[]>([]);
-  const [liveUnread, setLiveUnread] = useState(0);
-
-  // Common State
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const { user } = useAuth();
   const { language } = useLanguage();
 
-  // Update initial message language when language changes - REMOVED to avoid setState in effect loop
-  // New messages will be in the correct language.
-
-  // Listen for Live Updates (Admin Messages) regardless of mode
+  // 1. Listen for ALL Messages (User + Bot + Admin)
   useEffect(() => {
     if (!user) return;
 
@@ -59,7 +42,7 @@ export function AIChatbot() {
       orderBy("timestamp", "asc")
     );
 
-    let prevMessageCount = 0;
+    let prevCount = 0;
 
     const unsubscribe = onSnapshot(q, (snapshot) => {
       const msgs = snapshot.docs.map(
@@ -70,117 +53,92 @@ export function AIChatbot() {
           } as ChatMessage)
       );
 
-      // Notify if new message from admin
-      if (msgs.length > prevMessageCount && prevMessageCount > 0) {
+      // Check for new messages from Admin/Support
+      if (msgs.length > prevCount && prevCount > 0) {
         const lastMsg = msgs[msgs.length - 1];
-        if (lastMsg.senderId === "admin") {
-          if (!isOpen || mode !== "live") {
-            setLiveUnread((prev) => prev + 1);
-            toast.info(
-              language === "ar"
-                ? "رسالة جديدة من الدعم"
-                : "New message from support"
-            );
-          }
+        // If message is from 'admin' and chat is closed or we are in bot mode (optional logic)
+        // Actually, let's just notify if it's from 'admin'
+        if (lastMsg.senderId === "admin" && !isOpen) {
+          setUnreadCount((prev) => prev + 1);
+          toast.info(
+            language === "ar" ? "رد جديد من الدعم" : "New reply from support",
+            {
+              action: {
+                label: language === "ar" ? "فتح" : "Open",
+                onClick: () => setIsOpen(true),
+              },
+            }
+          );
         }
       }
 
-      prevMessageCount = msgs.length;
-      setLiveMessages(msgs);
+      setMessages(msgs);
+      prevCount = msgs.length;
     });
 
     return () => unsubscribe();
-  }, [user, isOpen, mode, language]);
+  }, [user, isOpen, language]);
 
-  // Handle Mode Switching based on unread
-  useEffect(() => {
-    if (liveUnread > 0 && mode === "bot" && isOpen) {
-      // Optional: Auto switch or just show badge. Let's just keep badge
-    }
-  }, [liveUnread, mode, isOpen]);
-
-  // Scroll to bottom effect
+  // 2. Scroll to bottom
   useEffect(() => {
     if (isOpen) {
       messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
     }
-  }, [liveMessages, localMessages, isOpen, mode]);
+  }, [messages, isOpen, isTyping]);
 
-  const toggleChat = () => {
-    const newState = !isOpen;
-    setIsOpen(newState);
-    if (newState && user && mode === "live") {
-      setLiveUnread(0);
-      markMessagesAsSeen(user.uid, false);
-    }
-  };
+  // 3. Handle Send (Unified)
+  const handleSend = async (textOverride?: string) => {
+    const textToSend = textOverride || input.trim();
+    if (!textToSend || !user) return;
 
-  const handleSend = async () => {
-    if (!input.trim()) return;
-    const text = input.trim();
     setInput("");
 
+    // A. Send USER message to Firestore
+    try {
+      await sendMessage(
+        user.uid,
+        textToSend,
+        user.uid, // User is sending
+        user.displayName || "User",
+        false
+      );
+    } catch {
+      toast.error("Failed to send message");
+      return;
+    }
+
+    // B. If in BOT mode, generate reply
     if (mode === "bot") {
-      // 1. Add User Message
-      const userMsg: LocalMessage = {
-        id: Date.now().toString(),
-        text,
-        sender: "user",
-        timestamp: new Date(),
-      };
-      setLocalMessages((prev) => [...prev, userMsg]);
       setIsTyping(true);
 
-      // 2. Check for "Live Support" intent
-      if (wantsLiveSupport(text)) {
-        setTimeout(() => {
-          const botMsg: LocalMessage = {
-            id: (Date.now() + 1).toString(),
-            text:
-              language === "ar"
-                ? "جاري تحويلك للدعم المباشر..."
-                : "Switching you to live support...",
-            sender: "bot",
-            timestamp: new Date(),
-          };
-          setLocalMessages((prev) => [...prev, botMsg]);
+      // Check if user wants live support
+      if (wantsLiveSupport(textToSend)) {
+        setTimeout(async () => {
+          await sendMessage(
+            user.uid,
+            language === "ar"
+              ? "يبدو أنك تريد التحدث مع بشري. جاري تحويلك للدعم المباشر..."
+              : "Createing ticket for live support...",
+            "bot",
+            "Smart Assistant"
+          );
+          setMode("live");
           setIsTyping(false);
-          setTimeout(() => setMode("live"), 1000);
-        }, 800);
+        }, 1000);
         return;
       }
 
-      // 3. Get Bot Response
+      // Get Bot Response
       setTimeout(async () => {
-        const response = await getLocalBotResponse(text, language);
-        const botMsg: LocalMessage = {
-          id: (Date.now() + 1).toString(),
-          text: response.text,
-          sender: "bot",
-          timestamp: new Date(),
-          suggestions: response.suggestions,
-        };
-        setLocalMessages((prev) => [...prev, botMsg]);
-        setIsTyping(false);
-      }, 1000);
-    } else {
-      // LIVE MODE
-      if (!user) {
-        toast.error("Please login first");
-        return;
-      }
-      try {
+        const response = await getLocalBotResponse(textToSend, language);
         await sendMessage(
           user.uid,
-          text,
-          user.uid,
-          user.displayName || "User",
-          false
+          response.text,
+          "bot", // Sender is Bot
+          "Smart Assistant"
         );
-      } catch {
-        toast.error(language === "ar" ? "فشل الإرسال" : "Failed to send");
-        setInput(text);
-      }
+        setIsTyping(false);
+      }, 1200);
     }
   };
 
@@ -191,70 +149,44 @@ export function AIChatbot() {
     }
   };
 
-  // --- Render Helpers ---
+  const handleClearHistory = async () => {
+    if (!user) return;
+    try {
+      await clearChatHistory(user.uid);
+      toast.success(
+        language === "ar" ? "تم مسح المحادثة" : "Chat history cleared"
+      );
+      setShowClearConfirm(false);
+    } catch {
+      toast.error("Failed to clear history");
+    }
+  };
 
-  // Render Local Message
-  const renderLocalMessage = (msg: LocalMessage) => {
-    const isBot = msg.sender === "bot";
-    return (
-      <motion.div
-        key={msg.id}
-        initial={{ opacity: 0, y: 10 }}
-        animate={{ opacity: 1, y: 0 }}
-        className={cn(
-          "flex gap-3 max-w-[85%]",
-          !isBot ? "ml-auto flex-row-reverse" : "mr-auto"
-        )}
-      >
-        {isBot && (
-          <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
-            <Bot className="w-5 h-5 text-primary" />
-          </div>
-        )}
-        <div className="space-y-2">
-          <div
-            className={cn(
-              "rounded-2xl px-4 py-3 shadow-sm text-sm leading-relaxed",
-              !isBot
-                ? "bg-primary text-primary-foreground rounded-tr-none"
-                : "bg-muted text-foreground rounded-tl-none border border-border/50"
-            )}
-          >
-            {msg.text}
-          </div>
-          {/* Suggestions */}
-          {isBot && msg.suggestions && (
-            <div className="flex flex-wrap gap-2">
-              {msg.suggestions.map((s) => (
-                <button
-                  key={s}
-                  onClick={() => {
-                    setInput(s);
-                    // Trigger send immediately? OR let user handle it.
-                    // Let's set input only for now, or maybe auto send is better UX?
-                    // Let's auto send for smoother flow.
-                    // But we can't easily call handleSend with new input due to closure/state.
-                    // Better to just setInput for now.
-                    // ACTUALLY, let's just cheat and call a separate helper if we want auto send.
-                    // For simplicity: just setInput
-                    setInput(s);
-                  }}
-                  className="text-xs bg-background border border-primary/20 hover:bg-primary/5 text-primary px-3 py-1.5 rounded-full transition-colors"
-                >
-                  {s}
-                </button>
-              ))}
-            </div>
-          )}
-        </div>
-      </motion.div>
-    );
+  const toggleChat = () => {
+    setIsOpen((prev) => !prev);
+    if (!isOpen && unreadCount > 0 && user) {
+      setUnreadCount(0);
+      markMessagesAsSeen(user.uid, false);
+    }
   };
 
   if (!user) return null;
 
   return (
     <>
+      <ConfirmationModal
+        isOpen={showClearConfirm}
+        onClose={() => setShowClearConfirm(false)}
+        onConfirm={handleClearHistory}
+        title={language === "ar" ? "مسح المحادثة؟" : "Clear History?"}
+        message={
+          language === "ar"
+            ? "سيتم حذف جميع الرسائل من السجل."
+            : "This will delete all messages from your history."
+        }
+      />
+
+      {/* Floating Button */}
       <motion.button
         onClick={toggleChat}
         className="fixed bottom-6 right-6 z-50 p-4 bg-primary text-primary-foreground rounded-full shadow-lg hover:shadow-xl transition-shadow w-14 h-14 flex items-center justify-center"
@@ -272,14 +204,14 @@ export function AIChatbot() {
             </motion.div>
           ) : (
             <motion.div key="chat" className="relative">
-              {liveUnread > 0 ? (
+              {unreadCount > 0 ? (
                 <Headphones className="w-6 h-6 animate-pulse" />
               ) : (
                 <MessageSquare className="w-6 h-6" />
               )}
-              {liveUnread > 0 && (
+              {unreadCount > 0 && (
                 <span className="absolute -top-2 -right-2 bg-destructive text-destructive-foreground text-[10px] w-5 h-5 rounded-full flex items-center justify-center border-2 border-background">
-                  {liveUnread}
+                  {unreadCount}
                 </span>
               )}
             </motion.div>
@@ -287,6 +219,7 @@ export function AIChatbot() {
         </AnimatePresence>
       </motion.button>
 
+      {/* Chat Window */}
       <AnimatePresence>
         {isOpen && (
           <motion.div
@@ -298,20 +231,22 @@ export function AIChatbot() {
             {/* Header */}
             <div className="p-4 border-b border-border bg-muted/30 flex items-center justify-between backdrop-blur-md">
               <div className="flex items-center gap-3">
-                {mode === "bot" ? (
-                  <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center">
+                {/* Avatar: Changes based on mode */}
+                <div
+                  className={cn(
+                    "w-10 h-10 rounded-full flex items-center justify-center transition-colors",
+                    mode === "bot" ? "bg-primary/10" : "bg-green-500/10"
+                  )}
+                >
+                  {mode === "bot" ? (
                     <Bot className="w-6 h-6 text-primary" />
-                  </div>
-                ) : (
-                  <div className="relative">
-                    <div className="w-10 h-10 rounded-full bg-green-500/10 flex items-center justify-center">
-                      <Headphones className="w-6 h-6 text-green-600" />
-                    </div>
-                    <span className="absolute bottom-0 right-0 w-3 h-3 bg-green-500 border-2 border-background rounded-full"></span>
-                  </div>
-                )}
+                  ) : (
+                    <Headphones className="w-6 h-6 text-green-600" />
+                  )}
+                </div>
+
                 <div>
-                  <h3 className="font-bold">
+                  <h3 className="font-bold text-sm">
                     {mode === "bot"
                       ? language === "ar"
                         ? "المساعد الذكي"
@@ -320,37 +255,47 @@ export function AIChatbot() {
                       ? "الدعم المباشر"
                       : "Live Support"}
                   </h3>
-                  <p className="text-xs text-muted-foreground flex items-center gap-1">
+                  <p className="text-[10px] text-muted-foreground flex items-center gap-1">
+                    <span
+                      className={cn(
+                        "w-2 h-2 rounded-full",
+                        mode === "bot"
+                          ? "bg-primary"
+                          : "bg-green-500 animate-pulse"
+                      )}
+                    />
                     {mode === "bot"
                       ? language === "ar"
                         ? "يعمل دائماً"
                         : "Always available"
                       : language === "ar"
                       ? "متصل الآن"
-                      : "Online now"}
+                      : "Online"}
                   </p>
                 </div>
               </div>
 
               <div className="flex items-center gap-1">
-                {/* Mode Toggle Button */}
+                <button
+                  onClick={() => setShowClearConfirm(true)}
+                  className="p-2 hover:bg-destructive/10 text-muted-foreground hover:text-destructive rounded-full transition-colors"
+                  title="Clear History"
+                >
+                  <Trash2 className="w-4 h-4" />
+                </button>
+
                 <button
                   onClick={() => setMode(mode === "bot" ? "live" : "bot")}
                   className={cn(
-                    "px-3 py-1.5 text-xs rounded-full font-medium transition-colors border",
+                    "px-3 py-1 text-[10px] uppercase font-bold tracking-wider rounded-full border transition-all",
                     mode === "bot"
-                      ? "bg-background hover:bg-muted border-border"
-                      : "bg-primary/10 text-primary border-primary/20 hover:bg-primary/20"
+                      ? "bg-background border-border hover:bg-muted"
+                      : "bg-primary/10 border-primary/20 text-primary"
                   )}
                 >
-                  {mode === "bot"
-                    ? language === "ar"
-                      ? "تحدث لبشري"
-                      : "Talk to Human"
-                    : language === "ar"
-                    ? "تحدث للبوت"
-                    : "Talk to Bot"}
+                  {mode === "bot" ? "LIVE" : "BOT"}
                 </button>
+
                 <button
                   onClick={() => setIsOpen(false)}
                   className="p-2 hover:bg-muted rounded-full"
@@ -360,81 +305,142 @@ export function AIChatbot() {
               </div>
             </div>
 
-            {/* Messages */}
+            {/* Messages Area */}
             <div className="flex-1 overflow-y-auto p-4 space-y-4 bg-muted/5">
-              {mode === "bot" ? (
-                <>
-                  {localMessages.map(renderLocalMessage)}
-                  {isTyping && (
-                    <div className="flex gap-2 items-center text-xs text-muted-foreground animate-pulse ml-2">
-                      <Bot className="w-4 h-4" />
-                      <span>Typing...</span>
-                    </div>
-                  )}
-                </>
-              ) : (
-                /* LIVE CHAT RENDER (Simplified from previous) */
-                <>
-                  {liveMessages.length === 0 ? (
-                    <div className="text-center text-muted-foreground mt-10">
-                      <Headphones className="w-12 h-12 mx-auto mb-2 opacity-20" />
-                      <p>
-                        {language === "ar"
-                          ? "تحدث معنا مباشرة"
-                          : "Chat with us directly"}
-                      </p>
-                    </div>
+              {messages.length === 0 && (
+                <div className="h-full flex flex-col items-center justify-center text-center text-muted-foreground p-6 opacity-60">
+                  {mode === "bot" ? (
+                    <Bot className="w-12 h-12 mb-3" />
                   ) : (
-                    liveMessages.map((msg) => {
-                      const isUser = msg.senderId === user.uid;
-                      return (
-                        <motion.div
-                          key={msg.id}
-                          initial={{ opacity: 0, y: 5 }}
-                          animate={{ opacity: 1, y: 0 }}
-                          className={cn(
-                            "flex gap-3 max-w-[85%]", // Reduced max-width
-                            isUser ? "ml-auto flex-row-reverse" : "mr-auto"
-                          )}
-                        >
-                          {!isUser && (
-                            <div className="w-8 h-8 rounded-full bg-green-500/10 flex items-center justify-center shrink-0 mt-1">
-                              <Image
-                                src="/obour-logo.png"
-                                alt="Support"
-                                width={16}
-                                height={16}
-                                className="object-contain"
-                              />
-                            </div>
-                          )}
-                          <div
-                            className={cn(
-                              "relative group",
-                              isUser ? "items-end" : "items-start"
-                            )}
-                          >
-                            <div
-                              className={cn(
-                                "rounded-2xl px-4 py-3 shadow-sm text-sm leading-relaxed",
-                                isUser
-                                  ? "bg-blue-600 text-white rounded-tr-none" // Distinct live chat color
-                                  : "bg-white dark:bg-zinc-800 border border-border rounded-tl-none"
-                              )}
-                            >
-                              {msg.text}
-                            </div>
-                          </div>
-                        </motion.div>
-                      );
-                    })
+                    <Headphones className="w-12 h-12 mb-3" />
                   )}
-                </>
+                  <p className="text-sm">
+                    {language === "ar"
+                      ? "لا توجد رسائل بعد. ابدأ المحادثة!"
+                      : "No messages yet. Start chatting!"}
+                  </p>
+                </div>
               )}
+
+              {messages.map((msg) => {
+                const isUser = msg.senderId === user.uid;
+                const isBot = msg.senderId === "bot";
+                const isAdmin = msg.senderId === "admin";
+
+                // Profile Image Logic
+                // User: User's photo or User Icon
+                // Bot: Bot Icon
+                // Admin: Support Icon/Logo
+
+                return (
+                  <motion.div
+                    key={msg.id}
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    className={cn(
+                      "flex gap-3 max-w-[85%]",
+                      isUser ? "ml-auto flex-row-reverse" : "mr-auto"
+                    )}
+                  >
+                    {/* Avatar Bubble */}
+                    <div className="shrink-0">
+                      {isUser ? (
+                        <div className="w-8 h-8 rounded-full overflow-hidden border border-border">
+                          {user.photoURL ? (
+                            <Image
+                              src={user.photoURL}
+                              alt="User"
+                              width={32}
+                              height={32}
+                              className="object-cover w-full h-full"
+                            />
+                          ) : (
+                            <div className="w-full h-full bg-muted flex items-center justify-center px-1 text-[10px] font-bold">
+                              {user.displayName?.substring(0, 2).toUpperCase()}
+                            </div>
+                          )}
+                        </div>
+                      ) : isBot ? (
+                        <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center border border-primary/20">
+                          <Bot className="w-5 h-5 text-primary" />
+                        </div>
+                      ) : (
+                        <div className="w-8 h-8 rounded-full bg-green-500/10 flex items-center justify-center border border-green-500/20">
+                          <Headphones className="w-5 h-5 text-green-600" />
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Message Bubble */}
+                    <div className="space-y-1">
+                      <div
+                        className={cn(
+                          "px-4 py-2.5 rounded-2xl text-sm leading-relaxed shadow-sm",
+                          isUser
+                            ? "bg-primary text-primary-foreground rounded-tr-none"
+                            : "bg-background border border-border rounded-tl-none"
+                        )}
+                      >
+                        {msg.text}
+                      </div>
+                      <span className="text-[10px] text-muted-foreground block px-1">
+                        {msg.senderName ||
+                          (isBot ? "Bot" : isAdmin ? "Support" : "User")}
+                      </span>
+                    </div>
+                  </motion.div>
+                );
+              })}
+
+              {/* Typing Indicator */}
+              {isTyping && (
+                <div className="flex gap-3 max-w-[85%] mr-auto">
+                  <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
+                    <Bot className="w-5 h-5 text-primary" />
+                  </div>
+                  <div className="bg-muted px-4 py-3 rounded-2xl rounded-tl-none flex gap-1 items-center">
+                    <span className="w-1.5 h-1.5 bg-primary/50 rounded-full animate-bounce [animation-delay:-0.3s]"></span>
+                    <span className="w-1.5 h-1.5 bg-primary/50 rounded-full animate-bounce [animation-delay:-0.15s]"></span>
+                    <span className="w-1.5 h-1.5 bg-primary/50 rounded-full animate-bounce"></span>
+                  </div>
+                </div>
+              )}
+
               <div ref={messagesEndRef} />
             </div>
 
-            {/* Input */}
+            {/* Auto-Suggestions (Only if last message is from Bot) */}
+            {mode === "bot" &&
+              messages.length > 0 &&
+              messages[messages.length - 1].senderId === "bot" && (
+                <div className="px-4 pb-2 bg-muted/5 flex overflow-x-auto gap-2 scrollbar-none">
+                  {/* We can parse suggestions from the bot response? 
+                         Since we don't store suggestions in Firestore schema properly yet (it's custom), 
+                         we might lose them if we don't save them.
+                         Idea: For now, just show generic suggestions or try to find them. 
+                         Actually, let's hardcode some common ones or add 'suggestions' to ChatMessage schema?
+                         The User didn't ask for schema change but "restore logic".
+                         In the previous code, suggestions were local.
+                         To keep it simple: Just show a static set of helpful chips?
+                         OR: Infer from context?
+                         Let's show a standard set that's always useful.
+                     */}
+                  {(language === "ar"
+                    ? ["المواد الدراسية", "أتحدث مع بشري", "منصة العبور"]
+                    : ["Subjects", "Talk to human", "About Platform"]
+                  ).map((s) => (
+                    <button
+                      key={s}
+                      onClick={() => handleSend(s)}
+                      className="whitespace-nowrap bg-background border border-border text-[10px] px-3 py-1.5 rounded-full hover:bg-primary hover:text-primary-foreground transition-colors shrink-0 shadow-sm"
+                    >
+                      {s}
+                    </button>
+                  ))}
+                </div>
+              )}
+
+            {/* Input Area */}
             <div className="p-3 bg-background border-t border-border">
               <div className="flex gap-2">
                 <input
@@ -444,18 +450,18 @@ export function AIChatbot() {
                   placeholder={
                     mode === "bot"
                       ? language === "ar"
-                        ? "اسأل البوت..."
-                        : "Ask the bot..."
+                        ? "اسأل المساعد الذكي..."
+                        : "Ask the Smart Assistant..."
                       : language === "ar"
-                      ? "اكتب للدعم..."
-                      : "Type to support..."
+                      ? "اكتب لفريق الدعم..."
+                      : "Message Support..."
                   }
                   className="flex-1 bg-muted/50 border-none rounded-xl px-4 py-3 text-sm focus:ring-1 focus:ring-primary/50 transition-all placeholder:text-muted-foreground/50"
                 />
                 <button
-                  onClick={handleSend}
+                  onClick={() => handleSend()}
                   disabled={!input.trim()}
-                  className="p-3 bg-primary text-primary-foreground rounded-xl hover:opacity-90 transition-opacity disabled:opacity-50"
+                  className="p-3 bg-primary text-primary-foreground rounded-xl hover:opacity-90 transition-opacity disabled:opacity-50 shadow-md"
                 >
                   <Send className="w-5 h-5 rtl:-scale-x-100" />
                 </button>

@@ -168,3 +168,24 @@ export const deleteMessage = async (chatId: string, messageId: string) => {
     text: "🚫 This message was deleted",
   });
 };
+
+export const clearChatHistory = async (userId: string) => {
+  const messagesRef = collection(db, "chats", userId, "messages");
+  const snapshot = await getDocs(messagesRef);
+  const batch = writeBatch(db);
+
+  snapshot.docs.forEach((doc) => {
+    batch.delete(doc.ref);
+  });
+
+  // Reset session metadata
+  const chatRef = doc(db, "chats", userId);
+  batch.update(chatRef, {
+    lastMessage: "",
+    lastMessageTime: null,
+    unreadCount: 0,
+    adminUnreadCount: 0,
+  });
+
+  await batch.commit();
+};
