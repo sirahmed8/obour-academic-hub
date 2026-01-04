@@ -113,29 +113,33 @@ export function ChatMessageItem({
             </div>
           )}
 
-          {/* Reactions Display */}
+          {/* Reactions Display - Show with user's own reaction highlighted */}
           {msg.reactions && Object.keys(msg.reactions).length > 0 && (
             <div
               className={cn(
-                "absolute -bottom-2 z-20 flex gap-0.5 bg-background shadow-sm border border-border rounded-full px-1.5 py-0.5 scale-90",
-                isUser ? "left-0 -translate-x-1/2" : "right-0 translate-x-1/2"
+                "absolute -bottom-3 z-20 flex gap-0.5 bg-background shadow-md border border-border rounded-full px-2 py-1",
+                isUser ? "left-2" : "right-2"
               )}
             >
-              {Object.values(msg.reactions)
-                .slice(0, 3)
-                .map((emoji, i) => (
-                  <span key={i} className="text-[10px] leading-3">
-                    {emoji}
-                  </span>
-                ))}
+              {Object.entries(msg.reactions).map(([reactorId, emoji]) => (
+                <span
+                  key={reactorId}
+                  className={cn(
+                    "text-sm leading-none",
+                    reactorId === user.uid && "ring-2 ring-primary ring-offset-1 rounded-full"
+                  )}
+                >
+                  {emoji}
+                </span>
+              ))}
             </div>
           )}
 
-          {/* Hover Actions (Reply, React) */}
+          {/* Hover Actions (Reply, React) - Positioned below bubble */}
           <div
             className={cn(
-              "absolute top-1/2 -translate-y-1/2 opacity-0 group-hover/bubble:opacity-100 transition-opacity flex gap-1",
-              isUser ? "-left-14" : "-right-14"
+              "absolute -bottom-1 opacity-0 group-hover/bubble:opacity-100 transition-opacity flex gap-1 bg-card/80 backdrop-blur-sm rounded-full px-1 py-0.5 shadow-sm border border-border/50",
+              isUser ? "right-0" : "left-0"
             )}
           >
             {onReply && (

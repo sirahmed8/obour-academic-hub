@@ -264,10 +264,10 @@ export function AIChatbot() {
       <AnimatePresence>
         {isOpen && (
           <motion.div
-            initial={{ opacity: 0, y: 100, scale: 0.3, borderRadius: "50%" }}
-            animate={{ opacity: 1, y: 0, scale: 1, borderRadius: "1rem" }}
-            exit={{ opacity: 0, y: 100, scale: 0.3, borderRadius: "50%" }}
-            transition={{ type: "spring", damping: 25, stiffness: 350 }}
+            initial={{ opacity: 0, y: 20, scale: 0.95 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: 20, scale: 0.95 }}
+            transition={{ duration: 0.2, ease: "easeOut" }}
             className="fixed bottom-24 right-6 z-50 w-[380px] max-w-[calc(100vw-3rem)] h-[600px] max-h-[calc(100vh-8rem)] bg-background border border-border rounded-2xl shadow-2xl flex flex-col overflow-hidden origin-bottom-right"
           >
             {/* Header */}
@@ -421,7 +421,7 @@ export function AIChatbot() {
               <QuickReplies
                 replies={QUICK_REPLIES}
                 onSelect={(query) => {
-                  setInput(query);
+                  // Send directly without populating input
                   handleSend(query);
                 }}
                 language={language as "en" | "ar"}

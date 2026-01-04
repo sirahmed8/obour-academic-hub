@@ -236,7 +236,7 @@ export default function AdminInboxPage() {
                 )}
               >
                 🤖
-                {language === "ar" ? "البوت" : "Bot Logs"}
+                {language === "ar" ? "البوت" : "Bot"}
               </button>
             )}
           </div>
@@ -411,16 +411,21 @@ export default function AdminInboxPage() {
                         </div>
                       )}
 
-                      {/* Reactions Display */}
+                      {/* Reactions Display with user highlight */}
                       {msg.reactions && Object.keys(msg.reactions).length > 0 && (
-                        <div className="absolute -bottom-3 left-2 flex gap-0.5 bg-card rounded-full px-1.5 py-0.5 shadow-sm border border-border">
-                          {Object.values(msg.reactions)
-                            .slice(0, 3)
-                            .map((emoji, i) => (
-                              <span key={i} className="text-xs">
-                                {emoji}
-                              </span>
-                            ))}
+                        <div className="absolute -bottom-4 left-2 flex gap-1 bg-card rounded-full px-2 py-1 shadow-md border border-border">
+                          {Object.entries(msg.reactions).map(([reactorId, emoji]) => (
+                            <span
+                              key={reactorId}
+                              className={cn(
+                                "text-sm",
+                                reactorId === "admin" &&
+                                  "ring-2 ring-primary ring-offset-1 rounded-full"
+                              )}
+                            >
+                              {emoji}
+                            </span>
+                          ))}
                         </div>
                       )}
                     </div>

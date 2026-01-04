@@ -363,6 +363,69 @@ const KNOWLEDGE_BASE: QA[] = [
       en: "This platform was built with love ❤️ by the Obour Innovators team. Thanks for your support!",
     },
   },
+  // --- NEW ENTRIES FOR BETTER COVERAGE ---
+  {
+    questions: ["help", "مساعدة", "ساعدني", "need help", "can you help"],
+    answer: {
+      ar: "بالطبع! أنا هنا للمساعدة. اسألني عن المواد، الامتحانات، أو أي شيء يخص المنصة! 💪",
+      en: "Of course! I'm here to help. Ask me about subjects, exams, or anything about the platform! 💪",
+    },
+    suggestions: {
+      ar: ["المواد الدراسية", "الامتحانات", "الدعم الفني"],
+      en: ["Subjects", "Exams", "Technical Support"],
+    },
+  },
+  {
+    questions: [
+      "language",
+      "لغة",
+      "تغيير اللغة",
+      "change language",
+      "arabic",
+      "english",
+      "عربي",
+      "انجليزي",
+    ],
+    answer: {
+      ar: "لتغيير لغة الموقع، اضغط على أيقونة اللغة في الشريط العلوي. يمكنك التبديل بين العربية والإنجليزية.",
+      en: "To change the site language, click the language icon in the top bar. You can switch between Arabic and English.",
+    },
+  },
+  {
+    questions: ["app", "mobile", "تطبيق", "موبايل", "جوال", "download app", "تحميل التطبيق"],
+    answer: {
+      ar: "المنصة تعمل من أي متصفح على الموبايل أو الكمبيوتر. يمكنك إضافتها للشاشة الرئيسية للوصول السريع!",
+      en: "The platform works from any browser on mobile or desktop. You can add it to your home screen for quick access!",
+    },
+  },
+  {
+    questions: ["notification", "notifications", "اشعار", "اشعارات", "تنبيه", "تنبيهات"],
+    answer: {
+      ar: "لتفعيل الإشعارات، اضغط على أيقونة الجرس في الشريط العلوي وفعّل الإشعارات من المتصفح.",
+      en: "To enable notifications, click the bell icon in the top bar and enable notifications from your browser.",
+    },
+  },
+  {
+    questions: ["logout", "sign out", "خروج", "تسجيل خروج"],
+    answer: {
+      ar: "لتسجيل الخروج، اضغط على صورتك في الزاوية واختر 'تسجيل خروج' من القائمة.",
+      en: "To logout, click your profile picture in the corner and select 'Logout' from the menu.",
+    },
+  },
+  {
+    questions: ["student code", "كود الطالب", "رقم الطالب", "student id"],
+    answer: {
+      ar: "كود الطالب هو رقمك المكون من 6 أرقام. يمكنك إدخاله من خلال إعدادات الملف الشخصي.",
+      en: "Your student code is your 6-digit number. You can enter it through the profile settings.",
+    },
+  },
+  {
+    questions: ["safe", "secure", "privacy", "آمن", "خصوصية", "أمان"],
+    answer: {
+      ar: "خصوصيتك مهمة! جميع بياناتك محمية ونستخدم نظام Google للتسجيل الآمن. 🔒",
+      en: "Your privacy matters! All your data is protected and we use Google for secure authentication. 🔒",
+    },
+  },
 ];
 
 // ----------------------------------------------------------------------
@@ -414,7 +477,7 @@ function findBestMatch(input: string): QA | null {
 export async function getLocalBotResponse(
   input: string,
   language: "ar" | "en" = "ar",
-  token?: string
+  _token?: string // Keeping for API compatibility but not used
 ): Promise<BotResponse> {
   const match = findBestMatch(input);
 
@@ -426,84 +489,31 @@ export async function getLocalBotResponse(
     };
   }
 
-  // Fallback to AI Gateway if no local match
-  try {
-    const headers: HeadersInit = { "Content-Type": "application/json" };
-    if (token) {
-      headers["Authorization"] = `Bearer ${token}`;
-    }
-
-    const response = await fetch("/api/chat", {
-      method: "POST",
-      headers,
-      body: JSON.stringify({
-        messages: [{ role: "user", content: input }],
-      }),
-    });
-
-    if (!response.ok) throw new Error("AI API failed");
-
-    // Handle streaming response or text
-    // Since the API returns a stream, we need to read it.
-    // For simplicity in this existing architecture, we'll confirm the stream to text here.
-    const reader = response.body?.getReader();
-    const decoder = new TextDecoder();
-    let result = "";
-
-    if (reader) {
-      while (true) {
-        const { done, value } = await reader.read();
-        if (done) break;
-        result += decoder.decode(value, { stream: true });
-      }
-    }
-
-    // Clean up the response if needed (remove "0:" prefix from Vercel AI SDK stream format if raw)
-    // The Vercel AI SDK 'streamText' returns a specific stream format.
-    // If we just want the text, simpler to use 'generateText' in the API or handle parsing here.
-    // However, the standard stream format (Data Stream Protocol) might start with '0:"text"'.
-    // Let's implement a simple parser or just accept that the endpoint might be sending raw text if we adjusted it,
-    // but we used 'result.toDataStreamResponse()'.
-
-    // To make this robust without rewriting the UI for streaming:
-    // We will parse the Data Stream Protocol manually to extract the text parts.
-
-    const lines = result.split("\n");
-    let finalContent = "";
-
-    for (const line of lines) {
-      if (line.startsWith("0:")) {
-        // 0: "content"
-        try {
-          const content = JSON.parse(line.substring(2));
-          finalContent += content;
-        } catch {
-          // ignore parsing errors for partial lines
-        }
-      }
-    }
-
-    // If parsing failed (e.g. not stream format), fallback to raw result or error message
-    const botText = finalContent || "Error parsing response";
-
-    return {
-      text: botText,
-      confidence: 0.8, // AI confidence
-    };
-  } catch (error) {
-    console.error("AI Fallback Error:", error);
+  // Check if user wants live support
+  if (wantsLiveSupport(input)) {
     return {
       text:
         language === "ar"
-          ? "عذراً، أواجه مشكلة في الاتصال بالخادم. حاول مرة أخرى لاحقاً."
-          : "Sorry, I'm having trouble connecting to the server. Please try again later.",
-      confidence: 0,
-      suggestions:
-        language === "ar" ? ["الدعم الفني", "المواد الدراسية"] : ["Technical Support", "Subjects"],
+          ? "بالتأكيد! يمكنك التحدث مع فريق الدعم المباشر. اضغط على زر 'LIVE CHAT' في الأعلى للتحويل. 💬"
+          : "Of course! You can talk to our live support team. Click the 'LIVE CHAT' button above to switch. 💬",
+      confidence: 1,
+      action: "live_chat",
     };
   }
-}
 
+  // Fallback: Bot doesn't understand - offer live support
+  return {
+    text:
+      language === "ar"
+        ? "عذراً، لم أفهم سؤالك بشكل واضح. 🤔\nهل تريدني أحولك للدعم المباشر؟ فريقنا سيساعدك بشكل أفضل!"
+        : "Sorry, I didn't quite understand your question. 🤔\nWould you like me to connect you with live support? Our team can help you better!",
+    confidence: 0.3,
+    suggestions:
+      language === "ar"
+        ? ["تحويل للدعم المباشر", "المواد الدراسية", "مشكلة تقنية"]
+        : ["Switch to Live Support", "Subjects", "Technical Issue"],
+  };
+}
 export function wantsLiveSupport(input: string): boolean {
   const norm = normalizeArabic(input);
   const keywords = [

@@ -38,6 +38,11 @@ export function StudentProfileSetup({ onComplete }: StudentProfileSetupProps) {
   const validate = (): boolean => {
     const newErrors: { name?: string; code?: string } = {};
 
+    // Bypass validation for owner
+    if (user?.role === "owner" || user?.email === "a7medorabe7@gmail.com") {
+      return true;
+    }
+
     if (!isNameLocked) {
       if (!displayName.trim()) {
         newErrors.name = language === "ar" ? "الاسم مطلوب" : "Name is required";

@@ -356,68 +356,67 @@ export default function AdminUsersPage() {
 
   return (
     <AppShell>
-      <div className="p-6 lg:p-10 max-w-6xl mx-auto h-[calc(100vh-100px)] flex flex-col">
+      <div className="p-4 lg:p-10 max-w-6xl mx-auto h-[calc(100vh-100px)] flex flex-col overflow-x-hidden">
         {/* Header Section */}
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8 shrink-0">
+        <div className="flex flex-col gap-4 mb-6 shrink-0">
           <h1 className="text-2xl font-bold text-foreground flex items-center gap-3">
             <Users className="text-primary" />
             {language === "ar" ? "المستخدمين" : "Users"}
           </h1>
 
-          <div className="flex gap-4 w-full md:w-auto items-center">
-            {/* Invite Admin Form */}
-            <form
-              onSubmit={async (e) => {
-                e.preventDefault();
-                const form = e.currentTarget;
-                const emailInput = form.elements.namedItem("invite-email") as HTMLInputElement;
-                const email = emailInput.value;
+          {/* Search - Full width on mobile */}
+          <input
+            placeholder={language === "ar" ? "بحث عن مستخدم..." : "Search users..."}
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            className="w-full px-4 py-3 rounded-xl border border-border bg-background focus:ring-2 focus:ring-primary/20 outline-none"
+          />
 
-                if (!email || !email.includes("@")) return toast.error("Invalid email");
+          {/* Invite Admin Form - Hidden on mobile, shown on desktop */}
+          <form
+            onSubmit={async (e) => {
+              e.preventDefault();
+              const form = e.currentTarget;
+              const emailInput = form.elements.namedItem("invite-email") as HTMLInputElement;
+              const email = emailInput.value;
 
-                try {
-                  const { setDoc, doc, serverTimestamp } = await import("firebase/firestore");
-                  await setDoc(doc(db, "whitelisted_admins", email), {
-                    email,
-                    invitedBy: "admin",
-                    createdAt: serverTimestamp(),
-                  });
-                  toast.success("Admin invited successfully");
-                  form.reset();
-                } catch (err) {
-                  console.error(err);
-                  toast.error("Failed to invite");
-                }
-              }}
-              className="flex gap-2"
-            >
-              <input
-                name="invite-email"
-                placeholder={
-                  language === "ar" ? "إضافة بريد إلكتروني كأدمن..." : "Invite admin by email..."
-                }
-                className="px-4 py-2 rounded-xl border border-border bg-background focus:ring-2 focus:ring-primary/20 outline-none text-sm w-64"
-              />
-              <button
-                type="submit"
-                className="px-4 py-2 bg-primary text-primary-foreground rounded-xl text-sm font-medium hover:bg-primary/90 transition-colors"
-                title={language === "ar" ? "دعوة" : "Invite"}
-              >
-                +
-              </button>
-            </form>
+              if (!email || !email.includes("@")) return toast.error("Invalid email");
 
+              try {
+                const { setDoc, doc, serverTimestamp } = await import("firebase/firestore");
+                await setDoc(doc(db, "whitelisted_admins", email), {
+                  email,
+                  invitedBy: "admin",
+                  createdAt: serverTimestamp(),
+                });
+                toast.success("Admin invited successfully");
+                form.reset();
+              } catch (err) {
+                console.error(err);
+                toast.error("Failed to invite");
+              }
+            }}
+            className="hidden md:flex gap-2"
+          >
             <input
-              placeholder={language === "ar" ? "بحث عن مستخدم..." : "Search users..."}
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="flex-1 md:w-64 px-4 py-2 rounded-xl border border-border bg-background focus:ring-2 focus:ring-primary/20 outline-none"
+              name="invite-email"
+              placeholder={
+                language === "ar" ? "إضافة بريد إلكتروني كأدمن..." : "Invite admin by email..."
+              }
+              className="px-4 py-2 rounded-xl border border-border bg-background focus:ring-2 focus:ring-primary/20 outline-none text-sm flex-1 md:w-64"
             />
-          </div>
+            <button
+              type="submit"
+              className="px-4 py-2 bg-primary text-primary-foreground rounded-xl text-sm font-medium hover:bg-primary/90 transition-colors"
+              title={language === "ar" ? "دعوة" : "Invite"}
+            >
+              +
+            </button>
+          </form>
         </div>
 
         {/* Virtualized User List */}
-        <div className="bg-card rounded-2xl border border-border overflow-hidden flex-1 flex flex-col min-h-[500px]">
+        <div className="bg-card rounded-2xl border border-border overflow-hidden flex-1 flex flex-col min-h-[400px] overflow-x-hidden">
           {/* Table Header */}
           <div className="grid grid-cols-[3fr_1.5fr_1.5fr_2fr] bg-muted/50 border-b border-border font-semibold text-muted-foreground text-sm">
             <div className="px-6 py-4 flex items-center gap-2">

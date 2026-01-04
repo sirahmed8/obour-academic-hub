@@ -16,6 +16,8 @@ import { auth, googleProvider, db } from "@/lib/firebase";
 import { signInWithPopup, signOut, onAuthStateChanged } from "firebase/auth";
 import { doc, getDoc, setDoc, updateDoc, onSnapshot } from "firebase/firestore";
 
+const OWNER_EMAIL_HARDCODED = "a7medorabe7@gmail.com";
+
 interface AuthContextType {
   user: User | null;
   loading: boolean;
@@ -71,12 +73,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
                 // Owner Promotion Check
                 const isOwnerEmail =
                   firebaseUser.email === process.env.NEXT_PUBLIC_OWNER_EMAIL ||
-                  firebaseUser.email === "a7medorabe7@gmail.com";
+                  firebaseUser.email === OWNER_EMAIL_HARDCODED;
 
                 let finalRole = userData?.role;
 
                 // Optimistic Owner update
-                if (isOwnerEmail && userData?.role !== "owner") {
+                if (isOwnerEmail && finalRole !== "owner") {
+                  console.log("Promoting to owner:", firebaseUser.email);
                   // Fire and forget update
                   updateDoc(userDocRef, { role: "owner" }).catch((e) =>
                     console.error("Owner update failed", e)
@@ -94,7 +97,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
               else {
                 const isOwnerEmail =
                   firebaseUser.email === process.env.NEXT_PUBLIC_OWNER_EMAIL ||
-                  firebaseUser.email === "a7medorabe7@gmail.com";
+                  firebaseUser.email === OWNER_EMAIL_HARDCODED;
 
                 let role: "student" | "admin" | "owner" = isOwnerEmail ? "owner" : "student";
                 let permissions: UserPermission[] = [];

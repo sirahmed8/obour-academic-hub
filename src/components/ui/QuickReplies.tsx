@@ -18,7 +18,7 @@ export function QuickReplies({ replies, onSelect, language }: QuickRepliesProps)
           initial={{ opacity: 0, scale: 0.9 }}
           animate={{ opacity: 1, scale: 1 }}
           transition={{ delay: index * 0.05 }}
-          onClick={() => onSelect(reply.query)}
+          onClick={() => onSelect(language === "ar" ? reply.query_ar : reply.query_en)}
           className="px-3 py-2 rounded-full bg-primary/10 hover:bg-primary/20 text-primary text-sm transition-colors border border-primary/20"
         >
           {language === "ar" ? reply.text_ar : reply.text_en}
