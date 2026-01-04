@@ -58,10 +58,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       const timer = setTimeout(() => {
         if (loading) {
           console.error("Auth loading timed out");
+          // Even if timeout happens, we stop loading so user can try again or see error
           setLoading(false);
-          toast.error("Connection timeout. Please refresh.");
         }
-      }, 15000); // 15 seconds timeout
+      }, 10000); // Reduced to 10 seconds
       return () => clearTimeout(timer);
     }
   }, [loading]);
@@ -78,24 +78,31 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         if (docSnap.exists()) {
           const userData = docSnap.data();
 
-          // Handle owner email self-promotion silently
+          // Handle owner email self-promotion
           const isOwnerEmail =
             firebaseUser.email === process.env.NEXT_PUBLIC_OWNER_EMAIL ||
             firebaseUser.email === "a7medorabe7@gmail.com";
 
+          let finalRole = userData?.role;
+
+          // *** THE FIX IS HERE ***
           if (isOwnerEmail && userData?.role !== "owner") {
-            // Update role silently in background, don't block user login
-            updateDoc(userDocRef, { role: "owner" }).catch((error) => {
-              console.error("Error promoting to owner:", error);
-            });
-            // Don't return - let user login immediately
+            console.log("Forcing Owner Role update...");
+            // 1. Update DB in background (Fire and Forget - Don't Await Blocking)
+            updateDoc(userDocRef, { role: "owner" }).catch((err) =>
+              console.error("Error updating owner role:", err)
+            );
+
+            // 2. OPTIMISTIC UPDATE: Force local permission immediately so you get in NOW.
+            finalRole = "owner";
           }
 
-          // Set user data
+          // Set user data immediately without waiting for DB confirmation
           if (userData) {
             setUser({
               uid: docSnap.id,
               ...userData,
+              role: finalRole, // Use the forced role if applicable
               permissions: (userData.permissions || []) as UserPermission[],
             } as User);
           }
@@ -133,31 +140,26 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           };
 
           await setDoc(userDocRef, newUser);
-          // Snapshot will fire again with the new user, don't set loading to false yet
+          // Don't return here, let the snapshot fire again naturally
           return;
         }
 
-        // Set loading to false only after successfully setting user data
+        // Set loading to false purely after processing
         setLoading(false);
       },
       (error) => {
         console.error("Error in user snapshot:", error);
         setLoading(false);
+        toast.error(language === "ar" ? "حدث خطأ في تحميل البيانات" : "Error loading user data");
       }
     );
 
     return () => unsubscribe();
-  }, [firebaseUser]);
+  }, [firebaseUser, language]); // Added language to dependency
 
   const login = useCallback(async () => {
-    // Check if Firebase is properly initialized
     if (!auth || !googleProvider) {
-      console.error("Firebase not initialized - auth:", !!auth, "provider:", !!googleProvider);
-      toast.error(
-        language === "ar"
-          ? "خطأ في تهيئة Firebase. تأكد من إعدادات البيئة."
-          : "Firebase not configured. Check environment variables."
-      );
+      toast.error("Firebase Configuration Error");
       return;
     }
 
@@ -165,29 +167,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       await signInWithPopup(auth, googleProvider);
     } catch (error: unknown) {
       console.error("Login failed:", error);
-      const err = error as { code?: string; message?: string };
-      if (err?.code === "auth/unauthorized-domain") {
-        toast.error(
-          language === "ar"
-            ? "نطاق غير مصرح به. يرجى إضافته في Firebase."
-            : "Unauthorized Domain. Please add to Firebase Console."
-        );
-      } else if (err?.code === "auth/popup-closed-by-user") {
-        toast.warning(language === "ar" ? "تم إغلاق النافذة" : "Login popup closed");
-      } else if (err?.code === "auth/invalid-api-key") {
-        toast.error(
-          language === "ar"
-            ? "مفتاح API غير صالح. تحقق من الإعدادات."
-            : "Invalid Firebase API key. Check environment configuration."
-        );
-      } else {
-        toast.error(
-          language === "ar"
-            ? "فشل تسجيل الدخول"
-            : `Login failed: ${err?.message || err?.code || "Unknown error"}`
-        );
+      const err = error as { code?: string };
+      if (err?.code !== "auth/popup-closed-by-user") {
+        toast.error(language === "ar" ? "فشل تسجيل الدخول" : "Login failed");
       }
-      throw error;
     }
   }, [language]);
 
