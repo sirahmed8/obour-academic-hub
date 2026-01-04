@@ -22,37 +22,30 @@ export function FileUpload({ onFileUploaded, language }: FileUploadProps) {
   const [preview, setPreview] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const uploadToCloudinary = async (file: File): Promise<string> => {
-    const formData = new FormData();
-    formData.append("file", file);
-    formData.append(
-      "upload_preset",
-      process.env.NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET || "obour_preset"
-    );
-
-    const response = await fetch(
-      `https://api.cloudinary.com/v1_1/${process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME}/upload`,
-      {
-        method: "POST",
-        body: formData,
-      }
-    );
+  const uploadToVercelBlob = async (file: File): Promise<string> => {
+    // 1. Upload to our local API route (which uses Vercel Blob SDK)
+    const response = await fetch(`/api/upload?filename=${encodeURIComponent(file.name)}`, {
+      method: "POST",
+      body: file,
+    });
 
     if (!response.ok) {
       throw new Error("Upload failed");
     }
 
-    const data = await response.json();
-    return data.secure_url;
+    const blob = await response.json();
+    return blob.url;
   };
 
   const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
 
-    // Validate file size (max 10MB)
-    if (file.size > 10 * 1024 * 1024) {
-      alert(language === "ar" ? "الملف كبير جداً (حد أقصى 10 ميجا)" : "File too large (max 10MB)");
+    // Validate file size (max 4.5MB for Vercel Blob Server Uploads)
+    if (file.size > 4.5 * 1024 * 1024) {
+      alert(
+        language === "ar" ? "الملف كبير جداً (حد أقصى 4.5 ميجا)" : "File too large (max 4.5MB)"
+      );
       return;
     }
 
@@ -70,7 +63,7 @@ export function FileUpload({ onFileUploaded, language }: FileUploadProps) {
     setUploading(true);
 
     try {
-      const url = await uploadToCloudinary(file);
+      const url = await uploadToVercelBlob(file);
 
       onFileUploaded({
         url,

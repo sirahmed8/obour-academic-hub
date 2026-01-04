@@ -425,18 +425,77 @@ export async function getLocalBotResponse(
     };
   }
 
-  // Fallback
-  return {
-    text:
-      language === "ar"
-        ? "عذراً، لم أفهم تماماً. هل يمكنك إعادة الصياغة أو اختيار أحد الخيارات أدناه؟"
-        : "Sorry, I didn't quite catch that. Can you rephrase or choose an option below?",
-    confidence: 0,
-    suggestions:
-      language === "ar"
-        ? ["الدعم الفني", "المواد الدراسية", "تسجيل الدخول"]
-        : ["Technical Support", "Subjects", "Login"],
-  };
+  // Fallback to AI Gateway if no local match
+  try {
+    const response = await fetch("/api/chat", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        messages: [{ role: "user", content: input }],
+      }),
+    });
+
+    if (!response.ok) throw new Error("AI API failed");
+
+    // Handle streaming response or text
+    // Since the API returns a stream, we need to read it.
+    // For simplicity in this existing architecture, we'll confirm the stream to text here.
+    const reader = response.body?.getReader();
+    const decoder = new TextDecoder();
+    let result = "";
+
+    if (reader) {
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        result += decoder.decode(value, { stream: true });
+      }
+    }
+
+    // Clean up the response if needed (remove "0:" prefix from Vercel AI SDK stream format if raw)
+    // The Vercel AI SDK 'streamText' returns a specific stream format.
+    // If we just want the text, simpler to use 'generateText' in the API or handle parsing here.
+    // However, the standard stream format (Data Stream Protocol) might start with '0:"text"'.
+    // Let's implement a simple parser or just accept that the endpoint might be sending raw text if we adjusted it,
+    // but we used 'result.toDataStreamResponse()'.
+
+    // To make this robust without rewriting the UI for streaming:
+    // We will parse the Data Stream Protocol manually to extract the text parts.
+
+    const lines = result.split("\n");
+    let finalContent = "";
+
+    for (const line of lines) {
+      if (line.startsWith("0:")) {
+        // 0: "content"
+        try {
+          const content = JSON.parse(line.substring(2));
+          finalContent += content;
+        } catch {
+          // ignore parsing errors for partial lines
+        }
+      }
+    }
+
+    // If parsing failed (e.g. not stream format), fallback to raw result or error message
+    const botText = finalContent || "Error parsing response";
+
+    return {
+      text: botText,
+      confidence: 0.8, // AI confidence
+    };
+  } catch (error) {
+    console.error("AI Fallback Error:", error);
+    return {
+      text:
+        language === "ar"
+          ? "عذراً، أواجه مشكلة في الاتصال بالخادم. حاول مرة أخرى لاحقاً."
+          : "Sorry, I'm having trouble connecting to the server. Please try again later.",
+      confidence: 0,
+      suggestions:
+        language === "ar" ? ["الدعم الفني", "المواد الدراسية"] : ["Technical Support", "Subjects"],
+    };
+  }
 }
 
 export function wantsLiveSupport(input: string): boolean {

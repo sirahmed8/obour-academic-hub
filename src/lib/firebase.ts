@@ -18,25 +18,34 @@ const firebaseConfig = {
 };
 
 // Singleton initialization
-const app = !getApps().length ? initializeApp(firebaseConfig) : getApp();
+const app =
+  getApps().length > 0
+    ? getApp()
+    : firebaseConfig.apiKey
+      ? initializeApp(firebaseConfig)
+      : undefined;
 
-export const auth = getAuth(app);
+// Basic fail-safe to prevent crash during build if API key is missing
+const isInitialized = !!app;
+
+export const auth = isInitialized ? getAuth(app!) : ({} as ReturnType<typeof getAuth>);
 export const googleProvider = new GoogleAuthProvider(); // Required by AuthContext
-export const db = getFirestore(app);
-export const rtdb = getDatabase(app); // For Presence/Online status
-export const storage = getStorage(app);
+export const db = isInitialized ? getFirestore(app!) : ({} as ReturnType<typeof getFirestore>);
+export const rtdb = isInitialized ? getDatabase(app!) : ({} as ReturnType<typeof getDatabase>);
+export const storage = isInitialized ? getStorage(app!) : ({} as ReturnType<typeof getStorage>);
 
 // Client-side only services
 export let analytics: ReturnType<typeof getAnalytics> | null = null;
 export let perf: ReturnType<typeof getPerformance> | null = null;
 
-if (typeof window !== "undefined") {
+if (typeof window !== "undefined" && isInitialized) {
   isSupported().then((supported) => {
     if (supported) {
-      analytics = getAnalytics(app);
-      perf = getPerformance(app);
+      analytics = getAnalytics(app!);
+      perf = getPerformance(app!);
     }
   });
 }
 
+// Ensure we don't return undefined as default export if possible, or handle it
 export default app;
