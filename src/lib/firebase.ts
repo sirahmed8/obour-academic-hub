@@ -1,10 +1,10 @@
 import { initializeApp, getApps, getApp, FirebaseApp } from "firebase/app";
-import { getAuth, GoogleAuthProvider } from "firebase/auth";
-import { getFirestore } from "firebase/firestore";
-import { getStorage } from "firebase/storage";
-import { getDatabase } from "firebase/database";
-import { getAnalytics, isSupported } from "firebase/analytics";
-import { getPerformance } from "firebase/performance";
+import { getAuth, GoogleAuthProvider, Auth } from "firebase/auth";
+import { getFirestore, Firestore } from "firebase/firestore";
+import { getStorage, FirebaseStorage } from "firebase/storage";
+import { getDatabase, Database } from "firebase/database";
+import { getAnalytics, isSupported, Analytics } from "firebase/analytics";
+import { getPerformance, FirebasePerformance } from "firebase/performance";
 
 const firebaseConfig = {
   apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
@@ -17,32 +17,23 @@ const firebaseConfig = {
   measurementId: process.env.NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID,
 };
 
-// Singleton initialization - always initialize when API key is available
-let app: FirebaseApp | null;
-if (getApps().length > 0) {
-  app = getApp();
-} else if (firebaseConfig.apiKey) {
-  app = initializeApp(firebaseConfig);
-} else {
-  // This should only happen during static build, not at runtime
-  console.warn("Firebase API key missing - Firebase services will not be available");
-  app = null;
-}
+// Force initialize - this MUST work at runtime
+const app: FirebaseApp = getApps().length > 0 ? getApp() : initializeApp(firebaseConfig);
 
-// Export Firebase services - these will throw clear errors if app is null
-export const auth = app ? getAuth(app) : (null as unknown as ReturnType<typeof getAuth>);
+// Export initialized services - no null fallbacks
+export const auth: Auth = getAuth(app);
 export const googleProvider = new GoogleAuthProvider();
-export const db = app ? getFirestore(app) : (null as unknown as ReturnType<typeof getFirestore>);
-export const rtdb = app ? getDatabase(app) : (null as unknown as ReturnType<typeof getDatabase>);
-export const storage = app ? getStorage(app) : (null as unknown as ReturnType<typeof getStorage>);
+export const db: Firestore = getFirestore(app);
+export const rtdb: Database = getDatabase(app);
+export const storage: FirebaseStorage = getStorage(app);
 
 // Client-side only services
-export let analytics: ReturnType<typeof getAnalytics> | null = null;
-export let perf: ReturnType<typeof getPerformance> | null = null;
+export let analytics: Analytics | null = null;
+export let perf: FirebasePerformance | null = null;
 
-if (typeof window !== "undefined" && app) {
+if (typeof window !== "undefined") {
   isSupported().then((supported) => {
-    if (supported && app) {
+    if (supported) {
       analytics = getAnalytics(app);
       perf = getPerformance(app);
     }

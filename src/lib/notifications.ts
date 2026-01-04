@@ -20,10 +20,6 @@ export function initializeMessaging(): Messaging | null {
   }
 
   if (!messaging) {
-    if (!app) {
-      console.warn("Firebase app not initialized - messaging unavailable");
-      return null;
-    }
     try {
       messaging = getMessaging(app);
     } catch (error) {
