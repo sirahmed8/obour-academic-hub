@@ -11,7 +11,7 @@ import Image from "next/image";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { ConfirmationModal } from "@/components/ui/ConfirmationModal";
-import { useTranslations } from "next-intl";
+
 import { BulkActionsBar } from "@/components/admin/BulkActionsBar";
 import { FixedSizeList } from "react-window";
 
@@ -26,7 +26,7 @@ const PERMISSIONS: { key: UserPermission; label: string }[] = [
 
 export default function AdminUsersPage() {
   const { language } = useLanguage();
-  const t = useTranslations();
+
   const { user: currentUser } = useAuth();
   const [users, setUsers] = useState<UserType[]>([]);
   const [loading, setLoading] = useState(true);
@@ -352,7 +352,7 @@ export default function AdminUsersPage() {
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8 shrink-0">
           <h1 className="text-2xl font-bold text-foreground flex items-center gap-3">
             <Users className="text-primary" />
-            {t("admin.users")}
+            {language === "ar" ? "المستخدمين" : "Users"}
           </h1>
 
           <div className="flex gap-4 w-full md:w-auto items-center">
