@@ -5,7 +5,7 @@ import { AnimatePresence, motion } from "framer-motion";
 import { X, Send, Headphones, Bot, MessageSquare, Trash2 } from "lucide-react";
 import { useAuth, useLanguage } from "@/contexts";
 import { cn } from "@/lib/utils";
-import { db } from "@/lib/firebase";
+import { db, auth } from "@/lib/firebase";
 import { collection, query, orderBy, onSnapshot } from "firebase/firestore";
 import { sendMessage, markMessagesAsSeen, clearChatHistory, toggleReaction } from "@/lib/chatUtils";
 import { ChatMessage } from "@/types";
@@ -146,10 +146,16 @@ export function AIChatbot() {
       if (mode === "bot") {
         setIsTyping(true);
         // Simulate delay
+        // Simulate delay
         setTimeout(
           async () => {
             try {
-              const botResponse = await getLocalBotResponse(textToSend, language as "en" | "ar");
+              const token = await auth.currentUser?.getIdToken();
+              const botResponse = await getLocalBotResponse(
+                textToSend,
+                language as "en" | "ar",
+                token
+              );
 
               // Send Bot Message
               await sendMessage(
@@ -258,10 +264,11 @@ export function AIChatbot() {
       <AnimatePresence>
         {isOpen && (
           <motion.div
-            initial={{ opacity: 0, y: 20, scale: 0.95 }}
-            animate={{ opacity: 1, y: 0, scale: 1 }}
-            exit={{ opacity: 0, y: 20, scale: 0.95 }}
-            className="fixed bottom-24 right-6 z-50 w-[380px] max-w-[calc(100vw-3rem)] h-[600px] max-h-[calc(100vh-8rem)] bg-background border border-border rounded-2xl shadow-2xl flex flex-col overflow-hidden"
+            initial={{ opacity: 0, y: 100, scale: 0.3, borderRadius: "50%" }}
+            animate={{ opacity: 1, y: 0, scale: 1, borderRadius: "1rem" }}
+            exit={{ opacity: 0, y: 100, scale: 0.3, borderRadius: "50%" }}
+            transition={{ type: "spring", damping: 25, stiffness: 350 }}
+            className="fixed bottom-24 right-6 z-50 w-[380px] max-w-[calc(100vw-3rem)] h-[600px] max-h-[calc(100vh-8rem)] bg-background border border-border rounded-2xl shadow-2xl flex flex-col overflow-hidden origin-bottom-right"
           >
             {/* Header */}
             <div className="p-4 border-b border-border bg-muted/30 flex items-center justify-between backdrop-blur-md">

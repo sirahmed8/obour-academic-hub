@@ -13,7 +13,7 @@ import { toast } from "sonner";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { User, UserPermission } from "@/types";
 import { auth, googleProvider, db } from "@/lib/firebase";
-import { signInWithPopup, signOut, onAuthStateChanged, User as FirebaseUser } from "firebase/auth";
+import { signInWithPopup, signOut, onAuthStateChanged } from "firebase/auth";
 import { doc, getDoc, setDoc, updateDoc, onSnapshot } from "firebase/firestore";
 
 interface AuthContextType {
@@ -30,202 +30,211 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
-  const [firebaseUser, setFirebaseUser] = useState<FirebaseUser | null>(null);
   const [loading, setLoading] = useState(true);
   const { language } = useLanguage();
 
   const isAdmin = user?.role === "admin" || user?.role === "owner";
   const isOwner = user?.role === "owner";
 
-  // 1. Listen for Auth State Changes
+  // ----------------------------------------------------------------------
+  // 1. Auth & Data Listener (Combined for Consistency)
+  // ----------------------------------------------------------------------
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, (authUser) => {
-      console.log("Auth State Changed:", authUser?.email);
-      setFirebaseUser(authUser);
-      if (authUser) {
-        setLoading(true);
-      } else {
+    let unsubscribeSnapshot: (() => void) | null = null;
+
+    const unsubscribeAuth = onAuthStateChanged(auth, async (firebaseUser) => {
+      // 1. No User -> clear state
+      if (!firebaseUser) {
         setUser(null);
+        setLoading(false);
+        if (unsubscribeSnapshot) {
+          unsubscribeSnapshot();
+          unsubscribeSnapshot = null;
+        }
+        return;
+      }
+
+      // 2. User Exists -> Start Loading & Listen to DB
+      setLoading(true);
+
+      try {
+        const userDocRef = doc(db, "users", firebaseUser.uid);
+
+        unsubscribeSnapshot = onSnapshot(
+          userDocRef,
+          async (docSnap) => {
+            try {
+              // A. Existing User
+              if (docSnap.exists()) {
+                const userData = docSnap.data();
+
+                // Owner Promotion Check
+                const isOwnerEmail =
+                  firebaseUser.email === process.env.NEXT_PUBLIC_OWNER_EMAIL ||
+                  firebaseUser.email === "a7medorabe7@gmail.com";
+
+                let finalRole = userData?.role;
+
+                // Optimistic Owner update
+                if (isOwnerEmail && userData?.role !== "owner") {
+                  // Fire and forget update
+                  updateDoc(userDocRef, { role: "owner" }).catch((e) =>
+                    console.error("Owner update failed", e)
+                  );
+                  finalRole = "owner";
+                }
+
+                setUser({
+                  uid: docSnap.id,
+                  ...userData,
+                  role: finalRole,
+                } as User);
+              }
+              // B. New User Creation
+              else {
+                const isOwnerEmail =
+                  firebaseUser.email === process.env.NEXT_PUBLIC_OWNER_EMAIL ||
+                  firebaseUser.email === "a7medorabe7@gmail.com";
+
+                let role: "student" | "admin" | "owner" = isOwnerEmail ? "owner" : "student";
+                let permissions: UserPermission[] = [];
+
+                // Check Whitelist (async, might be slow, so we do it but fail safe)
+                if (!isOwnerEmail && firebaseUser.email) {
+                  try {
+                    const whitelistDoc = await getDoc(
+                      doc(db, "whitelisted_admins", firebaseUser.email)
+                    );
+                    if (whitelistDoc.exists()) {
+                      role = "admin";
+                      permissions = ["manage_subjects", "manage_resources", "send_notifications"];
+                    }
+                  } catch (e) {
+                    console.error("Whitelist check failed", e);
+                  }
+                }
+
+                const newUserProfile: Record<string, unknown> = {
+                  uid: firebaseUser.uid,
+                  email: firebaseUser.email || "",
+                  displayName: firebaseUser.displayName || "New User",
+                  role: role,
+                  createdAt: new Date().toISOString(),
+                  lastLogin: new Date().toISOString(),
+                };
+
+                if (permissions.length > 0) newUserProfile.permissions = permissions;
+                if (firebaseUser.photoURL) newUserProfile.photoURL = firebaseUser.photoURL;
+
+                // Create in DB
+                await setDoc(userDocRef, newUserProfile);
+
+                // Set local state immediately to avoid waiting for next snapshot
+                setUser(newUserProfile as unknown as User);
+              }
+            } catch (err) {
+              console.error("Error processing user data:", err);
+              // Fallback: Display what we have from Auth
+              setUser({
+                uid: firebaseUser.uid,
+                email: firebaseUser.email || "",
+                displayName: firebaseUser.displayName || "User",
+                role: "student",
+                createdAt: new Date().toISOString(),
+                lastLogin: new Date().toISOString(),
+              });
+            } finally {
+              // ALWAYS release loading
+              setLoading(false);
+            }
+          },
+          (error) => {
+            console.error("Snapshot Listener/Perms Error:", error);
+            // This usually happens if rules deny access.
+            // We should still allow the app to run (maybe guest mode?) or just show error.
+            // But we MUST stop loading.
+            setLoading(false);
+            toast.error(
+              language === "ar" ? "فشل تحميل بيانات المستخدم" : "Failed to load user profile"
+            );
+          }
+        );
+      } catch (e) {
+        console.error("Critical Setup Error:", e);
         setLoading(false);
       }
     });
 
-    return () => unsubscribe();
-  }, []);
+    return () => {
+      unsubscribeAuth();
+    };
+  }, [language]);
 
-  // Safety Timeout for Loading State
+  // ----------------------------------------------------------------------
+  // 2. Safety Timeout
+  // ----------------------------------------------------------------------
   useEffect(() => {
     if (loading) {
       const timer = setTimeout(() => {
         if (loading) {
-          console.error("Auth loading timed out - Forcing open");
+          console.warn("Auth Timeout Reached. Releasing lock.");
           setLoading(false);
-          toast.error("Connection timeout - Please refresh if data is missing");
+          // Only notify if we really have a user but data is stuck
+          if (auth.currentUser) {
+            toast.message(language === "ar" ? "ضعف في الشبكة" : "Network slow", {
+              description: language === "ar" ? "قد تتأخر بعض البيانات" : "Data might be incomplete",
+            });
+          }
         }
-      }, 8000);
+      }, 6000); // 6 Sec timeout
       return () => clearTimeout(timer);
     }
-  }, [loading]);
+  }, [loading, language]);
 
-  // 2. Listen for User Document Changes (Live Updates)
-  useEffect(() => {
-    if (!firebaseUser) return;
-
-    const userDocRef = doc(db, "users", firebaseUser.uid);
-
-    console.log("Setting up snapshot listener for:", firebaseUser.uid);
-
-    const unsubscribe = onSnapshot(
-      userDocRef,
-      async (docSnap) => {
-        try {
-          if (docSnap.exists()) {
-            console.log("User document exists");
-            const userData = docSnap.data();
-
-            // Handle owner email self-promotion
-            const isOwnerEmail =
-              firebaseUser.email === process.env.NEXT_PUBLIC_OWNER_EMAIL ||
-              firebaseUser.email === "a7medorabe7@gmail.com";
-
-            let finalRole = userData?.role;
-
-            // *** OPTIMISTIC OWNER FIX ***
-            if (isOwnerEmail && userData?.role !== "owner") {
-              console.log("Forcing Owner Role update (Optimistic)...");
-
-              updateDoc(userDocRef, { role: "owner" }).catch((err) =>
-                console.error("Error updating owner role in DB:", err)
-              );
-
-              finalRole = "owner";
-            }
-
-            // Set user data immediately
-            if (userData) {
-              setUser({
-                uid: docSnap.id,
-                ...userData,
-                role: finalRole,
-                permissions: (userData.permissions || []) as UserPermission[],
-              } as User);
-            }
-          } else {
-            console.log("User document does NOT exist - Creating new user...");
-
-            // Create New User Logic
-            const isOwnerEmail =
-              firebaseUser.email === "a7medorabe7@gmail.com" ||
-              firebaseUser.email === process.env.NEXT_PUBLIC_OWNER_EMAIL;
-
-            let role: "student" | "admin" | "owner" = isOwnerEmail ? "owner" : "student";
-            let permissions: UserPermission[] = [];
-
-            // Whitelist Check
-            if (!isOwnerEmail && firebaseUser.email) {
-              try {
-                const whitelistDoc = await getDoc(
-                  doc(db, "whitelisted_admins", firebaseUser.email)
-                );
-                if (whitelistDoc.exists()) {
-                  role = "admin";
-                  permissions = ["manage_subjects", "manage_resources", "send_notifications"];
-                }
-              } catch (e) {
-                console.error("Error checking whitelist", e);
-              }
-            }
-
-            // *** FIX: Build user object WITHOUT undefined fields ***
-            const newUserData: Record<string, unknown> = {
-              uid: firebaseUser.uid,
-              email: firebaseUser.email || "",
-              displayName: firebaseUser.displayName || "New Student",
-              role: role,
-              createdAt: new Date().toISOString(),
-              lastLogin: new Date().toISOString(),
-            };
-
-            // Only add permissions if not empty
-            if (permissions.length > 0) {
-              newUserData.permissions = permissions;
-            }
-
-            // Only add photoURL if it exists
-            if (firebaseUser.photoURL) {
-              newUserData.photoURL = firebaseUser.photoURL;
-            }
-
-            // Build local user object for immediate use
-            const localUser: User = {
-              uid: firebaseUser.uid,
-              email: firebaseUser.email || "",
-              displayName: firebaseUser.displayName || "New Student",
-              role: role,
-              permissions: permissions.length > 0 ? permissions : undefined,
-              photoURL: firebaseUser.photoURL || undefined,
-              createdAt: new Date().toISOString(),
-              lastLogin: new Date().toISOString(),
-            };
-
-            try {
-              await setDoc(userDocRef, newUserData);
-              console.log("New user document created successfully");
-            } catch (createError) {
-              console.error("Error creating user document:", createError);
-              // CRITICAL: Even if creation fails, set local user so we don't hang!
-              setUser(localUser);
-            }
-          }
-        } catch (err) {
-          console.error("Unexpected error in snapshot handler:", err);
-        } finally {
-          console.log("Snapshot processed - Stopping loading");
-          setLoading(false);
-        }
-      },
-      (error) => {
-        console.error("Error in user snapshot listener:", error);
-        setLoading(false);
-        toast.error(language === "ar" ? "حدث خطأ في تحميل البيانات" : "Error loading user data");
-      }
-    );
-
-    return () => unsubscribe();
-  }, [firebaseUser, language]);
-
+  // ----------------------------------------------------------------------
+  // 3. Actions
+  // ----------------------------------------------------------------------
   const login = useCallback(async () => {
     if (!auth || !googleProvider) {
-      toast.error("Firebase Configuration Error");
+      toast.error("Firebase Config Error");
       return;
     }
-
     try {
       await signInWithPopup(auth, googleProvider);
+      // Loading will be handled by the listener
     } catch (error: unknown) {
-      console.error("Login failed:", error);
+      console.error("Login Error:", error);
       const err = error as { code?: string };
       if (err?.code !== "auth/popup-closed-by-user") {
-        toast.error(language === "ar" ? "فشل تسجيل الدخول" : "Login failed");
+        toast.error(language === "ar" ? "فشل الدخول" : "Login failed");
       }
     }
   }, [language]);
 
   const logout = useCallback(async () => {
+    setLoading(true);
     try {
       await signOut(auth);
-      setUser(null);
+      // Listener will handle clearing state
     } catch (error) {
       console.error("Logout failed:", error);
+      setLoading(false);
     }
   }, []);
 
   const updateProfile = useCallback(
     async (data: Partial<User>) => {
       if (!user) return;
-      const userDocRef = doc(db, "users", user.uid);
-      await updateDoc(userDocRef, data);
+      // Optimistic update
       setUser((prev) => (prev ? { ...prev, ...data } : null));
+      try {
+        const userDocRef = doc(db, "users", user.uid);
+        await updateDoc(userDocRef, data);
+      } catch (error) {
+        console.error("Update failed", error);
+        toast.error("Failed to save changes");
+        // Revert? (Complex, maybe just warn)
+      }
     },
     [user]
   );

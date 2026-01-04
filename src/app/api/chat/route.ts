@@ -4,6 +4,14 @@ import { streamText } from "ai";
 // Using Node.js runtime (default) for static generation compatibility
 
 export async function POST(req: Request) {
+  // Simple check for authorization header presence to prevent direct public access
+  // For production, you should verify the Firebase ID token here using firebase-admin
+  const authHeader = req.headers.get("Authorization");
+
+  if (!authHeader?.startsWith("Bearer ")) {
+    return new Response("Unauthorized", { status: 401 });
+  }
+
   const { messages } = await req.json();
 
   const result = streamText({

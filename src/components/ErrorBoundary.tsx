@@ -32,6 +32,20 @@ export class ErrorBoundary extends Component<Props, State> {
         },
       },
     });
+
+    // Log to Firestore (System Errors)
+    import("@/lib/firebase").then(({ db }) => {
+      import("firebase/firestore").then(({ collection, addDoc, serverTimestamp }) => {
+        addDoc(collection(db, "system_errors"), {
+          message: error.message,
+          stack: error.stack,
+          componentStack: errorInfo.componentStack,
+          userAgent: navigator.userAgent,
+          timestamp: serverTimestamp(),
+          url: window.location.href,
+        }).catch((err) => console.error("Failed to log error to Firestore:", err));
+      });
+    });
   }
 
   render() {

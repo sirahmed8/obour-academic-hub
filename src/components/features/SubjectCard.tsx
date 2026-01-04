@@ -18,9 +18,12 @@ export function SubjectCard({ subject, resourceCount = 0 }: SubjectCardProps) {
   const IconComponent =
     (Icons as unknown as Record<string, React.ElementType>)[subject.icon] || Icons.BookOpen;
 
-  // Color classes
-  const bgColorClass = subject.color || "bg-blue-500";
-  const textColorClass = bgColorClass.replace("bg-", "text-").replace("500", "600");
+  // Color classes - ensure fallback
+  const bgColorClass = subject.color?.startsWith("bg-") ? subject.color : "bg-blue-500";
+  // Safe derivation of text color
+  const textColorClass = bgColorClass.includes("500")
+    ? bgColorClass.replace("bg-", "text-").replace("500", "600")
+    : "text-blue-600";
 
   return (
     <Link href={`/subject?id=${subject.id}`}>

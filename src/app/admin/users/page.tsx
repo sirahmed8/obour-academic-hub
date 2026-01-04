@@ -215,7 +215,11 @@ export default function AdminUsersPage() {
   );
 
   // Row selection handler
+  // Row selection handler - Prevent selecting yourself
   const toggleUserSelection = (uid: string) => {
+    // Prevent selecting yourself (owner protection)
+    if (uid === currentUser?.uid) return;
+
     const newSelected = new Set(selectedUsers);
     if (newSelected.has(uid)) newSelected.delete(uid);
     else newSelected.add(uid);
@@ -239,12 +243,17 @@ export default function AdminUsersPage() {
       >
         {/* User Column */}
         <div className="px-6 py-4 flex items-center gap-3 overflow-hidden">
-          <input
-            type="checkbox"
-            checked={isSelected}
-            onChange={() => toggleUserSelection(user.uid)}
-            className="rounded border-input text-primary w-4 h-4 mr-2"
-          />
+          {/* Hide checkbox for current user (owner can't select themselves) */}
+          {user.uid !== currentUser?.uid ? (
+            <input
+              type="checkbox"
+              checked={isSelected}
+              onChange={() => toggleUserSelection(user.uid)}
+              className="rounded border-input text-primary w-4 h-4 mr-2"
+            />
+          ) : (
+            <div className="w-4 h-4 mr-2" /> // Spacer for alignment
+          )}
           <Image
             src={
               user.photoURL ||
@@ -414,12 +423,18 @@ export default function AdminUsersPage() {
             <div className="px-6 py-4 flex items-center gap-2">
               <input
                 type="checkbox"
-                checked={selectedUsers.size === filteredUsers.length && filteredUsers.length > 0}
+                checked={
+                  selectedUsers.size ===
+                    filteredUsers.filter((u) => u.uid !== currentUser?.uid).length &&
+                  filteredUsers.filter((u) => u.uid !== currentUser?.uid).length > 0
+                }
                 onChange={() => {
-                  if (selectedUsers.size === filteredUsers.length) {
+                  const selectableUsers = filteredUsers.filter((u) => u.uid !== currentUser?.uid);
+                  if (selectedUsers.size === selectableUsers.length) {
                     setSelectedUsers(new Set());
                   } else {
-                    setSelectedUsers(new Set(filteredUsers.map((u) => u.uid)));
+                    // Select all EXCEPT current user
+                    setSelectedUsers(new Set(selectableUsers.map((u) => u.uid)));
                   }
                 }}
                 className="rounded border-input text-primary w-4 h-4 mr-2"

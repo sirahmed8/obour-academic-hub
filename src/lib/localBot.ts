@@ -413,7 +413,8 @@ function findBestMatch(input: string): QA | null {
 // ----------------------------------------------------------------------
 export async function getLocalBotResponse(
   input: string,
-  language: "ar" | "en" = "ar"
+  language: "ar" | "en" = "ar",
+  token?: string
 ): Promise<BotResponse> {
   const match = findBestMatch(input);
 
@@ -427,9 +428,14 @@ export async function getLocalBotResponse(
 
   // Fallback to AI Gateway if no local match
   try {
+    const headers: HeadersInit = { "Content-Type": "application/json" };
+    if (token) {
+      headers["Authorization"] = `Bearer ${token}`;
+    }
+
     const response = await fetch("/api/chat", {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers,
       body: JSON.stringify({
         messages: [{ role: "user", content: input }],
       }),

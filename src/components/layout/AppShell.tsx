@@ -55,7 +55,12 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   }
 
   if (!user) {
-    return null; // Don't render anything while redirecting
+    // Show spinner while redirecting to avoid white flash
+    return (
+      <div className="h-screen w-full flex items-center justify-center bg-background">
+        <Loader2 className="animate-spin text-primary" size={40} />
+      </div>
+    );
   }
 
   return (

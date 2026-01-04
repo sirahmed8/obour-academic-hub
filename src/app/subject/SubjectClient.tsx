@@ -309,16 +309,27 @@ export function SubjectClient({ subjectName }: SubjectClientProps) {
 
             if (filtered.length === 0) {
               return (
-                <div className="text-center py-16 bg-muted/30 rounded-2xl border-2 border-dashed border-border">
-                  <FileText size={48} className="mx-auto text-muted-foreground mb-4" />
-                  <p className="text-muted-foreground">
+                <div className="text-center py-20 bg-muted/20 rounded-3xl border-2 border-dashed border-border animate-fade-in-up">
+                  <div className="w-16 h-16 bg-muted rounded-full flex items-center justify-center mx-auto mb-4">
+                    <Icons.FileQuestion className="w-8 h-8 text-muted-foreground" />
+                  </div>
+                  <h3 className="text-lg font-bold text-foreground mb-1">
                     {searchTerm
                       ? language === "ar"
-                        ? "لا توجد نتائج"
-                        : "No results found"
+                        ? "لا توجد نتائج بحث"
+                        : "No search results"
                       : language === "ar"
-                        ? "لا توجد موارد حالياً"
-                        : "No resources available yet"}
+                        ? "لا توجد موارد بعد"
+                        : "No resources found"}
+                  </h3>
+                  <p className="text-muted-foreground max-w-xs mx-auto text-sm">
+                    {searchTerm
+                      ? language === "ar"
+                        ? "جرب البحث بكلمات مختلفة أو تحقق من الكتابة."
+                        : "Try different keywords or check your spelling."
+                      : language === "ar"
+                        ? "لم يتم إضافة أي موارد لهذه المادة حتى الآن. عد لاحقاً."
+                        : "This subject has no resources yet. Check back later."}
                   </p>
                 </div>
               );
