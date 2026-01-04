@@ -78,20 +78,17 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         if (docSnap.exists()) {
           const userData = docSnap.data();
 
-          // Handle owner email self-promotion FIRST
+          // Handle owner email self-promotion silently
           const isOwnerEmail =
             firebaseUser.email === process.env.NEXT_PUBLIC_OWNER_EMAIL ||
             firebaseUser.email === "a7medorabe7@gmail.com";
 
           if (isOwnerEmail && userData?.role !== "owner") {
-            try {
-              await updateDoc(userDocRef, { role: "owner" });
-              // Snapshot will trigger again with updated role
-              return; // Don't set user or loading yet
-            } catch (error) {
+            // Update role silently in background, don't block user login
+            updateDoc(userDocRef, { role: "owner" }).catch((error) => {
               console.error("Error promoting to owner:", error);
-              // Continue anyway, fallback to existing user data
-            }
+            });
+            // Don't return - let user login immediately
           }
 
           // Set user data
