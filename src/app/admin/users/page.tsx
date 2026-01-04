@@ -415,10 +415,10 @@ export default function AdminUsersPage() {
           </form>
         </div>
 
-        {/* Virtualized User List */}
+        {/* User List - Mobile: Cards, Desktop: Table */}
         <div className="bg-card rounded-2xl border border-border overflow-hidden flex-1 flex flex-col min-h-[400px] overflow-x-hidden">
-          {/* Table Header */}
-          <div className="grid grid-cols-[3fr_1.5fr_1.5fr_2fr] bg-muted/50 border-b border-border font-semibold text-muted-foreground text-sm">
+          {/* Table Header - Desktop Only */}
+          <div className="hidden lg:grid grid-cols-[3fr_1.5fr_1.5fr_2fr] bg-muted/50 border-b border-border font-semibold text-muted-foreground text-sm">
             <div className="px-6 py-4 flex items-center gap-2">
               <input
                 type="checkbox"
@@ -446,24 +446,163 @@ export default function AdminUsersPage() {
           </div>
 
           {/* List Content */}
-          <div ref={listContainerRef} className="flex-1 w-full min-h-0">
+          <div ref={listContainerRef} className="flex-1 w-full min-h-0 overflow-y-auto">
             {loading ? (
-              <div className="flex items-center justify-center h-full">
+              <div className="flex items-center justify-center h-full py-12">
                 <Loader2 className="animate-spin text-primary" size={40} />
               </div>
             ) : filteredUsers.length === 0 ? (
-              <div className="flex items-center justify-center h-full text-muted-foreground">
+              <div className="flex items-center justify-center h-full text-muted-foreground py-12">
                 {language === "ar" ? "لا يوجد مستخدمين" : "No users found"}
               </div>
             ) : (
-              <FixedSizeList
-                height={containerSize.height}
-                itemCount={filteredUsers.length}
-                itemSize={64}
-                width={containerSize.width}
-              >
-                {Row}
-              </FixedSizeList>
+              <>
+                {/* Mobile Cards View */}
+                <div className="lg:hidden divide-y divide-border">
+                  {filteredUsers.map((user) => {
+                    const isSelected = selectedUsers.has(user.uid);
+                    return (
+                      <div
+                        key={user.uid}
+                        className={cn("p-4 transition-colors", isSelected ? "bg-primary/5" : "")}
+                      >
+                        {/* Top Row: Checkbox, Avatar, Name & Email */}
+                        <div className="flex items-center gap-3 mb-3">
+                          {user.uid !== currentUser?.uid ? (
+                            <input
+                              type="checkbox"
+                              checked={isSelected}
+                              onChange={() => toggleUserSelection(user.uid)}
+                              className="rounded border-input text-primary w-5 h-5 shrink-0"
+                            />
+                          ) : (
+                            <div className="w-5 h-5 shrink-0" />
+                          )}
+                          <Image
+                            src={
+                              user.photoURL ||
+                              `https://ui-avatars.com/api/?name=${user.displayName}&background=6366f1&color=fff`
+                            }
+                            alt={user.displayName}
+                            width={44}
+                            height={44}
+                            className="rounded-full shrink-0"
+                          />
+                          <div className="flex-1 min-w-0">
+                            <div className="font-bold text-foreground truncate">
+                              {user.displayName}
+                            </div>
+                            <div className="text-sm text-muted-foreground truncate">
+                              {user.email}
+                            </div>
+                          </div>
+                          {/* Role Badge */}
+                          <span
+                            className={cn(
+                              "inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium whitespace-nowrap shrink-0",
+                              user.role === "owner"
+                                ? "bg-amber-100 text-amber-800"
+                                : user.role === "admin"
+                                  ? "bg-purple-100 text-purple-800"
+                                  : "bg-green-100 text-green-800"
+                            )}
+                          >
+                            {user.role === "admin" ? (
+                              <Shield className="w-3 h-3 mr-1" />
+                            ) : (
+                              <User className="w-3 h-3 mr-1" />
+                            )}
+                            {user.role}
+                          </span>
+                        </div>
+
+                        {/* Student Code Row */}
+                        <div className="flex items-center justify-between mb-3 px-8">
+                          <span className="text-sm text-muted-foreground">
+                            {language === "ar" ? "كود الطالب:" : "Student Code:"}
+                          </span>
+                          <span className="font-mono text-sm font-medium">
+                            {user.studentCode || (
+                              <span className="text-muted-foreground italic">
+                                {language === "ar" ? "غير محدد" : "Not set"}
+                              </span>
+                            )}
+                          </span>
+                        </div>
+
+                        {/* Actions Row */}
+                        {user.role !== "owner" && (
+                          <div className="px-8 space-y-3">
+                            <div className="flex items-center gap-4">
+                              <button
+                                onClick={() => handleToggleRole(user.uid, user.role)}
+                                className="text-sm text-primary hover:text-primary/80 font-medium"
+                              >
+                                {language === "ar" ? "تبديل الدور" : "Switch Role"}
+                              </button>
+                              {canEditUser(user) && (
+                                <button
+                                  onClick={() =>
+                                    setEditModal({
+                                      isOpen: true,
+                                      user: user,
+                                      name: user.displayName || "",
+                                      code: user.studentCode || "",
+                                    })
+                                  }
+                                  className="text-sm text-orange-500 hover:text-orange-600 font-medium flex items-center gap-1"
+                                >
+                                  <Pencil size={14} />
+                                  {language === "ar" ? "تعديل" : "Edit"}
+                                </button>
+                              )}
+                            </div>
+
+                            {/* Permissions for Admin */}
+                            {user.role === "admin" && (
+                              <div className="space-y-2 border-t pt-3">
+                                <p className="text-xs uppercase text-muted-foreground font-semibold">
+                                  {language === "ar" ? "الصلاحيات" : "Permissions"}
+                                </p>
+                                <div className="grid grid-cols-2 gap-2">
+                                  {PERMISSIONS.map((def) => (
+                                    <label
+                                      key={def.key}
+                                      className="flex items-center gap-2 cursor-pointer"
+                                    >
+                                      <input
+                                        type="checkbox"
+                                        className="rounded border-input text-primary focus:ring-primary w-4 h-4"
+                                        checked={user.permissions?.includes(def.key)}
+                                        onChange={() =>
+                                          togglePermission(user.uid, user.permissions, def.key)
+                                        }
+                                      />
+                                      <span className="text-xs">{def.label}</span>
+                                    </label>
+                                  ))}
+                                </div>
+                              </div>
+                            )}
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
+
+                {/* Desktop Table View */}
+                <div className="hidden lg:block">
+                  <FixedSizeList
+                    height={containerSize.height}
+                    itemCount={filteredUsers.length}
+                    itemSize={64}
+                    width={containerSize.width}
+                  >
+                    {Row}
+                  </FixedSizeList>
+                </div>
+              </>
             )}
           </div>
 

@@ -138,8 +138,8 @@ export function ChatMessageItem({
           {/* Hover Actions (Reply, React) - Positioned below bubble */}
           <div
             className={cn(
-              "absolute -bottom-1 opacity-0 group-hover/bubble:opacity-100 transition-opacity flex gap-1 bg-card/80 backdrop-blur-sm rounded-full px-1 py-0.5 shadow-sm border border-border/50",
-              isUser ? "right-0" : "left-0"
+              "opacity-0 group-hover/bubble:opacity-100 transition-opacity flex gap-1 mt-1",
+              isUser ? "flex-row-reverse" : ""
             )}
           >
             {onReply && (
