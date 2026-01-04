@@ -48,8 +48,23 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         setLoading(false);
       }
     });
+
     return () => unsubscribe();
   }, []);
+
+  // Safety Timeout for Loading State
+  useEffect(() => {
+    if (loading) {
+      const timer = setTimeout(() => {
+        if (loading) {
+          console.error("Auth loading timed out");
+          setLoading(false);
+          toast.error("Connection timeout. Please refresh.");
+        }
+      }, 15000); // 15 seconds timeout
+      return () => clearTimeout(timer);
+    }
+  }, [loading]);
 
   // 2. Listen for User Document Changes (Live Updates)
   useEffect(() => {
