@@ -137,11 +137,22 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, [firebaseUser]);
 
   const login = useCallback(async () => {
+    // Check if Firebase is properly initialized
+    if (!auth || !googleProvider) {
+      console.error("Firebase not initialized - auth:", !!auth, "provider:", !!googleProvider);
+      toast.error(
+        language === "ar"
+          ? "خطأ في تهيئة Firebase. تأكد من إعدادات البيئة."
+          : "Firebase not configured. Check environment variables."
+      );
+      return;
+    }
+
     try {
       await signInWithPopup(auth, googleProvider);
     } catch (error: unknown) {
       console.error("Login failed:", error);
-      const err = error as { code?: string };
+      const err = error as { code?: string; message?: string };
       if (err?.code === "auth/unauthorized-domain") {
         toast.error(
           language === "ar"
@@ -150,8 +161,18 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         );
       } else if (err?.code === "auth/popup-closed-by-user") {
         toast.warning(language === "ar" ? "تم إغلاق النافذة" : "Login popup closed");
+      } else if (err?.code === "auth/invalid-api-key") {
+        toast.error(
+          language === "ar"
+            ? "مفتاح API غير صالح. تحقق من الإعدادات."
+            : "Invalid Firebase API key. Check environment configuration."
+        );
       } else {
-        toast.error(language === "ar" ? "فشل تسجيل الدخول" : "Login failed. Check console.");
+        toast.error(
+          language === "ar"
+            ? "فشل تسجيل الدخول"
+            : `Login failed: ${err?.message || err?.code || "Unknown error"}`
+        );
       }
       throw error;
     }
