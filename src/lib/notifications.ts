@@ -1,5 +1,5 @@
 import { getMessaging, getToken, onMessage, Messaging } from "firebase/messaging";
-import app from "./firebase";
+import getFirebaseApp from "./firebase";
 
 let messaging: Messaging | null = null;
 
@@ -21,7 +21,7 @@ export function initializeMessaging(): Messaging | null {
 
   if (!messaging) {
     try {
-      messaging = getMessaging(app);
+      messaging = getMessaging(getFirebaseApp());
     } catch (error) {
       console.error("Failed to initialize Firebase Messaging:", error);
       return null;
