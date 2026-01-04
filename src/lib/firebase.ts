@@ -1,4 +1,4 @@
-import { initializeApp, getApps, getApp } from "firebase/app";
+import { initializeApp, getApps, getApp, FirebaseApp } from "firebase/app";
 import { getAuth, GoogleAuthProvider } from "firebase/auth";
 import { getFirestore } from "firebase/firestore";
 import { getStorage } from "firebase/storage";
@@ -17,35 +17,36 @@ const firebaseConfig = {
   measurementId: process.env.NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID,
 };
 
-// Singleton initialization
-const app =
-  getApps().length > 0
-    ? getApp()
-    : firebaseConfig.apiKey
-      ? initializeApp(firebaseConfig)
-      : undefined;
+// Singleton initialization - always initialize when API key is available
+let app: FirebaseApp | null;
+if (getApps().length > 0) {
+  app = getApp();
+} else if (firebaseConfig.apiKey) {
+  app = initializeApp(firebaseConfig);
+} else {
+  // This should only happen during static build, not at runtime
+  console.warn("Firebase API key missing - Firebase services will not be available");
+  app = null;
+}
 
-// Basic fail-safe to prevent crash during build if API key is missing
-const isInitialized = !!app;
-
-export const auth = isInitialized ? getAuth(app!) : ({} as ReturnType<typeof getAuth>);
-export const googleProvider = new GoogleAuthProvider(); // Required by AuthContext
-export const db = isInitialized ? getFirestore(app!) : ({} as ReturnType<typeof getFirestore>);
-export const rtdb = isInitialized ? getDatabase(app!) : ({} as ReturnType<typeof getDatabase>);
-export const storage = isInitialized ? getStorage(app!) : ({} as ReturnType<typeof getStorage>);
+// Export Firebase services - these will throw clear errors if app is null
+export const auth = app ? getAuth(app) : (null as unknown as ReturnType<typeof getAuth>);
+export const googleProvider = new GoogleAuthProvider();
+export const db = app ? getFirestore(app) : (null as unknown as ReturnType<typeof getFirestore>);
+export const rtdb = app ? getDatabase(app) : (null as unknown as ReturnType<typeof getDatabase>);
+export const storage = app ? getStorage(app) : (null as unknown as ReturnType<typeof getStorage>);
 
 // Client-side only services
 export let analytics: ReturnType<typeof getAnalytics> | null = null;
 export let perf: ReturnType<typeof getPerformance> | null = null;
 
-if (typeof window !== "undefined" && isInitialized) {
+if (typeof window !== "undefined" && app) {
   isSupported().then((supported) => {
-    if (supported) {
-      analytics = getAnalytics(app!);
-      perf = getPerformance(app!);
+    if (supported && app) {
+      analytics = getAnalytics(app);
+      perf = getPerformance(app);
     }
   });
 }
 
-// Ensure we don't return undefined as default export if possible, or handle it
 export default app;

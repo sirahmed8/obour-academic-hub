@@ -1,7 +1,7 @@
 import { openai } from "@/lib/ai";
 import { streamText } from "ai";
 
-export const runtime = "edge";
+// Using Node.js runtime (default) for static generation compatibility
 
 export async function POST(req: Request) {
   const { messages } = await req.json();
