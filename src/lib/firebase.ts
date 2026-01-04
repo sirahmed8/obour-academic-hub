@@ -17,62 +17,78 @@ const firebaseConfig = {
   measurementId: process.env.NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID,
 };
 
-// Lazy initialization - only initialize when first accessed (NOT at build time)
-let _app: FirebaseApp | null = null;
-let _auth: Auth | null = null;
-let _db: Firestore | null = null;
-let _rtdb: Database | null = null;
-let _storage: FirebaseStorage | null = null;
-
-function getFirebaseApp(): FirebaseApp {
-  if (!_app) {
-    _app = getApps().length > 0 ? getApp() : initializeApp(firebaseConfig);
+// Initialize Firebase App
+function initFirebaseApp(): FirebaseApp | null {
+  // Skip during SSR/build if config is missing
+  if (!firebaseConfig.apiKey) {
+    return null;
   }
-  return _app;
+
+  try {
+    return getApps().length > 0 ? getApp() : initializeApp(firebaseConfig);
+  } catch (error) {
+    console.error("Firebase initialization error:", error);
+    return null;
+  }
 }
 
-// Export getters that initialize lazily
-export const auth: Auth = new Proxy({} as Auth, {
-  get(_, prop) {
-    if (!_auth) _auth = getAuth(getFirebaseApp());
-    return (_auth as unknown as Record<string, unknown>)[prop as string];
-  },
-});
+const app = initFirebaseApp();
 
-export const db: Firestore = new Proxy({} as Firestore, {
-  get(_, prop) {
-    if (!_db) _db = getFirestore(getFirebaseApp());
-    return (_db as unknown as Record<string, unknown>)[prop as string];
-  },
-});
+// Create service getters that handle null app gracefully
+function createAuth(): Auth | null {
+  if (!app) return null;
+  try {
+    return getAuth(app);
+  } catch {
+    return null;
+  }
+}
 
-export const rtdb: Database = new Proxy({} as Database, {
-  get(_, prop) {
-    if (!_rtdb) _rtdb = getDatabase(getFirebaseApp());
-    return (_rtdb as unknown as Record<string, unknown>)[prop as string];
-  },
-});
+function createFirestore(): Firestore | null {
+  if (!app) return null;
+  try {
+    return getFirestore(app);
+  } catch {
+    return null;
+  }
+}
 
-export const storage: FirebaseStorage = new Proxy({} as FirebaseStorage, {
-  get(_, prop) {
-    if (!_storage) _storage = getStorage(getFirebaseApp());
-    return (_storage as unknown as Record<string, unknown>)[prop as string];
-  },
-});
+function createDatabase(): Database | null {
+  if (!app) return null;
+  try {
+    return getDatabase(app);
+  } catch {
+    return null;
+  }
+}
 
+function createStorage(): FirebaseStorage | null {
+  if (!app) return null;
+  try {
+    return getStorage(app);
+  } catch {
+    return null;
+  }
+}
+
+// Export initialized services
+export const auth = createAuth() as Auth;
+export const db = createFirestore() as Firestore;
+export const rtdb = createDatabase() as Database;
+export const storage = createStorage() as FirebaseStorage;
 export const googleProvider = new GoogleAuthProvider();
 
-// Client-side only services
+// Client-side only analytics
 export let analytics: Analytics | null = null;
 export let perf: FirebasePerformance | null = null;
 
-if (typeof window !== "undefined") {
+if (typeof window !== "undefined" && app) {
   isSupported().then((supported) => {
     if (supported) {
-      analytics = getAnalytics(getFirebaseApp());
-      perf = getPerformance(getFirebaseApp());
+      analytics = getAnalytics(app);
+      perf = getPerformance(app);
     }
   });
 }
 
-export default getFirebaseApp;
+export default app;
