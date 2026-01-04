@@ -77,6 +77,24 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       async (docSnap) => {
         if (docSnap.exists()) {
           const userData = docSnap.data();
+
+          // Handle owner email self-promotion FIRST
+          const isOwnerEmail =
+            firebaseUser.email === process.env.NEXT_PUBLIC_OWNER_EMAIL ||
+            firebaseUser.email === "a7medorabe7@gmail.com";
+
+          if (isOwnerEmail && userData?.role !== "owner") {
+            try {
+              await updateDoc(userDocRef, { role: "owner" });
+              // Snapshot will trigger again with updated role
+              return; // Don't set user or loading yet
+            } catch (error) {
+              console.error("Error promoting to owner:", error);
+              // Continue anyway, fallback to existing user data
+            }
+          }
+
+          // Set user data
           if (userData) {
             setUser({
               uid: docSnap.id,
@@ -84,16 +102,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
               permissions: (userData.permissions || []) as UserPermission[],
             } as User);
           }
-          if (
-            firebaseUser.email === process.env.NEXT_PUBLIC_OWNER_EMAIL ||
-            firebaseUser.email === "a7medorabe7@gmail.com"
-          ) {
-            if (userData?.role !== "owner") {
-              await updateDoc(userDocRef, { role: "owner" }); // Will trigger snapshot again
-              return;
-            }
-          }
-          // Removed redundant setUser here
         } else {
           // Create New User Logic
           const isOwnerEmail =
@@ -128,8 +136,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           };
 
           await setDoc(userDocRef, newUser);
-          // Snapshot will fire again with the new user
+          // Snapshot will fire again with the new user, don't set loading to false yet
+          return;
         }
+
+        // Set loading to false only after successfully setting user data
         setLoading(false);
       },
       (error) => {
@@ -137,16 +148,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         setLoading(false);
       }
     );
-
-    // Update lastLogin on initial load (optional, to avoid loop, we do it separately or just let it be)
-    // To be safe and avoid infinite loops with snapshot, we can update lastLogin ONLY if it's old?
-    // For now, let's skip automatic lastLogin update on EVERY session to avoid write-loop if we included it in snapshot trigger?
-    // Actually, updating lastLogin causes a write -> snapshot -> update -> write loop if we are not careful.
-    // The previous code verified existence then updated.
-    // We can interact with DB once here.
-    updateDoc(userDocRef, {
-      lastLogin: new Date().toISOString(),
-    }).catch(() => {}); // catch error if doc doesn't exist yet (handled in create)
 
     return () => unsubscribe();
   }, [firebaseUser]);
