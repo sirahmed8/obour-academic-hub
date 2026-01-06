@@ -383,7 +383,7 @@ export default function AdminUsersPage() {
                 toast.error("Failed to invite");
               }
             }}
-            className="hidden md:flex gap-2"
+            className="flex gap-2 flex-col sm:flex-row"
           >
             <input
               name="invite-email"

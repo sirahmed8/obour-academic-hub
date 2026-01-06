@@ -29,7 +29,13 @@ import { fadeIn } from "@/lib/motion";
 
 export function AppShell({ children }: { children: React.ReactNode }) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
-  const [profileSetupDismissed, setProfileSetupDismissed] = useState(false);
+  // Use sessionStorage to persist dismissal across refreshes within a session
+  const [profileSetupDismissed, setProfileSetupDismissed] = useState(() => {
+    if (typeof window !== "undefined") {
+      return sessionStorage.getItem("profileSetupDismissed") === "true";
+    }
+    return false;
+  });
   const { user, loading } = useAuth();
   const { dir, language } = useLanguage();
 
@@ -39,8 +45,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   // Check if profile is incomplete using useMemo (no effect)
   const showProfileSetup = useMemo(() => {
     if (profileSetupDismissed) return false;
-    // Don't show for owner or admin
-    // HARD FIX: Explicitly check owner email to bypass modal
+    // HARD FIX: Explicitly check owner/admin email to bypass modal
     if (user?.email === "a7medorabe7@gmail.com") return false;
     if (user?.role === "owner" || user?.role === "admin") return false;
     return user && (!user.studentCode || user.studentCode.length !== 6);
@@ -111,7 +116,14 @@ export function AppShell({ children }: { children: React.ReactNode }) {
 
       {/* Profile Setup Modal */}
       {showProfileSetup && (
-        <StudentProfileSetup onComplete={() => setProfileSetupDismissed(true)} />
+        <StudentProfileSetup
+          onComplete={() => {
+            setProfileSetupDismissed(true);
+            if (typeof window !== "undefined") {
+              sessionStorage.setItem("profileSetupDismissed", "true");
+            }
+          }}
+        />
       )}
 
       {/* Cookie Consent Banner */}

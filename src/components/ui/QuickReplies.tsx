@@ -11,7 +11,7 @@ interface QuickRepliesProps {
 
 export function QuickReplies({ replies, onSelect, language }: QuickRepliesProps) {
   return (
-    <div className="flex flex-wrap gap-2 p-4 border-t border-border bg-secondary/50">
+    <div className="flex flex-wrap gap-2 p-4">
       {replies.map((reply, index) => (
         <motion.button
           key={reply.id}

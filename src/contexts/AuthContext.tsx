@@ -92,6 +92,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
                   ...userData,
                   role: finalRole,
                 } as User);
+
+                // Log the login event
+                import("@/lib/activity-logger").then(({ logLogin }) => {
+                  logLogin(firebaseUser.uid, firebaseUser.email || "unknown");
+                });
               }
               // B. New User Creation
               else {
