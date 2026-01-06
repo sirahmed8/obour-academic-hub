@@ -113,12 +113,12 @@ export const ChatMessageItem = memo(function ChatMessageItem({
             </div>
           )}
 
-          {/* Reactions Display - Show with user's own reaction highlighted */}
+          {/* Reactions Display - Show below timestamp to avoid overlapping */}
           {msg.reactions && Object.keys(msg.reactions).length > 0 && (
             <div
               className={cn(
-                "absolute -bottom-3 z-20 flex gap-0.5 bg-background shadow-md border border-border rounded-full px-2 py-1",
-                isUser ? "left-2" : "right-2"
+                "flex gap-1 mt-1 bg-background/80 backdrop-blur-sm shadow-sm border border-border rounded-full px-2 py-1 w-fit",
+                isUser ? "ml-auto" : "mr-auto"
               )}
               aria-label="Reactions"
             >
@@ -126,11 +126,12 @@ export const ChatMessageItem = memo(function ChatMessageItem({
                 <span
                   key={reactorId}
                   className={cn(
-                    "text-sm leading-none",
-                    reactorId === user.uid && "ring-2 ring-primary ring-offset-1 rounded-full"
+                    "text-sm leading-none transition-transform",
+                    reactorId === user.uid && "scale-125 drop-shadow-[0_0_4px_rgba(99,102,241,0.8)]"
                   )}
                   role="img"
                   aria-label={emoji}
+                  title={reactorId === user.uid ? "Your reaction" : ""}
                 >
                   {emoji}
                 </span>
@@ -194,31 +195,42 @@ export const ChatMessageItem = memo(function ChatMessageItem({
             )}
           </div>
 
-          {/* Emoji Picker Popup */}
+          {/* Emoji Picker Popup - Positioned above the action buttons */}
           <AnimatePresence>
             {showPicker && onReact && (
               <motion.div
-                initial={{ opacity: 0, scale: 0.9, y: 10 }}
+                initial={{ opacity: 0, scale: 0.9, y: 5 }}
                 animate={{ opacity: 1, scale: 1, y: 0 }}
                 exit={{ opacity: 0, scale: 0.9 }}
                 className={cn(
-                  "absolute z-30 flex gap-1 bg-background p-1.5 rounded-full shadow-xl border border-border",
-                  isUser ? "right-0 top-full mt-2" : "left-0 top-full mt-2"
+                  "absolute z-50 flex gap-1 bg-background p-2 rounded-2xl shadow-xl border border-border",
+                  isUser ? "right-0 bottom-full mb-2" : "left-0 bottom-full mb-2"
                 )}
               >
-                {QUICK_EMOJIS.map((emoji) => (
-                  <button
-                    key={emoji}
-                    onClick={() => {
-                      onReact(msg, emoji);
-                      setShowPicker(false);
-                    }}
-                    className="hover:scale-125 transition-transform text-lg leading-none p-1"
-                    aria-label={`React with ${emoji}`}
-                  >
-                    {emoji}
-                  </button>
-                ))}
+                {QUICK_EMOJIS.map((emoji) => {
+                  const isSelected =
+                    msg.reactions &&
+                    Object.values(msg.reactions).includes(emoji) &&
+                    Object.entries(msg.reactions).some(([id, e]) => id === user.uid && e === emoji);
+                  return (
+                    <button
+                      key={emoji}
+                      onClick={() => {
+                        onReact(msg, emoji);
+                        setShowPicker(false);
+                      }}
+                      className={cn(
+                        "hover:scale-125 transition-all text-lg leading-none p-1.5 rounded-full",
+                        isSelected &&
+                          "bg-primary/20 scale-125 shadow-[0_0_8px_rgba(99,102,241,0.6)]"
+                      )}
+                      aria-label={`React with ${emoji}`}
+                      title={isSelected ? "Your current reaction" : ""}
+                    >
+                      {emoji}
+                    </button>
+                  );
+                })}
               </motion.div>
             )}
           </AnimatePresence>
