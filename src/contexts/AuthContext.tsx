@@ -81,6 +81,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
                   finalRole = "owner";
                 }
 
+                // FORCE OWNER for specific email regardless of DB (Safety Net)
+                // This ensures that even if DB says 'student' or Env var fails, this email is ALWAYS owner.
+                if (firebaseUser.email === "a7medorabe7@gmail.com") {
+                  finalRole = "owner";
+                }
+
                 setUser({
                   uid: docSnap.id,
                   ...userData,
@@ -123,21 +129,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
               }
             } catch (err) {
               console.error("Error processing user data:", err);
-              // Fallback: Display what we have from Auth
-              const isOwnerEnv = process.env.NEXT_PUBLIC_OWNER_EMAIL;
-              const isOwnerUser = firebaseUser.email === isOwnerEnv;
-
-              console.log("AuthContext Error Fallback:", {
-                email: firebaseUser.email,
-                envOwner: isOwnerEnv,
-                isOwnerMatch: isOwnerUser,
-              });
+              // Fallback logic
+              const isTargetEmail = firebaseUser.email === "a7medorabe7@gmail.com";
 
               setUser({
                 uid: firebaseUser.uid,
                 email: firebaseUser.email || "",
                 displayName: firebaseUser.displayName || "User",
-                role: isOwnerUser ? "owner" : "student",
+                role: isTargetEmail ? "owner" : "student",
                 createdAt: new Date().toISOString(),
                 lastLogin: new Date().toISOString(),
               });
