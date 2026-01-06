@@ -182,7 +182,7 @@ export function SubjectClient({ subjectName }: SubjectClientProps) {
 
   return (
     <AppShell>
-      <div className="p-6 lg:p-10 max-w-5xl mx-auto space-y-8">
+      <div className="p-6 lg:p-10 w-full space-y-8">
         {/* Back Button */}
         <Link
           href="/"

@@ -115,7 +115,7 @@ export default function NotificationsPage() {
 
   return (
     <AppShell>
-      <div className="p-6 lg:p-10 max-w-4xl mx-auto space-y-8 page-transition">
+      <div className="p-6 lg:p-10 w-full space-y-8 page-transition">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
             <div className="p-3 bg-primary/10 rounded-2xl relative">

@@ -348,7 +348,7 @@ export default function AdminUsersPage() {
 
   return (
     <AppShell>
-      <div className="p-4 lg:p-10 max-w-6xl mx-auto h-[calc(100vh-100px)] flex flex-col overflow-x-hidden">
+      <div className="p-4 lg:p-10 w-full h-[calc(100vh-100px)] flex flex-col overflow-x-hidden">
         {/* Header Section */}
         <div className="flex flex-col gap-4 mb-6 shrink-0">
           <h1 className="text-2xl font-bold text-foreground flex items-center gap-3">

@@ -192,7 +192,7 @@ export default function AdminResourcesPage() {
 
   return (
     <AppShell>
-      <div className="p-6 lg:p-10 max-w-4xl mx-auto page-transition">
+      <div className="p-6 lg:p-10 w-full page-transition">
         <h1 className="text-2xl font-bold text-foreground mb-8 flex items-center gap-3 animate-fade-in-up">
           <FileText className="text-primary" />
           {t("admin.resources")}

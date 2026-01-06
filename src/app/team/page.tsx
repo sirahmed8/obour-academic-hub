@@ -51,7 +51,7 @@ export default function TeamPage() {
 
   return (
     <AppShell>
-      <div className="p-6 lg:p-10 space-y-12 max-w-7xl mx-auto page-transition">
+      <div className="p-6 lg:p-10 space-y-12 w-full page-transition">
         {/* Header */}
         <div className="text-center space-y-4 max-w-2xl mx-auto animate-fade-in-up">
           <div className="inline-flex items-center justify-center p-4 bg-primary/10 rounded-2xl text-primary mb-4">

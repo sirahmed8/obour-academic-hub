@@ -193,7 +193,7 @@ export default function AdminInboxPage() {
 
   return (
     <AppShell>
-      <div className="flex h-[calc(100vh-theme(spacing.20))] max-w-[1600px] mx-auto overflow-hidden bg-background">
+      <div className="flex h-[calc(100vh-theme(spacing.20))] w-full overflow-hidden bg-background">
         {/* Sidebar - Chat List */}
         <div
           className={cn(

@@ -83,7 +83,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
               animate="visible"
               exit="exit"
               variants={fadeIn}
-              className="min-h-full flex flex-col"
+              className="min-h-full flex flex-col w-full"
             >
               {children}
             </motion.div>

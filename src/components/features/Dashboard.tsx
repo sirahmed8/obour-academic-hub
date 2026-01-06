@@ -34,7 +34,7 @@ export function Dashboard() {
   }, []);
 
   return (
-    <div className="p-6 lg:p-10 space-y-8 max-w-7xl mx-auto page-transition">
+    <div className="p-6 lg:p-10 space-y-8 w-full page-transition">
       {/* Greeting Banner */}
       <div className="bg-gradient-to-r from-primary/10 via-primary/5 to-transparent rounded-3xl p-8 relative overflow-hidden">
         <div className="absolute top-0 right-0 w-64 h-64 bg-primary/5 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2" />

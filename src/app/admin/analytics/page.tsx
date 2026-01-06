@@ -109,7 +109,7 @@ export default function AdminAnalyticsPage() {
 
   return (
     <AppShell>
-      <div className="p-6 lg:p-10 max-w-7xl mx-auto space-y-8">
+      <div className="p-6 lg:p-10 w-full space-y-8">
         <div className="flex items-center justify-between">
           <h1 className="text-2xl font-bold text-foreground flex items-center gap-3">
             <BarChart3 className="text-primary" />
