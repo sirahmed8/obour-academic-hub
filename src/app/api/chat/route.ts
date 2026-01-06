@@ -2,8 +2,8 @@ import { streamText } from "ai";
 import { getAIModel, SYSTEM_PROMPT, AIModelProvider } from "@/lib/ai";
 import { NextRequest } from "next/server";
 
-// Edge runtime for streaming
-export const runtime = "edge";
+// Force dynamic rendering for this route (streaming requires it)
+export const dynamic = "force-dynamic";
 
 interface ChatMessage {
   role: "user" | "assistant" | "system";
