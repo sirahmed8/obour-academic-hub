@@ -124,13 +124,20 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             } catch (err) {
               console.error("Error processing user data:", err);
               // Fallback: Display what we have from Auth
+              const isOwnerEnv = process.env.NEXT_PUBLIC_OWNER_EMAIL;
+              const isOwnerUser = firebaseUser.email === isOwnerEnv;
+
+              console.log("AuthContext Error Fallback:", {
+                email: firebaseUser.email,
+                envOwner: isOwnerEnv,
+                isOwnerMatch: isOwnerUser,
+              });
+
               setUser({
                 uid: firebaseUser.uid,
                 email: firebaseUser.email || "",
                 displayName: firebaseUser.displayName || "User",
-                role:
-                  firebaseUser.email === process.env.NEXT_PUBLIC_OWNER_EMAIL ? "owner" : "student",
-
+                role: isOwnerUser ? "owner" : "student",
                 createdAt: new Date().toISOString(),
                 lastLogin: new Date().toISOString(),
               });

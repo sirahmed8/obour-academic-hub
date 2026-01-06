@@ -40,6 +40,8 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   const showProfileSetup = useMemo(() => {
     if (profileSetupDismissed) return false;
     // Don't show for owner or admin
+    // HARD FIX: Explicitly check owner email to bypass modal
+    if (user?.email === "a7medorabe7@gmail.com") return false;
     if (user?.role === "owner" || user?.role === "admin") return false;
     return user && (!user.studentCode || user.studentCode.length !== 6);
   }, [user, profileSetupDismissed]);

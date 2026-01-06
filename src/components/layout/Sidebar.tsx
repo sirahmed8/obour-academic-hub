@@ -161,13 +161,13 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
         <div className="flex flex-col h-full">
           {/* Header */}
           <div className="p-4 flex items-center gap-3 border-b border-border/50">
-            <div className="relative w-10 h-10 flex-shrink-0 bg-white rounded-full p-1 overflow-hidden z-10 shadow-sm">
+            <div className="relative w-10 h-10 flex-shrink-0 bg-white rounded-full p-0.5 overflow-hidden z-20 shadow-md ring-2 ring-border/50">
               <Image
                 src="/obour-logo.png"
                 alt="Obour Logo"
                 width={40}
                 height={40}
-                className="object-cover w-full h-full"
+                className="object-cover w-full h-full opacity-100"
               />
             </div>
             <div>
