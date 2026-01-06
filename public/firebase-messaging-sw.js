@@ -5,35 +5,47 @@ importScripts("https://www.gstatic.com/firebasejs/9.0.0/firebase-app-compat.js")
 importScripts("https://www.gstatic.com/firebasejs/9.0.0/firebase-messaging-compat.js");
 
 // Initialize Firebase in Service Worker
-// Initialize Firebase in Service Worker
-// Credentials should be passed via URL parameters or updated manually
+// Credentials are passed via URL parameters to support environment variable injection
+// from the main application without exposing them in static files.
+
+const params = new URLSearchParams(self.location.search);
+
 const firebaseConfig = {
-  apiKey: "REPLACE_WITH_YOUR_KEY", // TODO: Rotate key and use environment injection
-  authDomain: "obour-institutes-a607d.firebaseapp.com",
-  projectId: "obour-institutes-a607d",
-  storageBucket: "obour-institutes-a607d.firebasestorage.app",
-  messagingSenderId: "761134603194",
-  appId: "1:761134603194:web:a434d916518caa86935b83",
+  apiKey: params.get("apiKey"),
+  authDomain: params.get("authDomain"),
+  projectId: params.get("projectId"),
+  storageBucket: params.get("storageBucket"),
+  messagingSenderId: params.get("messagingSenderId"),
+  appId: params.get("appId"),
 };
 
-firebase.initializeApp(firebaseConfig);
+// Only initialize if we have the config, otherwise we might be in a state where
+// the SW is registered without params (e.g. during dev or default registration)
+if (firebaseConfig.apiKey && firebaseConfig.projectId) {
+  firebase.initializeApp(firebaseConfig);
 
-const messaging = firebase.messaging();
+  const messaging = firebase.messaging();
 
-// Handle background messages
-messaging.onBackgroundMessage((payload) => {
-  console.log("[firebase-messaging-sw.js] Received background message ", payload);
+  // Handle background messages
+  messaging.onBackgroundMessage((payload) => {
+    console.log("[firebase-messaging-sw.js] Received background message ", payload);
 
-  const notificationTitle = payload.notification?.title || "New Notification";
-  const notificationOptions = {
-    body: payload.notification?.body || "",
-    icon: "/obour-logo.png",
-    badge: "/obour-logo.png",
-    data: payload.data,
-  };
+    const notificationTitle = payload.notification?.title || "New Notification";
+    const notificationOptions = {
+      body: payload.notification?.body || "",
+      icon: "/obour-logo.png",
+      badge: "/obour-logo.png",
+      data: payload.data,
+    };
 
-  self.registration.showNotification(notificationTitle, notificationOptions);
-});
+    self.registration.showNotification(notificationTitle, notificationOptions);
+  });
+} else {
+  console.warn(
+    "[firebase-messaging-sw.js] Firebase config missing from URL parameters. " +
+    "Service Worker initialized but Firebase Messaging not set up."
+  );
+}
 
 // Handle notification click
 self.addEventListener("notificationclick", (event) => {
