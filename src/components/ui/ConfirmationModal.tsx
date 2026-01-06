@@ -55,6 +55,10 @@ export function ConfirmationModal({
             exit={{ opacity: 0, scale: 0.9, y: 20 }}
             transition={{ type: "spring", stiffness: 300, damping: 30 }}
             className="bg-card w-full max-w-md rounded-3xl p-6 shadow-2xl border border-border relative z-10"
+            role="alertdialog"
+            aria-modal="true"
+            aria-labelledby="modal-title"
+            aria-describedby="modal-description"
           >
             <div className="flex items-start gap-4">
               <div
@@ -70,12 +74,17 @@ export function ConfirmationModal({
                 <AlertTriangle className="w-6 h-6" />
               </div>
               <div className="flex-1 space-y-2">
-                <h3 className="text-xl font-bold text-foreground">{title}</h3>
-                <p className="text-muted-foreground leading-relaxed">{message}</p>
+                <h3 id="modal-title" className="text-xl font-bold text-foreground">
+                  {title}
+                </h3>
+                <p id="modal-description" className="text-muted-foreground leading-relaxed">
+                  {message}
+                </p>
               </div>
               <button
                 onClick={onClose}
                 className="p-1 rounded-full hover:bg-muted transition-colors text-muted-foreground"
+                aria-label="Close"
               >
                 <X className="w-5 h-5" />
               </button>

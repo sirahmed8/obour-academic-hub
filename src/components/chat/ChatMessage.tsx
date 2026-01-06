@@ -147,6 +147,7 @@ export function ChatMessageItem({
                 onClick={() => onReply(msg)}
                 className="p-1.5 bg-background shadow-sm border border-border rounded-full hover:bg-muted text-muted-foreground hover:text-primary transition-colors"
                 title="Reply"
+                aria-label="Reply to message"
               >
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
@@ -168,6 +169,9 @@ export function ChatMessageItem({
                 onClick={() => setShowPicker(!showPicker)}
                 className="p-1.5 bg-background shadow-sm border border-border rounded-full hover:bg-muted text-muted-foreground hover:text-primary transition-colors"
                 title="React"
+                aria-label="React to message"
+                aria-haspopup="dialog"
+                aria-expanded={showPicker}
               >
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
@@ -208,6 +212,7 @@ export function ChatMessageItem({
                       setShowPicker(false);
                     }}
                     className="hover:scale-125 transition-transform text-lg leading-none p-1"
+                    aria-label={`React with ${emoji}`}
                   >
                     {emoji}
                   </button>
