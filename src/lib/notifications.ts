@@ -1,5 +1,5 @@
 import { getMessaging, getToken, onMessage, Messaging } from "firebase/messaging";
-import app from "./firebase";
+import app, { firebaseConfig } from "./firebase";
 
 let messaging: Messaging | null = null;
 
@@ -48,10 +48,21 @@ export async function requestNotificationPermission(): Promise<string | null> {
     const msg = initializeMessaging();
     if (!msg) return null;
 
+    // Register service worker with config
+    const params = new URLSearchParams();
+    Object.entries(firebaseConfig).forEach(([key, value]) => {
+      if (value) params.append(key, value);
+    });
+
+    const registration = await navigator.serviceWorker.register(
+      `/firebase-messaging-sw.js?${params.toString()}`
+    );
+
     // Get FCM token
     // Note: You need to add your VAPID key from Firebase Console > Project Settings > Cloud Messaging
     const token = await getToken(msg, {
       vapidKey: process.env.NEXT_PUBLIC_FIREBASE_VAPID_KEY,
+      serviceWorkerRegistration: registration,
     });
 
     return token;

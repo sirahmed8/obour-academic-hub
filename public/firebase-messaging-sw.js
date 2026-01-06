@@ -5,18 +5,26 @@ importScripts("https://www.gstatic.com/firebasejs/9.0.0/firebase-app-compat.js")
 importScripts("https://www.gstatic.com/firebasejs/9.0.0/firebase-messaging-compat.js");
 
 // Initialize Firebase in Service Worker
-// Initialize Firebase in Service Worker
-// Credentials should be passed via URL parameters or updated manually
+// Credentials are passed via URL parameters
+const params = new URLSearchParams(self.location.search);
 const firebaseConfig = {
-  apiKey: "REPLACE_WITH_YOUR_KEY", // TODO: Rotate key and use environment injection
-  authDomain: "obour-institutes-a607d.firebaseapp.com",
-  projectId: "obour-institutes-a607d",
-  storageBucket: "obour-institutes-a607d.firebasestorage.app",
-  messagingSenderId: "761134603194",
-  appId: "1:761134603194:web:a434d916518caa86935b83",
+  apiKey: params.get("apiKey"),
+  authDomain: params.get("authDomain"),
+  projectId: params.get("projectId"),
+  storageBucket: params.get("storageBucket"),
+  messagingSenderId: params.get("messagingSenderId"),
+  appId: params.get("appId"),
+  measurementId: params.get("measurementId"),
 };
 
-firebase.initializeApp(firebaseConfig);
+// Check if config is valid
+if (firebaseConfig.apiKey) {
+  firebase.initializeApp(firebaseConfig);
+} else {
+  console.warn(
+    "[firebase-messaging-sw.js] Firebase config missing. Notifications may not work."
+  );
+}
 
 const messaging = firebase.messaging();
 
