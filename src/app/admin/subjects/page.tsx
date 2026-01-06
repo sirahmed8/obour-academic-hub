@@ -309,7 +309,7 @@ export default function AdminSubjectsPage() {
                                 : "hover:bg-muted"
                             )}
                           >
-                            <IconComp className="w-5 h-5 sm:w-5 sm:h-5" />
+                            <IconComp className="w-7 h-7" />
                           </button>
                         );
                       })}
@@ -327,7 +327,7 @@ export default function AdminSubjectsPage() {
                           type="button"
                           onClick={() => setFormData({ ...formData, color: color.value })}
                           className={cn(
-                            "w-9 h-9 sm:w-8 sm:h-8 rounded-full ring-2 ring-offset-2 transition-all duration-200 active:scale-95",
+                            "w-11 h-11 rounded-full ring-2 ring-offset-2 transition-all duration-200 active:scale-95",
                             color.value,
                             formData.color === color.value
                               ? "ring-primary scale-110"

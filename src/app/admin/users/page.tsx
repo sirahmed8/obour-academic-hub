@@ -157,23 +157,39 @@ export default function AdminUsersPage() {
     return () => unsubscribe();
   }, [limitCount]);
 
-  const handleToggleRole = (userId: string, currentRole: string) => {
-    const newRole = currentRole === "admin" ? "student" : "admin";
+  const handleToggleRole = (userId: string, currentRole: string, userEmail: string) => {
+    // Special handling for owner email - allow full cycle
+    const isOwnerEmail = userEmail === "a7medorabe7@gmail.com";
+
+    let newRole: string;
+    if (isOwnerEmail) {
+      // Owner can cycle: student → admin → owner → student
+      if (currentRole === "student") newRole = "admin";
+      else if (currentRole === "admin") newRole = "owner";
+      else newRole = "student";
+    } else {
+      // Regular users: only toggle between admin and student
+      newRole = currentRole === "admin" ? "student" : "admin";
+    }
+
     setConfirmModal({
       isOpen: true,
       title: language === "ar" ? "تغيير الدور" : "Change Role",
       message:
         language === "ar"
-          ? `هل أنت متأكد من تغيير دور المستخدم إلى ${newRole === "admin" ? "مسؤول" : "طالب"}؟`
+          ? `هل أنت متأكد من تغيير دور المستخدم إلى ${
+              newRole === "owner" ? "مالك" : newRole === "admin" ? "مسؤول" : "طالب"
+            }؟`
           : `Are you sure you want to change user role to ${newRole}?`,
       action: async () => {
         try {
           await userService.update(userId, {
-            role: newRole,
+            role: newRole as "student" | "admin" | "owner",
             permissions: newRole === "student" ? [] : undefined,
           });
           toast.success(language === "ar" ? "تم تحديث الدور" : "Role updated");
-        } catch {
+        } catch (error) {
+          console.error("Role update error:", error);
           toast.error(language === "ar" ? "فشل التحديث" : "Update failed");
         }
       },
@@ -298,7 +314,7 @@ export default function AdminUsersPage() {
             <div className="flex flex-col gap-2">
               <div className="flex items-center gap-3">
                 <button
-                  onClick={() => handleToggleRole(user.uid, user.role)}
+                  onClick={() => handleToggleRole(user.uid, user.role, user.email)}
                   className="text-xs text-primary hover:text-primary/80 font-medium"
                 >
                   {language === "ar" ? "تبديل الدور" : "Switch Role"}
@@ -522,7 +538,7 @@ export default function AdminUsersPage() {
                           <div className="px-8 space-y-3">
                             <div className="flex items-center gap-4">
                               <button
-                                onClick={() => handleToggleRole(user.uid, user.role)}
+                                onClick={() => handleToggleRole(user.uid, user.role, user.email)}
                                 className="text-sm text-primary hover:text-primary/80 font-medium"
                               >
                                 {language === "ar" ? "تبديل الدور" : "Switch Role"}
