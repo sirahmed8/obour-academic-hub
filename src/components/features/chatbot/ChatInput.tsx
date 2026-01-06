@@ -9,7 +9,10 @@ import { ChatMessage } from "@/types";
 interface ChatInputProps {
   input: string;
   setInput: (value: string) => void;
-  handleSend: (text?: string, attachment?: { url: string; name: string; type: string }) => void;
+  handleSend: (
+    text?: string,
+    attachment?: { url: string; name: string; size: number; type: "image" | "document" }
+  ) => void;
   isTyping: boolean;
   mode: "bot" | "live";
   replyTo: ChatMessage | null;
