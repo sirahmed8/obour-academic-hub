@@ -288,7 +288,7 @@ export default function AdminSubjectsPage() {
                     <label className="block text-sm font-medium mb-1">
                       {language === "ar" ? "الأيقونة" : "Icon"}
                     </label>
-                    <div className="grid grid-cols-4 gap-1 p-2 border border-border rounded-lg max-h-32 overflow-y-auto">
+                    <div className="grid grid-cols-4 gap-2 p-2 border border-border rounded-lg max-h-32 overflow-y-auto">
                       {ICON_OPTIONS.map((iconName) => {
                         const IconComp = (
                           Icons as unknown as Record<
@@ -303,13 +303,13 @@ export default function AdminSubjectsPage() {
                             type="button"
                             onClick={() => setFormData({ ...formData, icon: iconName })}
                             className={cn(
-                              "p-2 rounded-md flex items-center justify-center transition-all duration-200 active:scale-95",
+                              "p-2.5 rounded-md flex items-center justify-center transition-all duration-200 active:scale-95",
                               formData.icon === iconName
                                 ? "bg-primary/10 text-primary scale-110"
                                 : "hover:bg-muted"
                             )}
                           >
-                            <IconComp className="w-4 h-4" />
+                            <IconComp className="w-5 h-5 sm:w-5 sm:h-5" />
                           </button>
                         );
                       })}
@@ -320,14 +320,14 @@ export default function AdminSubjectsPage() {
                     <label className="block text-sm font-medium mb-1">
                       {language === "ar" ? "اللون" : "Color"}
                     </label>
-                    <div className="grid grid-cols-4 gap-2">
+                    <div className="grid grid-cols-4 gap-3">
                       {COLOR_OPTIONS.map((color) => (
                         <button
                           key={color.value}
                           type="button"
                           onClick={() => setFormData({ ...formData, color: color.value })}
                           className={cn(
-                            "w-7 h-7 rounded-full ring-2 ring-offset-2 transition-all duration-200 active:scale-95",
+                            "w-9 h-9 sm:w-8 sm:h-8 rounded-full ring-2 ring-offset-2 transition-all duration-200 active:scale-95",
                             color.value,
                             formData.color === color.value
                               ? "ring-primary scale-110"

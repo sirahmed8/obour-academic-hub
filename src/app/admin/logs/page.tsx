@@ -26,6 +26,8 @@ import {
 import { toast } from "sonner";
 import { formatDate, formatDateArabic } from "@/lib/utils";
 import { ActivityLog } from "@/types";
+import { motion } from "framer-motion";
+import { doc, deleteDoc as deleteDocFn } from "firebase/firestore";
 
 export default function AdminLogsPage() {
   const [logs, setLogs] = useState<ActivityLog[]>([]);
@@ -112,12 +114,16 @@ export default function AdminLogsPage() {
               </p>
             </div>
           ) : (
-            logs.map((log) => (
-              <div
+            logs.map((log, index) => (
+              <motion.div
                 key={log.id}
-                className="group bg-card p-4 rounded-2xl border border-border hover:shadow-md hover:border-primary/20 transition-all duration-200 flex items-start gap-4"
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: index * 0.05 }}
+                whileHover={{ scale: 1.01, y: -2 }}
+                className="group bg-card p-4 rounded-2xl border border-border hover:shadow-lg hover:border-primary/30 transition-all duration-300 flex items-start gap-4"
               >
-                <div className="p-3 bg-muted rounded-xl group-hover:bg-primary/5 transition-colors">
+                <div className="p-3 bg-muted rounded-xl group-hover:bg-primary/10 transition-colors">
                   {getLogIcon(log.action)}
                 </div>
 
@@ -129,11 +135,27 @@ export default function AdminLogsPage() {
                         {log.details}
                       </p>
                     </div>
-                    <span className="text-[10px] font-mono text-muted-foreground bg-muted px-2 py-1 rounded-lg whitespace-nowrap">
-                      {language === "ar"
-                        ? formatDateArabic(log.timestamp)
-                        : formatDate(log.timestamp)}
-                    </span>
+                    <div className="flex items-center gap-2">
+                      <span className="text-[10px] font-mono text-muted-foreground bg-muted px-2 py-1 rounded-lg whitespace-nowrap">
+                        {language === "ar"
+                          ? formatDateArabic(log.timestamp)
+                          : formatDate(log.timestamp)}
+                      </span>
+                      <button
+                        onClick={async () => {
+                          try {
+                            await deleteDocFn(doc(db, "logs", log.id));
+                            toast.success(language === "ar" ? "تم حذف السجل" : "Log deleted");
+                          } catch {
+                            toast.error(language === "ar" ? "فشل الحذف" : "Delete failed");
+                          }
+                        }}
+                        className="p-1.5 opacity-0 group-hover:opacity-100 hover:bg-destructive/10 rounded-lg transition-all"
+                        title={language === "ar" ? "حذف" : "Delete"}
+                      >
+                        <Trash2 size={14} className="text-destructive" />
+                      </button>
+                    </div>
                   </div>
 
                   <div className="mt-2 flex items-center gap-2 text-xs text-muted-foreground/80">
@@ -141,7 +163,7 @@ export default function AdminLogsPage() {
                     {log.userEmail || "System"}
                   </div>
                 </div>
-              </div>
+              </motion.div>
             ))
           )}
         </div>

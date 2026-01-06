@@ -257,8 +257,21 @@ export function AIChatbot() {
               botResponse = localResponse.text;
             }
           } else {
-            // Direct AI response
-            botResponse = await getAIResponse(textToSend);
+            // Try AI first, fallback to local bot on error
+            try {
+              botResponse = await getAIResponse(textToSend);
+            } catch (aiError) {
+              console.warn("AI API failed, falling back to local bot:", aiError);
+              // Fallback to local bot when AI fails
+              const localResponse = await getLocalBotResponse(textToSend, language as "en" | "ar");
+              botResponse =
+                localResponse.text +
+                "\n\n_(" +
+                (language === "ar"
+                  ? "عذراً، الخدمة الذكية غير متاحة حالياً"
+                  : "Note: AI service temporarily unavailable") +
+                ")_";
+            }
           }
 
           // Send Bot Message

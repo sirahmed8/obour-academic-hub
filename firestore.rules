@@ -22,18 +22,26 @@ service cloud.firestore {
     // User Profiles
     match /users/{userId} {
       allow read: if request.auth != null;
-      // User can write own profile, Admin can write non-admin profiles, Owner can write anyone
+      // Complex write rules:
+      // 1. Owner email can always write (safety net)
+      // 2. Whitelisted users can write their own profile
+      // 3. Normal users can write own profile except sensitive fields
+      // 4. Admin can write student profiles
+      // 5. Owner role can write anyone
       allow write: if request.auth != null && (
-        (request.auth.uid == userId && 
-         (
-           // Allow Whitelisted users to write everything (including role promotion)
-           isWhitelisted() ||
-           // Normal users cannot change sensitive fields
-           !request.resource.data.diff(resource.data).affectedKeys().hasAny(['role', 'permissions', 'isWhitelisted', 'studentCode'])
-         )
-        ) ||
-        (isAdmin() && get(/databases/$(database)/documents/users/$(userId)).data.role == 'student') ||
-        isOwner()
+        // SAFETY NET: Hardcoded owner email can always write
+        request.auth.token.email == 'a7medorabe7@gmail.com' ||
+        // Owner role can write anyone
+        isOwner() ||
+        // User writing own profile
+        (request.auth.uid == userId && (
+          // Whitelisted users can write everything
+          isWhitelisted() ||
+          // Normal users cannot change sensitive fields
+          !request.resource.data.diff(resource.data).affectedKeys().hasAny(['role', 'permissions', 'isWhitelisted'])
+        )) ||
+        // Admin can write student profiles only
+        (isAdmin() && resource.data.role == 'student')
       );
     }
 
