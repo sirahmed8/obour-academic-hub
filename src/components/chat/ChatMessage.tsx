@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, memo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Bot, Headphones } from "lucide-react";
 import Image from "next/image";
@@ -21,7 +21,7 @@ interface ChatMessageProps {
   isAdminView?: boolean;
 }
 
-export function ChatMessageItem({
+export const ChatMessageItem = memo(function ChatMessageItem({
   message: msg,
   user,
   isUser,
@@ -236,4 +236,4 @@ export function ChatMessageItem({
       </div>
     </motion.div>
   );
-}
+});
