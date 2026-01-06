@@ -7,13 +7,15 @@ importScripts("https://www.gstatic.com/firebasejs/9.0.0/firebase-messaging-compa
 // Initialize Firebase in Service Worker
 // Initialize Firebase in Service Worker
 // Credentials should be passed via URL parameters or updated manually
+const params = new URLSearchParams(self.location.search);
+
 const firebaseConfig = {
-  apiKey: "REPLACE_WITH_YOUR_KEY", // TODO: Rotate key and use environment injection
-  authDomain: "obour-institutes-a607d.firebaseapp.com",
-  projectId: "obour-institutes-a607d",
-  storageBucket: "obour-institutes-a607d.firebasestorage.app",
-  messagingSenderId: "761134603194",
-  appId: "1:761134603194:web:a434d916518caa86935b83",
+  apiKey: params.get("apiKey") || "REPLACE_WITH_YOUR_KEY",
+  authDomain: params.get("authDomain") || "obour-institutes-a607d.firebaseapp.com",
+  projectId: params.get("projectId") || "obour-institutes-a607d",
+  storageBucket: params.get("storageBucket") || "obour-institutes-a607d.firebasestorage.app",
+  messagingSenderId: params.get("messagingSenderId") || "761134603194",
+  appId: params.get("appId") || "1:761134603194:web:a434d916518caa86935b83",
 };
 
 firebase.initializeApp(firebaseConfig);

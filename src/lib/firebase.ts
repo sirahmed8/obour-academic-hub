@@ -6,7 +6,7 @@ import { getDatabase, Database } from "firebase/database";
 import { getAnalytics, isSupported, Analytics } from "firebase/analytics";
 import { getPerformance, FirebasePerformance } from "firebase/performance";
 
-const firebaseConfig = {
+export const firebaseConfig = {
   apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY || "AIzaSyDSJeoNeXeGF8OegC5xp2AHQ2qmUWjq_OE",
   authDomain:
     process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN || "obour-institutes-a607d.firebaseapp.com",
