@@ -16,8 +16,6 @@ import { auth, googleProvider, db } from "@/lib/firebase";
 import { signInWithPopup, signOut, onAuthStateChanged } from "firebase/auth";
 import { doc, getDoc, setDoc, updateDoc, onSnapshot } from "firebase/firestore";
 
-const OWNER_EMAIL_HARDCODED = "a7medorabe7@gmail.com";
-
 interface AuthContextType {
   user: User | null;
   loading: boolean;
@@ -72,8 +70,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
                 // Owner Promotion Check
                 const isOwnerEmail =
-                  firebaseUser.email === process.env.NEXT_PUBLIC_OWNER_EMAIL ||
-                  firebaseUser.email === OWNER_EMAIL_HARDCODED;
+                  process.env.NEXT_PUBLIC_OWNER_EMAIL &&
+                  firebaseUser.email === process.env.NEXT_PUBLIC_OWNER_EMAIL;
 
                 let finalRole = userData?.role;
 
@@ -96,8 +94,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
               // B. New User Creation
               else {
                 const isOwnerEmail =
-                  firebaseUser.email === process.env.NEXT_PUBLIC_OWNER_EMAIL ||
-                  firebaseUser.email === OWNER_EMAIL_HARDCODED;
+                  process.env.NEXT_PUBLIC_OWNER_EMAIL &&
+                  firebaseUser.email === process.env.NEXT_PUBLIC_OWNER_EMAIL;
 
                 let role: "student" | "admin" | "owner" = isOwnerEmail ? "owner" : "student";
                 let permissions: UserPermission[] = [];
