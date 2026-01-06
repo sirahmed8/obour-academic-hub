@@ -26,8 +26,8 @@ function findBestMatch(input: string): QA | null {
             bestMatch = qa;
           }
         } else {
-          // Boost score for inclusion
-          const score = 0.85;
+          // Boost score for inclusion - Higher confidence for direct matches
+          const score = 0.9;
           if (score > highestScore) {
             highestScore = score;
             bestMatch = qa;
@@ -44,7 +44,8 @@ function findBestMatch(input: string): QA | null {
     }
   }
 
-  return highestScore > 0.4 ? bestMatch : null; // Threshold
+  // Lower threshold to 0.3 for better coverage
+  return highestScore > 0.3 ? bestMatch : null;
 }
 
 // ----------------------------------------------------------------------

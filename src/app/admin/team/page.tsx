@@ -1,25 +1,28 @@
-"use client";
-
 import { useState, useEffect } from "react";
 import { AppShell } from "@/components/layout/AppShell";
 import { useAuth, useLanguage } from "@/contexts";
 import { db } from "@/lib/firebase";
-import { collection, onSnapshot, setDoc, deleteDoc, doc } from "firebase/firestore";
-import { Users, UserPlus, Trash2, Shield, Mail, Loader2, CheckCircle2 } from "lucide-react";
+import { collection, onSnapshot, setDoc, deleteDoc, doc, query, where } from "firebase/firestore";
+import { Users, UserPlus, Trash2, Shield, Mail, Loader2, CheckCircle2, Crown } from "lucide-react";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
+import { User } from "@/types";
 
-interface WhitelistedAdmin {
+interface TeamMember {
   email: string;
   role: string;
-  addedBy: string;
-  addedAt: string;
+  addedBy?: string;
+  addedAt?: string;
+  isWhitelisted?: boolean;
+  isActiveUser?: boolean;
+  displayName?: string;
+  photoURL?: string;
 }
 
 export default function AdminTeamPage() {
   const { user, isAdmin, isOwner } = useAuth();
   const { language } = useLanguage();
-  const [admins, setAdmins] = useState<WhitelistedAdmin[]>([]);
+  const [teamMembers, setTeamMembers] = useState<TeamMember[]>([]);
   const [loading, setLoading] = useState(true);
   const [newEmail, setNewEmail] = useState("");
   const [adding, setAdding] = useState(false);
@@ -29,16 +32,68 @@ export default function AdminTeamPage() {
       return;
     }
 
-    const unsubscribe = onSnapshot(collection(db, "whitelisted_admins"), (snapshot) => {
-      const data = snapshot.docs.map((d) => ({
-        email: d.id,
-        ...d.data(),
-      })) as WhitelistedAdmin[];
-      setAdmins(data);
-      setLoading(false);
-    });
+    const unsubscribers: (() => void)[] = [];
+    const membersMap = new Map<string, TeamMember>();
 
-    return () => unsubscribe();
+    // Listen to whitelisted admins
+    const whitelistUnsub = onSnapshot(collection(db, "whitelisted_admins"), (snapshot) => {
+      snapshot.docs.forEach((d) => {
+        const email = d.id;
+        const existing = membersMap.get(email);
+        membersMap.set(email, {
+          email,
+          role: d.data().role || "admin",
+          addedBy: d.data().addedBy,
+          addedAt: d.data().addedAt,
+          isWhitelisted: true,
+          isActiveUser: existing?.isActiveUser,
+          displayName: existing?.displayName,
+          photoURL: existing?.photoURL,
+        });
+      });
+      updateTeamMembers();
+    });
+    unsubscribers.push(whitelistUnsub);
+
+    // Listen to actual admin/owner users
+    const usersUnsub = onSnapshot(
+      query(collection(db, "users"), where("role", "in", ["admin", "owner"])),
+      (snapshot) => {
+        snapshot.docs.forEach((d) => {
+          const userData = d.data() as User;
+          const email = userData.email;
+          const existing = membersMap.get(email);
+          membersMap.set(email, {
+            email,
+            role: userData.role,
+            addedBy: existing?.addedBy,
+            addedAt: existing?.addedAt || userData.createdAt,
+            isWhitelisted: existing?.isWhitelisted,
+            isActiveUser: true,
+            displayName: userData.displayName,
+            photoURL: userData.photoURL,
+          });
+        });
+        updateTeamMembers();
+      }
+    );
+    unsubscribers.push(usersUnsub);
+
+    function updateTeamMembers() {
+      const members = Array.from(membersMap.values());
+      // Sort: owner first, then admins, then by email
+      members.sort((a, b) => {
+        if (a.role === "owner" && b.role !== "owner") return -1;
+        if (a.role !== "owner" && b.role === "owner") return 1;
+        return a.email.localeCompare(b.email);
+      });
+      setTeamMembers(members);
+      setLoading(false);
+    }
+
+    return () => {
+      unsubscribers.forEach((unsub) => unsub());
+    };
   }, [isAdmin]);
 
   const handleAddAdmin = async () => {
@@ -149,52 +204,97 @@ export default function AdminTeamPage() {
           </p>
         </div>
 
-        {/* Admin List */}
+        {/* Team Members List */}
         <div className="bg-card border border-border rounded-2xl p-6 shadow-sm">
           <h2 className="text-lg font-semibold mb-4 flex items-center gap-2">
             <Users className="w-5 h-5 text-blue-500" />
-            {language === "ar" ? "المسؤولون الحاليون" : "Current Admins"}
-            <span className="text-sm text-muted-foreground font-normal">({admins.length})</span>
+            {language === "ar" ? "أعضاء الفريق" : "Team Members"}
+            <span className="text-sm text-muted-foreground font-normal">
+              ({teamMembers.length})
+            </span>
           </h2>
 
-          {admins.length === 0 ? (
+          {teamMembers.length === 0 ? (
             <div className="text-center py-8 text-muted-foreground">
-              {language === "ar" ? "لا يوجد مسؤولون مضافون بعد" : "No admins added yet"}
+              {language === "ar" ? "لا يوجد أعضاء في الفريق" : "No team members yet"}
             </div>
           ) : (
             <div className="space-y-3">
-              {admins.map((admin) => (
+              {teamMembers.map((member) => (
                 <div
-                  key={admin.email}
+                  key={member.email}
                   className="group flex items-center justify-between p-4 bg-muted/30 rounded-xl border border-transparent hover:border-border transition-all"
                 >
                   <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 bg-primary/10 rounded-full flex items-center justify-center">
-                      <Shield className="w-5 h-5 text-primary" />
+                    <div
+                      className={cn(
+                        "w-10 h-10 rounded-full flex items-center justify-center",
+                        member.role === "owner"
+                          ? "bg-amber-100 dark:bg-amber-900/30"
+                          : "bg-primary/10"
+                      )}
+                    >
+                      {member.role === "owner" ? (
+                        <Crown className="w-5 h-5 text-amber-600 dark:text-amber-400" />
+                      ) : (
+                        <Shield className="w-5 h-5 text-primary" />
+                      )}
                     </div>
                     <div>
-                      <p className="font-medium">{admin.email}</p>
-                      <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                        <CheckCircle2 className="w-3 h-3 text-green-500" />
+                      <div className="flex items-center gap-2">
+                        <p className="font-medium">{member.email}</p>
+                        {member.displayName && (
+                          <span className="text-xs text-muted-foreground">
+                            ({member.displayName})
+                          </span>
+                        )}
+                      </div>
+                      <div className="flex items-center gap-2 text-xs text-muted-foreground mt-0.5">
+                        {member.isActiveUser && (
+                          <>
+                            <CheckCircle2 className="w-3 h-3 text-green-500" />
+                            <span className="text-green-600 dark:text-green-400">
+                              {language === "ar" ? "نشط" : "Active User"}
+                            </span>
+                          </>
+                        )}
+                        {member.isWhitelisted && (
+                          <span
+                            className={cn(
+                              "px-2 py-0.5 rounded-full",
+                              member.isActiveUser
+                                ? "bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300"
+                                : "bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-300"
+                            )}
+                          >
+                            {member.isActiveUser
+                              ? language === "ar"
+                                ? "مدرج في القائمة"
+                                : "Whitelisted"
+                              : language === "ar"
+                                ? "في انتظار التسجيل"
+                                : "Pending Login"}
+                          </span>
+                        )}
                         <span
                           className={cn(
-                            "px-2 py-0.5 rounded-full",
-                            admin.role === "owner"
-                              ? "bg-amber-100 text-amber-700"
-                              : "bg-blue-100 text-blue-700"
+                            "px-2 py-0.5 rounded-full font-medium",
+                            member.role === "owner"
+                              ? "bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-300"
+                              : "bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-300"
                           )}
                         >
-                          {admin.role}
+                          {member.role}
                         </span>
                       </div>
                     </div>
                   </div>
 
-                  {isOwner && admin.role !== "owner" && (
+                  {isOwner && member.role !== "owner" && member.isWhitelisted && (
                     <button
-                      onClick={() => handleRemoveAdmin(admin.email)}
-                      className="opacity-0 group-hover:opacity-100 p-2 hover:bg-red-50 text-red-400 hover:text-red-600 rounded-lg transition-all"
-                      title={language === "ar" ? "إزالة" : "Remove"}
+                      onClick={() => handleRemoveAdmin(member.email)}
+                      className="opacity-0 group-hover:opacity-100 p-2 hover:bg-red-50 dark:hover:bg-red-900/20 text-red-400 hover:text-red-600 dark:hover:text-red-300 rounded-lg transition-all"
+                      title={language === "ar" ? "إزالة من القائمة" : "Remove from whitelist"}
                     >
                       <Trash2 className="w-5 h-5" />
                     </button>

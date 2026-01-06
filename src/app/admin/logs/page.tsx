@@ -120,12 +120,16 @@ export default function AdminLogsPage() {
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: index * 0.05 }}
-                whileHover={{ scale: 1.01, y: -2 }}
-                className="group bg-card p-4 rounded-2xl border border-border hover:shadow-lg hover:border-primary/30 transition-all duration-300 flex items-start gap-4"
+                whileHover={{ scale: 1.02, y: -4 }}
+                className="group bg-card p-4 rounded-2xl border border-border hover:shadow-xl hover:shadow-primary/10 hover:border-primary/50 transition-all duration-300 flex items-start gap-4"
               >
-                <div className="p-3 bg-muted rounded-xl group-hover:bg-primary/10 transition-colors">
+                <motion.div
+                  className="p-3 bg-muted rounded-xl group-hover:bg-primary/10 transition-colors"
+                  whileHover={{ rotate: [0, -10, 10, -10, 0], scale: 1.1 }}
+                  transition={{ duration: 0.5 }}
+                >
                   {getLogIcon(log.action)}
-                </div>
+                </motion.div>
 
                 <div className="flex-1 min-w-0">
                   <div className="flex items-start justify-between gap-4">

@@ -21,6 +21,7 @@ import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { Subject } from "@/types";
 import { ConfirmationModal } from "@/components/ui/ConfirmationModal";
+import { motion, AnimatePresence } from "framer-motion";
 
 const ICON_OPTIONS = [
   "BookOpen",
@@ -309,7 +310,7 @@ export default function AdminSubjectsPage() {
                                 : "hover:bg-muted"
                             )}
                           >
-                            <IconComp className="w-7 h-7" />
+                            <IconComp className="w-9 h-9 md:w-7 md:h-7" />
                           </button>
                         );
                       })}
@@ -327,7 +328,7 @@ export default function AdminSubjectsPage() {
                           type="button"
                           onClick={() => setFormData({ ...formData, color: color.value })}
                           className={cn(
-                            "w-11 h-11 rounded-full ring-2 ring-offset-2 transition-all duration-200 active:scale-95",
+                            "w-14 h-14 md:w-11 md:h-11 rounded-full ring-2 ring-offset-2 transition-all duration-200 active:scale-95",
                             color.value,
                             formData.color === color.value
                               ? "ring-primary scale-110"
@@ -433,103 +434,114 @@ export default function AdminSubjectsPage() {
                       </div>
 
                       {/* Edit Panel */}
-                      <div
-                        className={cn(
-                          "overflow-hidden transition-all duration-300 ease-out",
-                          isEditing ? "max-h-[500px] opacity-100" : "max-h-0 opacity-0"
-                        )}
-                      >
-                        {editData && (
-                          <div className="p-4 pt-0 border-t border-border bg-muted/30 space-y-3">
-                            <div className="grid grid-cols-2 gap-3">
-                              <input
-                                type="text"
-                                value={editData.name}
-                                onChange={(e) =>
-                                  setEditData({
-                                    ...editData,
-                                    name: e.target.value,
-                                  })
-                                }
-                                placeholder={language === "ar" ? "اسم المادة" : "Subject Name"}
-                                className="rounded-lg border border-border px-3 py-2 bg-background text-sm focus:ring-2 focus:ring-primary/50 focus:border-primary outline-none transition-all"
-                              />
-                              <input
-                                type="text"
-                                value={editData.nameAr || ""}
-                                onChange={(e) =>
-                                  setEditData({
-                                    ...editData,
-                                    nameAr: e.target.value,
-                                  })
-                                }
-                                placeholder={
-                                  language === "ar" ? "اسم المادة (عربي)" : "Subject Name (Arabic)"
-                                }
-                                className="rounded-lg border border-border px-3 py-2 bg-background text-sm focus:ring-2 focus:ring-primary/50 focus:border-primary outline-none transition-all"
-                              />
-                              <input
-                                type="text"
-                                value={editData.profName}
-                                onChange={(e) =>
-                                  setEditData({
-                                    ...editData,
-                                    profName: e.target.value,
-                                  })
-                                }
-                                placeholder={language === "ar" ? "اسم الدكتور" : "Professor Name"}
-                                className="rounded-lg border border-border px-3 py-2 bg-background text-sm focus:ring-2 focus:ring-primary/50 focus:border-primary outline-none transition-all"
-                              />
-                              <input
-                                type="text"
-                                value={editData.profNameAr || ""}
-                                onChange={(e) =>
-                                  setEditData({
-                                    ...editData,
-                                    profNameAr: e.target.value,
-                                  })
-                                }
-                                placeholder={
-                                  language === "ar"
-                                    ? "اسم الدكتور (عربي)"
-                                    : "Professor Name (Arabic)"
-                                }
-                                className="rounded-lg border border-border px-3 py-2 bg-background text-sm focus:ring-2 focus:ring-primary/50 focus:border-primary outline-none transition-all"
-                              />
-                            </div>
-
-                            <div className="flex gap-2 flex-wrap">
-                              {COLOR_OPTIONS.map((color) => (
-                                <button
-                                  key={color.value}
-                                  type="button"
-                                  onClick={() =>
+                      <AnimatePresence>
+                        {isEditing && editData && (
+                          <motion.div
+                            initial={{ height: 0, opacity: 0 }}
+                            animate={{ height: "auto", opacity: 1 }}
+                            exit={{ height: 0, opacity: 0 }}
+                            transition={{ duration: 0.5, ease: "easeInOut" }}
+                            className="overflow-hidden border-t border-border bg-muted/30"
+                          >
+                            <motion.div
+                              initial={{ scale: 0.95, opacity: 0 }}
+                              animate={{ scale: 1, opacity: 1 }}
+                              exit={{ scale: 0.95, opacity: 0 }}
+                              transition={{ duration: 0.3, delay: 0.1 }}
+                              className="p-4 pt-4 space-y-3"
+                            >
+                              <div className="grid grid-cols-2 gap-3">
+                                <input
+                                  type="text"
+                                  value={editData.name}
+                                  onChange={(e) =>
                                     setEditData({
                                       ...editData,
-                                      color: color.value,
+                                      name: e.target.value,
                                     })
                                   }
-                                  className={cn(
-                                    "w-6 h-6 rounded-full ring-2 ring-offset-1 transition-all",
-                                    color.value,
-                                    editData.color === color.value
-                                      ? "ring-primary"
-                                      : "ring-transparent opacity-60 hover:opacity-100"
-                                  )}
+                                  placeholder={language === "ar" ? "اسم المادة" : "Subject Name"}
+                                  className="rounded-lg border border-border px-3 py-2 bg-background text-sm focus:ring-2 focus:ring-primary/50 focus:border-primary outline-none transition-all"
                                 />
-                              ))}
-                            </div>
+                                <input
+                                  type="text"
+                                  value={editData.nameAr || ""}
+                                  onChange={(e) =>
+                                    setEditData({
+                                      ...editData,
+                                      nameAr: e.target.value,
+                                    })
+                                  }
+                                  placeholder={
+                                    language === "ar"
+                                      ? "اسم المادة (عربي)"
+                                      : "Subject Name (Arabic)"
+                                  }
+                                  className="rounded-lg border border-border px-3 py-2 bg-background text-sm focus:ring-2 focus:ring-primary/50 focus:border-primary outline-none transition-all"
+                                />
+                                <input
+                                  type="text"
+                                  value={editData.profName}
+                                  onChange={(e) =>
+                                    setEditData({
+                                      ...editData,
+                                      profName: e.target.value,
+                                    })
+                                  }
+                                  placeholder={language === "ar" ? "اسم الدكتور" : "Professor Name"}
+                                  className="rounded-lg border border-border px-3 py-2 bg-background text-sm focus:ring-2 focus:ring-primary/50 focus:border-primary outline-none transition-all"
+                                />
+                                <input
+                                  type="text"
+                                  value={editData.profNameAr || ""}
+                                  onChange={(e) =>
+                                    setEditData({
+                                      ...editData,
+                                      profNameAr: e.target.value,
+                                    })
+                                  }
+                                  placeholder={
+                                    language === "ar"
+                                      ? "اسم الدكتور (عربي)"
+                                      : "Professor Name (Arabic)"
+                                  }
+                                  className="rounded-lg border border-border px-3 py-2 bg-background text-sm focus:ring-2 focus:ring-primary/50 focus:border-primary outline-none transition-all"
+                                />
+                              </div>
 
-                            <button
-                              onClick={saveEdit}
-                              className="w-full bg-primary hover:bg-primary/90 text-primary-foreground font-medium py-2 rounded-lg transition-all duration-200 active:scale-[0.98] flex items-center justify-center gap-2"
-                            >
-                              <Check className="w-4 h-4" />
-                              {language === "ar" ? "حفظ" : "Save"}
-                            </button>
-                          </div>
+                              <div className="flex gap-2 flex-wrap">
+                                {COLOR_OPTIONS.map((color) => (
+                                  <button
+                                    key={color.value}
+                                    type="button"
+                                    onClick={() =>
+                                      setEditData({
+                                        ...editData,
+                                        color: color.value,
+                                      })
+                                    }
+                                    className={cn(
+                                      "w-6 h-6 rounded-full ring-2 ring-offset-1 transition-all",
+                                      color.value,
+                                      editData.color === color.value
+                                        ? "ring-primary"
+                                        : "ring-transparent opacity-60 hover:opacity-100"
+                                    )}
+                                  />
+                                ))}
+                              </div>
+
+                              <button
+                                onClick={saveEdit}
+                                className="w-full bg-primary hover:bg-primary/90 text-primary-foreground font-medium py-2 rounded-lg transition-all duration-200 active:scale-[0.98] flex items-center justify-center gap-2"
+                              >
+                                <Check className="w-4 h-4" />
+                                {language === "ar" ? "حفظ" : "Save"}
+                              </button>
+                            </motion.div>
+                          </motion.div>
                         )}
-                      </div>
+                      </AnimatePresence>
                     </div>
                   );
                 })}
