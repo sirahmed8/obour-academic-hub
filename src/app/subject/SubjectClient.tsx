@@ -2,21 +2,9 @@
 
 import { useState, useEffect, useRef } from "react";
 import { useSearchParams, usePathname } from "next/navigation";
-import { db } from "@/lib/firebase";
-import {
-  getDoc,
-  doc,
-  collection,
-  query,
-  orderBy,
-  onSnapshot,
-  updateDoc,
-  increment,
-  where,
-  getDocs,
-} from "firebase/firestore";
 import { Subject, Resource } from "@/types";
 import { useLanguage } from "@/contexts";
+import { subjectService } from "@/services/subject.service";
 import { AppShell } from "@/components/layout/AppShell";
 import { cn } from "@/lib/utils";
 import * as Icons from "lucide-react";
@@ -31,6 +19,8 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import { CustomSelect } from "@/components/ui/CustomSelect";
+import { motion } from "framer-motion";
+import { listContainer, listItem } from "@/lib/motion";
 
 interface SubjectClientProps {
   subjectName?: string;
@@ -93,22 +83,10 @@ export function SubjectClient({ subjectName }: SubjectClientProps) {
         let id = subjectIdParam;
 
         if (finalSubjectName) {
-          const q = query(
-            collection(db, "subjects"),
-            where("name", "==", decodeURIComponent(finalSubjectName))
-          );
-          const querySnapshot = await getDocs(q);
-          if (!querySnapshot.empty) {
-            const docSnap = querySnapshot.docs[0];
-            data = { id: docSnap.id, ...docSnap.data() } as Subject;
-            id = docSnap.id;
-          }
+          data = await subjectService.getByName(finalSubjectName);
+          if (data) id = data.id;
         } else if (subjectIdParam) {
-          const docRef = doc(db, "subjects", subjectIdParam);
-          const docSnap = await getDoc(docRef);
-          if (docSnap.exists()) {
-            data = { id: docSnap.id, ...docSnap.data() } as Subject;
-          }
+          data = await subjectService.getById(subjectIdParam);
         }
 
         if (cancelled) return;
@@ -116,21 +94,11 @@ export function SubjectClient({ subjectName }: SubjectClientProps) {
         if (data) {
           setSubject(data);
 
-          // Resources subscription
           if (id) {
             // Increment views
-            updateDoc(doc(db, "subjects", id), {
-              views: increment(1),
-            }).catch((err) => console.error("Error incrementing views:", err));
-
-            // We need to store unsubscribe to clean it up, but specific to this effect run...
-            // Actually, we can just set up a separate effect for resources if we have the ID?
-            // Or better, just utilize the ID we found.
-
-            // Since we have the ID now, we can setup the listener here or rely on state "subject".
-            // Relying on state "subject" is cleaner but might cause a flicker or delay.
-            // Let's rely on "subject" state change to trigger resource fetching in a separate effect?
-            // No, "subjectId" was used before.
+            subjectService
+              .incrementViews(id)
+              .catch((err) => console.error("Error incrementing views:", err));
           }
         } else {
           setFetchError(true);
@@ -153,9 +121,8 @@ export function SubjectClient({ subjectName }: SubjectClientProps) {
   useEffect(() => {
     if (!subject?.id) return;
 
-    const q = query(collection(db, "subjects", subject.id, "resources"), orderBy("orderIndex"));
-    const unsubscribe = onSnapshot(q, (snapshot) => {
-      setResources(snapshot.docs.map((d) => ({ id: d.id, ...d.data() }) as Resource));
+    const unsubscribe = subjectService.subscribeToResources(subject.id, (newResources) => {
+      setResources(newResources);
     });
 
     return () => unsubscribe();
@@ -336,9 +303,15 @@ export function SubjectClient({ subjectName }: SubjectClientProps) {
             }
 
             return (
-              <div className="space-y-4">
+              <motion.div
+                variants={listContainer}
+                initial="hidden"
+                animate="visible"
+                className="space-y-4"
+              >
                 {filtered.map((resource) => (
-                  <div
+                  <motion.div
+                    variants={listItem}
                     key={resource.id}
                     ref={resource.id === highlightedId ? highlightRef : undefined}
                     className={cn(
@@ -378,9 +351,9 @@ export function SubjectClient({ subjectName }: SubjectClientProps) {
                         <ExternalLink size={20} />
                       )}
                     </a>
-                  </div>
+                  </motion.div>
                 ))}
-              </div>
+              </motion.div>
             );
           })()}
         </div>

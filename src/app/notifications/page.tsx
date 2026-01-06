@@ -2,23 +2,15 @@
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { db } from "@/lib/firebase";
-import {
-  collection,
-  query,
-  orderBy,
-  onSnapshot,
-  doc,
-  updateDoc,
-  arrayUnion,
-  deleteDoc,
-} from "firebase/firestore";
 import { useLanguage, useAuth } from "@/contexts";
+import { notificationService } from "@/services/notification.service";
 import { AppShell } from "@/components/layout/AppShell";
 import { Bell, Info, AlertTriangle, CheckCircle, Loader2, Trash2, CheckCheck } from "lucide-react";
 import { ConfirmationModal } from "@/components/ui/ConfirmationModal";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
+import { motion } from "framer-motion";
+import { listContainer, listItem } from "@/lib/motion";
 import { formatDate, formatDateArabic } from "@/lib/utils";
 import { Notification } from "@/types";
 
@@ -33,19 +25,8 @@ export default function NotificationsPage() {
   useEffect(() => {
     if (!user) return;
 
-    const q = query(collection(db, "notifications"), orderBy("createdAt", "desc"));
-
-    const unsubscribe = onSnapshot(
-      q,
-      (snapshot) => {
-        const allNotifs = snapshot.docs.map(
-          (d) =>
-            ({
-              id: d.id,
-              ...d.data(),
-            }) as Notification
-        );
-
+    const unsubscribe = notificationService.subscribeToAll(
+      (allNotifs) => {
         // Filter notifications relevant to the user
         const relevantNotifs = allNotifs.filter((n) => {
           if (n.target === "all" || !n.target) return true;
@@ -73,13 +54,9 @@ export default function NotificationsPage() {
     if (unread.length === 0) return;
 
     // In a real app, use a batch or backend function.
-    // Here we iterate to update Firestore docs.
     unread.forEach(async (n) => {
       try {
-        const notifRef = doc(db, "notifications", n.id);
-        await updateDoc(notifRef, {
-          readBy: arrayUnion(user.uid),
-        });
+        await notificationService.markAsRead(n.id, user.uid);
       } catch (err) {
         console.error("Error marking read:", err);
       }
@@ -91,7 +68,7 @@ export default function NotificationsPage() {
     if (!deleteId) return;
 
     try {
-      await deleteDoc(doc(db, "notifications", deleteId));
+      await notificationService.delete(deleteId);
       toast.success(
         language === "ar" ? "تم حذف الإشعار بنجاح" : "Notification deleted successfully"
       );
@@ -178,21 +155,24 @@ export default function NotificationsPage() {
             </p>
           </div>
         ) : (
-          <div className="space-y-4">
+          <motion.div
+            variants={listContainer}
+            initial="hidden"
+            animate="visible"
+            className="space-y-4"
+          >
             {notifications.map((notif) => {
               const Icon = getIcon(notif.type);
               const isRead = notif.readBy?.includes(user?.uid || "");
 
               return (
-                <div
+                <motion.div
+                  variants={listItem}
                   key={notif.id}
                   onClick={async () => {
                     // Mark as read on click
                     if (!isRead && user) {
-                      const notifRef = doc(db, "notifications", notif.id);
-                      await updateDoc(notifRef, {
-                        readBy: arrayUnion(user.uid),
-                      });
+                      await notificationService.markAsRead(notif.id, user.uid);
                     }
                     // Navigate to subject if available
                     if (notif.subjectId) {
@@ -203,15 +183,12 @@ export default function NotificationsPage() {
                     }
                   }}
                   className={cn(
-                    "rounded-2xl p-6 border transition-all duration-200 animate-fade-in-up",
+                    "rounded-2xl p-6 border transition-all duration-200 cursor-default",
                     isRead
                       ? "bg-card/50 border-border/50 opacity-70 hover:opacity-100"
                       : "bg-card border-primary/20 shadow-sm ring-1 ring-primary/5",
                     notif.subjectId && "cursor-pointer hover:border-primary/40 hover:shadow-md"
                   )}
-                  style={{
-                    animationDelay: `${notifications.indexOf(notif) * 50}ms`,
-                  }}
                 >
                   <div className="flex items-start gap-4">
                     <div className={cn("p-3 rounded-xl flex-shrink-0", getColors(notif.type))}>
@@ -253,10 +230,10 @@ export default function NotificationsPage() {
                       </p>
                     </div>
                   </div>
-                </div>
+                </motion.div>
               );
             })}
-          </div>
+          </motion.div>
         )}
       </div>
 
