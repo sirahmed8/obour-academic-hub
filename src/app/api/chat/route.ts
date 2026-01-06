@@ -1,25 +1,59 @@
-import { openai } from "@/lib/ai";
 import { streamText } from "ai";
+import { getAIModel, SYSTEM_PROMPT, AIModelProvider } from "@/lib/ai";
+import { NextRequest } from "next/server";
 
-// Using Node.js runtime (default) for static generation compatibility
+// Edge runtime for streaming
+export const runtime = "edge";
 
-export async function POST(req: Request) {
-  // Simple check for authorization header presence to prevent direct public access
-  // For production, you should verify the Firebase ID token here using firebase-admin
-  const authHeader = req.headers.get("Authorization");
+interface ChatMessage {
+  role: "user" | "assistant" | "system";
+  content: string;
+}
 
-  if (!authHeader?.startsWith("Bearer ")) {
-    return new Response("Unauthorized", { status: 401 });
+export async function POST(req: NextRequest) {
+  try {
+    // Check authorization
+    const authHeader = req.headers.get("Authorization");
+    if (!authHeader?.startsWith("Bearer ")) {
+      return new Response("Unauthorized", { status: 401 });
+    }
+
+    const body = await req.json();
+    const { messages, model = "balanced" } = body as {
+      messages: { role: string; content: string }[];
+      model?: AIModelProvider;
+    };
+
+    if (!messages || !Array.isArray(messages)) {
+      return new Response("Invalid request: messages required", { status: 400 });
+    }
+
+    // Get the appropriate AI model based on user selection
+    const aiModel = getAIModel(model);
+
+    // Convert messages to proper format with role typing
+    const formattedMessages: ChatMessage[] = messages.map((m) => ({
+      role: m.role as "user" | "assistant" | "system",
+      content: m.content,
+    }));
+
+    // Stream the response
+    const result = streamText({
+      model: aiModel,
+      messages: formattedMessages,
+      system: SYSTEM_PROMPT,
+    });
+
+    return result.toTextStreamResponse();
+  } catch (error) {
+    console.error("Chat API Error:", error);
+
+    // Return a helpful error message
+    const errorMessage = error instanceof Error ? error.message : "Unknown error occurred";
+
+    return new Response(JSON.stringify({ error: errorMessage }), {
+      status: 500,
+      headers: { "Content-Type": "application/json" },
+    });
   }
-
-  const { messages } = await req.json();
-
-  const result = streamText({
-    model: openai("gpt-4o"),
-    messages, // AI SDK 6.x accepts messages directly
-    system:
-      "You are the Obour Platform Smart Assistant (المساعد الذكي). You are helpful, friendly, and bilingual (English/Arabic). You assist students with academic queries, platform navigation, and technical issues. Keep responses concise and supportive.",
-  });
-
-  return result.toTextStreamResponse();
 }

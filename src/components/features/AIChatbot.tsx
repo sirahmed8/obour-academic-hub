@@ -2,7 +2,17 @@
 
 import { useState, useRef, useEffect, useMemo, useCallback } from "react";
 import { AnimatePresence, motion } from "framer-motion";
-import { X, Send, Headphones, Bot, MessageSquare, Trash2 } from "lucide-react";
+import {
+  X,
+  Send,
+  Headphones,
+  Bot,
+  MessageSquare,
+  Trash2,
+  Sparkles,
+  Zap,
+  ChevronDown,
+} from "lucide-react";
 import { useAuth, useLanguage } from "@/contexts";
 import { cn } from "@/lib/utils";
 import { db, auth } from "@/lib/firebase";
@@ -15,8 +25,37 @@ import { ConfirmationModal } from "@/components/ui/ConfirmationModal";
 import { QuickReplies } from "@/components/ui/QuickReplies";
 import { QUICK_REPLIES } from "@/lib/quickReplies";
 import { FileUpload } from "@/components/features/FileUpload";
-
 import { ChatMessageItem } from "@/components/chat/ChatMessage";
+
+// AI Model types - All FREE via OpenRouter
+type AIModel = "local" | "thinking" | "balanced" | "flash";
+
+const AI_MODEL_INFO = {
+  local: {
+    name: { en: "Smart Bot", ar: "البوت الذكي" },
+    icon: Bot,
+    description: { en: "Instant responses", ar: "ردود فورية" },
+    color: "text-primary",
+  },
+  thinking: {
+    name: { en: "Thinking", ar: "تفكير" },
+    icon: Zap,
+    description: { en: "Deep reasoning", ar: "تفكير عميق" },
+    color: "text-purple-500",
+  },
+  balanced: {
+    name: { en: "Balanced", ar: "متوازن" },
+    icon: Bot,
+    description: { en: "Best for most tasks", ar: "الأفضل لمعظم المهام" },
+    color: "text-green-500",
+  },
+  flash: {
+    name: { en: "Flash", ar: "سريع" },
+    icon: Sparkles,
+    description: { en: "Fast responses", ar: "ردود سريعة" },
+    color: "text-blue-500",
+  },
+};
 
 export function AIChatbot() {
   const [isOpen, setIsOpen] = useState(false);
@@ -24,18 +63,35 @@ export function AIChatbot() {
   const [mode, setMode] = useState<"bot" | "live">("bot");
   const [isTyping, setIsTyping] = useState(false);
   const [showClearConfirm, setShowClearConfirm] = useState(false);
+  const [showModelPicker, setShowModelPicker] = useState(false);
+  const [streamingText, setStreamingText] = useState("");
+
+  // AI Model selection (persisted in localStorage)
+  const [aiModel, setAiModel] = useState<AIModel>(() => {
+    if (typeof window !== "undefined") {
+      return (localStorage.getItem("ai-model") as AIModel) || "local";
+    }
+    return "local";
+  });
 
   // Interaction State
   const [replyTo, setReplyTo] = useState<ChatMessage | null>(null);
 
-  // Firestore Messages State (Single Source of Truth)
+  // Firestore Messages State
   const [messages, setMessages] = useState<ChatMessage[]>([]);
 
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const { user } = useAuth();
   const { language } = useLanguage();
 
-  // 1. Listen for ALL Messages (User + Bot + Admin)
+  // Persist AI model selection
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      localStorage.setItem("ai-model", aiModel);
+    }
+  }, [aiModel]);
+
+  // Listen for messages
   useEffect(() => {
     if (!user) return;
 
@@ -52,14 +108,12 @@ export function AIChatbot() {
           }) as ChatMessage
       );
 
-      // Calculate unread/new messages for toast
       if (msgs.length > prevCount && prevCount > 0) {
         const lastMsg = msgs[msgs.length - 1];
         if (
           lastMsg.senderId === "admin" ||
           (lastMsg.senderId === "bot" && lastMsg.context === "bot")
         ) {
-          // Only notify if we are NOT in the active chat view for that message
           const isRelevantMode = lastMsg.context === mode;
           if (!isOpen || !isRelevantMode) {
             toast.info(
@@ -91,26 +145,80 @@ export function AIChatbot() {
     return () => unsubscribe();
   }, [user, isOpen, language, mode]);
 
-  // 2. Filter Messages based on Mode
+  // Filter messages by mode
   const filteredMessages = useMemo(() => {
     return messages.filter((m) => {
       if (mode === "bot") return m.context === "bot";
-      // Live mode shows 'live' OR undefined (legacy messages)
       return m.context === "live" || !m.context;
     });
   }, [messages, mode]);
 
-  // 3. Scroll to bottom
+  // Scroll to bottom
   useEffect(() => {
     if (isOpen) {
       messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
     }
-  }, [filteredMessages, isOpen, isTyping, replyTo]);
+  }, [filteredMessages, isOpen, isTyping, replyTo, streamingText]);
 
-  // 4. Handle Send (Unified)
+  // Get AI response from API with streaming
+  const getAIResponse = async (userMessage: string): Promise<string> => {
+    const token = await auth.currentUser?.getIdToken();
+    if (!token) throw new Error("Not authenticated");
+
+    // Build conversation history for context
+    const recentMessages = filteredMessages.slice(-6).map((m) => ({
+      role: m.senderId === user?.uid ? "user" : "assistant",
+      content: m.text,
+    }));
+
+    // Add current message
+    recentMessages.push({ role: "user", content: userMessage });
+
+    const response = await fetch("/api/chat", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify({
+        messages: recentMessages,
+        model: aiModel === "local" ? "balanced" : aiModel,
+      }),
+    });
+
+    if (!response.ok) {
+      throw new Error(`API error: ${response.status}`);
+    }
+
+    // Stream the response
+    const reader = response.body?.getReader();
+    const decoder = new TextDecoder();
+    let fullText = "";
+
+    if (reader) {
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+
+        const chunk = decoder.decode(value, { stream: true });
+        fullText += chunk;
+        setStreamingText(fullText);
+      }
+    }
+
+    setStreamingText("");
+    return fullText;
+  };
+
+  // Handle Send
   const handleSend = async (
     textOverride?: string,
-    attachment?: { url: string; name: string; size: number; type: "image" | "document" }
+    attachment?: {
+      url: string;
+      name: string;
+      size: number;
+      type: "image" | "document";
+    }
   ) => {
     const textToSend = textOverride || input;
     if ((!textToSend.trim() && !attachment) || !user) return;
@@ -119,8 +227,6 @@ export function AIChatbot() {
       setInput("");
       setReplyTo(null);
     }
-
-    // setIsTyping(true); // Don't show typing for user message immediately, maybe wait for bot?
 
     try {
       // Send User Message
@@ -131,50 +237,66 @@ export function AIChatbot() {
         user.displayName || "User",
         false,
         replyTo
-          ? { id: replyTo.id, text: replyTo.text, senderName: replyTo.senderName || "User" }
+          ? {
+              id: replyTo.id,
+              text: replyTo.text,
+              senderName: replyTo.senderName || "User",
+            }
           : undefined,
         mode,
         attachment
       );
 
-      // Scroll to bottom
       setTimeout(() => {
         messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
       }, 100);
 
-      // If Bot Mode, Get Bot Response
+      // Bot Mode Response
       if (mode === "bot") {
         setIsTyping(true);
-        // Simulate delay
-        // Simulate delay
-        setTimeout(
-          async () => {
-            try {
-              const token = await auth.currentUser?.getIdToken();
-              const botResponse = await getLocalBotResponse(
-                textToSend,
-                language as "en" | "ar",
-                token
-              );
 
-              // Send Bot Message
-              await sendMessage(
-                user.uid,
-                botResponse.text,
-                "bot",
-                "Obour Bot",
-                true,
-                undefined,
-                "bot"
-              );
-            } catch (error) {
-              console.error("Bot Error:", error);
-            } finally {
-              setIsTyping(false);
+        try {
+          let botResponse: string;
+
+          if (aiModel === "local") {
+            // Try local bot first
+            const localResponse = await getLocalBotResponse(textToSend, language as "en" | "ar");
+
+            // If local bot has low confidence, fallback to AI
+            if (localResponse.confidence < 0.5) {
+              try {
+                botResponse = await getAIResponse(textToSend);
+              } catch {
+                // If AI fails, use local response anyway
+                botResponse = localResponse.text;
+              }
+            } else {
+              botResponse = localResponse.text;
             }
-          },
-          1500 + Math.random() * 1000
-        );
+          } else {
+            // Direct AI response
+            botResponse = await getAIResponse(textToSend);
+          }
+
+          // Send Bot Message
+          await sendMessage(
+            user.uid,
+            botResponse,
+            "bot",
+            aiModel === "local"
+              ? "Obour Bot"
+              : AI_MODEL_INFO[aiModel].name[language as "en" | "ar"],
+            true,
+            undefined,
+            "bot"
+          );
+        } catch (error) {
+          console.error("Bot Error:", error);
+          toast.error(language === "ar" ? "حدث خطأ في الرد" : "Error getting response");
+        } finally {
+          setIsTyping(false);
+          setStreamingText("");
+        }
       }
     } catch (error) {
       console.error("Send Error:", error);
@@ -193,14 +315,6 @@ export function AIChatbot() {
   const handleClearHistory = async () => {
     if (!user) return;
     try {
-      // We need to ONLY delete messages of the current context
-      // Since existing clearChatHistory deletes ALL, we strictly need to update it or manually delete batch.
-      // For now, let's keep the backend simple and just warn 'This clears EVERYTHING'.
-      // OR, refine:
-      // Ideally clearChatHistory should support context.
-      // Since the tool call is limited, I will stick to full clear for now but maybe warn user?
-      // User asked for "Clear History" in bot.
-      // Let's assume clearChatHistory wipes the slate clean (both).
       await clearChatHistory(user.uid);
       toast.success(language === "ar" ? "تم مسح المحادثة" : "Chat history cleared");
       setShowClearConfirm(false);
@@ -212,8 +326,6 @@ export function AIChatbot() {
   const toggleChat = () => {
     setIsOpen((prev) => !prev);
     if (!isOpen && user) {
-      // Mark seen logic? Maybe specific to mode?
-      // Let's simplified mark all as seen for now
       markMessagesAsSeen(user.uid, false);
     }
   };
@@ -225,6 +337,8 @@ export function AIChatbot() {
     },
     [user]
   );
+
+  const CurrentModelIcon = AI_MODEL_INFO[aiModel].icon;
 
   if (!user) return null;
 
@@ -248,15 +362,7 @@ export function AIChatbot() {
         className="fixed bottom-6 right-6 z-50 p-4 bg-primary text-primary-foreground rounded-full shadow-lg hover:shadow-xl transition-shadow w-14 h-14 flex items-center justify-center"
         whileHover={{ scale: 1.05 }}
         whileTap={{ scale: 0.95 }}
-        aria-label={
-          isOpen
-            ? language === "ar"
-              ? "إغلاق المحادثة"
-              : "Close chat"
-            : language === "ar"
-              ? "فتح المحادثة"
-              : "Open chat"
-        }
+        aria-label={isOpen ? "Close chat" : "Open chat"}
       >
         <AnimatePresence mode="wait">
           {isOpen ? (
@@ -265,7 +371,6 @@ export function AIChatbot() {
             </motion.div>
           ) : (
             <motion.div key="chat" className="relative">
-              {/* Show badge if any unread? Logic simplified for now */}
               <MessageSquare className="w-6 h-6" />
             </motion.div>
           )}
@@ -285,7 +390,6 @@ export function AIChatbot() {
             {/* Header */}
             <div className="p-4 border-b border-border bg-muted/30 flex items-center justify-between backdrop-blur-md">
               <div className="flex items-center gap-3">
-                {/* Avatar: Changes based on mode */}
                 <div
                   className={cn(
                     "w-10 h-10 rounded-full flex items-center justify-center transition-colors shadow-inner",
@@ -300,7 +404,7 @@ export function AIChatbot() {
                         animate={{ scale: 1 }}
                         exit={{ scale: 0 }}
                       >
-                        <Bot className="w-6 h-6 text-primary" />
+                        <CurrentModelIcon className={cn("w-6 h-6", AI_MODEL_INFO[aiModel].color)} />
                       </motion.div>
                     ) : (
                       <motion.div
@@ -318,9 +422,7 @@ export function AIChatbot() {
                 <div>
                   <h3 className="font-bold text-sm">
                     {mode === "bot"
-                      ? language === "ar"
-                        ? "المساعد الذكي"
-                        : "Smart Assistant"
+                      ? AI_MODEL_INFO[aiModel].name[language as "en" | "ar"]
                       : language === "ar"
                         ? "الدعم المباشر"
                         : "Live Support"}
@@ -333,9 +435,7 @@ export function AIChatbot() {
                       )}
                     />
                     {mode === "bot"
-                      ? language === "ar"
-                        ? "يعمل دائماً"
-                        : "Always available"
+                      ? AI_MODEL_INFO[aiModel].description[language as "en" | "ar"]
                       : language === "ar"
                         ? "متصل الآن"
                         : "Online"}
@@ -344,6 +444,64 @@ export function AIChatbot() {
               </div>
 
               <div className="flex items-center gap-1">
+                {/* AI Model Selector (only in bot mode) */}
+                {mode === "bot" && (
+                  <div className="relative">
+                    <button
+                      onClick={() => setShowModelPicker(!showModelPicker)}
+                      className="p-2 hover:bg-muted rounded-full transition-colors flex items-center gap-1"
+                      title="Select AI Model"
+                    >
+                      <CurrentModelIcon className={cn("w-4 h-4", AI_MODEL_INFO[aiModel].color)} />
+                      <ChevronDown className="w-3 h-3" />
+                    </button>
+
+                    <AnimatePresence>
+                      {showModelPicker && (
+                        <motion.div
+                          initial={{ opacity: 0, y: -10 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          exit={{ opacity: 0, y: -10 }}
+                          className="absolute right-0 top-full mt-1 bg-background border border-border rounded-xl shadow-xl p-2 min-w-[180px] z-50"
+                        >
+                          {(
+                            Object.entries(AI_MODEL_INFO) as [
+                              AIModel,
+                              (typeof AI_MODEL_INFO)[AIModel],
+                            ][]
+                          ).map(([key, info]) => {
+                            const Icon = info.icon;
+                            return (
+                              <button
+                                key={key}
+                                onClick={() => {
+                                  setAiModel(key);
+                                  setShowModelPicker(false);
+                                }}
+                                className={cn(
+                                  "w-full flex items-center gap-3 p-2 rounded-lg transition-colors",
+                                  aiModel === key ? "bg-primary/10" : "hover:bg-muted"
+                                )}
+                              >
+                                <Icon className={cn("w-5 h-5", info.color)} />
+                                <div className="text-left">
+                                  <p className="text-sm font-medium">
+                                    {info.name[language as "en" | "ar"]}
+                                  </p>
+                                  <p className="text-[10px] text-muted-foreground">
+                                    {info.description[language as "en" | "ar"]}
+                                  </p>
+                                </div>
+                                {aiModel === key && <span className="ml-auto text-primary">✓</span>}
+                              </button>
+                            );
+                          })}
+                        </motion.div>
+                      )}
+                    </AnimatePresence>
+                  </div>
+                )}
+
                 <button
                   onClick={() => setShowClearConfirm(true)}
                   className="p-2 hover:bg-destructive/10 text-muted-foreground hover:text-destructive rounded-full transition-colors"
@@ -388,7 +546,7 @@ export function AIChatbot() {
               {filteredMessages.length === 0 && (
                 <div className="h-full flex flex-col items-center justify-center text-center text-muted-foreground p-6 opacity-60">
                   {mode === "bot" ? (
-                    <Bot className="w-12 h-12 mb-3" />
+                    <CurrentModelIcon className="w-12 h-12 mb-3" />
                   ) : (
                     <Headphones className="w-12 h-12 mb-3" />
                   )}
@@ -411,11 +569,24 @@ export function AIChatbot() {
                 />
               ))}
 
-              {/* Typing Indicator */}
-              {isTyping && (
+              {/* Streaming Text Display */}
+              {streamingText && (
                 <div className="flex gap-3 max-w-[85%] mr-auto">
                   <div className="w-6 h-6 rounded-full bg-primary/10 flex items-center justify-center shrink-0 self-end mb-1">
-                    <Bot className="w-3 h-3 text-primary" />
+                    <CurrentModelIcon className={cn("w-3 h-3", AI_MODEL_INFO[aiModel].color)} />
+                  </div>
+                  <div className="bg-muted px-4 py-3 rounded-2xl rounded-tl-none shadow-sm text-sm">
+                    {streamingText}
+                    <span className="inline-block w-1.5 h-4 bg-primary/50 ml-1 animate-pulse" />
+                  </div>
+                </div>
+              )}
+
+              {/* Typing Indicator */}
+              {isTyping && !streamingText && (
+                <div className="flex gap-3 max-w-[85%] mr-auto">
+                  <div className="w-6 h-6 rounded-full bg-primary/10 flex items-center justify-center shrink-0 self-end mb-1">
+                    <CurrentModelIcon className={cn("w-3 h-3", AI_MODEL_INFO[aiModel].color)} />
                   </div>
                   <div className="bg-muted px-4 py-3 rounded-2xl rounded-tl-none flex gap-1 items-center shadow-sm">
                     <span className="w-1.5 h-1.5 bg-primary/50 rounded-full animate-bounce [animation-delay:-0.3s]"></span>
@@ -433,7 +604,6 @@ export function AIChatbot() {
               <QuickReplies
                 replies={QUICK_REPLIES}
                 onSelect={(query) => {
-                  // Send directly without populating input
                   handleSend(query);
                 }}
                 language={language as "en" | "ar"}
@@ -490,7 +660,7 @@ export function AIChatbot() {
                 />
                 <button
                   onClick={() => handleSend()}
-                  disabled={!input.trim()}
+                  disabled={!input.trim() || isTyping}
                   className="p-3 bg-primary text-primary-foreground rounded-xl hover:opacity-90 transition-opacity disabled:opacity-50 shadow-md h-[44px] flex items-center justify-center"
                   aria-label={language === "ar" ? "إرسال" : "Send"}
                 >
