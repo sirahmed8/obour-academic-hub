@@ -2,17 +2,7 @@
 
 import { useState, useRef, useEffect, useMemo, useCallback } from "react";
 import { AnimatePresence, motion } from "framer-motion";
-import {
-  X,
-  Send,
-  Headphones,
-  Bot,
-  MessageSquare,
-  Trash2,
-  Sparkles,
-  Zap,
-  ChevronDown,
-} from "lucide-react";
+import { X, Send, Headphones, Bot, MessageSquare, Trash2, Sparkles, Zap } from "lucide-react";
 import { useAuth, useLanguage } from "@/contexts";
 import { cn } from "@/lib/utils";
 import { db, auth } from "@/lib/firebase";
@@ -70,7 +60,6 @@ export function AIChatbot() {
   const [mode, setMode] = useState<"bot" | "live">("bot");
   const [isTyping, setIsTyping] = useState(false);
   const [showClearConfirm, setShowClearConfirm] = useState(false);
-  const [showModelPicker, setShowModelPicker] = useState(false);
   const [streamingText, setStreamingText] = useState("");
 
   // AI Model selection (persisted in localStorage, default: balanced)
@@ -506,77 +495,6 @@ export function AIChatbot() {
               </div>
 
               <div className="flex items-center gap-1">
-                {/* AI Model Selector (only in bot mode) */}
-                {mode === "bot" && (
-                  <div className="relative">
-                    <button
-                      onClick={() => setShowModelPicker(!showModelPicker)}
-                      className="p-2 hover:bg-muted rounded-full transition-colors flex items-center gap-1"
-                      title="Select AI Model"
-                    >
-                      <CurrentModelIcon className={cn("w-4 h-4", AI_MODEL_INFO[aiModel].color)} />
-                      <ChevronDown className="w-3 h-3" />
-                    </button>
-
-                    <AnimatePresence>
-                      {showModelPicker && (
-                        <motion.div
-                          initial={{ opacity: 0, y: -10, scale: 0.95 }}
-                          animate={{ opacity: 1, y: 0, scale: 1 }}
-                          exit={{ opacity: 0, y: -10, scale: 0.95 }}
-                          className="absolute right-0 top-full mt-2 bg-[#1a1a2e] border-2 border-primary/30 rounded-xl shadow-2xl p-2 min-w-[200px] z-[100]"
-                        >
-                          {(
-                            Object.entries(AI_MODEL_INFO) as [
-                              AIModel,
-                              (typeof AI_MODEL_INFO)[AIModel],
-                            ][]
-                          ).map(([key, info]) => {
-                            const Icon = info.icon;
-                            return (
-                              <button
-                                key={key}
-                                onClick={() => {
-                                  setAiModel(key);
-                                  setShowModelPicker(false);
-                                }}
-                                className={cn(
-                                  "w-full flex items-center gap-3 p-3 rounded-xl transition-all cursor-pointer",
-                                  aiModel === key
-                                    ? "bg-primary/20 border-2 border-primary shadow-lg"
-                                    : "hover:bg-white/10 border-2 border-transparent"
-                                )}
-                              >
-                                <div
-                                  className={cn(
-                                    "p-2 rounded-lg",
-                                    aiModel === key ? "bg-primary/30" : "bg-white/5"
-                                  )}
-                                >
-                                  <Icon className={cn("w-5 h-5", info.color)} />
-                                </div>
-                                <div className="text-left flex-1">
-                                  <p className="text-sm font-bold text-white">
-                                    {info.name[language as "en" | "ar"]}
-                                  </p>
-                                  <p className="text-[10px] text-gray-400">
-                                    {info.description[language as "en" | "ar"]}
-                                  </p>
-                                </div>
-                                {aiModel === key && (
-                                  <div className="w-5 h-5 bg-primary rounded-full flex items-center justify-center">
-                                    <span className="text-white text-xs">✓</span>
-                                  </div>
-                                )}
-                              </button>
-                            );
-                          })}
-                        </motion.div>
-                      )}
-                    </AnimatePresence>
-                  </div>
-                )}
-
                 <button
                   onClick={() => setShowClearConfirm(true)}
                   className="p-2 hover:bg-destructive/10 text-muted-foreground hover:text-destructive rounded-full transition-colors"
@@ -687,6 +605,30 @@ export function AIChatbot() {
 
             {/* Input Area */}
             <div className="p-3 bg-background border-t border-border">
+              {/* Model Selector Tabs - Only in Bot Mode */}
+              {mode === "bot" && (
+                <div className="flex gap-1 mb-2 p-1 bg-muted/50 rounded-xl overflow-x-auto">
+                  {(["balanced", "thinking", "flash"] as AIModel[]).map((key) => {
+                    const info = AI_MODEL_INFO[key];
+                    const Icon = info.icon;
+                    return (
+                      <button
+                        key={key}
+                        onClick={() => setAiModel(key)}
+                        className={cn(
+                          "flex-1 flex items-center justify-center gap-1.5 px-3 py-2 rounded-lg text-xs font-medium transition-all whitespace-nowrap",
+                          aiModel === key
+                            ? "bg-primary text-primary-foreground shadow-md"
+                            : "text-muted-foreground hover:text-foreground hover:bg-background/50"
+                        )}
+                      >
+                        <Icon className="w-3.5 h-3.5" />
+                        <span>{info.name[language as "en" | "ar"]}</span>
+                      </button>
+                    );
+                  })}
+                </div>
+              )}
               {/* Reply Preview */}
               <AnimatePresence>
                 {replyTo && (
