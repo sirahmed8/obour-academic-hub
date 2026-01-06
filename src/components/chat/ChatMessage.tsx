@@ -120,6 +120,7 @@ export function ChatMessageItem({
                 "absolute -bottom-3 z-20 flex gap-0.5 bg-background shadow-md border border-border rounded-full px-2 py-1",
                 isUser ? "left-2" : "right-2"
               )}
+              aria-label="Reactions"
             >
               {Object.entries(msg.reactions).map(([reactorId, emoji]) => (
                 <span
@@ -128,6 +129,8 @@ export function ChatMessageItem({
                     "text-sm leading-none",
                     reactorId === user.uid && "ring-2 ring-primary ring-offset-1 rounded-full"
                   )}
+                  role="img"
+                  aria-label={emoji}
                 >
                   {emoji}
                 </span>
@@ -147,6 +150,7 @@ export function ChatMessageItem({
                 onClick={() => onReply(msg)}
                 className="p-1.5 bg-background shadow-sm border border-border rounded-full hover:bg-muted text-muted-foreground hover:text-primary transition-colors"
                 title="Reply"
+                aria-label="Reply to message"
               >
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
@@ -168,6 +172,8 @@ export function ChatMessageItem({
                 onClick={() => setShowPicker(!showPicker)}
                 className="p-1.5 bg-background shadow-sm border border-border rounded-full hover:bg-muted text-muted-foreground hover:text-primary transition-colors"
                 title="React"
+                aria-label="React to message"
+                aria-expanded={showPicker}
               >
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
@@ -208,6 +214,7 @@ export function ChatMessageItem({
                       setShowPicker(false);
                     }}
                     className="hover:scale-125 transition-transform text-lg leading-none p-1"
+                    aria-label={`React with ${emoji}`}
                   >
                     {emoji}
                   </button>
