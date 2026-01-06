@@ -128,7 +128,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
                 uid: firebaseUser.uid,
                 email: firebaseUser.email || "",
                 displayName: firebaseUser.displayName || "User",
-                role: "student",
+                role:
+                  firebaseUser.email === process.env.NEXT_PUBLIC_OWNER_EMAIL ? "owner" : "student",
+
                 createdAt: new Date().toISOString(),
                 lastLogin: new Date().toISOString(),
               });
