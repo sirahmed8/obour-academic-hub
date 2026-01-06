@@ -67,8 +67,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
                 const userData = docSnap.data();
 
                 // Owner Promotion Check
-                const isOwnerEmail =
-                  firebaseUser.email === process.env.NEXT_PUBLIC_OWNER_EMAIL;
+                const isOwnerEmail = firebaseUser.email === process.env.NEXT_PUBLIC_OWNER_EMAIL;
 
                 let finalRole = userData?.role;
 
@@ -76,9 +75,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
                 if (isOwnerEmail && finalRole !== "owner") {
                   console.log("Promoting to owner:", firebaseUser.email);
                   // Fire and forget update
-                  authService.updateUserProfile(firebaseUser.uid, { role: "owner" }).catch((e) =>
-                    console.error("Owner update failed", e)
-                  );
+                  authService
+                    .updateUserProfile(firebaseUser.uid, { role: "owner" })
+                    .catch((e) => console.error("Owner update failed", e));
                   finalRole = "owner";
                 }
 
@@ -90,8 +89,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
               }
               // B. New User Creation
               else {
-                const isOwnerEmail =
-                  firebaseUser.email === process.env.NEXT_PUBLIC_OWNER_EMAIL;
+                const isOwnerEmail = firebaseUser.email === process.env.NEXT_PUBLIC_OWNER_EMAIL;
 
                 let role: "student" | "admin" | "owner" = isOwnerEmail ? "owner" : "student";
                 let permissions: UserPermission[] = [];

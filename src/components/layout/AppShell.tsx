@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useMemo } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, usePathname } from "next/navigation";
 import { useAuth, useLanguage } from "@/contexts";
 import { Sidebar, Navbar } from "@/components/layout";
 import dynamic from "next/dynamic";
@@ -34,6 +34,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   const { dir, language } = useLanguage();
 
   const router = useRouter();
+  const pathname = usePathname();
 
   // Check if profile is incomplete using useMemo (no effect)
   const showProfileSetup = useMemo(() => {
@@ -77,6 +78,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
         <main id="main-content" className="flex-1 overflow-y-auto pb-24 lg:pb-10">
           <AnimatePresence mode="wait">
             <motion.div
+              key={pathname}
               initial="hidden"
               animate="visible"
               exit="exit"

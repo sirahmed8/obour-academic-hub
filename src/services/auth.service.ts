@@ -23,10 +23,15 @@ export const authService = {
   subscribeToUserProfile(
     uid: string,
     onNext: (snapshot: DocumentSnapshot) => void,
-    onError: (error: FirestoreError) => void
+    onError?: (error: FirestoreError) => void
   ): Unsubscribe {
     const userDocRef = doc(db, "users", uid);
-    return onSnapshot(userDocRef, onNext, onError);
+    const errorHandler =
+      onError ??
+      ((error: FirestoreError) => {
+        console.error("Error listening to user profile changes:", { uid, error });
+      });
+    return onSnapshot(userDocRef, onNext, errorHandler);
   },
 
   /**

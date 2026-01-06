@@ -4,9 +4,9 @@ export const fadeIn: Variants = {
   hidden: { opacity: 0 },
   visible: {
     opacity: 1,
-    transition: { duration: 0.4, ease: "easeOut" }
+    transition: { duration: 0.4, ease: "easeOut" },
   },
-  exit: { opacity: 0, transition: { duration: 0.2 } }
+  exit: { opacity: 0, transition: { duration: 0.2 } },
 };
 
 export const slideUp: Variants = {
@@ -14,9 +14,9 @@ export const slideUp: Variants = {
   visible: {
     opacity: 1,
     y: 0,
-    transition: { duration: 0.4, ease: "easeOut" }
+    transition: { duration: 0.4, ease: "easeOut" },
   },
-  exit: { opacity: 0, y: -20 }
+  exit: { opacity: 0, y: -20 },
 };
 
 export const slideInRight: Variants = {
@@ -24,8 +24,8 @@ export const slideInRight: Variants = {
   visible: {
     x: 0,
     opacity: 1,
-    transition: { duration: 0.3 }
-  }
+    transition: { duration: 0.3 },
+  },
 };
 
 export const scaleIn: Variants = {
@@ -33,8 +33,8 @@ export const scaleIn: Variants = {
   visible: {
     scale: 1,
     opacity: 1,
-    transition: { type: "spring", stiffness: 300, damping: 20 }
-  }
+    transition: { type: "spring", stiffness: 300, damping: 20 },
+  },
 };
 
 export const staggerContainer: Variants = {
@@ -42,9 +42,9 @@ export const staggerContainer: Variants = {
   visible: {
     opacity: 1,
     transition: {
-      staggerChildren: 0.1
-    }
-  }
+      staggerChildren: 0.1,
+    },
+  },
 };
 
 export const listContainer: Variants = {
@@ -53,9 +53,9 @@ export const listContainer: Variants = {
     opacity: 1,
     transition: {
       staggerChildren: 0.05,
-      delayChildren: 0.1
-    }
-  }
+      delayChildren: 0.1,
+    },
+  },
 };
 
 export const listItem: Variants = {
@@ -63,6 +63,6 @@ export const listItem: Variants = {
   visible: {
     opacity: 1,
     y: 0,
-    transition: { type: "spring", stiffness: 500, damping: 30 }
-  }
+    transition: { type: "spring", stiffness: 500, damping: 30 },
+  },
 };

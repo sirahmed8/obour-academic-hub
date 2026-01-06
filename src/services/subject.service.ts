@@ -41,10 +41,7 @@ export const subjectService = {
    * Get subject by Name (for URL slugs)
    */
   async getByName(name: string): Promise<Subject | null> {
-    const q = query(
-      collection(db, "subjects"),
-      where("name", "==", decodeURIComponent(name))
-    );
+    const q = query(collection(db, "subjects"), where("name", "==", decodeURIComponent(name)));
     const querySnapshot = await getDocs(q);
     if (!querySnapshot.empty) {
       const docSnap = querySnapshot.docs[0];
@@ -70,10 +67,7 @@ export const subjectService = {
     onUpdate: (resources: Resource[]) => void,
     onError?: (error: Error) => void
   ): Unsubscribe {
-    const q = query(
-      collection(db, "subjects", subjectId, "resources"),
-      orderBy("orderIndex")
-    );
+    const q = query(collection(db, "subjects", subjectId, "resources"), orderBy("orderIndex"));
     return onSnapshot(
       q,
       (snapshot) => {
@@ -103,5 +97,5 @@ export const subjectService = {
 
   async delete(id: string): Promise<void> {
     await deleteDoc(doc(db, "subjects", id));
-  }
+  },
 };
