@@ -24,6 +24,8 @@ const StudentProfileSetup = dynamic(
 import { LiveBanner } from "@/components/features/LiveBanner";
 import { CookieConsent } from "@/components/ui/CookieConsent";
 import { Loader2, ExternalLink } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
+import { fadeIn } from "@/lib/motion";
 
 export function AppShell({ children }: { children: React.ReactNode }) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -73,7 +75,17 @@ export function AppShell({ children }: { children: React.ReactNode }) {
         <Navbar onMenuClick={() => setSidebarOpen(true)} />
         <LiveBanner />
         <main id="main-content" className="flex-1 overflow-y-auto pb-24 lg:pb-10">
-          {children}
+          <AnimatePresence mode="wait">
+            <motion.div
+              initial="hidden"
+              animate="visible"
+              exit="exit"
+              variants={fadeIn}
+              className="min-h-full flex flex-col"
+            >
+              {children}
+            </motion.div>
+          </AnimatePresence>
 
           <footer className="py-8 mt-auto text-center space-y-4">
             <a

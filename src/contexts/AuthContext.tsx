@@ -12,11 +12,9 @@ import {
 import { toast } from "sonner";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { User, UserPermission } from "@/types";
-import { auth, googleProvider, db } from "@/lib/firebase";
+import { auth, googleProvider } from "@/lib/firebase";
 import { signInWithPopup, signOut, onAuthStateChanged } from "firebase/auth";
-import { doc, getDoc, setDoc, updateDoc, onSnapshot } from "firebase/firestore";
-
-const OWNER_EMAIL_HARDCODED = "a7medorabe7@gmail.com";
+import { authService } from "@/services/auth.service";
 
 interface AuthContextType {
   user: User | null;
@@ -60,10 +58,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setLoading(true);
 
       try {
-        const userDocRef = doc(db, "users", firebaseUser.uid);
-
-        unsubscribeSnapshot = onSnapshot(
-          userDocRef,
+        unsubscribeSnapshot = authService.subscribeToUserProfile(
+          firebaseUser.uid,
           async (docSnap) => {
             try {
               // A. Existing User
@@ -72,8 +68,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
                 // Owner Promotion Check
                 const isOwnerEmail =
-                  firebaseUser.email === process.env.NEXT_PUBLIC_OWNER_EMAIL ||
-                  firebaseUser.email === OWNER_EMAIL_HARDCODED;
+                  firebaseUser.email === process.env.NEXT_PUBLIC_OWNER_EMAIL;
 
                 let finalRole = userData?.role;
 
@@ -81,7 +76,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
                 if (isOwnerEmail && finalRole !== "owner") {
                   console.log("Promoting to owner:", firebaseUser.email);
                   // Fire and forget update
-                  updateDoc(userDocRef, { role: "owner" }).catch((e) =>
+                  authService.updateUserProfile(firebaseUser.uid, { role: "owner" }).catch((e) =>
                     console.error("Owner update failed", e)
                   );
                   finalRole = "owner";
@@ -96,24 +91,17 @@ export function AuthProvider({ children }: { children: ReactNode }) {
               // B. New User Creation
               else {
                 const isOwnerEmail =
-                  firebaseUser.email === process.env.NEXT_PUBLIC_OWNER_EMAIL ||
-                  firebaseUser.email === OWNER_EMAIL_HARDCODED;
+                  firebaseUser.email === process.env.NEXT_PUBLIC_OWNER_EMAIL;
 
                 let role: "student" | "admin" | "owner" = isOwnerEmail ? "owner" : "student";
                 let permissions: UserPermission[] = [];
 
                 // Check Whitelist (async, might be slow, so we do it but fail safe)
                 if (!isOwnerEmail && firebaseUser.email) {
-                  try {
-                    const whitelistDoc = await getDoc(
-                      doc(db, "whitelisted_admins", firebaseUser.email)
-                    );
-                    if (whitelistDoc.exists()) {
-                      role = "admin";
-                      permissions = ["manage_subjects", "manage_resources", "send_notifications"];
-                    }
-                  } catch (e) {
-                    console.error("Whitelist check failed", e);
+                  const isWhitelisted = await authService.checkWhitelist(firebaseUser.email);
+                  if (isWhitelisted) {
+                    role = "admin";
+                    permissions = ["manage_subjects", "manage_resources", "send_notifications"];
                   }
                 }
 
@@ -130,7 +118,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
                 if (firebaseUser.photoURL) newUserProfile.photoURL = firebaseUser.photoURL;
 
                 // Create in DB
-                await setDoc(userDocRef, newUserProfile);
+                await authService.createUserProfile(firebaseUser.uid, newUserProfile);
 
                 // Set local state immediately to avoid waiting for next snapshot
                 setUser(newUserProfile as unknown as User);
@@ -231,8 +219,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       // Optimistic update
       setUser((prev) => (prev ? { ...prev, ...data } : null));
       try {
-        const userDocRef = doc(db, "users", user.uid);
-        await updateDoc(userDocRef, data);
+        await authService.updateUserProfile(user.uid, data);
       } catch (error) {
         console.error("Update failed", error);
         toast.error("Failed to save changes");
