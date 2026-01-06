@@ -1,0 +1,17 @@
+
+> obour-academic-hub@0.1.0 dev
+> next dev --turbopack
+
+▲ Next.js 16.1.1 (Turbopack)
+- Local:         http://localhost:3000
+- Network:       http://192.168.0.2:3000
+
+✓ Starting...
+✓ Ready in 1898ms
+○ Compiling / ...
+ GET / 200 in 9.6s (compile: 8.6s, render: 947ms)
+○ Compiling /subject ...
+ GET /subject 200 in 15.5s (compile: 14.7s, render: 769ms)
+ GET / 200 in 94ms (compile: 16ms, render: 78ms)
+ GET / 200 in 44ms (compile: 8ms, render: 36ms)
+[?25h

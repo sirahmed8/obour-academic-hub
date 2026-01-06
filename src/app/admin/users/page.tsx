@@ -3,9 +3,9 @@
 import { useState, useEffect, useRef } from "react";
 import { AppShell } from "@/components/layout/AppShell";
 import { useLanguage, useAuth } from "@/contexts";
-import { db } from "@/lib/firebase";
-import { collection, query, limit, onSnapshot, updateDoc, doc, orderBy } from "firebase/firestore";
 import { User as UserType, UserPermission } from "@/types";
+import { userService } from "@/services/user.service";
+import { authService } from "@/services/auth.service";
 import { Loader2, Shield, User, Pencil, X, Users } from "lucide-react";
 import Image from "next/image";
 import { toast } from "sonner";
@@ -90,7 +90,7 @@ export default function AdminUsersPage() {
 
   const handleBulkRoleChange = async (newRole: "student" | "admin" | "owner") => {
     const batchPromises = Array.from(selectedUsers).map((uid) =>
-      updateDoc(doc(db, "users", uid), {
+      userService.update(uid, {
         role: newRole,
         permissions: newRole === "student" ? [] : undefined,
       })
@@ -132,7 +132,7 @@ export default function AdminUsersPage() {
   const handleEditUser = async () => {
     if (!editModal.user) return;
     try {
-      await updateDoc(doc(db, "users", editModal.user.uid), {
+      await userService.update(editModal.user.uid, {
         displayName: editModal.name,
         studentCode: editModal.code,
       });
@@ -144,16 +144,8 @@ export default function AdminUsersPage() {
   };
 
   useEffect(() => {
-    setLoading(true);
-    let q;
-    try {
-      q = query(collection(db, "users"), orderBy("createdAt", "desc"), limit(limitCount));
-    } catch {
-      q = query(collection(db, "users"), limit(limitCount));
-    }
-
-    const unsubscribe = onSnapshot(q, (snapshot) => {
-      const allUsers = snapshot.docs.map((d) => ({ ...d.data(), uid: d.id }) as UserType);
+    const unsubscribe = userService.subscribeToAll(limitCount, (allUsers) => {
+      // Sort client side as backup if index is missing, though Firestore usually handles it if query worked
       allUsers.sort((a, b) => {
         const dateA = a.createdAt ? new Date(a.createdAt).getTime() : 0;
         const dateB = b.createdAt ? new Date(b.createdAt).getTime() : 0;
@@ -176,7 +168,7 @@ export default function AdminUsersPage() {
           : `Are you sure you want to change user role to ${newRole}?`,
       action: async () => {
         try {
-          await updateDoc(doc(db, "users", userId), {
+          await userService.update(userId, {
             role: newRole,
             permissions: newRole === "student" ? [] : undefined,
           });
@@ -198,7 +190,7 @@ export default function AdminUsersPage() {
       : [...currentPermissions, permission];
 
     try {
-      await updateDoc(doc(db, "users", userId), {
+      await userService.update(userId, {
         permissions: newPermissions,
       });
       toast.success(language === "ar" ? "تم تحديث الصلاحيات" : "Permissions updated");
@@ -383,12 +375,7 @@ export default function AdminUsersPage() {
               if (!email || !email.includes("@")) return toast.error("Invalid email");
 
               try {
-                const { setDoc, doc, serverTimestamp } = await import("firebase/firestore");
-                await setDoc(doc(db, "whitelisted_admins", email), {
-                  email,
-                  invitedBy: "admin",
-                  createdAt: serverTimestamp(),
-                });
+                await authService.addToWhitelist(email, "admin");
                 toast.success("Admin invited successfully");
                 form.reset();
               } catch (err) {
@@ -610,7 +597,10 @@ export default function AdminUsersPage() {
           {users.length >= limitCount && !loading && (
             <div className="p-2 border-t border-border flex justify-center bg-muted/10">
               <button
-                onClick={() => setLimitCount((prev) => prev + 50)}
+                onClick={() => {
+                  setLoading(true);
+                  setLimitCount((prev) => prev + 50);
+                }}
                 className="text-xs text-primary hover:underline font-medium"
               >
                 {language === "ar" ? "تحميل المزيد من قاعدة البيانات" : "Load more from database"}
