@@ -1,16 +1,25 @@
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
+    // CRITICAL: Hardcoded owner email - ALWAYS has full access
+    function isHardcodedOwner() {
+      return request.auth != null && request.auth.token.email == 'a7medorabe7@gmail.com';
+    }
+
     // Helper to check for Admin
     function isAdmin() {
-      return request.auth != null && 
-        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role in ['admin', 'owner'];
+      return request.auth != null && (
+        isHardcodedOwner() ||
+        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role in ['admin', 'owner']
+      );
     }
     
     // Helper to check for Owner
     function isOwner() {
-      return request.auth != null && 
-        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'owner';
+      return request.auth != null && (
+        isHardcodedOwner() ||
+        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'owner'
+      );
     }
 
     // Helper to check if user is whitelisted (replacing hardcoded email)
