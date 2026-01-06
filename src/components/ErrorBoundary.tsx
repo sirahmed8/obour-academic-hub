@@ -1,7 +1,6 @@
 "use client";
 
 import React, { Component, ReactNode } from "react";
-import * as Sentry from "@sentry/nextjs";
 
 interface Props {
   children: ReactNode;
@@ -22,18 +21,14 @@ export class ErrorBoundary extends Component<Props, State> {
   }
 
   componentDidCatch(error: Error, errorInfo: React.ErrorInfo) {
-    console.error("ErrorBoundary caught an error:", error, errorInfo);
-
-    // Send error to Sentry
-    Sentry.captureException(error, {
-      contexts: {
-        react: {
-          componentStack: errorInfo.componentStack,
-        },
-      },
+    // Use centralized error logger
+    import("@/lib/errorLogger").then(({ errorLogger }) => {
+      errorLogger.log(error, "critical", {
+        componentStack: errorInfo.componentStack,
+      });
     });
 
-    // Log to Firestore (System Errors)
+    // Log to Firestore (System Errors) - Kept as fallback/redundancy for critical UI crashes
     import("@/lib/firebase").then(({ db }) => {
       import("firebase/firestore").then(({ collection, addDoc, serverTimestamp }) => {
         addDoc(collection(db, "system_errors"), {
@@ -43,7 +38,7 @@ export class ErrorBoundary extends Component<Props, State> {
           userAgent: navigator.userAgent,
           timestamp: serverTimestamp(),
           url: window.location.href,
-        }).catch((err) => console.error("Failed to log error to Firestore:", err));
+        }).catch(() => {}); // Silent fail on log error
       });
     });
   }

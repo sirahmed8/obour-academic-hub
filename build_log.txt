@@ -1,0 +1,23 @@
+
+> obour-academic-hub@0.1.0 build
+> next build
+
+▲ Next.js 16.1.1 (Turbopack)
+- Environments: .env.local
+
+  Creating an optimized production build ...
+✓ Compiled successfully in 7.5s
+  Running TypeScript ...
+Failed to compile.
+
+./src/lib/index.ts:42:37
+Type error: Cannot find module './localBot' or its corresponding type declarations.
+
+[0m [90m 40 |[39m
+ [90m 41 |[39m [90m// Local Bot[39m
+[31m[1m>[22m[39m[90m 42 |[39m [36mexport[39m { getLocalBotResponse } [36mfrom[39m [32m"./localBot"[39m[33m;[39m
+ [90m    |[39m                                     [31m[1m^[22m[39m
+ [90m 43 |[39m
+ [90m 44 |[39m [90m// Notifications[39m
+ [90m 45 |[39m [36mexport[39m {[0m
+Next.js build worker exited with code: 1 and signal: null

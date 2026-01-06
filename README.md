@@ -1,67 +1,128 @@
 # Obour Academic Hub
 
-A modern educational platform for Obour Institutes students, built with Next.js and Firebase.
+A modern educational platform for Obour Institutes students, built with Next.js 16 and Firebase.
 
 ## 🚀 Tech Stack
 
-- **Framework**: Next.js 16 (App Router)
-- **Styling**: Tailwind CSS + Custom CSS
-- **Backend**: Firebase (Auth, Firestore, Storage, Hosting)
-- **Media**: Cloudinary (Image optimization)
-- **Animations**: Framer Motion
-- **Language**: TypeScript
+| Technology        | Purpose                             |
+| ----------------- | ----------------------------------- |
+| **Next.js 16**    | App Router framework with Turbopack |
+| **TypeScript**    | Full type safety                    |
+| **Tailwind CSS**  | Utility-first styling               |
+| **Firebase**      | Auth, Firestore, Storage, Hosting   |
+| **Framer Motion** | Smooth animations                   |
+| **Cloudinary**    | Image optimization                  |
+| **Vercel Blob**   | File uploads                        |
+| **OpenRouter**    | AI chatbot (free models)            |
 
 ## 📁 Project Structure
 
-\`\`\`
+```
 src/
-├── app/ # Next.js App Router pages
-│ ├── admin/ # Admin dashboard pages
-│ ├── main/ # Main dashboard
-│ └── ...
+├── app/                    # Next.js App Router
+│   ├── admin/              # Admin dashboard (protected)
+│   ├── api/                # API routes
+│   │   ├── chat/           # AI chatbot endpoint
+│   │   └── upload/         # File upload endpoint
+│   ├── main/               # Student dashboard
+│   ├── subject/            # Subject pages
+│   └── layout.tsx          # Root layout
 ├── components/
-│ ├── features/ # Feature components (Chatbot, Dashboard, etc.)
-│ ├── layout/ # Layout components (Navbar, Sidebar, AppShell)
-│ └── ui/ # Reusable UI components
-├── contexts/ # React Context providers
-├── hooks/ # Custom React hooks
-├── lib/ # Utility functions & Firebase config
-└── types/ # TypeScript type definitions
-\`\`\`
+│   ├── chat/               # Chat components
+│   ├── features/           # Feature components
+│   ├── layout/             # Layout (Navbar, Sidebar)
+│   └── ui/                 # Reusable UI components
+├── contexts/               # React Context (Auth, Theme, Language)
+├── hooks/                  # Custom hooks
+├── lib/                    # Utilities & Firebase config
+├── services/               # Business logic services
+└── types/                  # TypeScript definitions
+```
 
-## 🔧 Setup
+## 🔧 Quick Start
 
-1. Clone the repository
-2. Copy \`.env.example\` to \`.env.local\` and fill in your credentials
-3. Install dependencies:
-   \`\`\`bash
-   npm install
-   \`\`\`
-4. Run the development server:
-   \`\`\`bash
-   npm run dev
-   \`\`\`
+```bash
+# 1. Clone and install
+git clone <repo-url>
+cd obour-academic-hub
+npm install
+
+# 2. Configure environment
+cp .env.example .env.local
+# Fill in your Firebase, Cloudinary, OpenRouter credentials
+
+# 3. Run development server
+npm run dev
+```
 
 ## 🔐 Environment Variables
 
-See \`.env.example\` for required environment variables.
+Required in `.env.local`:
+
+```env
+# Firebase
+NEXT_PUBLIC_FIREBASE_API_KEY=
+NEXT_PUBLIC_FIREBASE_PROJECT_ID=
+# ... (see .env.example)
+
+# Cloudinary
+NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME=
+
+# OpenRouter (AI)
+OPENROUTER_API_KEY=
+
+# Vercel Blob
+BLOB_READ_WRITE_TOKEN=
+```
 
 ## 📱 Features
 
-- **Student Dashboard**: View subjects, resources, and notifications
-- **AI Chatbot**: Bilingual support bot with live support handoff
-- **Admin Panel**: Manage users, resources, notifications, and banners
-- **Real-time Chat**: Live support with message replies and reactions
-- **Responsive Design**: Optimized for mobile and desktop
+### For Students
+
+- 📚 Browse subjects and resources
+- 🤖 AI-powered chatbot (bilingual AR/EN)
+- 💬 Live support chat
+- 🔔 Real-time notifications
+- 🌙 Dark/Light mode
+
+### For Admins
+
+- 👥 User management with roles
+- 📂 Resource management
+- 📊 Analytics dashboard
+- 📣 Banner system
+- 📬 Inbox for support chats
+
+### AI Models Available
+
+| Model       | Description                        |
+| ----------- | ---------------------------------- |
+| 🧠 Thinking | Deep reasoning (DeepSeek R1)       |
+| ⚖️ Balanced | Best for most tasks (GPT-OSS-120B) |
+| ⚡ Fast     | Quick responses (Llama 3.3)        |
+| ✨ Flash    | Vision support (Gemini 2.0)        |
 
 ## 🌐 Deployment
 
-Deploy to Firebase Hosting:
-\`\`\`bash
+### Firebase Hosting
+
+```bash
 npm run build
-firebase deploy
-\`\`\`
+firebase deploy --only hosting
+```
+
+### Vercel
+
+Push to main branch - auto-deploys via Vercel integration.
+
+## 🔒 Security
+
+- Firebase Auth with Google Sign-In
+- Firestore security rules (see `firestore.rules`)
+- API routes require Bearer token
+- CSP headers configured
+- Filename sanitization on uploads
 
 ## 📄 License
 
-Proprietary - Obour Institutes
+Proprietary - Obour Institutes © 2025

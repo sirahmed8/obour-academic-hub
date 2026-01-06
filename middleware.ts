@@ -1,22 +1,61 @@
 import { NextResponse } from "next/server";
-// import type { NextRequest } from "next/server"; // unused
+import type { NextRequest } from "next/server";
 
-export function middleware() {
-  // Check for session token - This is a basic check.
-  // For full security, we rely on client-side AuthContext + Firestore rules.
-  // This middleware adds a layer of protection to redirect obviously unauthenticated users from /admin
+export function middleware(request: NextRequest) {
+  const nonce = Buffer.from(crypto.randomUUID()).toString("base64");
+  const cspHeader = `
+    default-src 'self';
+    script-src 'self' 'unsafe-eval' 'unsafe-inline' https://apis.google.com https://www.gstatic.com https://identitytoolkit.googleapis.com https://cdn.jsdelivr.net https://res.cloudinary.com;
+    style-src 'self' 'unsafe-inline' https://fonts.googleapis.com;
+    img-src 'self' blob: data: https://res.cloudinary.com https://lh3.googleusercontent.com https://*.public.blob.vercel-storage.com https://ui-avatars.com;
+    font-src 'self' https://fonts.gstatic.com;
+    object-src 'none';
+    base-uri 'self';
+    form-action 'self';
+    frame-ancestors 'none';
+    upgrade-insecure-requests;
+  `;
 
-  // Note: Firebase auth tokens are client-side. Server middleware can't verify them easily without cookies.
-  // However, we can check for a custom cookie if we set one, or just rely on client-side redirect.
-  // Since we are SPA-like, client-side AuthContext is the primary guard.
-  // But we can add a simple check if we used session cookies (project doesn't seem to use next-auth session cookies yet).
+  // Replace newline characters and spaces
+  const contentSecurityPolicyHeaderValue = cspHeader.replace(/\s{2,}/g, " ").trim();
 
-  // For now, we'll keep it simple: Ensure /admin routes are not accessed directly by bots/crawlers
-  // Real security is in `layout.tsx` or `page.tsx` of admin checking `user.role`
+  const requestHeaders = new Headers(request.headers);
+  requestHeaders.set("x-nonce", nonce);
+  requestHeaders.set("Content-Security-Policy", contentSecurityPolicyHeaderValue);
 
-  return NextResponse.next();
+  const response = NextResponse.next({
+    request: {
+      headers: requestHeaders,
+    },
+  });
+
+  response.headers.set("Content-Security-Policy", contentSecurityPolicyHeaderValue);
+  response.headers.set("X-Frame-Options", "DENY");
+  response.headers.set("X-Content-Type-Options", "nosniff");
+  response.headers.set("Referrer-Policy", "strict-origin-when-cross-origin");
+  response.headers.set(
+    "Permissions-Policy",
+    "camera=(), microphone=(), geolocation=(), browsing-topics=()"
+  );
+
+  return response;
 }
 
 export const config = {
-  matcher: "/admin/:path*",
+  matcher: [
+    /*
+     * Match all request paths except for the ones starting with:
+     * - api (API routes)
+     * - _next/static (static files)
+     * - _next/image (image optimization files)
+     * - favicon.ico (favicon file)
+     */
+    {
+      source: "/((?!api|_next/static|_next/image|favicon.ico).*)",
+      missing: [
+        { type: "header", key: "next-router-prefetch" },
+        { type: "header", key: "purpose", value: "prefetch" },
+      ],
+    },
+  ],
 };

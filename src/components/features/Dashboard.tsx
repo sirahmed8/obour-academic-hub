@@ -8,6 +8,7 @@ import { Subject } from "@/types";
 import { SubjectCard } from "@/components/features/SubjectCard";
 import { getGreeting } from "@/lib/utils";
 import { BookOpen, Sparkles } from "lucide-react";
+import { StaggerChildren, ScaleIn } from "@/components/ui/Animations";
 
 export function Dashboard() {
   const [subjects, setSubjects] = useState<Subject[]>([]);
@@ -96,17 +97,13 @@ export function Dashboard() {
             <p className="text-muted-foreground text-lg">{t("dashboard.noSubjects")}</p>
           </div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {subjects.map((subject, index) => (
-              <div
-                key={subject.id}
-                className="animate-fade-in-up"
-                style={{ animationDelay: `${index * 50}ms` }}
-              >
+          <StaggerChildren className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {subjects.map((subject) => (
+              <ScaleIn key={subject.id}>
                 <SubjectCard subject={subject} />
-              </div>
+              </ScaleIn>
             ))}
-          </div>
+          </StaggerChildren>
         )}
       </div>
     </div>

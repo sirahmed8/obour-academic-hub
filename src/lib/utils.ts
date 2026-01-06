@@ -61,3 +61,9 @@ export function generateAvatarUrl(name: string, bgColor = "6366f1"): string {
     name
   )}&background=${bgColor}&color=fff&uppercase=true`;
 }
+
+export function formatFileSize(bytes: number): string {
+  if (bytes < 1024) return bytes + " B";
+  if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + " KB";
+  return (bytes / (1024 * 1024)).toFixed(1) + " MB";
+}

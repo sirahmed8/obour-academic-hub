@@ -1,12 +1,13 @@
 import type { Metadata, Viewport } from "next";
-import { Geist } from "next/font/google";
+import { Inter } from "next/font/google";
 import "./globals.css";
 import { ThemeProvider, AuthProvider, LanguageProvider } from "@/contexts";
 import { Toaster } from "sonner";
 
-const geist = Geist({
+const inter = Inter({
   subsets: ["latin"],
-  variable: "--font-geist",
+  variable: "--font-inter",
+  display: "swap",
 });
 
 export const viewport: Viewport = {
@@ -56,7 +57,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" suppressHydrationWarning>
-      <body className={`${geist.variable} font-sans antialiased`}>
+      <body className={`${inter.variable} font-sans antialiased`}>
         <ErrorBoundary>
           <ThemeProvider>
             <LanguageProvider>

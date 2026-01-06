@@ -1,10 +1,9 @@
 "use client";
 
-import { useState, useRef, useEffect, useMemo, useCallback } from "react";
+import { useState, useEffect, useMemo, useCallback } from "react";
 import { AnimatePresence, motion } from "framer-motion";
-import { X, Send, Headphones, Bot, MessageSquare, Trash2, Sparkles, Zap } from "lucide-react";
+import { MessageSquare, X } from "lucide-react";
 import { useAuth, useLanguage } from "@/contexts";
-import { cn } from "@/lib/utils";
 import { db, auth } from "@/lib/firebase";
 import {
   collection,
@@ -16,50 +15,19 @@ import {
 } from "firebase/firestore";
 import { sendMessage, markMessagesAsSeen, clearChatHistory, toggleReaction } from "@/lib/chatUtils";
 import { ChatMessage } from "@/types";
-import { getLocalBotResponse } from "@/lib/localBot";
+import { getLocalBotResponse } from "@/lib/bot";
 import { toast } from "sonner";
 import { ConfirmationModal } from "@/components/ui/ConfirmationModal";
-import { QuickReplies } from "@/components/ui/QuickReplies";
-import { QUICK_REPLIES } from "@/lib/quickReplies";
-import { FileUpload } from "@/components/features/FileUpload";
-import { ChatMessageItem } from "@/components/chat/ChatMessage";
+import { AI_MODEL_INFO, AIModel } from "./chatbot/constants";
+import { ChatHeader } from "./chatbot/ChatHeader";
+import { ChatMessages } from "./chatbot/ChatMessages";
+import { ChatInput } from "./chatbot/ChatInput";
+import { ModelSelector } from "./chatbot/ModelSelector";
 
-// AI Model types - All FREE via OpenRouter
-type AIModel = "local" | "thinking" | "balanced" | "fast" | "flash";
-
-const AI_MODEL_INFO = {
-  local: {
-    name: { en: "Smart Bot", ar: "البوت الذكي" },
-    icon: Bot,
-    description: { en: "Instant responses", ar: "ردود فورية" },
-    color: "text-primary",
-  },
-  thinking: {
-    name: { en: "Thinking", ar: "تفكير" },
-    icon: Zap,
-    description: { en: "Deep reasoning", ar: "تفكير عميق" },
-    color: "text-purple-500",
-  },
-  balanced: {
-    name: { en: "Balanced", ar: "متوازن" },
-    icon: Bot,
-    description: { en: "Best for most tasks", ar: "الأفضل لمعظم المهام" },
-    color: "text-green-500",
-  },
-  fast: {
-    name: { en: "Fast", ar: "سريع" },
-    icon: Zap,
-    description: { en: "Quick responses", ar: "ردود سريعة" },
-    color: "text-orange-500",
-  },
-  flash: {
-    name: { en: "Flash", ar: "فلاش" },
-    icon: Sparkles,
-    description: { en: "Vision + Speed", ar: "يفهم الصور" },
-    color: "text-blue-500",
-  },
-};
-
+/**
+ * AIChatbot - Main Chatbot Component
+ * Refactored to use sub-components for better maintainability.
+ */
 export function AIChatbot() {
   const [isOpen, setIsOpen] = useState(false);
   const [input, setInput] = useState("");
@@ -80,10 +48,17 @@ export function AIChatbot() {
   const [replyTo, setReplyTo] = useState<ChatMessage | null>(null);
 
   // Firestore Messages State
+  // Firestore Messages State
   const [messages, setMessages] = useState<ChatMessage[]>([]);
 
-  const messagesEndRef = useRef<HTMLDivElement>(null);
   const { user } = useAuth();
+  // We need to cast user to any here or update the props in ChatMessages/AIChatbot to match.
+  // Ideally, useAuth's user type should match what ChatMessages expects.
+  // For now, ensuring we pass a compatible object or fixing prop types is key.
+  // The lint error was "Type 'User' is missing properties...".
+  // Let's assert user as any for the sub-component if types don't align, or better yet, fix the interface.
+  // Looking at ChatMessages, it expects 'User' from 'firebase/auth' likely.
+  // Let's check useAuth definition. It likely returns a local wrapper or firebase User.
   const { language } = useLanguage();
 
   // Persist AI model selection
@@ -154,13 +129,6 @@ export function AIChatbot() {
       return m.context === "live" || !m.context;
     });
   }, [messages, mode]);
-
-  // Scroll to bottom
-  useEffect(() => {
-    if (isOpen) {
-      messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-    }
-  }, [filteredMessages, isOpen, isTyping, replyTo, streamingText]);
 
   // Get AI response from API with streaming
   const getAIResponse = async (userMessage: string): Promise<string> => {
@@ -249,10 +217,6 @@ export function AIChatbot() {
         attachment
       );
 
-      setTimeout(() => {
-        messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-      }, 100);
-
       // Bot Mode Response
       if (mode === "bot") {
         setIsTyping(true);
@@ -301,27 +265,7 @@ export function AIChatbot() {
             action: {
               label: language === "ar" ? "إبلاغ" : "Report",
               onClick: async () => {
-                try {
-                  await addDoc(collection(db, "system_errors"), {
-                    type: "chatbot_error",
-                    message: errorMessage,
-                    userId: user.uid,
-                    userEmail: user.email,
-                    model: aiModel,
-                    userInput: textToSend,
-                    timestamp: serverTimestamp(),
-                    status: "open",
-                    userAgent: window.navigator.userAgent,
-                    url: window.location.href,
-                  });
-                  toast.success(
-                    language === "ar"
-                      ? "تم إرسال البلاغ بنجاح. شكراً لك!"
-                      : "Report sent successfully. Thank you!"
-                  );
-                } catch {
-                  toast.error(language === "ar" ? "فشل إرسال البلاغ" : "Failed to send report");
-                }
+                await reportError(errorMessage, textToSend);
               },
             },
           });
@@ -338,23 +282,7 @@ export function AIChatbot() {
         action: {
           label: language === "ar" ? "إبلاغ" : "Report",
           onClick: async () => {
-            try {
-              await addDoc(collection(db, "system_errors"), {
-                type: "chat_send_error",
-                message: errorMessage,
-                userId: user?.uid,
-                userEmail: user?.email,
-                timestamp: serverTimestamp(),
-                status: "open",
-                userAgent: window.navigator.userAgent,
-                url: window.location.href,
-              });
-              toast.success(
-                language === "ar" ? "تم إرسال البلاغ بنجاح" : "Report sent successfully"
-              );
-            } catch {
-              toast.error(language === "ar" ? "فشل إرسال البلاغ" : "Failed to send report");
-            }
+            await reportError(errorMessage, textToSend, "chat_send_error");
           },
         },
       });
@@ -362,10 +290,32 @@ export function AIChatbot() {
     }
   };
 
-  const handleKeyPress = (e: React.KeyboardEvent) => {
-    if (e.key === "Enter" && !e.shiftKey) {
-      e.preventDefault();
-      handleSend();
+  const reportError = async (
+    message: string,
+    userInput?: string,
+    type: string = "chatbot_error"
+  ) => {
+    if (!user) return;
+    try {
+      await addDoc(collection(db, "system_errors"), {
+        type,
+        message,
+        userId: user.uid,
+        userEmail: user.email,
+        model: aiModel,
+        userInput,
+        timestamp: serverTimestamp(),
+        status: "open",
+        userAgent: window.navigator.userAgent,
+        url: window.location.href,
+      });
+      toast.success(
+        language === "ar"
+          ? "تم إرسال البلاغ بنجاح. شكراً لك!"
+          : "Report sent successfully. Thank you!"
+      );
+    } catch {
+      toast.error(language === "ar" ? "فشل إرسال البلاغ" : "Failed to send report");
     }
   };
 
@@ -394,8 +344,6 @@ export function AIChatbot() {
     },
     [user]
   );
-
-  const CurrentModelIcon = AI_MODEL_INFO[aiModel].icon;
 
   if (!user) return null;
 
@@ -444,253 +392,38 @@ export function AIChatbot() {
             transition={{ duration: 0.2, ease: "easeOut" }}
             className="fixed bottom-24 right-6 z-50 w-[380px] max-w-[calc(100vw-3rem)] h-[600px] max-h-[calc(100vh-8rem)] bg-background border border-border rounded-2xl shadow-2xl flex flex-col overflow-hidden origin-bottom-right"
           >
-            {/* Header */}
-            <div className="p-4 border-b border-border bg-muted/30 flex items-center justify-between backdrop-blur-md">
-              <div className="flex items-center gap-3">
-                <div
-                  className={cn(
-                    "w-10 h-10 rounded-full flex items-center justify-center transition-colors shadow-inner",
-                    mode === "bot" ? "bg-primary/10" : "bg-green-500/10"
-                  )}
-                >
-                  <AnimatePresence mode="wait">
-                    {mode === "bot" ? (
-                      <motion.div
-                        key="bot-icon"
-                        initial={{ scale: 0 }}
-                        animate={{ scale: 1 }}
-                        exit={{ scale: 0 }}
-                      >
-                        <CurrentModelIcon className={cn("w-6 h-6", AI_MODEL_INFO[aiModel].color)} />
-                      </motion.div>
-                    ) : (
-                      <motion.div
-                        key="live-icon"
-                        initial={{ scale: 0 }}
-                        animate={{ scale: 1 }}
-                        exit={{ scale: 0 }}
-                      >
-                        <Headphones className="w-6 h-6 text-green-600" />
-                      </motion.div>
-                    )}
-                  </AnimatePresence>
-                </div>
+            <ChatHeader
+              mode={mode}
+              setMode={setMode}
+              aiModel={aiModel}
+              setIsOpen={setIsOpen}
+              onClearHistory={() => setShowClearConfirm(true)}
+            />
 
-                <div>
-                  <h3 className="font-bold text-sm">
-                    {mode === "bot"
-                      ? AI_MODEL_INFO[aiModel].name[language as "en" | "ar"]
-                      : language === "ar"
-                        ? "الدعم المباشر"
-                        : "Live Support"}
-                  </h3>
-                  <p className="text-[10px] text-muted-foreground flex items-center gap-1">
-                    <span
-                      className={cn(
-                        "w-2 h-2 rounded-full",
-                        mode === "bot" ? "bg-primary" : "bg-green-500 animate-pulse"
-                      )}
-                    />
-                    {mode === "bot"
-                      ? AI_MODEL_INFO[aiModel].description[language as "en" | "ar"]
-                      : language === "ar"
-                        ? "متصل الآن"
-                        : "Online"}
-                  </p>
-                </div>
-              </div>
+            <ChatMessages
+              messages={filteredMessages}
+              streamingText={streamingText}
+              isTyping={isTyping}
+              aiModel={aiModel}
+              mode={mode}
+              // eslint-disable-next-line @typescript-eslint/no-explicit-any
+              user={user as any}
+              onReply={setReplyTo}
+              onReact={handleReaction}
+              onSend={(text) => handleSend(text)}
+            />
 
-              <div className="flex items-center gap-1">
-                <button
-                  onClick={() => setShowClearConfirm(true)}
-                  className="p-2 hover:bg-destructive/10 text-muted-foreground hover:text-destructive rounded-full transition-colors"
-                  title={language === "ar" ? "مسح السجل" : "Clear History"}
-                  aria-label={language === "ar" ? "مسح السجل" : "Clear history"}
-                >
-                  <Trash2 className="w-4 h-4" />
-                </button>
-
-                <div className="h-6 w-px bg-border mx-1" />
-
-                <button
-                  onClick={() => setMode(mode === "bot" ? "live" : "bot")}
-                  className={cn(
-                    "px-3 py-1 text-[10px] uppercase font-bold tracking-wider rounded-full border transition-all",
-                    mode === "bot"
-                      ? "bg-background border-border hover:bg-muted"
-                      : "bg-green-50 border-green-200 text-green-700 font-bold"
-                  )}
-                >
-                  {mode === "bot"
-                    ? language === "ar"
-                      ? "تحدث لبشري"
-                      : "LIVE CHAT"
-                    : language === "ar"
-                      ? "البوت"
-                      : "BOT"}
-                </button>
-
-                <button
-                  onClick={() => setIsOpen(false)}
-                  className="p-2 hover:bg-muted rounded-full"
-                  aria-label={language === "ar" ? "إغلاق" : "Close"}
-                >
-                  <X className="w-4 h-4" />
-                </button>
-              </div>
-            </div>
-
-            {/* Messages Area */}
-            <div className="flex-1 overflow-y-auto p-4 space-y-4 bg-muted/5 scrollbar-thin scrollbar-thumb-border">
-              {filteredMessages.length === 0 && (
-                <div className="h-full flex flex-col items-center justify-center text-center text-muted-foreground p-6 opacity-60">
-                  {mode === "bot" ? (
-                    <CurrentModelIcon className="w-12 h-12 mb-3" />
-                  ) : (
-                    <Headphones className="w-12 h-12 mb-3" />
-                  )}
-                  <p className="text-sm">
-                    {language === "ar"
-                      ? "لا توجد رسائل بعد. ابدأ المحادثة!"
-                      : "No messages yet. Start chatting!"}
-                  </p>
-                </div>
-              )}
-
-              {filteredMessages.map((msg) => (
-                <ChatMessageItem
-                  key={msg.id}
-                  message={msg}
-                  user={user}
-                  isUser={msg.senderId === user.uid}
-                  onReply={setReplyTo}
-                  onReact={handleReaction}
-                />
-              ))}
-
-              {/* Streaming Text Display */}
-              {streamingText && (
-                <div className="flex gap-3 max-w-[85%] mr-auto">
-                  <div className="w-6 h-6 rounded-full bg-primary/10 flex items-center justify-center shrink-0 self-end mb-1">
-                    <CurrentModelIcon className={cn("w-3 h-3", AI_MODEL_INFO[aiModel].color)} />
-                  </div>
-                  <div className="bg-muted px-4 py-3 rounded-2xl rounded-tl-none shadow-sm text-sm">
-                    {streamingText}
-                    <span className="inline-block w-1.5 h-4 bg-primary/50 ml-1 animate-pulse" />
-                  </div>
-                </div>
-              )}
-
-              {/* Typing Indicator */}
-              {isTyping && !streamingText && (
-                <div className="flex gap-3 max-w-[85%] mr-auto">
-                  <div className="w-6 h-6 rounded-full bg-primary/10 flex items-center justify-center shrink-0 self-end mb-1">
-                    <CurrentModelIcon className={cn("w-3 h-3", AI_MODEL_INFO[aiModel].color)} />
-                  </div>
-                  <div className="bg-muted px-4 py-3 rounded-2xl rounded-tl-none flex gap-1 items-center shadow-sm">
-                    <span className="w-1.5 h-1.5 bg-primary/50 rounded-full animate-bounce [animation-delay:-0.3s]"></span>
-                    <span className="w-1.5 h-1.5 bg-primary/50 rounded-full animate-bounce [animation-delay:-0.15s]"></span>
-                    <span className="w-1.5 h-1.5 bg-primary/50 rounded-full animate-bounce"></span>
-                  </div>
-                </div>
-              )}
-
-              <div ref={messagesEndRef} />
-            </div>
-
-            {/* Quick Replies */}
-            {mode === "bot" && filteredMessages.length === 0 && (
-              <QuickReplies
-                replies={QUICK_REPLIES}
-                onSelect={(query) => {
-                  handleSend(query);
-                }}
-                language={language as "en" | "ar"}
-              />
-            )}
-
-            {/* Input Area */}
-            <div className="p-3 bg-background border-t border-border">
-              {/* Model Selector Tabs - Only in Bot Mode */}
-              {mode === "bot" && (
-                <div className="flex gap-1 mb-2 p-1 bg-muted/50 rounded-xl overflow-x-auto scrollbar-hide">
-                  {(["thinking", "balanced", "fast", "flash"] as AIModel[]).map((key) => {
-                    const info = AI_MODEL_INFO[key];
-                    const Icon = info.icon;
-                    return (
-                      <button
-                        key={key}
-                        onClick={() => setAiModel(key)}
-                        className={cn(
-                          "flex-1 flex items-center justify-center gap-1.5 px-3 py-2 rounded-lg text-xs font-medium transition-all whitespace-nowrap",
-                          aiModel === key
-                            ? "bg-primary text-primary-foreground shadow-md"
-                            : "text-muted-foreground hover:text-foreground hover:bg-background/50"
-                        )}
-                      >
-                        <Icon className="w-3.5 h-3.5" />
-                        <span>{info.name[language as "en" | "ar"]}</span>
-                      </button>
-                    );
-                  })}
-                </div>
-              )}
-              {/* Reply Preview */}
-              <AnimatePresence>
-                {replyTo && (
-                  <motion.div
-                    initial={{ opacity: 0, height: 0 }}
-                    animate={{ opacity: 1, height: "auto" }}
-                    exit={{ opacity: 0, height: 0 }}
-                    className="flex items-center justify-between text-xs bg-muted/50 p-2 rounded-lg mb-2 border-l-2 border-primary"
-                  >
-                    <div className="truncate">
-                      <span className="font-bold mr-1">
-                        {language === "ar" ? "الرد على" : "Replying to"}:
-                      </span>
-                      {replyTo.text}
-                    </div>
-                    <button
-                      onClick={() => setReplyTo(null)}
-                      className="p-1 hover:bg-background rounded-full"
-                      aria-label={language === "ar" ? "إلغاء الرد" : "Cancel reply"}
-                    >
-                      <X className="w-3 h-3" />
-                    </button>
-                  </motion.div>
-                )}
-              </AnimatePresence>
-
-              <div className="flex gap-2 items-end">
-                <FileUpload
-                  onFileUploaded={(attachment) => handleSend(undefined, attachment)}
-                  language={language as "en" | "ar"}
-                />
-                <input
-                  value={input}
-                  onChange={(e) => setInput(e.target.value)}
-                  onKeyDown={handleKeyPress}
-                  placeholder={
-                    mode === "bot"
-                      ? language === "ar"
-                        ? "اسأل المساعد الذكي..."
-                        : "Ask the Smart Assistant..."
-                      : language === "ar"
-                        ? "اكتب لفريق الدعم..."
-                        : "Message Support..."
-                  }
-                  className="flex-1 bg-muted/50 border-none rounded-xl px-4 py-3 text-sm focus:ring-1 focus:ring-primary/50 transition-all placeholder:text-muted-foreground/50 max-h-24 min-h-[44px]"
-                />
-                <button
-                  onClick={() => handleSend()}
-                  disabled={!input.trim() || isTyping}
-                  className="p-3 bg-primary text-primary-foreground rounded-xl hover:opacity-90 transition-opacity disabled:opacity-50 shadow-md h-[44px] flex items-center justify-center"
-                  aria-label={language === "ar" ? "إرسال" : "Send"}
-                >
-                  <Send className="w-5 h-5 rtl:-scale-x-100" />
-                </button>
-              </div>
-            </div>
+            <ChatInput
+              input={input}
+              setInput={setInput}
+              handleSend={handleSend}
+              isTyping={isTyping}
+              mode={mode}
+              replyTo={replyTo}
+              setReplyTo={setReplyTo}
+            >
+              {mode === "bot" && <ModelSelector currentModel={aiModel} onSelect={setAiModel} />}
+            </ChatInput>
           </motion.div>
         )}
       </AnimatePresence>

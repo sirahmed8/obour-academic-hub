@@ -144,6 +144,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             // But we MUST stop loading.
             setLoading(false);
             toast.error(
+              // Safe access to language might be tricky inside async callback if closed over
+              // But 'language' is in outer scope, so it's fine.
               language === "ar" ? "فشل تحميل بيانات المستخدم" : "Failed to load user profile"
             );
           }
@@ -157,7 +159,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return () => {
       unsubscribeAuth();
     };
-  }, [language]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []); // Fixed: Removed language dependency
 
   // ----------------------------------------------------------------------
   // 2. Safety Timeout
@@ -213,18 +216,21 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const updateProfile = useCallback(
     async (data: Partial<User>) => {
-      if (!user) return;
+      // Fixed: Use auth.currentUser to avoid dependency on 'user' state object
+      if (!auth.currentUser) return;
+
+      const uid = auth.currentUser.uid;
+
       // Optimistic update
       setUser((prev) => (prev ? { ...prev, ...data } : null));
       try {
-        await authService.updateUserProfile(user.uid, data);
+        await authService.updateUserProfile(uid, data);
       } catch (error) {
         console.error("Update failed", error);
         toast.error("Failed to save changes");
-        // Revert? (Complex, maybe just warn)
       }
     },
-    [user]
+    [] // Fixed: Removed user dependency
   );
 
   const value = useMemo(

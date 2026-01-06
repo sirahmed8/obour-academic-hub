@@ -3,6 +3,7 @@
 import { useAuth, useLanguage } from "@/contexts";
 import Image from "next/image";
 import { Loader2 } from "lucide-react";
+import { motion } from "framer-motion";
 
 export function LoginScreen() {
   const { login, loading } = useAuth();
@@ -18,15 +19,26 @@ export function LoginScreen() {
 
   return (
     <div className="min-h-screen w-full flex flex-col items-center justify-center bg-gradient-to-br from-primary/5 via-background to-primary/10 p-4">
-      <div className="bg-card p-8 rounded-3xl shadow-2xl max-w-md w-full text-center space-y-6 border border-border">
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5, ease: "backOut" }}
+        className="bg-card p-8 rounded-3xl shadow-2xl max-w-md w-full text-center space-y-6 border border-border"
+      >
         <div className="flex items-center justify-center gap-3 mb-4">
-          <Image
-            src="/obour-logo.png"
-            alt="Obour Logo"
-            width={60}
-            height={60}
-            className="rounded-2xl shadow-lg"
-          />
+          <motion.div
+            initial={{ scale: 0 }}
+            animate={{ scale: 1 }}
+            transition={{ delay: 0.2, type: "spring", stiffness: 200 }}
+          >
+            <Image
+              src="/obour-logo.png"
+              alt="Obour Logo"
+              width={60}
+              height={60}
+              className="rounded-2xl shadow-lg"
+            />
+          </motion.div>
         </div>
 
         <div>
@@ -55,7 +67,9 @@ export function LoginScreen() {
           </div>
         </div>
 
-        <button
+        <motion.button
+          whileHover={{ scale: 1.02 }}
+          whileTap={{ scale: 0.98 }}
           onClick={handleLogin}
           disabled={loading}
           className="w-full py-3 bg-primary text-primary-foreground font-bold rounded-xl hover:bg-primary/90 transition shadow-lg shadow-primary/20 flex items-center justify-center gap-2 disabled:opacity-50"
@@ -83,8 +97,8 @@ export function LoginScreen() {
             </svg>
           )}
           {language === "ar" ? "تسجيل الدخول باستخدام Google" : "Sign in with Google"}
-        </button>
-      </div>
+        </motion.button>
+      </motion.div>
     </div>
   );
 }
