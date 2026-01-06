@@ -16,7 +16,14 @@ import {
 import { useAuth, useLanguage } from "@/contexts";
 import { cn } from "@/lib/utils";
 import { db, auth } from "@/lib/firebase";
-import { collection, query, orderBy, onSnapshot } from "firebase/firestore";
+import {
+  collection,
+  query,
+  orderBy,
+  onSnapshot,
+  addDoc,
+  serverTimestamp,
+} from "firebase/firestore";
 import { sendMessage, markMessagesAsSeen, clearChatHistory, toggleReaction } from "@/lib/chatUtils";
 import { ChatMessage } from "@/types";
 import { getLocalBotResponse } from "@/lib/localBot";
@@ -66,12 +73,12 @@ export function AIChatbot() {
   const [showModelPicker, setShowModelPicker] = useState(false);
   const [streamingText, setStreamingText] = useState("");
 
-  // AI Model selection (persisted in localStorage)
+  // AI Model selection (persisted in localStorage, default: balanced)
   const [aiModel, setAiModel] = useState<AIModel>(() => {
     if (typeof window !== "undefined") {
-      return (localStorage.getItem("ai-model") as AIModel) || "local";
+      return (localStorage.getItem("ai-model") as AIModel) || "balanced";
     }
-    return "local";
+    return "balanced";
   });
 
   // Interaction State
@@ -292,7 +299,37 @@ export function AIChatbot() {
           );
         } catch (error) {
           console.error("Bot Error:", error);
-          toast.error(language === "ar" ? "حدث خطأ في الرد" : "Error getting response");
+          const errorMessage = error instanceof Error ? error.message : "Unknown error";
+
+          // Show error with report option
+          toast.error(language === "ar" ? "حدث خطأ في الرد" : "Error getting response", {
+            action: {
+              label: language === "ar" ? "إبلاغ" : "Report",
+              onClick: async () => {
+                try {
+                  await addDoc(collection(db, "system_errors"), {
+                    type: "chatbot_error",
+                    message: errorMessage,
+                    userId: user.uid,
+                    userEmail: user.email,
+                    model: aiModel,
+                    userInput: textToSend,
+                    timestamp: serverTimestamp(),
+                    status: "open",
+                    userAgent: window.navigator.userAgent,
+                    url: window.location.href,
+                  });
+                  toast.success(
+                    language === "ar"
+                      ? "تم إرسال البلاغ بنجاح. شكراً لك!"
+                      : "Report sent successfully. Thank you!"
+                  );
+                } catch {
+                  toast.error(language === "ar" ? "فشل إرسال البلاغ" : "Failed to send report");
+                }
+              },
+            },
+          });
         } finally {
           setIsTyping(false);
           setStreamingText("");
@@ -300,7 +337,32 @@ export function AIChatbot() {
       }
     } catch (error) {
       console.error("Send Error:", error);
-      toast.error(language === "ar" ? "فشل الإرسال" : "Failed to send");
+      const errorMessage = error instanceof Error ? error.message : "Unknown error";
+
+      toast.error(language === "ar" ? "فشل الإرسال" : "Failed to send", {
+        action: {
+          label: language === "ar" ? "إبلاغ" : "Report",
+          onClick: async () => {
+            try {
+              await addDoc(collection(db, "system_errors"), {
+                type: "chat_send_error",
+                message: errorMessage,
+                userId: user?.uid,
+                userEmail: user?.email,
+                timestamp: serverTimestamp(),
+                status: "open",
+                userAgent: window.navigator.userAgent,
+                url: window.location.href,
+              });
+              toast.success(
+                language === "ar" ? "تم إرسال البلاغ بنجاح" : "Report sent successfully"
+              );
+            } catch {
+              toast.error(language === "ar" ? "فشل إرسال البلاغ" : "Failed to send report");
+            }
+          },
+        },
+      });
       if (!textOverride && !attachment) setInput(textToSend);
     }
   };
@@ -459,10 +521,10 @@ export function AIChatbot() {
                     <AnimatePresence>
                       {showModelPicker && (
                         <motion.div
-                          initial={{ opacity: 0, y: -10 }}
-                          animate={{ opacity: 1, y: 0 }}
-                          exit={{ opacity: 0, y: -10 }}
-                          className="absolute right-0 top-full mt-1 bg-background border border-border rounded-xl shadow-xl p-2 min-w-[180px] z-50"
+                          initial={{ opacity: 0, y: -10, scale: 0.95 }}
+                          animate={{ opacity: 1, y: 0, scale: 1 }}
+                          exit={{ opacity: 0, y: -10, scale: 0.95 }}
+                          className="absolute right-0 top-full mt-2 bg-[#1a1a2e] border-2 border-primary/30 rounded-xl shadow-2xl p-2 min-w-[200px] z-[100]"
                         >
                           {(
                             Object.entries(AI_MODEL_INFO) as [
@@ -479,20 +541,33 @@ export function AIChatbot() {
                                   setShowModelPicker(false);
                                 }}
                                 className={cn(
-                                  "w-full flex items-center gap-3 p-2 rounded-lg transition-colors",
-                                  aiModel === key ? "bg-primary/10" : "hover:bg-muted"
+                                  "w-full flex items-center gap-3 p-3 rounded-xl transition-all cursor-pointer",
+                                  aiModel === key
+                                    ? "bg-primary/20 border-2 border-primary shadow-lg"
+                                    : "hover:bg-white/10 border-2 border-transparent"
                                 )}
                               >
-                                <Icon className={cn("w-5 h-5", info.color)} />
-                                <div className="text-left">
-                                  <p className="text-sm font-medium">
+                                <div
+                                  className={cn(
+                                    "p-2 rounded-lg",
+                                    aiModel === key ? "bg-primary/30" : "bg-white/5"
+                                  )}
+                                >
+                                  <Icon className={cn("w-5 h-5", info.color)} />
+                                </div>
+                                <div className="text-left flex-1">
+                                  <p className="text-sm font-bold text-white">
                                     {info.name[language as "en" | "ar"]}
                                   </p>
-                                  <p className="text-[10px] text-muted-foreground">
+                                  <p className="text-[10px] text-gray-400">
                                     {info.description[language as "en" | "ar"]}
                                   </p>
                                 </div>
-                                {aiModel === key && <span className="ml-auto text-primary">✓</span>}
+                                {aiModel === key && (
+                                  <div className="w-5 h-5 bg-primary rounded-full flex items-center justify-center">
+                                    <span className="text-white text-xs">✓</span>
+                                  </div>
+                                )}
                               </button>
                             );
                           })}
