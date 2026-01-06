@@ -1,0 +1,96 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Helper to check for Admin
+    function isAdmin() {
+      return request.auth != null && 
+        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role in ['admin', 'owner'];
+    }
+    
+    // Helper to check for Owner
+    function isOwner() {
+      return request.auth != null && 
+        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'owner';
+    }
+
+    // Helper to check if user is whitelisted (replacing hardcoded email)
+    function isWhitelisted() {
+      return request.auth != null &&
+        exists(/databases/$(database)/documents/whitelisted_admins/$(request.auth.token.email));
+    }
+
+    // User Profiles
+    match /users/{userId} {
+      allow read: if request.auth != null;
+      // User can write own profile, Admin can write non-admin profiles, Owner can write anyone
+      allow write: if request.auth != null && (
+        (request.auth.uid == userId && 
+         (
+           // Allow Whitelisted users to write everything (including role promotion)
+           isWhitelisted() ||
+           // Normal users cannot change sensitive fields
+           !request.resource.data.diff(resource.data).affectedKeys().hasAny(['role', 'permissions', 'isWhitelisted', 'studentCode'])
+         )
+        ) ||
+        (isAdmin() && get(/databases/$(database)/documents/users/$(userId)).data.role == 'student') ||
+        isOwner()
+      );
+    }
+
+    // Chat System (Support)
+    match /chats/{chatId} {
+      allow read, write: if request.auth != null && (request.auth.uid == chatId || isAdmin());
+      match /messages/{messageId} {
+        allow read, write: if request.auth != null && (request.auth.uid == chatId || isAdmin());
+      }
+    }
+
+    // Public Content (Subjects)
+    match /subjects/{subjectId} {
+      allow read: if request.auth != null;
+      allow write: if isAdmin();
+      match /resources/{resourceId} {
+        allow read: if request.auth != null;
+        allow write: if isAdmin();
+      }
+    }
+    
+    // Notifications: Read all authenticated, Admin Write
+    match /notifications/{notificationId} {
+      allow read: if request.auth != null;
+      allow write: if isAdmin();
+    }
+    
+    // Admin Whitelist - needed for AuthContext to check and auto-promote
+    match /whitelisted_admins/{email} {
+      // Only allow reading if the document ID matches the user's email or is admin
+      allow read: if request.auth != null && (request.auth.token.email == email || isAdmin());
+      allow write: if isAdmin();
+    }
+    
+    // Banners - Public read for announcements
+    match /banners/{bannerId} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+    
+    // System Logs
+    match /logs/{logId} {
+      allow read: if isAdmin();
+      allow delete: if isAdmin();
+      allow create: if request.auth != null;
+    }
+    
+    // System Errors
+    match /system_errors/{errorId} {
+      allow read: if isAdmin();
+      allow write: if isAdmin();
+      allow create: if request.auth != null; // Allow users to log errors
+    }
+    
+    // Default deny for anything else
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}
