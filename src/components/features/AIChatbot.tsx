@@ -144,40 +144,57 @@ export function AIChatbot() {
     // Add current message
     recentMessages.push({ role: "user", content: userMessage });
 
-    const response = await fetch("/api/chat", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${token}`,
-      },
-      body: JSON.stringify({
-        messages: recentMessages,
-        model: aiModel === "local" ? "balanced" : aiModel,
-      }),
-    });
+    // Add timeout to prevent infinite "Sending" state
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 30000); // 30 second timeout
 
-    if (!response.ok) {
-      throw new Error(`API error: ${response.status}`);
-    }
+    try {
+      const response = await fetch("/api/chat", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          messages: recentMessages,
+          model: aiModel === "local" ? "balanced" : aiModel,
+        }),
+        signal: controller.signal,
+      });
 
-    // Stream the response
-    const reader = response.body?.getReader();
-    const decoder = new TextDecoder();
-    let fullText = "";
+      clearTimeout(timeoutId);
 
-    if (reader) {
-      while (true) {
-        const { done, value } = await reader.read();
-        if (done) break;
-
-        const chunk = decoder.decode(value, { stream: true });
-        fullText += chunk;
-        setStreamingText(fullText);
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error("API Error Response:", errorText);
+        throw new Error(`API error: ${response.status}`);
       }
-    }
 
-    setStreamingText("");
-    return fullText;
+      // Stream the response
+      const reader = response.body?.getReader();
+      const decoder = new TextDecoder();
+      let fullText = "";
+
+      if (reader) {
+        while (true) {
+          const { done, value } = await reader.read();
+          if (done) break;
+
+          const chunk = decoder.decode(value, { stream: true });
+          fullText += chunk;
+          setStreamingText(fullText);
+        }
+      }
+
+      setStreamingText("");
+      return fullText || "Sorry, I couldn't generate a response. Please try again.";
+    } catch (error) {
+      clearTimeout(timeoutId);
+      if (error instanceof Error && error.name === "AbortError") {
+        throw new Error("Request timed out. Please try again.");
+      }
+      throw error;
+    }
   };
 
   // Handle Send
