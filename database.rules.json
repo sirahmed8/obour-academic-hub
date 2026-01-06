@@ -1,9 +1,9 @@
 {
   "rules": {
-    ".read": "auth != null",
-    ".write": "auth != null",
+    ".read": false,
+    ".write": false,
     "presence": {
-      ".read": true,
+      ".read": "auth != null",
       ".write": "auth != null"
     }
   }
