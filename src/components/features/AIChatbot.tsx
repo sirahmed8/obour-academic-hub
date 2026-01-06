@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef, useEffect, useMemo } from "react";
+import { useState, useRef, useEffect, useMemo, useCallback } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { X, Send, Headphones, Bot, MessageSquare, Trash2 } from "lucide-react";
 import { useAuth, useLanguage } from "@/contexts";
@@ -218,10 +218,17 @@ export function AIChatbot() {
     }
   };
 
-  const handleReaction = async (msgId: string, emoji: string) => {
-    if (!user) return;
-    await toggleReaction(user.uid, msgId, user.uid, emoji);
-  };
+  const handleMessageReaction = useCallback(
+    async (msg: ChatMessage, emoji: string) => {
+      if (!user) return;
+      await toggleReaction(user.uid, msg.id, user.uid, emoji);
+    },
+    [user]
+  );
+
+  const handleMessageReply = useCallback((msg: ChatMessage) => {
+    setReplyTo(msg);
+  }, []);
 
   if (!user) return null;
 
@@ -392,10 +399,8 @@ export function AIChatbot() {
                   message={msg}
                   user={user}
                   isUser={msg.senderId === user.uid}
-                  onReply={(msg) => {
-                    setReplyTo(msg);
-                  }}
-                  onReact={(msg, emoji) => handleReaction(msg.id, emoji)}
+                  onReply={handleMessageReply}
+                  onReact={handleMessageReaction}
                 />
               ))}
 
