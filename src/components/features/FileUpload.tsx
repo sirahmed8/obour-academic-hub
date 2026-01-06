@@ -4,6 +4,7 @@ import { useState, useRef } from "react";
 import { Upload, X, FileText, Loader2 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import Image from "next/image";
+import { auth } from "@/lib/firebase";
 
 interface FileAttachment {
   url: string;
@@ -23,9 +24,18 @@ export function FileUpload({ onFileUploaded, language }: FileUploadProps) {
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const uploadToVercelBlob = async (file: File): Promise<string> => {
-    // 1. Upload to our local API route (which uses Vercel Blob SDK)
+    // Get auth token
+    const token = await auth.currentUser?.getIdToken();
+    if (!token) {
+      throw new Error("Not authenticated");
+    }
+
+    // Upload to our local API route (which uses Vercel Blob SDK)
     const response = await fetch(`/api/upload?filename=${encodeURIComponent(file.name)}`, {
       method: "POST",
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
       body: file,
     });
 

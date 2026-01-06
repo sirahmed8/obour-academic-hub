@@ -25,7 +25,7 @@ import { FileUpload } from "@/components/features/FileUpload";
 import { ChatMessageItem } from "@/components/chat/ChatMessage";
 
 // AI Model types - All FREE via OpenRouter
-type AIModel = "local" | "thinking" | "balanced" | "flash";
+type AIModel = "local" | "thinking" | "balanced" | "fast" | "flash";
 
 const AI_MODEL_INFO = {
   local: {
@@ -46,10 +46,16 @@ const AI_MODEL_INFO = {
     description: { en: "Best for most tasks", ar: "الأفضل لمعظم المهام" },
     color: "text-green-500",
   },
+  fast: {
+    name: { en: "Fast", ar: "سريع" },
+    icon: Zap,
+    description: { en: "Quick responses", ar: "ردود سريعة" },
+    color: "text-orange-500",
+  },
   flash: {
-    name: { en: "Flash", ar: "سريع" },
+    name: { en: "Flash", ar: "فلاش" },
     icon: Sparkles,
-    description: { en: "Fast responses", ar: "ردود سريعة" },
+    description: { en: "Vision + Speed", ar: "يفهم الصور" },
     color: "text-blue-500",
   },
 };
@@ -607,8 +613,8 @@ export function AIChatbot() {
             <div className="p-3 bg-background border-t border-border">
               {/* Model Selector Tabs - Only in Bot Mode */}
               {mode === "bot" && (
-                <div className="flex gap-1 mb-2 p-1 bg-muted/50 rounded-xl overflow-x-auto">
-                  {(["balanced", "thinking", "flash"] as AIModel[]).map((key) => {
+                <div className="flex gap-1 mb-2 p-1 bg-muted/50 rounded-xl overflow-x-auto scrollbar-hide">
+                  {(["thinking", "balanced", "fast", "flash"] as AIModel[]).map((key) => {
                     const info = AI_MODEL_INFO[key];
                     const Icon = info.icon;
                     return (

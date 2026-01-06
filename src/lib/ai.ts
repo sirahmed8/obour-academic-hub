@@ -4,7 +4,7 @@ import { createOpenAI } from "@ai-sdk/openai";
 // AI Provider - All FREE models via OpenRouter
 // ========================================================================
 
-export type AIModelProvider = "thinking" | "balanced" | "flash";
+export type AIModelProvider = "thinking" | "balanced" | "fast" | "flash";
 
 // OpenRouter Provider (All models are FREE)
 const openrouterProvider = createOpenAI({
@@ -20,7 +20,8 @@ const openrouterProvider = createOpenAI({
 export const AI_MODELS = {
   thinking: "deepseek/deepseek-r1-0528:free", // Deep reasoning
   balanced: "openai/gpt-oss-120b:free", // Default - good all-around
-  flash: "meta-llama/llama-3.3-70b-instruct:free", // Fast responses
+  fast: "meta-llama/llama-3.3-70b-instruct:free", // Fast responses
+  flash: "google/gemini-2.0-flash-exp:free", // Vision + Fast (understands images/videos)
 } as const;
 
 // Get the appropriate model based on provider selection
