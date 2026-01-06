@@ -317,37 +317,30 @@
 
 /* ============================================
    WCAG 2.1 TOUCH TARGET ACCESSIBILITY
+   Note: These are OPT-IN classes, not global
    ============================================ */
 
-/* Minimum touch target size (44x44px recommended, 24x24px minimum) */
+/* Smooth hover transitions for all interactive elements */
 button,
 a,
-[role="button"],
-input[type="checkbox"],
-input[type="radio"],
-.touch-target {
-  min-height: 44px;
-  min-width: 44px;
+[role="button"] {
   transition: all 0.2s ease-out;
 }
 
-/* Compact touch targets for dense UIs (still meets 24px minimum) */
+/* Opt-in touch target class (use when needed) */
+.touch-target {
+  min-height: 44px;
+  min-width: 44px;
+}
+
+/* Compact touch targets for dense UIs */
 .touch-target-sm {
   min-height: 32px;
   min-width: 32px;
 }
 
-/* Inline links don't need full touch target */
-p a,
-span a,
-.inline-link {
-  min-height: auto;
-  min-width: auto;
-  padding: 4px 0;
-}
-
-/* Icon-only buttons need proper sizing */
-.icon-btn {
+/* Icon-only buttons - opt-in class */
+.icon-btn-lg {
   display: inline-flex;
   align-items: center;
   justify-content: center;
