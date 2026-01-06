@@ -15,11 +15,13 @@
     --secondary: 210 40% 96.1%;
     --secondary-foreground: 222.2 47.4% 11.2%;
     --muted: 210 40% 96.1%;
-    --muted-foreground: 215.4 16.3% 46.9%;
+    /* Increased contrast: 46.9% -> 40% for WCAG AA (4.5:1 ratio) */
+    --muted-foreground: 215.4 16.3% 40%;
     --accent: 210 40% 96.1%;
     --accent-foreground: 222.2 47.4% 11.2%;
-    --destructive: 0 84.2% 60.2%;
-    --destructive-foreground: 210 40% 98%;
+    /* Improved destructive visibility */
+    --destructive: 0 84.2% 50%;
+    --destructive-foreground: 0 0% 100%;
     --border: 214.3 31.8% 91.4%;
     --input: 214.3 31.8% 91.4%;
     --ring: 239 84% 67%;
@@ -38,11 +40,13 @@
     --secondary: 217.2 32.6% 17.5%;
     --secondary-foreground: 210 40% 98%;
     --muted: 217.2 32.6% 17.5%;
-    --muted-foreground: 215 20.2% 65.1%;
+    /* Increased contrast: 65.1% -> 70% for WCAG AA on dark bg */
+    --muted-foreground: 215 20.2% 70%;
     --accent: 217.2 32.6% 17.5%;
     --accent-foreground: 210 40% 98%;
-    --destructive: 0 62.8% 30.6%;
-    --destructive-foreground: 210 40% 98%;
+    /* Improved destructive for dark mode */
+    --destructive: 0 72% 55%;
+    --destructive-foreground: 0 0% 100%;
     --border: 217.2 32.6% 17.5%;
     --input: 217.2 32.6% 17.5%;
     --ring: 239 84% 67%;
@@ -311,11 +315,91 @@
   border-radius: var(--radius);
 }
 
-/* Smooth hover transitions for all interactive elements */
+/* ============================================
+   WCAG 2.1 TOUCH TARGET ACCESSIBILITY
+   ============================================ */
+
+/* Minimum touch target size (44x44px recommended, 24x24px minimum) */
 button,
 a,
-[role="button"] {
+[role="button"],
+input[type="checkbox"],
+input[type="radio"],
+.touch-target {
+  min-height: 44px;
+  min-width: 44px;
   transition: all 0.2s ease-out;
+}
+
+/* Compact touch targets for dense UIs (still meets 24px minimum) */
+.touch-target-sm {
+  min-height: 32px;
+  min-width: 32px;
+}
+
+/* Inline links don't need full touch target */
+p a,
+span a,
+.inline-link {
+  min-height: auto;
+  min-width: auto;
+  padding: 4px 0;
+}
+
+/* Icon-only buttons need proper sizing */
+.icon-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 44px;
+  min-width: 44px;
+  padding: 10px;
+}
+
+/* ============================================
+   CLS OPTIMIZATION (Cumulative Layout Shift)
+   ============================================ */
+
+/* Reserve space for dynamic content */
+.aspect-message {
+  min-height: 48px;
+  contain: layout style;
+}
+
+/* Chat message container - prevent jumping */
+.message-container {
+  contain: content;
+  min-height: 60px;
+}
+
+/* Reserve space for avatars and images */
+.avatar-placeholder {
+  aspect-ratio: 1;
+  background: hsl(var(--muted));
+}
+
+/* Prevent layout shift on image load */
+img {
+  height: auto;
+  max-width: 100%;
+}
+
+/* Ensure consistent button heights */
+.btn-consistent {
+  height: 44px;
+  min-height: 44px;
+}
+
+/* Chat bubble stability */
+.chat-bubble {
+  min-height: 40px;
+  contain: layout;
+}
+
+/* Streaming text container - prevent jumping */
+.streaming-text {
+  min-height: 24px;
+  contain: layout style;
 }
 
 /* Card hover effect */

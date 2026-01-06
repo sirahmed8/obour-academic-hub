@@ -13,7 +13,7 @@ export const viewport: Viewport = {
   themeColor: "#6366f1",
   width: "device-width",
   initialScale: 1,
-  maximumScale: 1,
+  // Note: maximumScale removed to allow user zooming (WCAG 2.1 accessibility)
 };
 
 export const metadata: Metadata = {
