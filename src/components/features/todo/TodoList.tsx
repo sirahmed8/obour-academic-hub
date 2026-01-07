@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import {
   collection,
   query,
@@ -24,7 +24,6 @@ export function TodoList() {
   const { user } = useAuth();
   const { language } = useLanguage();
   const [tasks, setTasks] = useState<TodoTask[]>([]);
-  const [filteredTasks, setFilteredTasks] = useState<TodoTask[]>([]);
   const [filter, setFilter] = useState<"all" | "high" | "medium" | "low" | "incomplete">("all");
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingTask, setEditingTask] = useState<TodoTask | undefined>(undefined);
@@ -34,11 +33,7 @@ export function TodoList() {
   useEffect(() => {
     if (!user) return;
 
-    const q = query(
-      collection(db, `users/${user.uid}/tasks`),
-      orderBy("orderIndex", "asc")
-      // We can also sort by createdAt if orderIndex is same, but let's stick to simple query
-    );
+    const q = query(collection(db, `users/${user.uid}/tasks`), orderBy("orderIndex", "asc"));
 
     const unsubscribe = onSnapshot(q, (snapshot) => {
       const fetchedTasks = snapshot.docs.map((doc) => ({
@@ -53,66 +48,36 @@ export function TodoList() {
     return () => unsubscribe();
   }, [user]);
 
-  // Handle Filtering
-  useEffect(() => {
-    if (filter === "all") {
-      setFilteredTasks(tasks);
-    } else if (filter === "incomplete") {
-      setFilteredTasks(tasks.filter((t) => !t.completed));
-    } else {
-      setFilteredTasks(tasks.filter((t) => t.priority === filter));
-    }
+  // Derived state for filtered tasks
+  const filteredTasks = useMemo(() => {
+    if (filter === "all") return tasks;
+    if (filter === "incomplete") return tasks.filter((t) => !t.completed);
+    return tasks.filter((t) => t.priority === filter);
   }, [tasks, filter]);
 
   const handleReorder = (newOrder: TodoTask[]) => {
-    setFilteredTasks(newOrder); // Optimistic update
-    // We only reorder if filter is 'all' or we risk messing up indexes of hidden items
-    // But for now, let's just allow reorder on visual list and update their indexes in db
-    // Updating order in DB
-    // Note: To truly support reordering across filtered lists is complex.
-    // Standard practice: Only allow reorder when showing "All" tasks or specifically "Custom Order".
-    // I will enable reorder update only if filter is 'all'.
-
+    // Optimistic update logic would go here if we were maintaining local state for order
+    // For now, we rely on the main 'tasks' state which is updated by Firestore snapshot
+    // Since Reorder component requires state update, we can't easily reorder *filtered* lists without local state
+    // but 'tasks' is the source of truth.
+    // If we want visual reordering, we need to update 'tasks' based on the reorder provided it's the full list
     if (filter === "all") {
-      // Debounce or just update
-      // Updating every item might be heavy. Usually we just update the moved item and neighbors.
-      // For simplicity in this demo, we won't batch update everything on every drag frame.
-      // We'll trust the user to drag and drop, and we can save the order of the entire list.
-      // Actually, Reorder.Group `onReorder` triggers frequently.
-      // We should ideally only write to DB on drag end.
-      // Framer Motion Reorder doesn't expose onDragEnd easily with the new order.
-      // We will just update the local state here.
-      // AND we should trigger a DB update.
-      // Ideally we shouldn't map and update ALL docs.
-      // I will skipping DB update for reorder in this iteration to avoid write-heavy operations
-      // OR I can implement a "Save Order" button? No, it should be auto.
-      // I'll leave reorder as local visual for now or implement a debounced save.
+      setTasks(newOrder);
     }
   };
 
-  // Since onReorder triggers continuously, we need a way to save only when dropped.
-  // Reorder.Group doesn't pass the new order to onDragEnd.
-  // So we must update state in onReorder.
-  // We can use a `useEffect` on `filteredTasks` with a debounce to save order?
-  // But that would trigger on fetch too.
-  // Let's implement simple CRUD first. Drag and drop will just be visual for the session unless I implement the batch update logic.
-  // I will implement simple batch update on "drag end" if I could.
-  // Let's stick to local state reorder for now to keep it responsive,
-  // and maybe just update orderIndex for the affected items if I can identify them.
-  // For this MVP task, I will accept that reordering might not persist perfectly without a more complex backend logic.
-  // But I will try:
-
   const handleDragEnd = async () => {
-    if (filter !== "all") return;
-    // Loop through filteredTasks and update orderIndex if it differs from index
-    // This is heavy if list is long.
-    // For < 100 items it's fine.
-    const updates = filteredTasks.map((task, index) => {
+    if (filter !== "all" || !user) return;
+    const uid = user.uid;
+
+    // Create updates for all tasks that have changed position
+    const updates = tasks.map((task, index) => {
       if (task.orderIndex !== index) {
-        return updateDoc(doc(db, `users/${user.uid}/tasks`, task.id), { orderIndex: index });
+        return updateDoc(doc(db, `users/${uid}/tasks`, task.id), { orderIndex: index });
       }
       return Promise.resolve();
     });
+
     await Promise.all(updates);
   };
 
@@ -122,8 +87,7 @@ export function TodoList() {
       await updateDoc(doc(db, `users/${user.uid}/tasks`, task.id), {
         completed: !task.completed,
       });
-      // Optionally sound effect
-    } catch (e) {
+    } catch {
       toast.error("Failed to update task");
     }
   };
@@ -136,7 +100,7 @@ export function TodoList() {
       try {
         await deleteDoc(doc(db, `users/${user.uid}/tasks`, id));
         toast.success("Task deleted");
-      } catch (e) {
+      } catch {
         toast.error("Failed to delete task");
       }
     }

@@ -38,6 +38,7 @@ export function AIChatbot() {
   // Interaction State
   const [replyTo, setReplyTo] = useState<ChatMessage | null>(null);
   const [isTaskModalOpen, setIsTaskModalOpen] = useState(false);
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const [taskToEdit, setTaskToEdit] = useState<any>(undefined);
 
   // Firestore Messages State
@@ -162,7 +163,7 @@ export function AIChatbot() {
         setIsTyping(true);
         try {
           const localResponse = await getLocalBotResponse(textToSend, language as "en" | "ar");
-          let botResponse = localResponse.text;
+          const botResponse = localResponse.text;
 
           // Send Bot Message
           await sendMessage(
@@ -193,6 +194,7 @@ export function AIChatbot() {
   };
 
   const handleTaskAction = useCallback(
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     async (action: "confirm" | "edit", taskData: any) => {
       if (!user) return;
 

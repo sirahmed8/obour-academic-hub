@@ -1,20 +1,10 @@
 "use client";
 
 import { Reorder, useDragControls } from "framer-motion";
-import {
-  GripVertical,
-  Clock,
-  CheckCircle2,
-  Circle,
-  MoreVertical,
-  Edit2,
-  Trash2,
-} from "lucide-react";
+import { GripVertical, Clock, CheckCircle2, Circle, Edit2, Trash2 } from "lucide-react";
 import { TodoTask } from "@/types";
 import { cn } from "@/lib/utils";
 import { useLanguage } from "@/contexts";
-import { useState } from "react";
-import { AnimatePresence, motion } from "framer-motion";
 
 interface TodoItemProps {
   task: TodoTask;
@@ -26,7 +16,6 @@ interface TodoItemProps {
 export function TodoItem({ task, onToggle, onDelete, onEdit }: TodoItemProps) {
   const { language } = useLanguage();
   const dragControls = useDragControls();
-  const [showMenu, setShowMenu] = useState(false);
 
   const priorityColors = {
     high: "bg-red-500/10 text-red-500 border-red-500/20",

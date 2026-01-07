@@ -18,6 +18,7 @@ interface ChatMessagesProps {
   onReply: (msg: ChatMessage) => void;
   onReact: (msg: ChatMessage, emoji: string) => void;
   onSend: (text: string) => void;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   onTaskAction: (action: "confirm" | "edit", taskData: any) => void;
 }
 

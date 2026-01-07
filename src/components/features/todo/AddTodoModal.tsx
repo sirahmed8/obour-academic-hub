@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion } from "framer-motion";
 import { X, Plus, Calendar, Flag, RefreshCw, Trash2, AlertCircle } from "lucide-react";
 import { useLanguage } from "@/contexts";
 import { TodoTask } from "@/types";
@@ -26,7 +26,7 @@ export function AddTodoModal({
   initialData,
   onSuccess,
 }: AddTodoModalProps) {
-  const { t, language } = useLanguage();
+  const { language } = useLanguage();
   const { user } = useAuth();
   const isRtl = language === "ar";
 
@@ -275,7 +275,7 @@ export function AddTodoModal({
             </label>
             <select
               value={repeat}
-              onChange={(e) => setRepeat(e.target.value as any)}
+              onChange={(e) => setRepeat(e.target.value as "none" | "daily" | "weekly" | "monthly")}
               className="w-full bg-muted/50 border border-border rounded-xl px-4 py-2.5 outline-none focus:ring-2 focus:ring-primary/20 appearance-none cursor-pointer"
             >
               {repeats.map((r) => (

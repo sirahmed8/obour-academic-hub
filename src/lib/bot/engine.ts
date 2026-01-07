@@ -53,11 +53,10 @@ function findBestMatch(input: string): QA | null {
 // ----------------------------------------------------------------------
 export async function getLocalBotResponse(
   input: string,
-  language: "ar" | "en" = "ar",
-  _token?: string
+  language: "ar" | "en" = "ar"
 ): Promise<BotResponse> {
   // 1. Check for Task Creation Intent
-  const taskDetails = extractTaskDetails(input, language);
+  const taskDetails = extractTaskDetails(input);
   if (taskDetails) {
     return {
       text:
@@ -111,8 +110,7 @@ export async function getLocalBotResponse(
 // ----------------------------------------------------------------------
 
 function extractTaskDetails(
-  input: string,
-  language: "ar" | "en"
+  input: string
 ): { title: string; priority: string; repeat?: string } | null {
   const norm = normalizeArabic(input);
   const lower = input.toLowerCase();

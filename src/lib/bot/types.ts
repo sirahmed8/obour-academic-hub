@@ -4,6 +4,7 @@ export interface BotResponse {
   suggestions?: string[];
   action?: "live_chat" | "link" | "confirm_task";
   link?: string;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   taskData?: any;
 }
 

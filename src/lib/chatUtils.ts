@@ -29,6 +29,7 @@ export const sendMessage = async (
   replyTo: ChatMessage["replyTo"] = undefined,
   context: "bot" | "live" = "live",
   attachment?: { url: string; name: string; size: number; type: string },
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   additionalData?: { action?: "confirm_task" | "live_chat"; taskData?: any }
 ) => {
   if (!text.trim() && !attachment && !additionalData?.taskData) return;
