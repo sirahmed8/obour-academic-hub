@@ -10,6 +10,7 @@ import { collection, addDoc, updateDoc, doc, serverTimestamp } from "firebase/fi
 import { db } from "@/lib/firebase";
 import { useAuth } from "@/contexts";
 import { toast } from "sonner";
+import { DateTimePicker } from "@/components/ui/DateTimePicker";
 
 interface AddTodoModalProps {
   isOpen: boolean;
@@ -163,7 +164,8 @@ export function AddTodoModal({
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
           transition={{ duration: 0.2 }}
-          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm"
+          className="fixed top-0 left-0 right-0 bottom-0 z-[100] flex items-center justify-center p-4 bg-black/60 backdrop-blur-md"
+          style={{ position: "fixed", inset: 0 }}
           onClick={onClose}
         >
           <motion.div
@@ -278,9 +280,10 @@ export function AddTodoModal({
                     <Calendar size={14} />
                     {language === "ar" ? "تاريخ الاستحقاق" : "Due Date"}
                   </label>
-                  <button
+                  <motion.button
                     type="button"
                     onClick={() => setShowDatePicker(!showDatePicker)}
+                    whileTap={{ scale: 0.98 }}
                     className={cn(
                       "w-full bg-muted/50 border border-border rounded-xl px-3 py-2 h-[38px] text-xs outline-none text-left flex items-center justify-between transition-all",
                       showDatePicker && "ring-2 ring-primary/20 border-primary/30",
@@ -298,46 +301,21 @@ export function AddTodoModal({
                           : "Select date"}
                     </span>
                     <Calendar size={14} className="text-muted-foreground" />
-                  </button>
+                  </motion.button>
 
-                  {/* Date Picker Dropdown */}
-                  {showDatePicker && (
-                    <motion.div
-                      initial={{ opacity: 0, y: -10 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      exit={{ opacity: 0, y: -10 }}
-                      className="absolute top-full left-0 right-0 mt-1 z-20 bg-card border border-border rounded-xl p-3 shadow-lg"
-                    >
-                      <input
-                        type="datetime-local"
+                  {/* Custom Date Time Picker */}
+                  <AnimatePresence>
+                    {showDatePicker && (
+                      <DateTimePicker
                         value={dueDate}
-                        onChange={(e) => setDueDate(e.target.value)}
-                        className="w-full bg-muted/50 border border-border rounded-lg px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-primary/20"
-                        style={{ colorScheme: "dark" }}
+                        onChange={(value) => {
+                          setDueDate(value);
+                        }}
+                        onClose={() => setShowDatePicker(false)}
+                        language={language as "ar" | "en"}
                       />
-                      <div className="flex gap-2 mt-2">
-                        {dueDate && (
-                          <button
-                            type="button"
-                            onClick={() => {
-                              setDueDate("");
-                              setShowDatePicker(false);
-                            }}
-                            className="flex-1 text-xs py-1.5 bg-destructive/10 text-destructive rounded-lg hover:bg-destructive/20 transition-colors"
-                          >
-                            {language === "ar" ? "مسح" : "Clear"}
-                          </button>
-                        )}
-                        <button
-                          type="button"
-                          onClick={() => setShowDatePicker(false)}
-                          className="flex-1 text-xs py-1.5 bg-primary/10 text-primary rounded-lg hover:bg-primary/20 transition-colors"
-                        >
-                          {language === "ar" ? "تم" : "Done"}
-                        </button>
-                      </div>
-                    </motion.div>
-                  )}
+                    )}
+                  </AnimatePresence>
                 </div>
               </div>
 
