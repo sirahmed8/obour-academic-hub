@@ -21,6 +21,7 @@ import { ConfirmationModal } from "@/components/ui/ConfirmationModal";
 import { ChatHeader } from "./chatbot/ChatHeader";
 import { ChatMessages } from "./chatbot/ChatMessages";
 import { ChatInput } from "./chatbot/ChatInput";
+import { AddTodoModal } from "@/components/features/todo/AddTodoModal";
 
 /**
  * AIChatbot - Main Chatbot Component
@@ -36,6 +37,8 @@ export function AIChatbot() {
 
   // Interaction State
   const [replyTo, setReplyTo] = useState<ChatMessage | null>(null);
+  const [isTaskModalOpen, setIsTaskModalOpen] = useState(false);
+  const [taskToEdit, setTaskToEdit] = useState<any>(undefined);
 
   // Firestore Messages State
   // Firestore Messages State
@@ -138,7 +141,7 @@ export function AIChatbot() {
         textToSend,
         user.uid,
         user.displayName || "User",
-        false,
+        false, // isAdmin
         replyTo
           ? {
               id: replyTo.id,
@@ -146,27 +149,20 @@ export function AIChatbot() {
               senderName: replyTo.senderName || "User",
             }
           : undefined,
-        mode,
-        attachment
+        mode, // context
+        attachment ? { ...attachment, type: attachment.type } : undefined
       );
 
-      // Bot Mode Response
+      // Reset Input
+      setInput("");
+      setReplyTo(null);
+
+      // 2. Handle Bot Response
       if (mode === "bot") {
         setIsTyping(true);
-
         try {
-          // ALWAYS use LocalBot - external APIs are disabled for reliability
           const localResponse = await getLocalBotResponse(textToSend, language as "en" | "ar");
           let botResponse = localResponse.text;
-
-          // If low confidence, append live support suggestion
-          if (localResponse.confidence < 0.5) {
-            botResponse +=
-              "\n\n" +
-              (language === "ar"
-                ? "💬 هل تريد التحدث مع الدعم المباشر؟ اضغط على زر LIVE CHAT في الأعلى."
-                : "💬 Would you like to talk to live support? Click the LIVE CHAT button above.");
-          }
 
           // Send Bot Message
           await sendMessage(
@@ -176,72 +172,54 @@ export function AIChatbot() {
             language === "ar" ? "مساعد العبور" : "Obour Bot",
             true,
             undefined,
-            "bot"
+            "bot",
+            undefined,
+            {
+              action: localResponse.action as "confirm_task" | "live_chat" | undefined,
+              taskData: localResponse.taskData,
+            }
           );
         } catch (error) {
           console.error("Bot Error:", error);
-          const errorMessage = error instanceof Error ? error.message : "Unknown error";
-
-          // Show error with report option
-          toast.error(language === "ar" ? "حدث خطأ في الرد" : "Error getting response", {
-            action: {
-              label: language === "ar" ? "إبلاغ" : "Report",
-              onClick: async () => {
-                await reportError(errorMessage, textToSend);
-              },
-            },
-          });
         } finally {
           setIsTyping(false);
           setStreamingText("");
         }
       }
     } catch (error) {
-      console.error("Send Error:", error);
-      const errorMessage = error instanceof Error ? error.message : "Unknown error";
-
-      toast.error(language === "ar" ? "فشل الإرسال" : "Failed to send", {
-        action: {
-          label: language === "ar" ? "إبلاغ" : "Report",
-          onClick: async () => {
-            await reportError(errorMessage, textToSend, "chat_send_error");
-          },
-        },
-      });
-      if (!textOverride && !attachment) setInput(textToSend);
+      console.error("Error sending message:", error);
+      toast.error(language === "ar" ? "فشل إرسال الرسالة" : "Failed to send message");
     }
   };
 
-  const reportError = async (
-    message: string,
-    userInput?: string,
-    type: string = "chatbot_error"
-  ) => {
-    if (!user) return;
-    try {
-      await addDoc(collection(db, "system_errors"), {
-        type,
-        message,
-        userId: user.uid,
-        userEmail: user.email,
-        model: "local",
-        userInput,
-        timestamp: serverTimestamp(),
-        status: "open",
-        userAgent: window.navigator.userAgent,
-        url: window.location.href,
-      });
-      toast.success(
-        language === "ar"
-          ? "تم إرسال البلاغ بنجاح. شكراً لك!"
-          : "Report sent successfully. Thank you!"
-      );
-    } catch {
-      toast.error(language === "ar" ? "فشل إرسال البلاغ" : "Failed to send report");
-    }
-  };
+  const handleTaskAction = useCallback(
+    async (action: "confirm" | "edit", taskData: any) => {
+      if (!user) return;
 
-  const handleClearHistory = async () => {
+      if (action === "edit") {
+        setTaskToEdit(taskData);
+        setIsTaskModalOpen(true);
+      } else {
+        try {
+          await addDoc(collection(db, `users/${user.uid}/tasks`), {
+            ...taskData,
+            userId: user.uid,
+            completed: false,
+            createdAt: serverTimestamp(),
+            orderIndex: 0,
+          });
+          // The bot message is now sent via onSuccess in AddTodoModal
+          toast.success(language === "ar" ? "تم إضافة المهمة" : "Task added");
+        } catch (error) {
+          console.error(error);
+          toast.error("Failed to create task");
+        }
+      }
+    },
+    [user, language]
+  );
+
+  const confirmClearChat = async () => {
     if (!user) return;
     try {
       await clearChatHistory(user.uid);
@@ -274,22 +252,22 @@ export function AIChatbot() {
       <ConfirmationModal
         isOpen={showClearConfirm}
         onClose={() => setShowClearConfirm(false)}
-        onConfirm={handleClearHistory}
-        title={language === "ar" ? "مسح المحادثة؟" : "Clear History?"}
+        onConfirm={confirmClearChat}
+        title={language === "ar" ? "مسح المحادثة" : "Clear Chat History"}
         message={
           language === "ar"
-            ? "سيتم حذف جميع الرسائل من السجل."
-            : "This will delete all messages from your history."
+            ? "هل أنت متأكد أنك تريد مسح جميع الرسائل؟ لا يمكن التراجع عن هذا الإجراء."
+            : "Are you sure you want to clear all messages? This action cannot be undone."
         }
+        confirmText={language === "ar" ? "مسح" : "Clear"}
+        cancelText={language === "ar" ? "إلغاء" : "Cancel"}
       />
-
       {/* Floating Button */}
       <motion.button
         onClick={toggleChat}
-        className="fixed bottom-6 right-6 z-50 p-4 bg-primary text-primary-foreground rounded-full shadow-lg hover:shadow-xl transition-shadow w-14 h-14 flex items-center justify-center"
         whileHover={{ scale: 1.05 }}
         whileTap={{ scale: 0.95 }}
-        aria-label={isOpen ? "Close chat" : "Open chat"}
+        className="fixed bottom-6 right-6 z-50 p-4 bg-primary text-primary-foreground rounded-full shadow-lg shadow-primary/25 hover:shadow-xl hover:shadow-primary/30 transition-all"
       >
         <AnimatePresence mode="wait">
           {isOpen ? (
@@ -331,6 +309,7 @@ export function AIChatbot() {
               onReply={setReplyTo}
               onReact={handleReaction}
               onSend={(text) => handleSend(text)}
+              onTaskAction={handleTaskAction}
             />
 
             <ChatInput
@@ -345,6 +324,25 @@ export function AIChatbot() {
           </motion.div>
         )}
       </AnimatePresence>
+
+      <AddTodoModal
+        isOpen={isTaskModalOpen}
+        onClose={() => setIsTaskModalOpen(false)}
+        initialData={taskToEdit}
+        onSuccess={() => {
+          if (user) {
+            sendMessage(
+              user.uid,
+              language === "ar" ? "تم إنشاء المهمة بنجاح ✅" : "Task created successfully ✅",
+              "bot",
+              language === "ar" ? "مساعد العبور" : "Obour Bot",
+              true,
+              undefined,
+              "bot"
+            );
+          }
+        }}
+      />
     </>
   );
 }

@@ -54,10 +54,22 @@ function findBestMatch(input: string): QA | null {
 export async function getLocalBotResponse(
   input: string,
   language: "ar" | "en" = "ar",
-  // _token is reserved for future use
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   _token?: string
 ): Promise<BotResponse> {
+  // 1. Check for Task Creation Intent
+  const taskDetails = extractTaskDetails(input, language);
+  if (taskDetails) {
+    return {
+      text:
+        language === "ar"
+          ? `هل تريد إنشاء مهمة: "${taskDetails.title}"؟`
+          : `Do you want to create task: "${taskDetails.title}"?`,
+      confidence: 0.9,
+      action: "confirm_task",
+      taskData: taskDetails,
+    };
+  }
+
   const match = findBestMatch(input);
 
   if (match) {
@@ -92,6 +104,99 @@ export async function getLocalBotResponse(
         ? ["تحويل للدعم المباشر", "المواد الدراسية", "مشكلة تقنية"]
         : ["Switch to Live Support", "Subjects", "Technical Issue"],
   };
+}
+
+// ----------------------------------------------------------------------
+// NLP Logic
+// ----------------------------------------------------------------------
+
+function extractTaskDetails(
+  input: string,
+  language: "ar" | "en"
+): { title: string; priority: string; repeat?: string } | null {
+  const norm = normalizeArabic(input);
+  const lower = input.toLowerCase();
+
+  const intents = [
+    "remind me to",
+    "remind me",
+    "create task",
+    "add task",
+    "new task",
+    "i have a task",
+    "todo",
+    "ذكرني",
+    "تذكير",
+    "مهمة جديدة",
+    "اضافة مهمة",
+    "عندي مهمة",
+    "سجل مهمة",
+  ];
+
+  if (!intents.some((i) => norm.includes(i) || lower.includes(i))) {
+    return null;
+  }
+
+  // Extract Title
+  // Try to remove the trigger phrase
+  let title = input;
+  // Simple replace of matched intent
+  for (const intent of intents) {
+    const idx = lower.indexOf(intent);
+    if (idx !== -1) {
+      // If "remind me to study", remove "remind me to"
+      // If "create task study", remove "create task"
+      // We prefer the longest match roughly
+      // This is a naive heuristic
+      if (input.length > intent.length + 5) {
+        // ensure we don't just match "remind me" inside a sentence randomly if possible, but here we assume intent is prefix usually
+      }
+      // Actually better to just look for the first occurrence?
+    }
+  }
+
+  // Cleaner extraction:
+  // Remove the triggering phrase from the start if possible
+  for (const intent of intents) {
+    if (norm.startsWith(intent) || lower.startsWith(intent)) {
+      title = input.slice(intent.length).trim();
+      break;
+    }
+  }
+
+  // Remove "to" or "b-" (بـ) if remaining
+  if (title.toLowerCase().startsWith("to ")) title = title.slice(3).trim();
+  if (title.startsWith("بـ") || title.startsWith("ب ")) title = title.slice(2).trim();
+
+  if (title.length < 2) return null; // Too short to be a real task
+
+  // Extract Priority
+  let priority = "medium";
+  if (
+    lower.includes("urgent") ||
+    lower.includes("important") ||
+    lower.includes("high priority") ||
+    norm.includes("عاجل") ||
+    norm.includes("مهم") ||
+    norm.includes("ضروري")
+  ) {
+    priority = "high";
+  }
+
+  // Extract Repeat
+  let repeat = "none";
+  if (
+    lower.includes("daily") ||
+    lower.includes("every day") ||
+    norm.includes("يومي") ||
+    norm.includes("كل يوم")
+  ) {
+    repeat = "daily";
+  } else if (lower.includes("weekly") || norm.includes("اسبوعي") || norm.includes("كل اسبوع")) {
+    repeat = "weekly";
+  }
+
+  return { title, priority, repeat };
 }
 
 export function wantsLiveSupport(input: string): boolean {

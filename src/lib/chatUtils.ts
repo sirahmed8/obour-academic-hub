@@ -28,9 +28,10 @@ export const sendMessage = async (
   isAdmin: boolean = false,
   replyTo: ChatMessage["replyTo"] = undefined,
   context: "bot" | "live" = "live",
-  attachment?: { url: string; name: string; size: number; type: string }
+  attachment?: { url: string; name: string; size: number; type: string },
+  additionalData?: { action?: "confirm_task" | "live_chat"; taskData?: any }
 ) => {
-  if (!text.trim() && !attachment) return;
+  if (!text.trim() && !attachment && !additionalData?.taskData) return;
 
   const messagesRef = collection(db, `chats/${chatId}/messages`);
   const timestamp = serverTimestamp();
@@ -58,6 +59,7 @@ export const sendMessage = async (
           attachmentType: attachment.type,
         }
       : {}),
+    ...(additionalData || {}),
   });
 
   // 2. Update Chat Session Metadata

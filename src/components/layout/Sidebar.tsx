@@ -14,6 +14,7 @@ import {
   AlertTriangle,
   Megaphone,
   LucideIcon,
+  ListTodo,
 } from "lucide-react";
 import { useAuth, useLanguage } from "@/contexts";
 import { Notification as AppNotification } from "@/types";
@@ -76,6 +77,7 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
 
   const navItems = [
     { name: t("nav.home"), path: "/main", icon: LayoutDashboard },
+    { name: t("nav.todo"), path: "/todo", icon: ListTodo },
     {
       name: t("nav.notifications"),
       path: "/notifications",
@@ -152,7 +154,7 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
       {/* Sidebar */}
       <aside
         className={cn(
-          "fixed top-0 h-full w-72 bg-card shadow-2xl z-50 transform transition-transform duration-300 ease-in-out",
+          "fixed top-0 h-full w-[85vw] max-w-[280px] lg:max-w-none lg:w-72 bg-card shadow-2xl z-50 transform transition-transform duration-300 ease-in-out",
           "lg:translate-x-0 lg:static lg:shadow-none border-r border-border",
           language === "ar" ? "right-0" : "left-0",
           isOpen ? "translate-x-0" : language === "ar" ? "translate-x-full" : "-translate-x-full"
@@ -198,21 +200,21 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
                     onClick={onClose}
                     prefetch={false}
                     className={cn(
-                      "flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 font-medium select-none active:scale-95",
+                      "flex items-center gap-3 px-3 py-2.5 lg:px-4 lg:py-3 rounded-xl transition-all duration-200 font-medium select-none active:scale-95",
                       isActive
                         ? "bg-primary/10 text-primary border-l-4 border-primary active-link"
                         : "text-muted-foreground hover:bg-muted hover:text-foreground active:bg-muted/80"
                     )}
                   >
                     <div className="relative">
-                      <Icon size={20} />
+                      <Icon size={18} className="lg:w-5 lg:h-5" />
                       {item.badge && (
                         <span className="absolute -top-2 -right-2 bg-red-500 text-white text-[10px] w-4 h-4 rounded-full flex items-center justify-center">
                           {item.badge > 9 ? "9+" : item.badge}
                         </span>
                       )}
                     </div>
-                    <span>{item.name}</span>
+                    <span className="text-sm lg:text-base">{item.name}</span>
                   </Link>
                 );
               })}
@@ -234,21 +236,21 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
                       onClick={onClose}
                       prefetch={false}
                       className={cn(
-                        "flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 font-medium select-none active:scale-95",
+                        "flex items-center gap-3 px-3 py-2.5 lg:px-4 lg:py-3 rounded-xl transition-all duration-200 font-medium select-none active:scale-95",
                         isActive
                           ? "bg-primary/10 text-primary border-l-4 border-primary"
                           : "text-muted-foreground hover:bg-muted hover:text-foreground active:bg-muted/80"
                       )}
                     >
                       <div className="relative">
-                        <Icon size={20} />
+                        <Icon size={18} className="lg:w-5 lg:h-5" />
                         {item.badge !== undefined && item.badge > 0 && (
                           <span className="absolute -top-2 -right-2 bg-red-500 text-white text-[10px] w-4 h-4 rounded-full flex items-center justify-center">
                             {item.badge > 9 ? "9+" : item.badge}
                           </span>
                         )}
                       </div>
-                      <span>{item.name}</span>
+                      <span className="text-sm lg:text-base">{item.name}</span>
                     </Link>
                   );
                 })}
@@ -271,14 +273,14 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
                       onClick={onClose}
                       prefetch={false}
                       className={cn(
-                        "flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 font-medium select-none active:scale-95",
+                        "flex items-center gap-3 px-3 py-2.5 lg:px-4 lg:py-3 rounded-xl transition-all duration-200 font-medium select-none active:scale-95",
                         isActive
                           ? "bg-primary/10 text-primary border-l-4 border-primary active-link"
                           : "text-muted-foreground hover:bg-muted hover:text-foreground active:bg-muted/80"
                       )}
                     >
-                      <Icon size={20} />
-                      <span>{item.name}</span>
+                      <Icon size={18} className="lg:w-5 lg:h-5" />
+                      <span className="text-sm lg:text-base">{item.name}</span>
                     </Link>
                   );
                 })}

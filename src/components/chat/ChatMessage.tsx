@@ -19,6 +19,7 @@ interface ChatMessageProps {
   onReply?: (msg: ChatMessage) => void;
   onReact?: (msg: ChatMessage, emoji: string) => void;
   isAdminView?: boolean;
+  onTaskAction?: (action: "confirm" | "edit", taskData: any) => void;
 }
 
 export const ChatMessageItem = memo(function ChatMessageItem({
@@ -27,6 +28,7 @@ export const ChatMessageItem = memo(function ChatMessageItem({
   isUser,
   onReply,
   onReact,
+  onTaskAction,
 }: ChatMessageProps) {
   const isBot = msg.senderId === "bot";
   const [showPicker, setShowPicker] = useState(false);
@@ -97,6 +99,37 @@ export const ChatMessageItem = memo(function ChatMessageItem({
           >
             {/* MARKDOWN RENDERING */}
             <ReactMarkdown remarkPlugins={[remarkGfm]}>{msg.text}</ReactMarkdown>
+
+            {/* Task Confirmation Card */}
+            {isBot && msg.action === "confirm_task" && msg.taskData && onTaskAction && (
+              <div className="mt-4 bg-card/50 rounded-xl p-3 border border-border/50 shadow-sm">
+                <div className="flex flex-col gap-1 mb-3">
+                  <span className="font-bold text-base">{msg.taskData.title}</span>
+                  <div className="flex gap-2 text-xs opacity-80">
+                    {msg.taskData.priority && (
+                      <span className="capitalize">{msg.taskData.priority} Priority</span>
+                    )}
+                    {msg.taskData.repeat && msg.taskData.repeat !== "none" && (
+                      <span>• {msg.taskData.repeat}</span>
+                    )}
+                  </div>
+                </div>
+                <div className="flex gap-2">
+                  <button
+                    onClick={() => onTaskAction("confirm", msg.taskData)}
+                    className="flex-1 bg-primary text-primary-foreground py-1.5 rounded-lg text-xs font-medium hover:bg-primary/90 transition-colors"
+                  >
+                    Confirm
+                  </button>
+                  <button
+                    onClick={() => onTaskAction("edit", msg.taskData)}
+                    className="flex-1 bg-muted hover:bg-muted/80 py-1.5 rounded-lg text-xs font-medium transition-colors"
+                  >
+                    Edit
+                  </button>
+                </div>
+              </div>
+            )}
           </div>
 
           {/* Attachments */}

@@ -92,7 +92,9 @@ export interface ChatMessage {
   attachmentName?: string;
   attachmentSize?: number;
   attachmentType?: string;
-  role?: "user" | "assistant" | "system"; // Keep for backward compatibility if needed, or remove if unused
+  role?: "user" | "assistant" | "system";
+  action?: "confirm_task" | "live_chat";
+  taskData?: any;
 }
 
 export interface InboxMessage {
@@ -147,4 +149,23 @@ export interface ChatSession {
   unreadCount: number; // For User (how many admin messages they haven't seen)
   adminUnreadCount: number; // For Admin (how many user messages admin hasn't seen)
   isTyping?: boolean;
+}
+
+export interface TodoTask {
+  id: string;
+  userId: string;
+  title: string;
+  description?: string;
+  completed: boolean;
+  priority: "high" | "medium" | "low";
+  dueDate?: string;
+  reminder?: boolean;
+  repeat?: "daily" | "weekly" | "monthly" | "none";
+  subtasks?: {
+    id: string;
+    title: string;
+    completed: boolean;
+  }[];
+  orderIndex: number;
+  createdAt: any;
 }

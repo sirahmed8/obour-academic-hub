@@ -18,6 +18,7 @@ interface ChatMessagesProps {
   onReply: (msg: ChatMessage) => void;
   onReact: (msg: ChatMessage, emoji: string) => void;
   onSend: (text: string) => void;
+  onTaskAction: (action: "confirm" | "edit", taskData: any) => void;
 }
 
 export function ChatMessages({
@@ -29,6 +30,7 @@ export function ChatMessages({
   onReply,
   onReact,
   onSend,
+  onTaskAction,
 }: ChatMessagesProps) {
   const { language } = useLanguage();
   const messagesEndRef = useRef<HTMLDivElement>(null);
@@ -62,6 +64,7 @@ export function ChatMessages({
           isUser={msg.senderId === user.uid}
           onReply={onReply}
           onReact={onReact}
+          onTaskAction={onTaskAction}
         />
       ))}
 

@@ -14,7 +14,8 @@ interface LanguageContextType {
 const translations: Record<Language, Record<string, string>> = {
   en: {
     // Navigation
-    "nav.home": "Home",
+    "nav.home": "Subjects",
+    "nav.todo": "To-Do List",
     "nav.notifications": "Notifications",
     "nav.admin": "Admin Dashboard",
 
@@ -35,7 +36,7 @@ const translations: Record<Language, Record<string, string>> = {
     "profile.systemMode": "System",
 
     // Admin
-    "admin.subjects": "Subjects",
+    "admin.subjects": "Add Subject",
     "admin.resources": "Resources",
     "admin.users": "Users",
     "admin.inbox": "Inbox",
@@ -78,7 +79,8 @@ const translations: Record<Language, Record<string, string>> = {
   },
   ar: {
     // Navigation
-    "nav.home": "الرئيسية",
+    "nav.home": "المواضيع",
+    "nav.todo": "قائمة المهام",
     "nav.notifications": "الإشعارات",
     "nav.admin": "لوحة التحكم",
 
@@ -99,7 +101,7 @@ const translations: Record<Language, Record<string, string>> = {
     "profile.systemMode": "النظام",
 
     // Admin
-    "admin.subjects": "المواد",
+    "admin.subjects": "إضافة مادة",
     "admin.resources": "الموارد",
     "admin.users": "المستخدمين",
     "admin.inbox": "صندوق الوارد",
