@@ -149,7 +149,7 @@ export function DateTimePicker({ value, onChange, onClose, language }: DateTimeP
       animate={{ opacity: 1, y: 0, scale: 1 }}
       exit={{ opacity: 0, y: -10, scale: 0.95 }}
       transition={{ type: "spring", damping: 20, stiffness: 300 }}
-      className="absolute top-full left-0 right-0 mt-2 z-30 bg-card border border-border rounded-2xl shadow-2xl overflow-hidden"
+      className="fixed sm:absolute inset-x-4 sm:inset-x-auto sm:top-full sm:left-0 sm:right-0 top-1/2 sm:translate-y-0 -translate-y-1/2 sm:mt-2 z-50 bg-card border border-border rounded-2xl shadow-2xl overflow-hidden max-w-[320px] mx-auto sm:mx-0"
       dir={isRtl ? "rtl" : "ltr"}
     >
       {/* Header */}

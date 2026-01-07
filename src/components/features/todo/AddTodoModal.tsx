@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { createPortal } from "react-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { X, Plus, Calendar, Flag, RefreshCw, Trash2, AlertCircle } from "lucide-react";
 import { useLanguage } from "@/contexts";
@@ -42,6 +43,12 @@ export function AddTodoModal({
 
   const [errors, setErrors] = useState<string[]>([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [mounted, setMounted] = useState(false);
+
+  // Set mounted after hydration to avoid SSR mismatch
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   useEffect(() => {
     if (editTask) {
@@ -156,7 +163,10 @@ export function AddTodoModal({
     { value: "monthly", label: language === "ar" ? "شهرياً" : "Monthly" },
   ] as const;
 
-  return (
+  // Don't render portal until mounted to avoid hydration mismatch
+  if (!mounted) return null;
+
+  return createPortal(
     <AnimatePresence mode="wait">
       {isOpen && (
         <motion.div
@@ -164,8 +174,7 @@ export function AddTodoModal({
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
           transition={{ duration: 0.2 }}
-          className="fixed top-0 left-0 right-0 bottom-0 z-[100] flex items-center justify-center p-4 bg-black/60 backdrop-blur-md"
-          style={{ position: "fixed", inset: 0 }}
+          className="fixed inset-0 z-[999] flex items-center justify-center p-4 bg-black/60 backdrop-blur-md"
           onClick={onClose}
         >
           <motion.div
@@ -350,23 +359,32 @@ export function AddTodoModal({
                   {language === "ar" ? "المهام الفرعية" : "Sub-tasks"}
                 </label>
                 <div className="space-y-2">
-                  {subtasks.map((st) => (
-                    <div key={st.id} className="flex items-center gap-2 group">
-                      <div
-                        className={cn(
-                          "w-2 h-2 rounded-full",
-                          st.completed ? "bg-green-500" : "bg-muted-foreground"
-                        )}
-                      />
-                      <span className="flex-1 text-sm">{st.title}</span>
-                      <button
-                        onClick={() => handleRemoveSubtask(st.id)}
-                        className="opacity-0 group-hover:opacity-100 text-destructive p-1"
+                  <AnimatePresence mode="popLayout">
+                    {subtasks.map((st) => (
+                      <motion.div
+                        key={st.id}
+                        initial={{ opacity: 0, x: -20, height: 0 }}
+                        animate={{ opacity: 1, x: 0, height: "auto" }}
+                        exit={{ opacity: 0, x: 20, height: 0 }}
+                        transition={{ type: "spring", damping: 25, stiffness: 300 }}
+                        className="flex items-center gap-2 group"
                       >
-                        <Trash2 size={14} />
-                      </button>
-                    </div>
-                  ))}
+                        <div
+                          className={cn(
+                            "w-2 h-2 rounded-full",
+                            st.completed ? "bg-green-500" : "bg-muted-foreground"
+                          )}
+                        />
+                        <span className="flex-1 text-sm">{st.title}</span>
+                        <button
+                          onClick={() => handleRemoveSubtask(st.id)}
+                          className="opacity-0 group-hover:opacity-100 text-destructive p-1 transition-opacity"
+                        >
+                          <Trash2 size={14} />
+                        </button>
+                      </motion.div>
+                    ))}
+                  </AnimatePresence>
                   <div className="flex gap-2">
                     <input
                       type="text"
@@ -416,6 +434,7 @@ export function AddTodoModal({
           </motion.div>
         </motion.div>
       )}
-    </AnimatePresence>
+    </AnimatePresence>,
+    document.body
   );
 }

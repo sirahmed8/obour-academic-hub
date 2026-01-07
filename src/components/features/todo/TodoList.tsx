@@ -13,7 +13,7 @@ import {
 import { db } from "@/lib/firebase";
 import { useAuth, useLanguage } from "@/contexts";
 import { TodoTask } from "@/types";
-import { Reorder } from "framer-motion";
+import { Reorder, AnimatePresence, motion } from "framer-motion";
 import { TodoItem } from "./TodoItem";
 import { AddTodoModal } from "./AddTodoModal";
 import { Plus, Filter, SortAsc } from "lucide-react";
@@ -31,6 +31,7 @@ export function TodoList() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingTask, setEditingTask] = useState<TodoTask | undefined>(undefined);
   const [isLoading, setIsLoading] = useState(true);
+  const [isFilterOpen, setIsFilterOpen] = useState(false);
 
   // Fetch tasks
   useEffect(() => {
@@ -173,30 +174,86 @@ export function TodoList() {
       </div>
 
       {/* Filters */}
-      <div className="flex items-center gap-2 overflow-x-auto pb-2 scrollbar-none">
-        <Filter size={16} className="text-muted-foreground flex-shrink-0" />
-        {(["all", "incomplete", "high", "medium", "low"] as const).map((f) => (
-          <button
-            key={f}
-            onClick={() => setFilter(f)}
-            className={cn(
-              "px-3 py-1.5 rounded-lg text-sm font-medium whitespace-nowrap transition-colors border",
-              filter === f
-                ? "bg-primary text-primary-foreground border-primary"
-                : "bg-card text-muted-foreground border-border hover:bg-muted"
-            )}
-          >
-            {f === "all"
-              ? language === "ar"
-                ? "الكل"
-                : "All"
-              : f === "incomplete"
+      <div className="relative">
+        <button
+          onClick={() => setIsFilterOpen(!isFilterOpen)}
+          className={cn(
+            "flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium transition-all border",
+            isFilterOpen
+              ? "bg-primary text-primary-foreground border-primary"
+              : "bg-card text-muted-foreground border-border hover:bg-muted"
+          )}
+        >
+          <Filter size={16} />
+          <span>{language === "ar" ? "الفلتر" : "Filter"}</span>
+          {filter !== "all" && (
+            <span className="bg-primary/20 text-primary text-xs px-2 py-0.5 rounded-full">
+              {filter === "incomplete"
                 ? language === "ar"
                   ? "غير مكتملة"
                   : "Incomplete"
-                : f.charAt(0).toUpperCase() + f.slice(1)}
-          </button>
-        ))}
+                : filter.charAt(0).toUpperCase() + filter.slice(1)}
+            </span>
+          )}
+        </button>
+
+        <AnimatePresence>
+          {isFilterOpen && (
+            <>
+              {/* Click-outside overlay */}
+              <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                className="fixed inset-0 z-10"
+                onClick={() => setIsFilterOpen(false)}
+              />
+              <motion.div
+                initial={{ opacity: 0, y: -10, scale: 0.95 }}
+                animate={{ opacity: 1, y: 0, scale: 1 }}
+                exit={{ opacity: 0, y: -10, scale: 0.95 }}
+                transition={{ type: "spring", damping: 25, stiffness: 300 }}
+                className="absolute top-full left-0 mt-2 z-20 bg-card border border-border rounded-xl shadow-xl p-2 min-w-[180px]"
+              >
+                {(["all", "incomplete", "high", "medium", "low"] as const).map((f) => (
+                  <button
+                    key={f}
+                    onClick={() => {
+                      setFilter(f);
+                      setIsFilterOpen(false);
+                    }}
+                    className={cn(
+                      "w-full px-3 py-2 rounded-lg text-sm font-medium text-start transition-colors flex items-center gap-2",
+                      filter === f
+                        ? "bg-primary/10 text-primary"
+                        : "text-muted-foreground hover:bg-muted"
+                    )}
+                  >
+                    <span
+                      className={cn(
+                        "w-2 h-2 rounded-full",
+                        f === "high" && "bg-red-500",
+                        f === "medium" && "bg-yellow-500",
+                        f === "low" && "bg-green-500",
+                        f === "all" && "bg-primary",
+                        f === "incomplete" && "bg-muted-foreground"
+                      )}
+                    />
+                    {f === "all"
+                      ? language === "ar"
+                        ? "الكل"
+                        : "All"
+                      : f === "incomplete"
+                        ? language === "ar"
+                          ? "غير مكتملة"
+                          : "Incomplete"
+                        : f.charAt(0).toUpperCase() + f.slice(1)}
+                  </button>
+                ))}
+              </motion.div>
+            </>
+          )}
+        </AnimatePresence>
       </div>
 
       {/* List */}

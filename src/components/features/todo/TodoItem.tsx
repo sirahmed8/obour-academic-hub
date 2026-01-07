@@ -96,7 +96,7 @@ export function TodoItem({ task, onToggle, onDelete, onEdit }: TodoItemProps) {
           </div>
 
           {/* Badges & Meta */}
-          <div className="flex flex-wrap items-center gap-2 mt-3">
+          <div className="flex flex-wrap items-center gap-1.5 sm:gap-2 mt-3">
             {/* Priority Badge */}
             <span
               className={cn(
@@ -109,16 +109,16 @@ export function TodoItem({ task, onToggle, onDelete, onEdit }: TodoItemProps) {
 
             {/* Due Date */}
             {task.dueDate && (
-              <div className="flex items-center gap-1 text-xs text-muted-foreground bg-muted/50 px-2 py-0.5 rounded-full">
-                <Clock size={12} />
-                <span>{formatDate(task.dueDate)}</span>
+              <div className="flex items-center gap-1 text-[10px] sm:text-xs text-muted-foreground bg-muted/50 px-2 py-0.5 rounded-full max-w-[140px] sm:max-w-none">
+                <Clock size={10} className="flex-shrink-0" />
+                <span className="truncate">{formatDate(task.dueDate)}</span>
               </div>
             )}
 
             {/* Subtasks Progress */}
             {totalSubtasks > 0 && (
-              <div className="flex items-center gap-1.5 text-xs text-muted-foreground bg-muted/50 px-2 py-0.5 rounded-full">
-                <div className="w-12 h-1.5 bg-muted-foreground/20 rounded-full overflow-hidden">
+              <div className="flex items-center gap-1.5 text-[10px] sm:text-xs text-muted-foreground bg-muted/50 px-2 py-0.5 rounded-full">
+                <div className="w-10 sm:w-12 h-1.5 bg-muted-foreground/20 rounded-full overflow-hidden">
                   <div
                     className="h-full bg-primary rounded-full transition-all duration-500"
                     style={{ width: `${progress}%` }}
