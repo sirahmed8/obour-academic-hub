@@ -175,7 +175,6 @@ export function AddTodoModal({
           exit={{ opacity: 0 }}
           transition={{ duration: 0.2 }}
           className="fixed inset-0 z-[999] flex items-center justify-center p-4 bg-black/60 backdrop-blur-md"
-          onClick={onClose}
         >
           <motion.div
             initial={{ opacity: 0, scale: 0.9, y: 20 }}
@@ -187,7 +186,11 @@ export function AddTodoModal({
               stiffness: 300,
               duration: 0.3,
             }}
-            onClick={(e) => e.stopPropagation()}
+            onClick={(e) => {
+              e.stopPropagation();
+              // Close date picker if open when clicking on modal body
+              if (showDatePicker) setShowDatePicker(false);
+            }}
             className="bg-card w-full max-w-lg rounded-2xl shadow-xl border border-border overflow-hidden max-h-[90vh] flex flex-col"
             dir={isRtl ? "rtl" : "ltr"}
           >
