@@ -39,7 +39,7 @@ export function StudentProfileSetup({ onComplete }: StudentProfileSetupProps) {
     const newErrors: { name?: string; code?: string } = {};
 
     // Bypass validation for owner
-    if (user?.role === "owner" || user?.email === "a7medorabe7@gmail.com") {
+    if (user?.role === "owner") {
       return true;
     }
 

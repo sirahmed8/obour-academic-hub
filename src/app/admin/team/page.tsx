@@ -21,9 +21,6 @@ interface TeamMember {
   photoURL?: string;
 }
 
-// Hardcoded owner email - MUST always appear in team
-const OWNER_EMAIL = "a7medorabe7@gmail.com";
-
 export default function AdminTeamPage() {
   const { user, isAdmin, isOwner } = useAuth();
   const { language } = useLanguage();
@@ -40,24 +37,14 @@ export default function AdminTeamPage() {
     const unsubscribers: (() => void)[] = [];
     const membersMap = new Map<string, TeamMember>();
 
-    // ALWAYS add hardcoded owner first
-    membersMap.set(OWNER_EMAIL, {
-      email: OWNER_EMAIL,
-      role: "owner",
-      isActiveUser: true,
-      displayName: "Owner",
-    });
-
     // Listen to whitelisted admins
     const whitelistUnsub = onSnapshot(collection(db, "whitelisted_admins"), (snapshot) => {
       snapshot.docs.forEach((d) => {
         const email = d.id;
         const existing = membersMap.get(email);
-        if (email !== OWNER_EMAIL) {
-          // Don't override owner
-          membersMap.set(email, {
-            email,
-            role: d.data().role || "admin",
+        membersMap.set(email, {
+          email,
+          role: d.data().role || "admin",
             addedBy: d.data().addedBy,
             addedAt: d.data().addedAt,
             isWhitelisted: true,
@@ -79,22 +66,9 @@ export default function AdminTeamPage() {
           const userData = d.data() as User;
           const email = userData.email;
           const existing = membersMap.get(email);
-          if (email === OWNER_EMAIL) {
-            // Update owner info but keep role as owner
-            membersMap.set(email, {
-              email,
-              role: "owner", // ALWAYS owner regardless of DB
-              addedBy: existing?.addedBy,
-              addedAt: existing?.addedAt || userData.createdAt,
-              isWhitelisted: existing?.isWhitelisted,
-              isActiveUser: true,
-              displayName: userData.displayName,
-              photoURL: userData.photoURL,
-            });
-          } else {
-            membersMap.set(email, {
-              email,
-              role: userData.role,
+          membersMap.set(email, {
+            email,
+            role: userData.role,
               addedBy: existing?.addedBy,
               addedAt: existing?.addedAt || userData.createdAt,
               isWhitelisted: existing?.isWhitelisted,

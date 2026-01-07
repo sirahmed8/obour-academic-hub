@@ -66,14 +66,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
               if (docSnap.exists()) {
                 const userData = docSnap.data();
 
-                // Owner Promotion Check - consolidate both checks
+                // Owner Promotion Check
                 const isOwnerEmail = firebaseUser.email === process.env.NEXT_PUBLIC_OWNER_EMAIL;
-                const isHardcodedOwner = firebaseUser.email === "a7medorabe7@gmail.com";
 
                 let finalRole: "student" | "admin" | "owner" = userData?.role || "student";
 
-                // FORCE OWNER for hardcoded email or env owner - highest priority
-                if (isHardcodedOwner || isOwnerEmail) {
+                // FORCE OWNER for env owner - highest priority
+                if (isOwnerEmail) {
                   finalRole = "owner";
                   // Sync to DB if not already owner
                   if (userData?.role !== "owner") {
@@ -142,13 +141,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             } catch (err) {
               console.error("Error processing user data:", err);
               // Fallback logic
-              const isTargetEmail = firebaseUser.email === "a7medorabe7@gmail.com";
-
               setUser({
                 uid: firebaseUser.uid,
                 email: firebaseUser.email || "",
                 displayName: firebaseUser.displayName || "User",
-                role: isTargetEmail ? "owner" : "student",
+                role: "student", // Fallback to student role
                 createdAt: new Date().toISOString(),
                 lastLogin: new Date().toISOString(),
               });

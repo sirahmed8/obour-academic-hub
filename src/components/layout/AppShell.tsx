@@ -45,8 +45,6 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   // Check if profile is incomplete using useMemo (no effect)
   const showProfileSetup = useMemo(() => {
     if (profileSetupDismissed) return false;
-    // HARD FIX: Explicitly check owner/admin email to bypass modal
-    if (user?.email === "a7medorabe7@gmail.com") return false;
     if (user?.role === "owner" || user?.role === "admin") return false;
     return user && (!user.studentCode || user.studentCode.length !== 6);
   }, [user, profileSetupDismissed]);
