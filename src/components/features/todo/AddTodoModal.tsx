@@ -50,6 +50,21 @@ export function AddTodoModal({
     setMounted(true);
   }, []);
 
+  // Keyboard support - Escape to close
+  useEffect(() => {
+    if (!isOpen) return;
+
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape" && !showDatePicker) {
+        e.preventDefault();
+        onClose();
+      }
+    };
+
+    document.addEventListener("keydown", handleKeyDown);
+    return () => document.removeEventListener("keydown", handleKeyDown);
+  }, [isOpen, showDatePicker, onClose]);
+
   useEffect(() => {
     if (editTask) {
       setTitle(editTask.title);

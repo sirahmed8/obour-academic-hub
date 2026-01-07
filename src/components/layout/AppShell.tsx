@@ -26,6 +26,7 @@ import { CookieConsent } from "@/components/ui/CookieConsent";
 import { Loader2, ExternalLink } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { fadeIn } from "@/lib/motion";
+import { useGlobalKeyboard } from "@/hooks/useGlobalKeyboard";
 
 export function AppShell({ children }: { children: React.ReactNode }) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -41,6 +42,9 @@ export function AppShell({ children }: { children: React.ReactNode }) {
 
   const router = useRouter();
   const pathname = usePathname();
+
+  // Enable global keyboard shortcuts
+  useGlobalKeyboard();
 
   // Check if profile is incomplete using useMemo (no effect)
   const showProfileSetup = useMemo(() => {
