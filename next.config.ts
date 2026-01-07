@@ -1,7 +1,7 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  // output: "export", // Disabled to support API Routes (AI Chat & Blob Upload)
+  // Static export disabled - API routes needed for file uploads
   trailingSlash: false,
   images: {
     unoptimized: true,

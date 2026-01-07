@@ -208,18 +208,39 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   // ----------------------------------------------------------------------
   const login = useCallback(async () => {
     if (!auth || !googleProvider) {
-      toast.error("Firebase Config Error");
+      console.error("Firebase not initialized - auth:", !!auth, "provider:", !!googleProvider);
+      toast.error(
+        language === "ar"
+          ? "خطأ في إعدادات Firebase - تحقق من متغيرات البيئة"
+          : "Firebase Config Error - Check environment variables"
+      );
       return;
     }
     try {
+      console.log("Starting Google Sign-In...");
       await signInWithPopup(auth, googleProvider);
+      console.log("Sign-in successful");
       // Loading will be handled by the listener
     } catch (error: unknown) {
       console.error("Login Error:", error);
-      const err = error as { code?: string };
-      if (err?.code !== "auth/popup-closed-by-user") {
-        toast.error(language === "ar" ? "فشل الدخول" : "Login failed");
+      const err = error as { code?: string; message?: string };
+      if (err?.code === "auth/popup-closed-by-user") {
+        // User closed popup, don't show error
+        return;
       }
+      if (err?.code === "auth/unauthorized-domain") {
+        toast.error(
+          language === "ar"
+            ? "هذا الموقع غير مصرح به في Firebase. أضف النطاق في Firebase Console."
+            : "This domain is not authorized in Firebase. Add it in Firebase Console > Authentication > Settings > Authorized Domains."
+        );
+        return;
+      }
+      toast.error(
+        language === "ar"
+          ? "فشل الدخول: " + (err?.code || "خطأ غير معروف")
+          : "Login failed: " + (err?.code || "Unknown error")
+      );
     }
   }, [language]);
 

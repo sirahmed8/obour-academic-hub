@@ -22,15 +22,25 @@ const firebaseConfig = {
 function initFirebaseApp(): FirebaseApp | null {
   // Skip during SSR/build if config is missing
   if (!firebaseConfig.apiKey) {
-    // In development or build environments without secrets, fail gracefully
-    if (process.env.NODE_ENV === "development" && typeof window !== "undefined") {
-      console.warn("Firebase API Key is missing. Check your .env.local file.");
+    // Log which values are missing for debugging
+    if (typeof window !== "undefined") {
+      console.error("Firebase config missing. Check environment variables:", {
+        apiKey: !!firebaseConfig.apiKey,
+        authDomain: !!firebaseConfig.authDomain,
+        projectId: !!firebaseConfig.projectId,
+        appId: !!firebaseConfig.appId,
+      });
     }
     return null;
   }
 
   try {
-    return getApps().length > 0 ? getApp() : initializeApp(firebaseConfig);
+    const existingApps = getApps();
+    if (existingApps.length > 0) {
+      return getApp();
+    }
+    console.log("Initializing Firebase with project:", firebaseConfig.projectId);
+    return initializeApp(firebaseConfig);
   } catch (error) {
     console.error("Firebase initialization error:", error);
     return null;
