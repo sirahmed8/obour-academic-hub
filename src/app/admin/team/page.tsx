@@ -21,8 +21,8 @@ interface TeamMember {
   photoURL?: string;
 }
 
-// Hardcoded owner email - MUST always appear in team
-const OWNER_EMAIL = "a7medorabe7@gmail.com";
+// Owner email from env - MUST always appear in team
+const OWNER_EMAIL = process.env.NEXT_PUBLIC_OWNER_EMAIL || "";
 
 export default function AdminTeamPage() {
   const { user, isAdmin, isOwner } = useAuth();

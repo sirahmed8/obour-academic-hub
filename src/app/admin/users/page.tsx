@@ -159,7 +159,7 @@ export default function AdminUsersPage() {
 
   const handleToggleRole = (userId: string, currentRole: string, userEmail: string) => {
     // Special handling for owner email - allow full cycle
-    const isOwnerEmail = userEmail === "a7medorabe7@gmail.com";
+    const isOwnerEmail = userEmail === process.env.NEXT_PUBLIC_OWNER_EMAIL;
 
     let newRole: string;
     if (isOwnerEmail) {
