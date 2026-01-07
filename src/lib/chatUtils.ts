@@ -40,6 +40,17 @@ export const sendMessage = async (
   // Filter profanity before saving for the message content
   const filteredText = filterProfanity(text);
 
+  // Filter out undefined values from additionalData (Firestore doesn't accept undefined)
+  const cleanAdditionalData: Record<string, unknown> = {};
+  if (additionalData) {
+    if (additionalData.action !== undefined) {
+      cleanAdditionalData.action = additionalData.action;
+    }
+    if (additionalData.taskData !== undefined) {
+      cleanAdditionalData.taskData = additionalData.taskData;
+    }
+  }
+
   // 1. Add Message
   await addDoc(messagesRef, {
     text: filteredText,
@@ -60,7 +71,7 @@ export const sendMessage = async (
           attachmentType: attachment.type,
         }
       : {}),
-    ...(additionalData || {}),
+    ...cleanAdditionalData,
   });
 
   // 2. Update Chat Session Metadata

@@ -2,18 +2,30 @@
 
 import { useState, useEffect } from "react";
 import { db } from "@/lib/firebase";
-import { collection, onSnapshot, query, orderBy, doc, updateDoc, limit } from "firebase/firestore";
+import {
+  collection,
+  onSnapshot,
+  query,
+  orderBy,
+  doc,
+  updateDoc,
+  limit,
+  getDocs,
+  writeBatch,
+} from "firebase/firestore";
 import { useLanguage } from "@/contexts";
 import { AppShell } from "@/components/layout/AppShell";
-import { AlertTriangle, CheckCircle, Loader2 } from "lucide-react";
+import { AlertTriangle, CheckCircle, Loader2, Trash2 } from "lucide-react";
 import { toast } from "sonner";
-import { cn } from "@/lib/utils";
-import { formatDate, formatDateArabic } from "@/lib/utils";
+import { cn, formatDate, formatDateArabic } from "@/lib/utils";
 import { SystemError } from "@/types";
+import { ConfirmationModal } from "@/components/ui/ConfirmationModal";
 
 export default function AdminErrorsPage() {
   const [errors, setErrors] = useState<SystemError[]>([]);
   const [loading, setLoading] = useState(true);
+  const [showClearModal, setShowClearModal] = useState(false);
+  const [clearing, setClearing] = useState(false);
   const { language, t } = useLanguage();
 
   useEffect(() => {
@@ -41,10 +53,50 @@ export default function AdminErrorsPage() {
     }
   };
 
+  const clearAllErrors = async () => {
+    setClearing(true);
+    try {
+      const snapshot = await getDocs(collection(db, "system_errors"));
+      const batch = writeBatch(db);
+      snapshot.docs.forEach((docSnap) => {
+        batch.delete(docSnap.ref);
+      });
+      await batch.commit();
+      toast.success(language === "ar" ? "تم مسح جميع الأخطاء" : "All errors cleared");
+      setShowClearModal(false);
+    } catch {
+      toast.error(language === "ar" ? "فشل مسح الأخطاء" : "Failed to clear errors");
+    } finally {
+      setClearing(false);
+    }
+  };
+
   const unresolvedCount = errors.filter((e) => !e.resolved).length;
 
   return (
     <AppShell>
+      <ConfirmationModal
+        isOpen={showClearModal}
+        onClose={() => setShowClearModal(false)}
+        onConfirm={clearAllErrors}
+        title={language === "ar" ? "مسح جميع الأخطاء" : "Clear All Errors"}
+        message={
+          language === "ar"
+            ? `هل أنت متأكد من مسح جميع الأخطاء (${errors.length})؟ لا يمكن التراجع عن هذا الإجراء.`
+            : `Are you sure you want to clear all ${errors.length} errors? This action cannot be undone.`
+        }
+        confirmText={
+          clearing
+            ? language === "ar"
+              ? "جاري المسح..."
+              : "Clearing..."
+            : language === "ar"
+              ? "مسح الكل"
+              : "Clear All"
+        }
+        cancelText={language === "ar" ? "إلغاء" : "Cancel"}
+        type="danger"
+      />
       <div className="p-6 lg:p-10 w-full">
         <div className="flex items-center justify-between mb-8">
           <h1 className="text-2xl font-bold text-foreground flex items-center gap-3">
@@ -56,6 +108,15 @@ export default function AdminErrorsPage() {
               </span>
             )}
           </h1>
+          {errors.length > 0 && (
+            <button
+              onClick={() => setShowClearModal(true)}
+              className="px-4 py-2 bg-destructive/10 hover:bg-destructive/20 text-destructive rounded-xl transition-colors text-sm font-medium flex items-center gap-2"
+            >
+              <Trash2 size={16} />
+              {language === "ar" ? "مسح الكل" : "Clear All"}
+            </button>
+          )}
         </div>
 
         <div className="bg-card rounded-2xl border border-border overflow-hidden">
