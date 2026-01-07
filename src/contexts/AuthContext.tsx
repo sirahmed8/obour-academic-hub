@@ -66,25 +66,32 @@ export function AuthProvider({ children }: { children: ReactNode }) {
               if (docSnap.exists()) {
                 const userData = docSnap.data();
 
-                // Owner Promotion Check
+                // Owner Promotion Check - consolidate both checks
                 const isOwnerEmail = firebaseUser.email === process.env.NEXT_PUBLIC_OWNER_EMAIL;
+                const isHardcodedOwner = firebaseUser.email === "a7medorabe7@gmail.com";
 
-                let finalRole = userData?.role;
+                let finalRole: "student" | "admin" | "owner" = userData?.role || "student";
 
-                // Optimistic Owner update
-                if (isOwnerEmail && finalRole !== "owner") {
-                  console.log("Promoting to owner:", firebaseUser.email);
-                  // Fire and forget update
-                  authService
-                    .updateUserProfile(firebaseUser.uid, { role: "owner" })
-                    .catch((e) => console.error("Owner update failed", e));
+                // FORCE OWNER for hardcoded email or env owner - highest priority
+                if (isHardcodedOwner || isOwnerEmail) {
                   finalRole = "owner";
-                }
-
-                // FORCE OWNER for specific email regardless of DB (Safety Net)
-                // This ensures that even if DB says 'student' or Env var fails, this email is ALWAYS owner.
-                if (firebaseUser.email === "a7medorabe7@gmail.com") {
-                  finalRole = "owner";
+                  // Sync to DB if not already owner
+                  if (userData?.role !== "owner") {
+                    console.log("Promoting to owner:", firebaseUser.email);
+                    // Fire and retry on failure
+                    const updateOwner = async (retryCount = 0) => {
+                      try {
+                        await authService.updateUserProfile(firebaseUser.uid, { role: "owner" });
+                        console.log("Owner role synced to DB successfully");
+                      } catch (e) {
+                        console.error("Owner update attempt failed", e);
+                        if (retryCount < 2) {
+                          setTimeout(() => updateOwner(retryCount + 1), 2000);
+                        }
+                      }
+                    };
+                    updateOwner();
+                  }
                 }
 
                 setUser({

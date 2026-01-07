@@ -124,9 +124,9 @@ export default function AdminLogsPage() {
                 className="group bg-card p-4 rounded-2xl border border-border hover:shadow-xl hover:shadow-primary/10 hover:border-primary/50 transition-all duration-300 flex items-start gap-4"
               >
                 <motion.div
-                  className="p-3 bg-muted rounded-xl group-hover:bg-primary/10 transition-colors"
-                  whileHover={{ rotate: [0, -10, 10, -10, 0], scale: 1.1 }}
-                  transition={{ duration: 0.5 }}
+                  className="p-3 bg-muted rounded-xl"
+                  whileHover={{ scale: 1.05 }}
+                  transition={{ duration: 0.15 }}
                 >
                   {getLogIcon(log.action)}
                 </motion.div>

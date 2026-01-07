@@ -304,13 +304,13 @@ export default function AdminSubjectsPage() {
                             type="button"
                             onClick={() => setFormData({ ...formData, icon: iconName })}
                             className={cn(
-                              "p-2.5 rounded-md flex items-center justify-center transition-all duration-200 active:scale-95",
+                              "p-2.5 rounded-md flex items-center justify-center transition-all duration-200 active:scale-95 min-w-[44px] min-h-[44px]",
                               formData.icon === iconName
-                                ? "bg-primary/10 text-primary scale-110"
+                                ? "bg-primary/10 text-primary scale-105"
                                 : "hover:bg-muted"
                             )}
                           >
-                            <IconComp className="w-9 h-9 md:w-7 md:h-7" />
+                            <IconComp className="w-6 h-6" />
                           </button>
                         );
                       })}
@@ -328,10 +328,10 @@ export default function AdminSubjectsPage() {
                           type="button"
                           onClick={() => setFormData({ ...formData, color: color.value })}
                           className={cn(
-                            "w-14 h-14 md:w-11 md:h-11 rounded-full ring-2 ring-offset-2 transition-all duration-200 active:scale-95",
+                            "w-11 h-11 rounded-full ring-2 ring-offset-2 transition-all duration-200 active:scale-95 min-w-[44px] min-h-[44px]",
                             color.value,
                             formData.color === color.value
-                              ? "ring-primary scale-110"
+                              ? "ring-primary scale-105"
                               : "ring-transparent opacity-70 hover:opacity-100"
                           )}
                         />
@@ -440,14 +440,14 @@ export default function AdminSubjectsPage() {
                             initial={{ height: 0, opacity: 0 }}
                             animate={{ height: "auto", opacity: 1 }}
                             exit={{ height: 0, opacity: 0 }}
-                            transition={{ duration: 0.5, ease: "easeInOut" }}
+                            transition={{ duration: 0.25, ease: [0.4, 0, 0.2, 1] }}
                             className="overflow-hidden border-t border-border bg-muted/30"
                           >
                             <motion.div
-                              initial={{ scale: 0.95, opacity: 0 }}
-                              animate={{ scale: 1, opacity: 1 }}
-                              exit={{ scale: 0.95, opacity: 0 }}
-                              transition={{ duration: 0.3, delay: 0.1 }}
+                              initial={{ opacity: 0, y: -8 }}
+                              animate={{ opacity: 1, y: 0 }}
+                              exit={{ opacity: 0, y: -8 }}
+                              transition={{ duration: 0.2, ease: "easeOut" }}
                               className="p-4 pt-4 space-y-3"
                             >
                               <div className="grid grid-cols-2 gap-3">

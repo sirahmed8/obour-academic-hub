@@ -4,7 +4,7 @@ import { useState, useEffect, useMemo, useCallback } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { MessageSquare, X } from "lucide-react";
 import { useAuth, useLanguage } from "@/contexts";
-import { db, auth } from "@/lib/firebase";
+import { db } from "@/lib/firebase";
 import {
   collection,
   query,
@@ -18,7 +18,7 @@ import { ChatMessage } from "@/types";
 import { getLocalBotResponse } from "@/lib/bot";
 import { toast } from "sonner";
 import { ConfirmationModal } from "@/components/ui/ConfirmationModal";
-import { AI_MODEL_INFO, AIModel } from "./chatbot/constants";
+import { AIModel } from "./chatbot/constants";
 import { ChatHeader } from "./chatbot/ChatHeader";
 import { ChatMessages } from "./chatbot/ChatMessages";
 import { ChatInput } from "./chatbot/ChatInput";
@@ -36,12 +36,12 @@ export function AIChatbot() {
   const [showClearConfirm, setShowClearConfirm] = useState(false);
   const [streamingText, setStreamingText] = useState("");
 
-  // AI Model selection (persisted in localStorage, default: balanced)
+  // AI Model selection (persisted in localStorage, default: local for reliability)
   const [aiModel, setAiModel] = useState<AIModel>(() => {
     if (typeof window !== "undefined") {
-      return (localStorage.getItem("ai-model") as AIModel) || "balanced";
+      return (localStorage.getItem("ai-model") as AIModel) || "local";
     }
-    return "balanced";
+    return "local";
   });
 
   // Interaction State
@@ -130,73 +130,6 @@ export function AIChatbot() {
     });
   }, [messages, mode]);
 
-  // Get AI response from API with streaming
-  const getAIResponse = async (userMessage: string): Promise<string> => {
-    const token = await auth.currentUser?.getIdToken();
-    if (!token) throw new Error("Not authenticated");
-
-    // Build conversation history for context
-    const recentMessages = filteredMessages.slice(-6).map((m) => ({
-      role: m.senderId === user?.uid ? "user" : "assistant",
-      content: m.text,
-    }));
-
-    // Add current message
-    recentMessages.push({ role: "user", content: userMessage });
-
-    // Add timeout to prevent infinite "Sending" state
-    const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 30000); // 30 second timeout
-
-    try {
-      const response = await fetch("/api/chat", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify({
-          messages: recentMessages,
-          model: aiModel === "local" ? "balanced" : aiModel,
-        }),
-        signal: controller.signal,
-      });
-
-      clearTimeout(timeoutId);
-
-      if (!response.ok) {
-        const errorText = await response.text();
-        console.error("API Error Response:", errorText);
-        throw new Error(`API error: ${response.status}`);
-      }
-
-      // Stream the response
-      const reader = response.body?.getReader();
-      const decoder = new TextDecoder();
-      let fullText = "";
-
-      if (reader) {
-        while (true) {
-          const { done, value } = await reader.read();
-          if (done) break;
-
-          const chunk = decoder.decode(value, { stream: true });
-          fullText += chunk;
-          setStreamingText(fullText);
-        }
-      }
-
-      setStreamingText("");
-      return fullText || "Sorry, I couldn't generate a response. Please try again.";
-    } catch (error) {
-      clearTimeout(timeoutId);
-      if (error instanceof Error && error.name === "AbortError") {
-        throw new Error("Request timed out. Please try again.");
-      }
-      throw error;
-    }
-  };
-
   // Handle Send
   const handleSend = async (
     textOverride?: string,
@@ -239,39 +172,17 @@ export function AIChatbot() {
         setIsTyping(true);
 
         try {
-          let botResponse: string;
+          // ALWAYS use LocalBot - external APIs are disabled for reliability
+          const localResponse = await getLocalBotResponse(textToSend, language as "en" | "ar");
+          let botResponse = localResponse.text;
 
-          if (aiModel === "local") {
-            // Try local bot first
-            const localResponse = await getLocalBotResponse(textToSend, language as "en" | "ar");
-
-            // If local bot has low confidence, fallback to AI
-            if (localResponse.confidence < 0.5) {
-              try {
-                botResponse = await getAIResponse(textToSend);
-              } catch {
-                // If AI fails, use local response anyway
-                botResponse = localResponse.text;
-              }
-            } else {
-              botResponse = localResponse.text;
-            }
-          } else {
-            // Try AI first, fallback to local bot on error
-            try {
-              botResponse = await getAIResponse(textToSend);
-            } catch (aiError) {
-              console.warn("AI API failed, falling back to local bot:", aiError);
-              // Fallback to local bot when AI fails
-              const localResponse = await getLocalBotResponse(textToSend, language as "en" | "ar");
-              botResponse =
-                localResponse.text +
-                "\n\n_(" +
-                (language === "ar"
-                  ? "عذراً، الخدمة الذكية غير متاحة حالياً"
-                  : "Note: AI service temporarily unavailable") +
-                ")_";
-            }
+          // If low confidence, append live support suggestion
+          if (localResponse.confidence < 0.5) {
+            botResponse +=
+              "\n\n" +
+              (language === "ar"
+                ? "💬 هل تريد التحدث مع الدعم المباشر؟ اضغط على زر LIVE CHAT في الأعلى."
+                : "💬 Would you like to talk to live support? Click the LIVE CHAT button above.");
           }
 
           // Send Bot Message
@@ -279,9 +190,7 @@ export function AIChatbot() {
             user.uid,
             botResponse,
             "bot",
-            aiModel === "local"
-              ? "Obour Bot"
-              : AI_MODEL_INFO[aiModel].name[language as "en" | "ar"],
+            language === "ar" ? "مساعد العبور" : "Obour Bot",
             true,
             undefined,
             "bot"

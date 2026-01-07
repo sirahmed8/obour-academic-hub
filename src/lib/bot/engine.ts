@@ -44,8 +44,8 @@ function findBestMatch(input: string): QA | null {
     }
   }
 
-  // Lower threshold to 0.3 for better coverage
-  return highestScore > 0.3 ? bestMatch : null;
+  // Very low threshold to maximize coverage - 0.2 ensures we catch more queries
+  return highestScore > 0.2 ? bestMatch : null;
 }
 
 // ----------------------------------------------------------------------

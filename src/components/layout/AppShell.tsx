@@ -29,10 +29,10 @@ import { fadeIn } from "@/lib/motion";
 
 export function AppShell({ children }: { children: React.ReactNode }) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
-  // Use sessionStorage to persist dismissal across refreshes within a session
+  // Use localStorage to persist dismissal permanently
   const [profileSetupDismissed, setProfileSetupDismissed] = useState(() => {
     if (typeof window !== "undefined") {
-      return sessionStorage.getItem("profileSetupDismissed") === "true";
+      return localStorage.getItem("profileSetupDismissed") === "true";
     }
     return false;
   });
@@ -120,7 +120,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
           onComplete={() => {
             setProfileSetupDismissed(true);
             if (typeof window !== "undefined") {
-              sessionStorage.setItem("profileSetupDismissed", "true");
+              localStorage.setItem("profileSetupDismissed", "true");
             }
           }}
         />
