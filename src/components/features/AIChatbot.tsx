@@ -18,11 +18,9 @@ import { ChatMessage } from "@/types";
 import { getLocalBotResponse } from "@/lib/bot";
 import { toast } from "sonner";
 import { ConfirmationModal } from "@/components/ui/ConfirmationModal";
-import { AIModel } from "./chatbot/constants";
 import { ChatHeader } from "./chatbot/ChatHeader";
 import { ChatMessages } from "./chatbot/ChatMessages";
 import { ChatInput } from "./chatbot/ChatInput";
-import { ModelSelector } from "./chatbot/ModelSelector";
 
 /**
  * AIChatbot - Main Chatbot Component
@@ -35,14 +33,6 @@ export function AIChatbot() {
   const [isTyping, setIsTyping] = useState(false);
   const [showClearConfirm, setShowClearConfirm] = useState(false);
   const [streamingText, setStreamingText] = useState("");
-
-  // AI Model selection (persisted in localStorage, default: local for reliability)
-  const [aiModel, setAiModel] = useState<AIModel>(() => {
-    if (typeof window !== "undefined") {
-      return (localStorage.getItem("ai-model") as AIModel) || "local";
-    }
-    return "local";
-  });
 
   // Interaction State
   const [replyTo, setReplyTo] = useState<ChatMessage | null>(null);
@@ -60,13 +50,6 @@ export function AIChatbot() {
   // Looking at ChatMessages, it expects 'User' from 'firebase/auth' likely.
   // Let's check useAuth definition. It likely returns a local wrapper or firebase User.
   const { language } = useLanguage();
-
-  // Persist AI model selection
-  useEffect(() => {
-    if (typeof window !== "undefined") {
-      localStorage.setItem("ai-model", aiModel);
-    }
-  }, [aiModel]);
 
   // Listen for messages
   useEffect(() => {
@@ -241,7 +224,7 @@ export function AIChatbot() {
         message,
         userId: user.uid,
         userEmail: user.email,
-        model: aiModel,
+        model: "local",
         userInput,
         timestamp: serverTimestamp(),
         status: "open",
@@ -334,7 +317,6 @@ export function AIChatbot() {
             <ChatHeader
               mode={mode}
               setMode={setMode}
-              aiModel={aiModel}
               setIsOpen={setIsOpen}
               onClearHistory={() => setShowClearConfirm(true)}
             />
@@ -343,7 +325,6 @@ export function AIChatbot() {
               messages={filteredMessages}
               streamingText={streamingText}
               isTyping={isTyping}
-              aiModel={aiModel}
               mode={mode}
               // eslint-disable-next-line @typescript-eslint/no-explicit-any
               user={user as any}
@@ -360,9 +341,7 @@ export function AIChatbot() {
               mode={mode}
               replyTo={replyTo}
               setReplyTo={setReplyTo}
-            >
-              {mode === "bot" && <ModelSelector currentModel={aiModel} onSelect={setAiModel} />}
-            </ChatInput>
+            />
           </motion.div>
         )}
       </AnimatePresence>

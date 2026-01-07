@@ -1,22 +1,19 @@
 "use client";
 
 import { motion, AnimatePresence } from "framer-motion";
-import { X, Headphones, Trash2 } from "lucide-react";
+import { X, Headphones, Trash2, Bot } from "lucide-react";
 import { useLanguage } from "@/contexts";
 import { cn } from "@/lib/utils";
-import { AI_MODEL_INFO, AIModel } from "./constants";
 
 interface ChatHeaderProps {
   mode: "bot" | "live";
   setMode: (mode: "bot" | "live") => void;
-  aiModel: AIModel;
   setIsOpen: (isOpen: boolean) => void;
   onClearHistory: () => void;
 }
 
-export function ChatHeader({ mode, setMode, aiModel, setIsOpen, onClearHistory }: ChatHeaderProps) {
+export function ChatHeader({ mode, setMode, setIsOpen, onClearHistory }: ChatHeaderProps) {
   const { language } = useLanguage();
-  const CurrentModelIcon = AI_MODEL_INFO[aiModel].icon;
 
   return (
     <div className="p-4 border-b border-border bg-muted/30 flex items-center justify-between backdrop-blur-md">
@@ -35,7 +32,7 @@ export function ChatHeader({ mode, setMode, aiModel, setIsOpen, onClearHistory }
                 animate={{ scale: 1 }}
                 exit={{ scale: 0 }}
               >
-                <CurrentModelIcon className={cn("w-6 h-6", AI_MODEL_INFO[aiModel].color)} />
+                <Bot className="w-6 h-6 text-primary" />
               </motion.div>
             ) : (
               <motion.div
@@ -53,7 +50,9 @@ export function ChatHeader({ mode, setMode, aiModel, setIsOpen, onClearHistory }
         <div>
           <h3 className="font-bold text-sm">
             {mode === "bot"
-              ? AI_MODEL_INFO[aiModel].name[language as "en" | "ar"]
+              ? language === "ar"
+                ? "مساعد العبور"
+                : "Obour Bot"
               : language === "ar"
                 ? "الدعم المباشر"
                 : "Live Support"}
@@ -66,7 +65,9 @@ export function ChatHeader({ mode, setMode, aiModel, setIsOpen, onClearHistory }
               )}
             />
             {mode === "bot"
-              ? AI_MODEL_INFO[aiModel].description[language as "en" | "ar"]
+              ? language === "ar"
+                ? "مساعدك الذكي"
+                : "Your smart assistant"
               : language === "ar"
                 ? "متصل الآن"
                 : "Online"}

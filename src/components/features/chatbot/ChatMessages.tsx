@@ -1,13 +1,11 @@
 "use client";
 
 import { useEffect, useRef } from "react";
-import { Headphones } from "lucide-react";
+import { Headphones, Bot } from "lucide-react";
 import { useLanguage } from "@/contexts";
-import { cn } from "@/lib/utils";
 import { ChatMessageItem } from "@/components/chat/ChatMessage";
 import { QuickReplies } from "@/components/ui/QuickReplies";
 import { QUICK_REPLIES } from "@/lib/quickReplies";
-import { AI_MODEL_INFO, AIModel } from "./constants";
 import { ChatMessage } from "@/types";
 import { User } from "@/types";
 
@@ -15,7 +13,6 @@ interface ChatMessagesProps {
   messages: ChatMessage[];
   streamingText: string;
   isTyping: boolean;
-  aiModel: AIModel;
   mode: "bot" | "live";
   user: User;
   onReply: (msg: ChatMessage) => void;
@@ -27,7 +24,6 @@ export function ChatMessages({
   messages,
   streamingText,
   isTyping,
-  aiModel,
   mode,
   user,
   onReply,
@@ -36,7 +32,6 @@ export function ChatMessages({
 }: ChatMessagesProps) {
   const { language } = useLanguage();
   const messagesEndRef = useRef<HTMLDivElement>(null);
-  const CurrentModelIcon = AI_MODEL_INFO[aiModel].icon;
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -47,7 +42,7 @@ export function ChatMessages({
       {messages.length === 0 && (
         <div className="h-full flex flex-col items-center justify-center text-center text-muted-foreground p-6 opacity-60">
           {mode === "bot" ? (
-            <CurrentModelIcon className="w-12 h-12 mb-3" />
+            <Bot className="w-12 h-12 mb-3" />
           ) : (
             <Headphones className="w-12 h-12 mb-3" />
           )}
@@ -74,7 +69,7 @@ export function ChatMessages({
       {streamingText && (
         <div className="flex gap-3 max-w-[85%] mr-auto">
           <div className="w-6 h-6 rounded-full bg-primary/10 flex items-center justify-center shrink-0 self-end mb-1">
-            <CurrentModelIcon className={cn("w-3 h-3", AI_MODEL_INFO[aiModel].color)} />
+            <Bot className="w-3 h-3 text-primary" />
           </div>
           <div className="bg-muted px-4 py-3 rounded-2xl rounded-tl-none shadow-sm text-sm">
             {streamingText}
@@ -87,7 +82,7 @@ export function ChatMessages({
       {isTyping && !streamingText && (
         <div className="flex gap-3 max-w-[85%] mr-auto">
           <div className="w-6 h-6 rounded-full bg-primary/10 flex items-center justify-center shrink-0 self-end mb-1">
-            <CurrentModelIcon className={cn("w-3 h-3", AI_MODEL_INFO[aiModel].color)} />
+            <Bot className="w-3 h-3 text-primary" />
           </div>
           <div className="bg-muted px-4 py-3 rounded-2xl rounded-tl-none flex gap-1 items-center shadow-sm">
             <span className="w-1.5 h-1.5 bg-primary/50 rounded-full animate-bounce [animation-delay:-0.3s]"></span>

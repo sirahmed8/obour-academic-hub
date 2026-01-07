@@ -9,7 +9,5 @@
       ]
     }
   ],
-  "rewrites": [
-    { "source": "/subject/:path*", "destination": "/subject" }
-  ]
+  "rewrites": [{ "source": "/subject/:path*", "destination": "/subject" }]
 }
