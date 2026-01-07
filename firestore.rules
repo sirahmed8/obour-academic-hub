@@ -1,15 +1,11 @@
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
-    // CRITICAL: Hardcoded owner email - ALWAYS has full access
-    function isHardcodedOwner() {
-      return request.auth != null && request.auth.token.email == 'a7medorabe7@gmail.com';
-    }
+
 
     // Helper to check for Admin
     function isAdmin() {
       return request.auth != null && (
-        isHardcodedOwner() ||
         get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role in ['admin', 'owner']
       );
     }
@@ -17,7 +13,6 @@ service cloud.firestore {
     // Helper to check for Owner
     function isOwner() {
       return request.auth != null && (
-        isHardcodedOwner() ||
         get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'owner'
       );
     }
@@ -37,9 +32,7 @@ service cloud.firestore {
       // 3. Users can write own profile with restrictions
       // 4. Admin can write student profiles
       allow write: if request.auth != null && (
-        // SAFETY NET #1: Hardcoded owner email - BYPASSES ALL CHECKS
-        isHardcodedOwner() ||
-        // SAFETY NET #2: Owner role can write anyone
+        // SAFETY NET #1: Owner role can write anyone
         isOwner() ||
         // User writing own profile
         (request.auth.uid == userId && (
