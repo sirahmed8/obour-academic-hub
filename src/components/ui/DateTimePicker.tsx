@@ -144,227 +144,238 @@ export function DateTimePicker({ value, onChange, onClose, language }: DateTimeP
   };
 
   return (
-    <motion.div
-      initial={{ opacity: 0, y: -10, scale: 0.95 }}
-      animate={{ opacity: 1, y: 0, scale: 1 }}
-      exit={{ opacity: 0, y: -10, scale: 0.95 }}
-      transition={{ type: "spring", damping: 20, stiffness: 300 }}
-      className="fixed sm:absolute inset-x-4 sm:inset-x-auto sm:top-full sm:left-0 sm:right-0 top-1/2 sm:translate-y-0 -translate-y-1/2 sm:mt-2 z-50 bg-card border border-border rounded-2xl shadow-2xl overflow-hidden max-w-[320px] mx-auto sm:mx-0"
-      dir={isRtl ? "rtl" : "ltr"}
-    >
-      {/* Header */}
-      <div className="p-3 bg-muted/30 border-b border-border flex items-center justify-between">
-        <motion.button
-          type="button"
-          onClick={goToPrevMonth}
-          whileHover={{ scale: 1.1 }}
-          whileTap={{ scale: 0.9 }}
-          className="p-2 hover:bg-muted rounded-lg transition-colors"
-        >
-          <ChevronLeft size={18} />
-        </motion.button>
+    <>
+      {/* Click-outside backdrop */}
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        exit={{ opacity: 0 }}
+        className="fixed inset-0 z-40"
+        onClick={onClose}
+      />
+      <motion.div
+        initial={{ opacity: 0, y: -10, scale: 0.95 }}
+        animate={{ opacity: 1, y: 0, scale: 1 }}
+        exit={{ opacity: 0, y: -10, scale: 0.95 }}
+        transition={{ type: "spring", damping: 20, stiffness: 300 }}
+        className="absolute top-full left-0 right-0 mt-2 z-50 bg-card border border-border rounded-2xl shadow-2xl overflow-hidden"
+        dir={isRtl ? "rtl" : "ltr"}
+        onClick={(e) => e.stopPropagation()}
+      >
+        {/* Header */}
+        <div className="p-3 bg-muted/30 border-b border-border flex items-center justify-between">
+          <motion.button
+            type="button"
+            onClick={goToPrevMonth}
+            whileHover={{ scale: 1.1 }}
+            whileTap={{ scale: 0.9 }}
+            className="p-2 hover:bg-muted rounded-lg transition-colors"
+          >
+            <ChevronLeft size={18} />
+          </motion.button>
 
-        <span className="font-semibold text-sm">
-          {months[viewDate.getMonth()]} {viewDate.getFullYear()}
-        </span>
+          <span className="font-semibold text-sm">
+            {months[viewDate.getMonth()]} {viewDate.getFullYear()}
+          </span>
 
-        <motion.button
-          type="button"
-          onClick={goToNextMonth}
-          whileHover={{ scale: 1.1 }}
-          whileTap={{ scale: 0.9 }}
-          className="p-2 hover:bg-muted rounded-lg transition-colors"
-        >
-          <ChevronRight size={18} />
-        </motion.button>
-      </div>
+          <motion.button
+            type="button"
+            onClick={goToNextMonth}
+            whileHover={{ scale: 1.1 }}
+            whileTap={{ scale: 0.9 }}
+            className="p-2 hover:bg-muted rounded-lg transition-colors"
+          >
+            <ChevronRight size={18} />
+          </motion.button>
+        </div>
 
-      {/* Calendar Grid */}
-      <div className="p-3">
-        {/* Day headers */}
-        <div className="grid grid-cols-7 gap-1 mb-2">
-          {days.map((day) => (
-            <div
-              key={day}
-              className="text-center text-[10px] font-medium text-muted-foreground py-1"
+        {/* Calendar Grid */}
+        <div className="p-3">
+          {/* Day headers */}
+          <div className="grid grid-cols-7 gap-1 mb-2">
+            {days.map((day) => (
+              <div
+                key={day}
+                className="text-center text-[10px] font-medium text-muted-foreground py-1"
+              >
+                {day}
+              </div>
+            ))}
+          </div>
+
+          {/* Calendar days */}
+          <div className="grid grid-cols-7 gap-1">
+            {calendarDays.map((day, index) => (
+              <div key={index} className="aspect-square">
+                {day && (
+                  <motion.button
+                    type="button"
+                    onClick={() => selectDay(day)}
+                    whileHover={{ scale: 1.1 }}
+                    whileTap={{ scale: 0.95 }}
+                    className={cn(
+                      "w-full h-full rounded-lg text-xs font-medium transition-all flex items-center justify-center",
+                      isSelected(day)
+                        ? "bg-primary text-primary-foreground shadow-lg shadow-primary/25"
+                        : isToday(day)
+                          ? "bg-primary/20 text-primary border border-primary/30"
+                          : "hover:bg-muted text-foreground"
+                    )}
+                  >
+                    {day}
+                  </motion.button>
+                )}
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* Time Picker Toggle */}
+        <div className="px-3 pb-2">
+          <motion.button
+            type="button"
+            onClick={() => setShowTimePicker(!showTimePicker)}
+            whileTap={{ scale: 0.98 }}
+            className={cn(
+              "w-full py-2 px-3 rounded-xl text-sm font-medium flex items-center justify-center gap-2 transition-all",
+              showTimePicker
+                ? "bg-primary/10 text-primary border border-primary/30"
+                : "bg-muted/50 text-muted-foreground hover:bg-muted"
+            )}
+          >
+            <Clock size={14} />
+            {selectedHour.toString().padStart(2, "0")}:{selectedMinute.toString().padStart(2, "0")}{" "}
+            {isPM ? "PM" : "AM"}
+          </motion.button>
+        </div>
+
+        {/* Time Picker */}
+        <AnimatePresence>
+          {showTimePicker && (
+            <motion.div
+              initial={{ height: 0, opacity: 0 }}
+              animate={{ height: "auto", opacity: 1 }}
+              exit={{ height: 0, opacity: 0 }}
+              transition={{ duration: 0.2 }}
+              className="overflow-hidden"
             >
-              {day}
-            </div>
-          ))}
-        </div>
+              <div className="px-3 pb-3 flex items-center justify-center gap-2">
+                {/* Hours */}
+                <div className="flex flex-col items-center">
+                  <motion.button
+                    type="button"
+                    onClick={() => setSelectedHour((h) => (h % 12) + 1)}
+                    whileTap={{ scale: 0.9 }}
+                    className="p-1 hover:bg-muted rounded-lg"
+                  >
+                    <ChevronLeft className="rotate-90" size={14} />
+                  </motion.button>
+                  <div className="bg-primary/10 text-primary rounded-lg px-3 py-2 text-lg font-bold min-w-[50px] text-center">
+                    {selectedHour.toString().padStart(2, "0")}
+                  </div>
+                  <motion.button
+                    type="button"
+                    onClick={() => setSelectedHour((h) => ((h - 2 + 12) % 12) + 1)}
+                    whileTap={{ scale: 0.9 }}
+                    className="p-1 hover:bg-muted rounded-lg"
+                  >
+                    <ChevronRight className="rotate-90" size={14} />
+                  </motion.button>
+                </div>
 
-        {/* Calendar days */}
-        <div className="grid grid-cols-7 gap-1">
-          {calendarDays.map((day, index) => (
-            <div key={index} className="aspect-square">
-              {day && (
-                <motion.button
-                  type="button"
-                  onClick={() => selectDay(day)}
-                  whileHover={{ scale: 1.1 }}
-                  whileTap={{ scale: 0.95 }}
-                  className={cn(
-                    "w-full h-full rounded-lg text-xs font-medium transition-all flex items-center justify-center",
-                    isSelected(day)
-                      ? "bg-primary text-primary-foreground shadow-lg shadow-primary/25"
-                      : isToday(day)
-                        ? "bg-primary/20 text-primary border border-primary/30"
-                        : "hover:bg-muted text-foreground"
-                  )}
-                >
-                  {day}
-                </motion.button>
-              )}
-            </div>
-          ))}
-        </div>
-      </div>
+                <span className="text-xl font-bold text-muted-foreground">:</span>
 
-      {/* Time Picker Toggle */}
-      <div className="px-3 pb-2">
-        <motion.button
-          type="button"
-          onClick={() => setShowTimePicker(!showTimePicker)}
-          whileTap={{ scale: 0.98 }}
-          className={cn(
-            "w-full py-2 px-3 rounded-xl text-sm font-medium flex items-center justify-center gap-2 transition-all",
-            showTimePicker
-              ? "bg-primary/10 text-primary border border-primary/30"
-              : "bg-muted/50 text-muted-foreground hover:bg-muted"
+                {/* Minutes */}
+                <div className="flex flex-col items-center">
+                  <motion.button
+                    type="button"
+                    onClick={() => setSelectedMinute((m) => (m + 5) % 60)}
+                    whileTap={{ scale: 0.9 }}
+                    className="p-1 hover:bg-muted rounded-lg"
+                  >
+                    <ChevronLeft className="rotate-90" size={14} />
+                  </motion.button>
+                  <div className="bg-primary/10 text-primary rounded-lg px-3 py-2 text-lg font-bold min-w-[50px] text-center">
+                    {selectedMinute.toString().padStart(2, "0")}
+                  </div>
+                  <motion.button
+                    type="button"
+                    onClick={() => setSelectedMinute((m) => (m - 5 + 60) % 60)}
+                    whileTap={{ scale: 0.9 }}
+                    className="p-1 hover:bg-muted rounded-lg"
+                  >
+                    <ChevronRight className="rotate-90" size={14} />
+                  </motion.button>
+                </div>
+
+                {/* AM/PM */}
+                <div className="flex flex-col gap-1 ml-2">
+                  <motion.button
+                    type="button"
+                    onClick={() => setIsPM(false)}
+                    whileTap={{ scale: 0.95 }}
+                    className={cn(
+                      "px-3 py-1.5 rounded-lg text-xs font-bold transition-all",
+                      !isPM
+                        ? "bg-primary text-primary-foreground shadow-md"
+                        : "bg-muted/50 text-muted-foreground hover:bg-muted"
+                    )}
+                  >
+                    AM
+                  </motion.button>
+                  <motion.button
+                    type="button"
+                    onClick={() => setIsPM(true)}
+                    whileTap={{ scale: 0.95 }}
+                    className={cn(
+                      "px-3 py-1.5 rounded-lg text-xs font-bold transition-all",
+                      isPM
+                        ? "bg-primary text-primary-foreground shadow-md"
+                        : "bg-muted/50 text-muted-foreground hover:bg-muted"
+                    )}
+                  >
+                    PM
+                  </motion.button>
+                </div>
+              </div>
+            </motion.div>
           )}
-        >
-          <Clock size={14} />
-          {selectedHour.toString().padStart(2, "0")}:{selectedMinute.toString().padStart(2, "0")}{" "}
-          {isPM ? "PM" : "AM"}
-        </motion.button>
-      </div>
+        </AnimatePresence>
 
-      {/* Time Picker */}
-      <AnimatePresence>
-        {showTimePicker && (
-          <motion.div
-            initial={{ height: 0, opacity: 0 }}
-            animate={{ height: "auto", opacity: 1 }}
-            exit={{ height: 0, opacity: 0 }}
-            transition={{ duration: 0.2 }}
-            className="overflow-hidden"
-          >
-            <div className="px-3 pb-3 flex items-center justify-center gap-2">
-              {/* Hours */}
-              <div className="flex flex-col items-center">
-                <motion.button
-                  type="button"
-                  onClick={() => setSelectedHour((h) => (h % 12) + 1)}
-                  whileTap={{ scale: 0.9 }}
-                  className="p-1 hover:bg-muted rounded-lg"
-                >
-                  <ChevronLeft className="rotate-90" size={14} />
-                </motion.button>
-                <div className="bg-primary/10 text-primary rounded-lg px-3 py-2 text-lg font-bold min-w-[50px] text-center">
-                  {selectedHour.toString().padStart(2, "0")}
-                </div>
-                <motion.button
-                  type="button"
-                  onClick={() => setSelectedHour((h) => ((h - 2 + 12) % 12) + 1)}
-                  whileTap={{ scale: 0.9 }}
-                  className="p-1 hover:bg-muted rounded-lg"
-                >
-                  <ChevronRight className="rotate-90" size={14} />
-                </motion.button>
-              </div>
-
-              <span className="text-xl font-bold text-muted-foreground">:</span>
-
-              {/* Minutes */}
-              <div className="flex flex-col items-center">
-                <motion.button
-                  type="button"
-                  onClick={() => setSelectedMinute((m) => (m + 5) % 60)}
-                  whileTap={{ scale: 0.9 }}
-                  className="p-1 hover:bg-muted rounded-lg"
-                >
-                  <ChevronLeft className="rotate-90" size={14} />
-                </motion.button>
-                <div className="bg-primary/10 text-primary rounded-lg px-3 py-2 text-lg font-bold min-w-[50px] text-center">
-                  {selectedMinute.toString().padStart(2, "0")}
-                </div>
-                <motion.button
-                  type="button"
-                  onClick={() => setSelectedMinute((m) => (m - 5 + 60) % 60)}
-                  whileTap={{ scale: 0.9 }}
-                  className="p-1 hover:bg-muted rounded-lg"
-                >
-                  <ChevronRight className="rotate-90" size={14} />
-                </motion.button>
-              </div>
-
-              {/* AM/PM */}
-              <div className="flex flex-col gap-1 ml-2">
-                <motion.button
-                  type="button"
-                  onClick={() => setIsPM(false)}
-                  whileTap={{ scale: 0.95 }}
-                  className={cn(
-                    "px-3 py-1.5 rounded-lg text-xs font-bold transition-all",
-                    !isPM
-                      ? "bg-primary text-primary-foreground shadow-md"
-                      : "bg-muted/50 text-muted-foreground hover:bg-muted"
-                  )}
-                >
-                  AM
-                </motion.button>
-                <motion.button
-                  type="button"
-                  onClick={() => setIsPM(true)}
-                  whileTap={{ scale: 0.95 }}
-                  className={cn(
-                    "px-3 py-1.5 rounded-lg text-xs font-bold transition-all",
-                    isPM
-                      ? "bg-primary text-primary-foreground shadow-md"
-                      : "bg-muted/50 text-muted-foreground hover:bg-muted"
-                  )}
-                >
-                  PM
-                </motion.button>
-              </div>
-            </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
-
-      {/* Footer Actions */}
-      <div className="p-3 bg-muted/20 border-t border-border flex items-center justify-between gap-2">
-        <div className="flex gap-2">
+        {/* Footer Actions */}
+        <div className="p-3 bg-muted/20 border-t border-border flex items-center justify-between gap-2">
+          <div className="flex gap-2">
+            <motion.button
+              type="button"
+              onClick={handleClear}
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.98 }}
+              className="px-3 py-1.5 text-xs font-medium text-destructive hover:bg-destructive/10 rounded-lg transition-colors"
+            >
+              {language === "ar" ? "مسح" : "Clear"}
+            </motion.button>
+            <motion.button
+              type="button"
+              onClick={handleToday}
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.98 }}
+              className="px-3 py-1.5 text-xs font-medium text-muted-foreground hover:bg-muted rounded-lg transition-colors"
+            >
+              {language === "ar" ? "اليوم" : "Today"}
+            </motion.button>
+          </div>
           <motion.button
             type="button"
-            onClick={handleClear}
+            onClick={handleConfirm}
             whileHover={{ scale: 1.02 }}
             whileTap={{ scale: 0.98 }}
-            className="px-3 py-1.5 text-xs font-medium text-destructive hover:bg-destructive/10 rounded-lg transition-colors"
+            disabled={!selectedDate}
+            className="px-4 py-1.5 text-xs font-medium bg-primary text-primary-foreground rounded-lg shadow-md shadow-primary/25 disabled:opacity-50 disabled:pointer-events-none"
           >
-            {language === "ar" ? "مسح" : "Clear"}
-          </motion.button>
-          <motion.button
-            type="button"
-            onClick={handleToday}
-            whileHover={{ scale: 1.02 }}
-            whileTap={{ scale: 0.98 }}
-            className="px-3 py-1.5 text-xs font-medium text-muted-foreground hover:bg-muted rounded-lg transition-colors"
-          >
-            {language === "ar" ? "اليوم" : "Today"}
+            {language === "ar" ? "تأكيد" : "Confirm"}
           </motion.button>
         </div>
-        <motion.button
-          type="button"
-          onClick={handleConfirm}
-          whileHover={{ scale: 1.02 }}
-          whileTap={{ scale: 0.98 }}
-          disabled={!selectedDate}
-          className="px-4 py-1.5 text-xs font-medium bg-primary text-primary-foreground rounded-lg shadow-md shadow-primary/25 disabled:opacity-50 disabled:pointer-events-none"
-        >
-          {language === "ar" ? "تأكيد" : "Confirm"}
-        </motion.button>
-      </div>
-    </motion.div>
+      </motion.div>
+    </>
   );
 }
