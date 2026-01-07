@@ -1,19 +1,29 @@
 # Obour Academic Hub
 
-A modern educational platform for Obour Institutes students, built with Next.js 16 and Firebase.
+<div align="center">
+
+![Obour Logo](public/obour-logo.png)
+
+**A modern educational platform for Obour Institutes students**
+
+[![Live Demo](https://img.shields.io/badge/Live-obourinstitutes.web.app-blue?style=for-the-badge)](https://obourinstitutes.web.app)
+[![Next.js](https://img.shields.io/badge/Next.js-16-black?style=for-the-badge&logo=next.js)](https://nextjs.org)
+[![Firebase](https://img.shields.io/badge/Firebase-Hosting-orange?style=for-the-badge&logo=firebase)](https://firebase.google.com)
+
+</div>
+
+---
 
 ## 🚀 Tech Stack
 
-| Technology        | Purpose                             |
-| ----------------- | ----------------------------------- |
-| **Next.js 16**    | App Router framework with Turbopack |
-| **TypeScript**    | Full type safety                    |
-| **Tailwind CSS**  | Utility-first styling               |
-| **Firebase**      | Auth, Firestore, Storage, Hosting   |
-| **Framer Motion** | Smooth animations                   |
-| **Cloudinary**    | Image optimization                  |
-| **Vercel Blob**   | File uploads                        |
-| **OpenRouter**    | AI chatbot (free models)            |
+| Technology        | Purpose                           |
+| ----------------- | --------------------------------- |
+| **Next.js 16**    | App Router with Turbopack         |
+| **TypeScript**    | Full type safety                  |
+| **Tailwind CSS**  | Utility-first styling             |
+| **Firebase**      | Auth, Firestore, Storage, Hosting |
+| **Framer Motion** | Smooth animations                 |
+| **Cloudinary**    | Image/file uploads                |
 
 ## 📁 Project Structure
 
@@ -21,20 +31,17 @@ A modern educational platform for Obour Institutes students, built with Next.js 
 src/
 ├── app/                    # Next.js App Router
 │   ├── admin/              # Admin dashboard (protected)
-│   ├── api/                # API routes
-│   │   ├── chat/           # AI chatbot endpoint
-│   │   └── upload/         # File upload endpoint
 │   ├── main/               # Student dashboard
 │   ├── subject/            # Subject pages
 │   └── layout.tsx          # Root layout
 ├── components/
 │   ├── chat/               # Chat components
-│   ├── features/           # Feature components
+│   ├── features/           # Feature components (Chatbot, etc.)
 │   ├── layout/             # Layout (Navbar, Sidebar)
 │   └── ui/                 # Reusable UI components
 ├── contexts/               # React Context (Auth, Theme, Language)
-├── hooks/                  # Custom hooks
 ├── lib/                    # Utilities & Firebase config
+│   └── bot/                # LocalBot engine & knowledge base
 ├── services/               # Business logic services
 └── types/                  # TypeScript definitions
 ```
@@ -43,13 +50,13 @@ src/
 
 ```bash
 # 1. Clone and install
-git clone <repo-url>
+git clone https://github.com/sirahmed8/obour-academic-hub.git
 cd obour-academic-hub
 npm install
 
 # 2. Configure environment
 cp .env.example .env.local
-# Fill in your Firebase, Cloudinary, OpenRouter credentials
+# Fill in your Firebase, Cloudinary credentials
 
 # 3. Run development server
 npm run dev
@@ -62,17 +69,17 @@ Required in `.env.local`:
 ```env
 # Firebase
 NEXT_PUBLIC_FIREBASE_API_KEY=
+NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN=
 NEXT_PUBLIC_FIREBASE_PROJECT_ID=
-# ... (see .env.example)
+NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET=
+NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID=
+NEXT_PUBLIC_FIREBASE_APP_ID=
 
 # Cloudinary
 NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME=
 
-# OpenRouter (AI)
-OPENROUTER_API_KEY=
-
-# Vercel Blob
-BLOB_READ_WRITE_TOKEN=
+# Owner Email
+NEXT_PUBLIC_OWNER_EMAIL=
 ```
 
 ## 📱 Features
@@ -80,34 +87,39 @@ BLOB_READ_WRITE_TOKEN=
 ### For Students
 
 - 📚 Browse subjects and resources
-- 🤖 AI-powered chatbot (bilingual AR/EN)
+- 🤖 Smart bilingual chatbot (Arabic/English)
 - 💬 Live support chat
 - 🔔 Real-time notifications
 - 🌙 Dark/Light mode
+- 🌐 Full RTL/LTR support
 
 ### For Admins
 
-- 👥 User management with roles
+- 👥 User management with roles (Owner, Admin, Student)
 - 📂 Resource management
 - 📊 Analytics dashboard
 - 📣 Banner system
 - 📬 Inbox for support chats
+- 📝 Activity logs
 
-### AI Models Available
+### Smart Chatbot
 
-| Model       | Description                        |
-| ----------- | ---------------------------------- |
-| 🧠 Thinking | Deep reasoning (DeepSeek R1)       |
-| ⚖️ Balanced | Best for most tasks (GPT-OSS-120B) |
-| ⚡ Fast     | Quick responses (Llama 3.3)        |
-| ✨ Flash    | Vision support (Gemini 2.0)        |
+The platform includes an intelligent local bot with:
+
+- 40+ pre-trained bilingual Q&A pairs
+- Automatic language detection
+- Live support escalation
+- Quick reply suggestions
 
 ## 🌐 Deployment
 
-### Firebase Hosting
+### Firebase Hosting (Recommended)
 
 ```bash
+# Build static export
 npm run build
+
+# Deploy to Firebase
 firebase deploy --only hosting
 ```
 
@@ -118,11 +130,19 @@ Push to main branch - auto-deploys via Vercel integration.
 ## 🔒 Security
 
 - Firebase Auth with Google Sign-In
-- Firestore security rules (see `firestore.rules`)
-- API routes require Bearer token
-- CSP headers configured
-- Filename sanitization on uploads
+- Firestore security rules with role-based access
+- Content Security Policy headers
+- Profanity filter with word boundary matching
+- Secure file uploads via Cloudinary
 
 ## 📄 License
 
-Proprietary - Obour Institutes © 2025
+MIT License - see [LICENSE](LICENSE) for details.
+
+---
+
+<div align="center">
+  Made with ❤️ by the Obour Innovators Team
+  
+  [Connect with Developer](https://linktr.ee/sir.ahmed)
+</div>
