@@ -4,7 +4,6 @@ import { useState, useRef } from "react";
 import { Upload, X, FileText, Loader2 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import Image from "next/image";
-import { auth } from "@/lib/firebase";
 
 interface FileAttachment {
   url: string;
@@ -23,39 +22,36 @@ export function FileUpload({ onFileUploaded, language }: FileUploadProps) {
   const [preview, setPreview] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const uploadToVercelBlob = async (file: File): Promise<string> => {
-    // Get auth token
-    const token = await auth.currentUser?.getIdToken();
-    if (!token) {
-      throw new Error("Not authenticated");
+  const uploadToCloudinary = async (file: File): Promise<string> => {
+    const cloudName = process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME;
+    if (!cloudName) {
+      throw new Error("Cloudinary not configured");
     }
 
-    // Upload to our local API route (which uses Vercel Blob SDK)
-    const response = await fetch(`/api/upload?filename=${encodeURIComponent(file.name)}`, {
+    const formData = new FormData();
+    formData.append("file", file);
+    formData.append("upload_preset", "chat_uploads"); // Create this preset in Cloudinary as unsigned
+
+    const response = await fetch(`https://api.cloudinary.com/v1_1/${cloudName}/auto/upload`, {
       method: "POST",
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-      body: file,
+      body: formData,
     });
 
     if (!response.ok) {
       throw new Error("Upload failed");
     }
 
-    const blob = await response.json();
-    return blob.url;
+    const data = await response.json();
+    return data.secure_url;
   };
 
   const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
 
-    // Validate file size (max 4.5MB for Vercel Blob Server Uploads)
-    if (file.size > 4.5 * 1024 * 1024) {
-      alert(
-        language === "ar" ? "الملف كبير جداً (حد أقصى 4.5 ميجا)" : "File too large (max 4.5MB)"
-      );
+    // Validate file size (max 10MB for Cloudinary)
+    if (file.size > 10 * 1024 * 1024) {
+      alert(language === "ar" ? "الملف كبير جداً (حد أقصى 10 ميجا)" : "File too large (max 10MB)");
       return;
     }
 
@@ -73,7 +69,7 @@ export function FileUpload({ onFileUploaded, language }: FileUploadProps) {
     setUploading(true);
 
     try {
-      const url = await uploadToVercelBlob(file);
+      const url = await uploadToCloudinary(file);
 
       onFileUploaded({
         url,
