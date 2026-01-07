@@ -7,8 +7,10 @@ export function middleware(request: NextRequest) {
     default-src 'self';
     script-src 'self' 'unsafe-eval' 'unsafe-inline' https://apis.google.com https://www.gstatic.com https://identitytoolkit.googleapis.com https://cdn.jsdelivr.net https://res.cloudinary.com;
     style-src 'self' 'unsafe-inline' https://fonts.googleapis.com;
-    img-src 'self' blob: data: https://res.cloudinary.com https://lh3.googleusercontent.com https://*.public.blob.vercel-storage.com https://ui-avatars.com;
+    img-src 'self' blob: data: https://res.cloudinary.com https://lh3.googleusercontent.com https://*.public.blob.vercel-storage.com https://ui-avatars.com https://*.googleusercontent.com;
     font-src 'self' https://fonts.gstatic.com;
+    connect-src 'self' https://*.firebaseio.com https://*.googleapis.com https://identitytoolkit.googleapis.com https://securetoken.googleapis.com https://firestore.googleapis.com https://*.cloudfunctions.net wss://*.firebaseio.com https://apis.google.com https://www.googleapis.com https://firebase.googleapis.com https://res.cloudinary.com https://ui-avatars.com https://*.google-analytics.com https://www.google-analytics.com https://api.openrouter.ai;
+    frame-src 'self' https://*.firebaseapp.com https://accounts.google.com https://www.google.com https://*.google.com;
     object-src 'none';
     base-uri 'self';
     form-action 'self';
