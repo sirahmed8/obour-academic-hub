@@ -182,6 +182,27 @@ export function AIChatbot() {
           );
         } catch (error) {
           console.error("Bot Error:", error);
+          // Send a fallback error message so user knows something went wrong
+          try {
+            await sendMessage(
+              user.uid,
+              language === "ar"
+                ? "عذراً، حدث خطأ أثناء معالجة رسالتك. يرجى المحاولة مرة أخرى أو التواصل مع الدعم المباشر. 🔧"
+                : "Sorry, an error occurred while processing your message. Please try again or contact live support. 🔧",
+              "bot",
+              language === "ar" ? "مساعد العبور" : "Obour Bot",
+              true,
+              undefined,
+              "bot"
+            );
+          } catch (fallbackError) {
+            console.error("Failed to send fallback message:", fallbackError);
+            toast.error(
+              language === "ar"
+                ? "حدث خطأ، يرجى المحاولة مرة أخرى"
+                : "An error occurred, please try again"
+            );
+          }
         } finally {
           setIsTyping(false);
           setStreamingText("");

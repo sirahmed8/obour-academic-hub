@@ -172,22 +172,13 @@ export const clearChatHistory = async (userId: string) => {
   const snapshot = await getDocs(messagesRef);
   const batch = writeBatch(db);
 
-  snapshot.docs.forEach((doc) => {
-    batch.delete(doc.ref);
+  snapshot.docs.forEach((docSnapshot) => {
+    batch.delete(docSnapshot.ref);
   });
 
-  // Reset session metadata
+  // Delete the entire chat session document so it doesn't appear in admin inbox
   const chatRef = doc(db, "chats", userId);
-  batch.set(
-    chatRef,
-    {
-      lastMessage: "",
-      lastMessageTime: null,
-      unreadCount: 0,
-      adminUnreadCount: 0,
-    },
-    { merge: true }
-  );
+  batch.delete(chatRef);
 
   await batch.commit();
 };

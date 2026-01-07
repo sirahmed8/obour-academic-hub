@@ -19,12 +19,15 @@ import { AddTodoModal } from "./AddTodoModal";
 import { Plus, Filter, SortAsc } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
+import { notificationService } from "@/services/notification.service";
 
 export function TodoList() {
   const { user } = useAuth();
   const { language } = useLanguage();
   const [tasks, setTasks] = useState<TodoTask[]>([]);
-  const [filter, setFilter] = useState<"all" | "high" | "medium" | "low" | "incomplete">("all");
+  const [filter, setFilter] = useState<
+    "all" | "high" | "medium" | "low" | "incomplete" | "completed"
+  >("all");
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingTask, setEditingTask] = useState<TodoTask | undefined>(undefined);
   const [isLoading, setIsLoading] = useState(true);
@@ -52,6 +55,7 @@ export function TodoList() {
   const filteredTasks = useMemo(() => {
     if (filter === "all") return tasks;
     if (filter === "incomplete") return tasks.filter((t) => !t.completed);
+    if (filter === "completed") return tasks.filter((t) => t.completed);
     return tasks.filter((t) => t.priority === filter);
   }, [tasks, filter]);
 
@@ -84,9 +88,29 @@ export function TodoList() {
   const handleToggle = async (task: TodoTask) => {
     if (!user) return;
     try {
+      const newStatus = !task.completed;
       await updateDoc(doc(db, `users/${user.uid}/tasks`, task.id), {
-        completed: !task.completed,
+        completed: newStatus,
       });
+
+      if (newStatus) {
+        // Send completion notification
+        // We use the notification service we built earlier
+        await notificationService.create({
+          target: user.uid,
+          title: language === "ar" ? "مهمة مكتملة!" : "Task Completed!",
+          message:
+            language === "ar"
+              ? `أحسنت! لقد أكملت المهمة: ${task.title}`
+              : `Great job! You completed: ${task.title}`,
+          type: "success",
+          titleAr: "مهمة مكتملة!",
+          titleEn: "Task Completed!",
+          messageAr: `أحسنت! لقد أكملت المهمة: ${task.title}`,
+          messageEn: `Great job! You completed: ${task.title}`,
+        });
+        toast.success(language === "ar" ? "عمل رائع!" : "Great job!");
+      }
     } catch {
       toast.error("Failed to update task");
     }
@@ -104,6 +128,16 @@ export function TodoList() {
         toast.error("Failed to delete task");
       }
     }
+  };
+
+  const handleEmailTask = (task: TodoTask) => {
+    // Create mailto link
+    const subject = encodeURIComponent(`Task: ${task.title}`);
+    const body = encodeURIComponent(
+      `Task Details:\n\nTitle: ${task.title}\nPriority: ${task.priority}\nDue: ${task.dueDate || "No due date"}\n\nDescription:\n${task.description || "No description"}`
+    );
+    window.open(`mailto:${user?.email || ""}?subject=${subject}&body=${body}`);
+    toast.success(language === "ar" ? "تم فتح البريد الإلكتروني" : "Email client opened");
   };
 
   const handleEdit = (task: TodoTask) => {
