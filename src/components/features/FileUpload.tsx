@@ -118,6 +118,9 @@ export function FileUpload({ onFileUploaded, language }: FileUploadProps) {
             exit={{ opacity: 0 }}
             className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4"
             onClick={() => setPreview(null)}
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="preview-title"
           >
             <motion.div
               initial={{ scale: 0.9 }}
@@ -127,10 +130,13 @@ export function FileUpload({ onFileUploaded, language }: FileUploadProps) {
               onClick={(e) => e.stopPropagation()}
             >
               <div className="flex items-center justify-between mb-4">
-                <h3 className="font-semibold">{language === "ar" ? "معاينة" : "Preview"}</h3>
+                <h3 id="preview-title" className="font-semibold">
+                  {language === "ar" ? "معاينة" : "Preview"}
+                </h3>
                 <button
                   onClick={() => setPreview(null)}
                   className="p-2 hover:bg-secondary rounded-lg"
+                  aria-label={language === "ar" ? "إغلاق المعاينة" : "Close preview"}
                 >
                   <X className="w-5 h-5" />
                 </button>
