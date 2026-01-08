@@ -2,7 +2,15 @@
 
 import { useState, useEffect, useRef } from "react";
 import { db } from "@/lib/firebase";
-import { collection, onSnapshot, query, orderBy, doc, writeBatch } from "firebase/firestore";
+import {
+  collection,
+  onSnapshot,
+  query,
+  orderBy,
+  doc,
+  writeBatch,
+  updateDoc,
+} from "firebase/firestore";
 import { useLanguage, useAuth } from "@/contexts";
 import { AppShell } from "@/components/layout/AppShell";
 import {
@@ -16,7 +24,15 @@ import {
   Reply,
   Smile,
   X,
+  Pin,
+  MoreVertical,
 } from "lucide-react";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { sendMessage, markMessagesAsSeen, toggleReaction, deleteMessage } from "@/lib/chatUtils";
@@ -66,6 +82,42 @@ export default function AdminInboxPage() {
 
     return () => unsubscribe();
   }, []);
+
+  const sortedSessions = [...sessions].sort((a, b) => {
+    // 1. Pinned first
+    if (a.isPinned && !b.isPinned) return -1;
+    if (!a.isPinned && b.isPinned) return 1;
+
+    // 2. Then by time
+    const timeA = a.lastMessageTime?.seconds || 0;
+    const timeB = b.lastMessageTime?.seconds || 0;
+    return timeB - timeA;
+  });
+
+  const togglePin = async (e: React.MouseEvent, session: ChatSession) => {
+    e.stopPropagation();
+    try {
+      await updateDoc(doc(db, "chats", session.userId), {
+        isPinned: !session.isPinned,
+      });
+      toast.success(session.isPinned ? "Chat unpinned" : "Chat pinned");
+    } catch (err) {
+      toast.error("Failed to update chat");
+    }
+  };
+
+  const toggleReadStatus = async (e: React.MouseEvent, session: ChatSession) => {
+    e.stopPropagation();
+    try {
+      const newCount = (session.adminUnreadCount || 0) > 0 ? 0 : 1;
+      await updateDoc(doc(db, "chats", session.userId), {
+        adminUnreadCount: newCount,
+      });
+      toast.success(newCount === 0 ? "Marked as read" : "Marked as unread");
+    } catch (err) {
+      toast.error("Failed to update status");
+    }
+  };
 
   // 2. Listen to Messages for Selected Session
   useEffect(() => {
@@ -265,18 +317,25 @@ export default function AdminInboxPage() {
               ) : sessions.length === 0 ? (
                 <div className="p-8 text-center text-muted-foreground text-sm">No active chats</div>
               ) : (
-                sessions.map((session) => (
+                sortedSessions.map((session) => (
                   <div
                     key={session.userId}
                     onClick={() => {
                       setSelectedSessionId(session.userId);
                     }}
                     className={cn(
-                      "flex items-center gap-3 p-4 hover:bg-muted/50 transition-colors cursor-pointer border-b border-border/50",
+                      "flex items-center gap-3 p-4 hover:bg-muted/50 transition-colors cursor-pointer border-b border-border/50 group relative",
                       selectedSessionId === session.userId &&
                         "bg-primary/5 border-l-4 border-l-primary"
                     )}
                   >
+                    {session.isPinned && (
+                      <Pin
+                        className="absolute top-2 right-2 w-3 h-3 text-primary rotate-45"
+                        fill="currentColor"
+                      />
+                    )}
+
                     <Image
                       src={`https://ui-avatars.com/api/?name=${
                         session.userName || "User"
@@ -288,14 +347,16 @@ export default function AdminInboxPage() {
                     />
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center justify-between mb-1">
-                        <h3 className="font-bold truncate text-sm">{session.userName}</h3>
+                        <h3 className="font-bold truncate text-sm flex items-center gap-2">
+                          {session.userName}
+                        </h3>
                         <span className="text-[10px] text-muted-foreground">
                           {formatTime(session.lastMessageTime)}
                         </span>
                       </div>
                       <p
                         className={cn(
-                          "text-sm truncate",
+                          "text-sm truncate pr-6",
                           (session.adminUnreadCount || 0) > 0
                             ? "text-foreground font-semibold"
                             : "text-muted-foreground"
@@ -306,11 +367,36 @@ export default function AdminInboxPage() {
                           : session.lastMessage || "No messages"}
                       </p>
                     </div>
-                    {activeTab === "support" && (session.adminUnreadCount || 0) > 0 && (
-                      <div className="min-w-[20px] h-5 bg-primary text-primary-foreground rounded-full text-[10px] flex items-center justify-center font-bold px-1.5 animate-pulse">
-                        {session.adminUnreadCount}
+
+                    {/* Actions Group */}
+                    <div className="flex flex-col items-end gap-1">
+                      {activeTab === "support" && (session.adminUnreadCount || 0) > 0 && (
+                        <div className="min-w-[20px] h-5 bg-primary text-primary-foreground rounded-full text-[10px] flex items-center justify-center font-bold px-1.5 animate-pulse">
+                          {session.adminUnreadCount}
+                        </div>
+                      )}
+
+                      <div className="opacity-0 group-hover:opacity-100 transition-opacity absolute right-2 bottom-2 bg-card shadow-sm border border-border rounded-lg flex">
+                        <button
+                          onClick={(e) => togglePin(e, session)}
+                          className="p-1.5 hover:bg-muted rounded-l-lg text-muted-foreground hover:text-primary"
+                          title="Pin Chat"
+                        >
+                          <Pin size={14} />
+                        </button>
+                        <button
+                          onClick={(e) => toggleReadStatus(e, session)}
+                          className="p-1.5 hover:bg-muted rounded-r-lg text-muted-foreground hover:text-primary border-l border-border"
+                          title={session.adminUnreadCount ? "Mark as Read" : "Mark as Unread"}
+                        >
+                          {session.adminUnreadCount ? (
+                            <CheckCheck size={14} />
+                          ) : (
+                            <MessageSquare size={14} />
+                          )}
+                        </button>
                       </div>
-                    )}
+                    </div>
                   </div>
                 ))
               )

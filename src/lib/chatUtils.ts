@@ -82,7 +82,6 @@ export const sendMessage = async (
   const updateData: Record<string, unknown> = {
     lastMessage: filteredText, // Use filtered text for last message
     lastMessageTime: timestamp,
-    userName: senderName, // Keep name updated
     isTyping: false, // Ensure isTyping is reset
   };
 
@@ -92,7 +91,7 @@ export const sendMessage = async (
     }
     // Ensure basic info is set if it's the first message from user
     updateData.userId = chatId;
-    updateData.userName = senderName;
+    updateData.userName = senderName; // Only update user name if it's the user sending
     // We might want to track separate unread counts for bot?
     // updateData.botUnreadCount = increment(1);
   } else {

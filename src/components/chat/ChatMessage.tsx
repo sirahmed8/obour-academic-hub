@@ -183,7 +183,11 @@ export const ChatMessageItem = memo(function ChatMessageItem({
           <div
             className={cn(
               "absolute top-2 opacity-0 group-hover/bubble:opacity-100 transition-opacity flex gap-1 z-50",
-              isUser ? "right-full mr-2 flex-row-reverse" : "left-full ml-2"
+              // Invisible bridge to prevent flickering when moving mouse across the gap
+              "before:absolute before:top-0 before:bottom-0 before:w-6 before:z-[-1]",
+              isUser
+                ? "right-full mr-2 flex-row-reverse before:-right-4"
+                : "left-full ml-2 before:-left-4"
             )}
           >
             {onReply && (

@@ -12,6 +12,7 @@ import {
   onSnapshot,
   addDoc,
   serverTimestamp,
+  doc,
 } from "firebase/firestore";
 import { sendMessage, markMessagesAsSeen, clearChatHistory, toggleReaction } from "@/lib/chatUtils";
 import { ChatMessage } from "@/types";
@@ -34,6 +35,7 @@ export function AIChatbot() {
   const [isTyping, setIsTyping] = useState(false);
   const [showClearConfirm, setShowClearConfirm] = useState(false);
   const [streamingText, setStreamingText] = useState("");
+  const [unreadCount, setUnreadCount] = useState(0);
 
   // Interaction State
   const [replyTo, setReplyTo] = useState<ChatMessage | null>(null);
@@ -108,6 +110,18 @@ export function AIChatbot() {
 
     return () => unsubscribe();
   }, [user, isOpen, language, mode]);
+
+  // Listen to Chat Session (Unread Count)
+  useEffect(() => {
+    if (!user) return;
+    const unsub = onSnapshot(doc(db, "chats", user.uid), (doc) => {
+      if (doc.exists()) {
+        const data = doc.data();
+        setUnreadCount(data.unreadCount || 0);
+      }
+    });
+    return () => unsub();
+  }, [user]);
 
   // Filter messages by mode
   const filteredMessages = useMemo(() => {
@@ -254,9 +268,16 @@ export function AIChatbot() {
   };
 
   const toggleChat = () => {
-    setIsOpen((prev) => !prev);
-    if (!isOpen && user) {
-      markMessagesAsSeen(user.uid, false);
+    if (!isOpen) {
+      // Opening...
+      setIsOpen(true);
+      if (user && unreadCount > 0) {
+        setMode("live");
+        markMessagesAsSeen(user.uid, false);
+      }
+    } else {
+      // Closing...
+      setIsOpen(false);
     }
   };
 
@@ -300,6 +321,11 @@ export function AIChatbot() {
           ) : (
             <motion.div key="chat" className="relative">
               <MessageSquare className="w-6 h-6" />
+              {unreadCount > 0 && (
+                <span className="absolute -top-1 -right-1 flex h-4 w-4 items-center justify-center rounded-full bg-red-500 text-[10px] font-bold text-white ring-2 ring-white">
+                  {unreadCount}
+                </span>
+              )}
             </motion.div>
           )}
         </AnimatePresence>
