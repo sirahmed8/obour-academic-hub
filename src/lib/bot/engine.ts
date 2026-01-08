@@ -72,8 +72,20 @@ export async function getLocalBotResponse(
   const match = findBestMatch(input);
 
   if (match) {
+    const arAnswer = match.answer.ar;
+    const enAnswer = match.answer.en;
+
+    const text =
+      language === "ar"
+        ? Array.isArray(arAnswer)
+          ? arAnswer[Math.floor(Math.random() * arAnswer.length)]
+          : arAnswer
+        : Array.isArray(enAnswer)
+          ? enAnswer[Math.floor(Math.random() * enAnswer.length)]
+          : enAnswer;
+
     return {
-      text: language === "ar" ? match.answer.ar : match.answer.en,
+      text,
       confidence: 1, // High confidence since it matched rules
       suggestions: language === "ar" ? match.suggestions?.ar : match.suggestions?.en,
     };

@@ -11,8 +11,8 @@ export interface BotResponse {
 export interface QA {
   questions: string[];
   answer: {
-    ar: string;
-    en: string;
+    ar: string | string[];
+    en: string | string[];
   };
   suggestions?: { ar: string[]; en: string[] };
 }
