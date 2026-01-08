@@ -31,12 +31,14 @@ npm run dev
 | **ESLint**     | Linting         |
 | **Prettier**   | Code formatting |
 | **TypeScript** | Type checking   |
+| **Vitest**     | Unit testing    |
 
 ```bash
 # Run all checks
 npm run lint        # ESLint
 npx tsc --noEmit    # TypeScript
 npx prettier --check .  # Prettier
+npm run test        # Vitest
 ```
 
 ### Commit Messages

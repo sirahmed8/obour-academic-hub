@@ -4,7 +4,7 @@
 
 | Version | Status            |
 | ------- | ----------------- |
-| 1.x.x   | ✅ Active support |
+| 0.1.x   | ✅ Active support |
 
 ---
 

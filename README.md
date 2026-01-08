@@ -7,9 +7,10 @@
 **🎓 A Premium Educational Platform for Obour Institutes**
 
 [![Live Demo](https://img.shields.io/badge/🚀_Live-obourinstitutes.web.app-6366f1?style=for-the-badge)](https://obourinstitutes.web.app)
-[![Next.js](https://img.shields.io/badge/Next.js-15-black?style=for-the-badge&logo=next.js)](https://nextjs.org)
-[![Firebase](https://img.shields.io/badge/Firebase-Powered-orange?style=for-the-badge&logo=firebase)](https://firebase.google.com)
-[![TypeScript](https://img.shields.io/badge/TypeScript-100%25-blue?style=for-the-badge&logo=typescript)](https://typescriptlang.org)
+[![Next.js](https://img.shields.io/badge/Next.js-16-black?style=for-the-badge&logo=next.js)](https://nextjs.org)
+[![Firebase](https://img.shields.io/badge/Firebase-12-orange?style=for-the-badge&logo=firebase)](https://firebase.google.com)
+[![TypeScript](https://img.shields.io/badge/TypeScript-5-blue?style=for-the-badge&logo=typescript)](https://typescriptlang.org)
+[![React](https://img.shields.io/badge/React-19-61dafb?style=for-the-badge&logo=react)](https://react.dev)
 
 </div>
 
@@ -27,14 +28,15 @@
 
 ## 🛠️ Tech Stack
 
-| Technology        | Purpose                           |
-| ----------------- | --------------------------------- |
-| **Next.js 15**    | App Router + Turbopack            |
-| **TypeScript**    | Full type safety                  |
-| **Tailwind CSS**  | Utility-first styling             |
-| **Firebase**      | Auth, Firestore, Storage, Hosting |
-| **Framer Motion** | Smooth, GPU-optimized animations  |
-| **Cloudinary**    | Image/file uploads                |
+| Technology         | Purpose                           |
+| ------------------ | --------------------------------- | --- |
+| **Next.js 16**     | App Router + Turbopack            |
+| **React 19**       | Server Components & Actions       |
+| **TypeScript 5**   | Full type safety                  |
+| **Tailwind CSS 3** | Utility-first styling             |
+| **Firebase 12**    | Auth, Firestore, Storage, Hosting |
+| **Vitest**         | Unit & Component Testing          |
+| **Framer Motion**  | GPU-optimized animations          |     |
 
 ---
 
