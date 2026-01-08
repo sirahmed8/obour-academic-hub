@@ -185,18 +185,34 @@ export function AIChatbot() {
       {/* Floating Button */}
       <motion.button
         onClick={toggleChat}
-        whileHover={{ scale: 1.05 }}
-        whileTap={{ scale: 0.95 }}
-        className="fixed bottom-6 right-6 z-50 p-4 bg-green-600 text-white rounded-full shadow-lg shadow-green-600/25 hover:shadow-xl hover:shadow-green-600/30 transition-all"
+        whileHover={{ scale: 1.1, rotate: 5 }}
+        whileTap={{ scale: 0.9 }}
+        initial={{ scale: 0, opacity: 0 }}
+        animate={{ scale: 1, opacity: 1 }}
+        transition={{ type: "spring", stiffness: 260, damping: 20 }}
+        className="fixed bottom-6 right-6 z-[100] p-4 bg-primary text-primary-foreground rounded-full shadow-lg shadow-primary/25 hover:shadow-xl hover:shadow-primary/30 transition-all active:scale-95 duration-200 ease-out sm:w-16 sm:h-16 w-14 h-14 flex items-center justify-center"
       >
-        <AnimatePresence mode="wait">
+        <AnimatePresence mode="wait" initial={false}>
           {isOpen ? (
-            <motion.div key="close" initial={{ rotate: -90 }} animate={{ rotate: 0 }}>
-              <X className="w-6 h-6" />
+            <motion.div
+              key="close"
+              initial={{ rotate: -90, scale: 0.5, opacity: 0 }}
+              animate={{ rotate: 0, scale: 1, opacity: 1 }}
+              exit={{ rotate: 90, scale: 0.5, opacity: 0 }}
+              transition={{ duration: 0.2 }}
+            >
+              <X className="w-6 h-6 sm:w-7 sm:h-7" />
             </motion.div>
           ) : (
-            <motion.div key="chat" className="relative">
-              <Headphones className="w-6 h-6" />
+            <motion.div
+              key="chat"
+              initial={{ rotate: 90, scale: 0.5, opacity: 0 }}
+              animate={{ rotate: 0, scale: 1, opacity: 1 }}
+              exit={{ rotate: -90, scale: 0.5, opacity: 0 }}
+              transition={{ duration: 0.2 }}
+              className="relative"
+            >
+              <Headphones className="w-6 h-6 sm:w-7 sm:h-7" />
               {unreadCount > 0 && (
                 <span className="absolute -top-1 -right-1 flex h-4 w-4 items-center justify-center rounded-full bg-red-500 text-[10px] font-bold text-white ring-2 ring-white">
                   {unreadCount}
@@ -211,17 +227,17 @@ export function AIChatbot() {
       <AnimatePresence>
         {isOpen && (
           <motion.div
-            initial={{ opacity: 0, y: 20, scale: 0.95 }}
+            initial={{ opacity: 0, y: 20, scale: 0.95, transformOrigin: "bottom right" }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: 20, scale: 0.95 }}
-            transition={{ duration: 0.2, ease: "easeOut" }}
-            className="glass-container fixed bottom-24 right-6 z-50 w-[380px] max-w-[calc(100vw-3rem)] h-[600px] max-h-[calc(100vh-8rem)] bg-white/70 dark:bg-black/40 backdrop-blur-xl backdrop-saturate-150 border border-green-500/20 dark:border-white/10 rounded-2xl shadow-2xl flex flex-col overflow-hidden origin-bottom-right"
+            transition={{ duration: 0.3, type: "spring", stiffness: 300, damping: 30 }}
+            className="glass-container fixed bottom-24 right-6 z-[100] w-[380px] max-w-[calc(100vw-3rem)] h-[600px] max-h-[calc(100vh-8rem)] bg-white/70 dark:bg-black/40 backdrop-blur-xl backdrop-saturate-150 border border-primary/20 dark:border-white/10 rounded-2xl shadow-2xl flex flex-col overflow-hidden origin-bottom-right"
           >
             {/* Header - Simplified Live Support Only */}
-            <div className="p-4 border-b border-white/10 bg-gradient-to-r from-green-600/10 to-transparent flex items-center justify-between">
+            <div className="p-4 border-b border-white/10 bg-gradient-to-r from-primary/10 to-transparent flex items-center justify-between">
               <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-full bg-green-500/20 flex items-center justify-center shadow-inner">
-                  <Headphones className="w-6 h-6 text-green-600" />
+                <div className="w-10 h-10 rounded-full bg-primary/20 flex items-center justify-center shadow-inner">
+                  <Headphones className="w-5 h-5 text-primary" />
                 </div>
                 <div>
                   <h3 className="font-bold text-sm">
@@ -245,7 +261,7 @@ export function AIChatbot() {
                 </button>
                 <button
                   onClick={() => setIsOpen(false)}
-                  className="p-2 hover:bg-muted rounded-full"
+                  className="p-2 hover:bg-muted rounded-full transition-colors active:scale-95"
                   aria-label={language === "ar" ? "إغلاق" : "Close"}
                 >
                   <X className="w-4 h-4" />
