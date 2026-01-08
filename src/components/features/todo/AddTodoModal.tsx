@@ -224,7 +224,6 @@ export function AddTodoModal({
         >
           <motion.div
             {...getMotionProps(shouldReduceMotion, {
-              layout: true,
               variants: modalContent,
               initial: "hidden",
               animate: "visible",
@@ -262,7 +261,7 @@ export function AddTodoModal({
             </div>
 
             {/* Body */}
-            <motion.div layout ref={scrollContainerRef} className="p-4 space-y-4">
+            <div ref={scrollContainerRef} className="p-4 space-y-4">
               {errors.length > 0 && (
                 <div className="bg-destructive/10 text-destructive p-3 rounded-xl flex items-center justify-between">
                   <div className="flex items-center gap-2">
@@ -453,7 +452,7 @@ export function AddTodoModal({
                   </div>
                 </div>
               </div>
-            </motion.div>
+            </div>
 
             {/* Footer */}
             <div className="p-4 border-t border-border flex justify-end gap-3 bg-muted/20">

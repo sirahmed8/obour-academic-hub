@@ -24,8 +24,7 @@ const StudentProfileSetup = dynamic(
 import { LiveBanner } from "@/components/features/LiveBanner";
 import { CookieConsent } from "@/components/ui/CookieConsent";
 import { Loader2, ExternalLink } from "lucide-react";
-import { motion, AnimatePresence } from "framer-motion";
-import { fadeIn } from "@/lib/motion";
+import { motion } from "framer-motion";
 import { useGlobalKeyboard } from "@/hooks/useGlobalKeyboard";
 
 export function AppShell({ children }: { children: React.ReactNode }) {
@@ -92,18 +91,16 @@ export function AppShell({ children }: { children: React.ReactNode }) {
           id="main-content"
           className="flex-1 w-full h-full overflow-y-auto pt-16 pb-24 lg:pb-10"
         >
-          <AnimatePresence mode="wait">
-            <motion.div
-              key={pathname}
-              initial="hidden"
-              animate="visible"
-              exit="exit"
-              variants={fadeIn}
-              className="min-h-full flex flex-col w-full"
-            >
-              {children}
-            </motion.div>
-          </AnimatePresence>
+          {/* Page content without exit animation to prevent layout shift */}
+          <motion.div
+            key={pathname}
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ duration: 0.2, ease: "easeOut" }}
+            className="min-h-full flex flex-col w-full"
+          >
+            {children}
+          </motion.div>
 
           <footer className="py-8 mt-auto text-center space-y-4">
             <a
