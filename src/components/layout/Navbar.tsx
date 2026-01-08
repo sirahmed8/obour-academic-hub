@@ -3,7 +3,6 @@
 import { useState } from "react";
 import { Menu } from "lucide-react"; // Only imported what is used
 import { useAuth, useLanguage } from "@/contexts";
-import { useRouter } from "next/navigation";
 import Image from "next/image";
 import { ProfileMenu } from "./ProfileMenu";
 
@@ -14,9 +13,8 @@ interface NavbarProps {
 export function Navbar({ onMenuClick }: NavbarProps) {
   const [showSettings, setShowSettings] = useState(false);
   const [isClosing, setIsClosing] = useState(false);
-  const { user, logout } = useAuth();
+  const { user } = useAuth();
   const { language } = useLanguage();
-  const router = useRouter();
 
   // Close menu with animation
   const closeMenu = () => {

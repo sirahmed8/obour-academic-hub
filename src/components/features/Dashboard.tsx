@@ -38,33 +38,40 @@ export function Dashboard() {
     <div className="p-6 lg:p-10 space-y-8 w-full page-transition">
       {/* Greeting Banner */}
       {/* Greeting Banner */}
-      <div className="relative rounded-3xl overflow-hidden isolation-auto transform-gpu will-change-transform shadow-2xl">
-        {/* Ambient Background */}
-        <div className="absolute inset-0 bg-gradient-to-br from-primary/20 via-transparent to-blue-500/10 dark:from-primary/10 dark:via-transparent dark:to-blue-900/10" />
-        <div className="absolute top-[-20%] right-[-10%] w-[400px] h-[400px] bg-primary/20 dark:bg-primary/10 rounded-full blur-[80px] pointer-events-none mix-blend-multiply dark:mix-blend-screen" />
+      {/* Greeting Banner (Redesigned: Vibrant Mesh Gradient) */}
+      <div className="relative rounded-3xl overflow-hidden shadow-2xl isolate transform transition-all hover:scale-[1.01] duration-500">
+        {/* Main Background Gradient */}
+        <div className="absolute inset-0 bg-gradient-to-br from-violet-600 via-primary to-indigo-700 opacity-90 dark:opacity-80" />
 
-        {/* Glass Content (Live Blur Applied) */}
-        <div className="relative z-10 p-8 bg-white/10 dark:bg-black/10 backdrop-blur-xl backdrop-saturate-150 border border-white/20 dark:border-white/10 shadow-sm">
-          <div className="flex items-center gap-2 text-primary mb-2">
-            <Sparkles size={20} className="animate-pulse" />
-            <span className="text-sm font-medium">
+        {/* Artistic Glowing Orbs */}
+        <div className="absolute -top-[50%] -right-[20%] w-[500px] h-[500px] bg-fuchsia-500/40 rounded-full blur-3xl mix-blend-overlay animate-pulse-slow" />
+        <div className="absolute -bottom-[50%] -left-[20%] w-[500px] h-[500px] bg-cyan-500/40 rounded-full blur-3xl mix-blend-overlay animate-pulse-slow delay-1000" />
+
+        {/* Glass Overlay for Texture */}
+        <div className="absolute inset-0 bg-white/5 backdrop-blur-[1px]" />
+
+        {/* Content */}
+        <div className="relative z-10 p-8 lg:p-10 text-white">
+          <div className="flex items-center gap-2 text-white/90 mb-3">
+            <Sparkles size={20} className="animate-pulse text-yellow-300" />
+            <span className="text-sm font-bold tracking-wide uppercase opacity-90">
               {language === "ar" ? "معاهد العبور" : "Obour Academic Hub"}
             </span>
           </div>
 
-          <h1 className="text-3xl lg:text-4xl font-black text-foreground drop-shadow-sm">
+          <h1 className="text-4xl lg:text-5xl font-black tracking-tight mb-2 drop-shadow-md">
             {language === "ar" ? greeting.ar : greeting.en}, {user?.displayName?.split(" ")[0]} 👋
           </h1>
 
-          <p className="text-muted-foreground mt-2 text-lg font-medium">
+          <p className="text-white/80 text-lg font-medium max-w-2xl leading-relaxed">
             {language === "ar"
               ? "خليك متابع دروسك ومتفوتش أي حاجة جديدة!"
               : "Stay on top of your studies and don't miss anything new!"}
           </p>
 
           {isAdmin && (
-            <div className="mt-4 inline-flex items-center gap-2 px-4 py-2 bg-primary/10 text-primary rounded-full text-sm font-medium border border-primary/20 backdrop-blur-md shadow-sm">
-              <span className="w-2 h-2 bg-primary rounded-full animate-pulse" />
+            <div className="mt-6 inline-flex items-center gap-2 px-4 py-2 bg-white/20 text-white rounded-full text-sm font-bold border border-white/20 backdrop-blur-md shadow-lg hover:bg-white/30 transition-colors">
+              <span className="w-2.5 h-2.5 bg-green-400 rounded-full animate-pulse shadow-[0_0_10px_rgb(74,222,128)]" />
               {language === "ar" ? "وضع المسؤول" : "Admin Mode"}
             </div>
           )}
