@@ -1,0 +1,71 @@
+[debug] [2026-01-08T22:40:27.752Z] ----------------------------------------------------------------------
+[debug] [2026-01-08T22:40:27.753Z] Command:       C:\Program Files\nodejs\node.exe C:\Users\a7med\AppData\Roaming\npm\node_modules\firebase-tools\lib\bin\firebase.js deploy
+[debug] [2026-01-08T22:40:27.754Z] CLI Version:   15.1.0
+[debug] [2026-01-08T22:40:27.754Z] Platform:      win32
+[debug] [2026-01-08T22:40:27.754Z] Node Version:  v24.12.0
+[debug] [2026-01-08T22:40:27.754Z] Time:          Fri Jan 09 2026 00:40:27 GMT+0200 (Eastern European Standard Time)
+[debug] [2026-01-08T22:40:27.754Z] ----------------------------------------------------------------------
+[debug] 
+[debug] [2026-01-08T22:40:43.765Z] > command requires scopes: ["email","openid","https://www.googleapis.com/auth/cloudplatformprojects.readonly","https://www.googleapis.com/auth/firebase","https://www.googleapis.com/auth/cloud-platform"]
+[debug] [2026-01-08T22:40:43.766Z] > authorizing via signed-in user (a7medorabe7@gmail.com)
+[debug] [2026-01-08T22:40:43.766Z] [iam] checking project obour-institutes-a607d for permissions ["datastore.indexes.create","datastore.indexes.delete","datastore.indexes.list","datastore.indexes.update","firebase.projects.get","firebasedatabase.instances.update","firebasehosting.sites.update"]
+[debug] [2026-01-08T22:40:43.769Z] Checked if tokens are valid: false, expires at: 1767908941593
+[debug] [2026-01-08T22:40:43.769Z] Checked if tokens are valid: false, expires at: 1767908941593
+[debug] [2026-01-08T22:40:43.769Z] > refreshing access token with scopes: []
+[debug] [2026-01-08T22:40:43.772Z] >>> [apiv2][query] POST https://www.googleapis.com/oauth2/v3/token [none]
+[debug] [2026-01-08T22:40:43.772Z] >>> [apiv2][body] POST https://www.googleapis.com/oauth2/v3/token [omitted]
+[debug] [2026-01-08T22:40:48.308Z] <<< [apiv2][status] POST https://www.googleapis.com/oauth2/v3/token 200
+[debug] [2026-01-08T22:40:48.308Z] <<< [apiv2][body] POST https://www.googleapis.com/oauth2/v3/token [omitted]
+[debug] [2026-01-08T22:40:48.337Z] >>> [apiv2][query] POST https://cloudresourcemanager.googleapis.com/v1/projects/obour-institutes-a607d:testIamPermissions [none]
+[debug] [2026-01-08T22:40:48.337Z] >>> [apiv2][(partial)header] POST https://cloudresourcemanager.googleapis.com/v1/projects/obour-institutes-a607d:testIamPermissions x-goog-quota-user=projects/obour-institutes-a607d
+[debug] [2026-01-08T22:40:48.338Z] >>> [apiv2][body] POST https://cloudresourcemanager.googleapis.com/v1/projects/obour-institutes-a607d:testIamPermissions {"permissions":["datastore.indexes.create","datastore.indexes.delete","datastore.indexes.list","datastore.indexes.update","firebase.projects.get","firebasedatabase.instances.update","firebasehosting.sites.update"]}
+[debug] [2026-01-08T22:40:49.543Z] <<< [apiv2][status] POST https://cloudresourcemanager.googleapis.com/v1/projects/obour-institutes-a607d:testIamPermissions 200
+[debug] [2026-01-08T22:40:49.544Z] <<< [apiv2][body] POST https://cloudresourcemanager.googleapis.com/v1/projects/obour-institutes-a607d:testIamPermissions {"permissions":["datastore.indexes.create","datastore.indexes.delete","datastore.indexes.list","datastore.indexes.update","firebase.projects.get","firebasedatabase.instances.update","firebasehosting.sites.update"]}
+[debug] [2026-01-08T22:40:49.544Z] Checked if tokens are valid: true, expires at: 1767915647309
+[debug] [2026-01-08T22:40:49.544Z] Checked if tokens are valid: true, expires at: 1767915647309
+[debug] [2026-01-08T22:40:49.545Z] >>> [apiv2][query] GET https://firebase.googleapis.com/v1beta1/projects/obour-institutes-a607d [none]
+[debug] [2026-01-08T22:40:51.175Z] <<< [apiv2][status] GET https://firebase.googleapis.com/v1beta1/projects/obour-institutes-a607d 200
+[debug] [2026-01-08T22:40:51.175Z] <<< [apiv2][body] GET https://firebase.googleapis.com/v1beta1/projects/obour-institutes-a607d {"projectId":"obour-institutes-a607d","projectNumber":"761134603194","displayName":"Obour-Institutes","name":"projects/obour-institutes-a607d","resources":{"hostingSite":"obour-institutes-a607d","realtimeDatabaseInstance":"obour-institutes-a607d-default-rtdb"},"state":"ACTIVE","etag":"1_cbb7d0df-8376-4d53-9775-4ca1d2ca280f"}
+[debug] [2026-01-08T22:40:51.175Z] Checked if tokens are valid: true, expires at: 1767915647309
+[debug] [2026-01-08T22:40:51.175Z] Checked if tokens are valid: true, expires at: 1767915647309
+[debug] [2026-01-08T22:40:51.176Z] >>> [apiv2][query] GET https://firebase.googleapis.com/v1beta1/projects/obour-institutes-a607d [none]
+[debug] [2026-01-08T22:40:51.723Z] <<< [apiv2][status] GET https://firebase.googleapis.com/v1beta1/projects/obour-institutes-a607d 200
+[debug] [2026-01-08T22:40:51.724Z] <<< [apiv2][body] GET https://firebase.googleapis.com/v1beta1/projects/obour-institutes-a607d {"projectId":"obour-institutes-a607d","projectNumber":"761134603194","displayName":"Obour-Institutes","name":"projects/obour-institutes-a607d","resources":{"hostingSite":"obour-institutes-a607d","realtimeDatabaseInstance":"obour-institutes-a607d-default-rtdb"},"state":"ACTIVE","etag":"1_cbb7d0df-8376-4d53-9775-4ca1d2ca280f"}
+[info] 
+[info] === Deploying to 'obour-institutes-a607d'...
+[info] 
+[info] i  deploying database, firestore, hosting 
+[info] i  database: checking rules syntax... 
+[debug] [2026-01-08T22:40:51.733Z] Checked if tokens are valid: true, expires at: 1767915647309
+[debug] [2026-01-08T22:40:51.733Z] Checked if tokens are valid: true, expires at: 1767915647309
+[debug] [2026-01-08T22:40:51.734Z] >>> [apiv2][query] GET https://firebasedatabase.googleapis.com/v1beta/projects/obour-institutes-a607d/locations/-/instances/obour-institutes-a607d-default-rtdb [none]
+[debug] [2026-01-08T22:40:53.415Z] <<< [apiv2][status] GET https://firebasedatabase.googleapis.com/v1beta/projects/obour-institutes-a607d/locations/-/instances/obour-institutes-a607d-default-rtdb 200
+[debug] [2026-01-08T22:40:53.415Z] <<< [apiv2][body] GET https://firebasedatabase.googleapis.com/v1beta/projects/obour-institutes-a607d/locations/-/instances/obour-institutes-a607d-default-rtdb {"name":"projects/761134603194/locations/us-central1/instances/obour-institutes-a607d-default-rtdb","project":"projects/761134603194","databaseUrl":"https://obour-institutes-a607d-default-rtdb.firebaseio.com","type":"DEFAULT_DATABASE","state":"ACTIVE"}
+[debug] [2026-01-08T22:40:53.416Z] Checked if tokens are valid: true, expires at: 1767915647309
+[debug] [2026-01-08T22:40:53.417Z] Checked if tokens are valid: true, expires at: 1767915647309
+[debug] [2026-01-08T22:40:53.417Z] >>> [apiv2][query] PUT https://obour-institutes-a607d-default-rtdb.firebaseio.com/.settings/rules.json dryRun=true
+[debug] [2026-01-08T22:40:53.417Z] >>> [apiv2][body] PUT https://obour-institutes-a607d-default-rtdb.firebaseio.com/.settings/rules.json "{\n  \"rules\": {\n    \".read\": \"auth != null\",\n    \".write\": \"auth != null\",\n    \"presence\": {\n      \".read\": true,\n      \".write\": \"auth != null\"\n    }\n  }\n}\n"
+[debug] [2026-01-08T22:40:54.897Z] <<< [apiv2][status] PUT https://obour-institutes-a607d-default-rtdb.firebaseio.com/.settings/rules.json 200
+[debug] [2026-01-08T22:40:54.898Z] <<< [apiv2][body] PUT https://obour-institutes-a607d-default-rtdb.firebaseio.com/.settings/rules.json {"status":"ok"}
+[info] +  database: rules syntax for database obour-institutes-a607d-default-rtdb is valid 
+[info] i  firestore: ensuring required API firestore.googleapis.com is enabled... 
+[info] i  firestore: ensuring required API firestore.googleapis.com is enabled... 
+[debug] [2026-01-08T22:40:54.905Z] Checked if tokens are valid: true, expires at: 1767915647309
+[debug] [2026-01-08T22:40:54.906Z] Checked if tokens are valid: true, expires at: 1767915647309
+[debug] [2026-01-08T22:40:54.906Z] >>> [apiv2][query] GET https://firestore.googleapis.com/v1/projects/obour-institutes-a607d/databases/(default) [none]
+[debug] [2026-01-08T22:41:17.740Z] *** [apiv2] error from fetch(https://firestore.googleapis.com/v1/projects/obour-institutes-a607d/databases/(default), {"headers":{},"method":"GET"}): FetchError: request to https://firestore.googleapis.com/v1/projects/obour-institutes-a607d/databases/(default) failed, reason: 
+[info] i  firestore: reading indexes from firestore.indexes.json... 
+[info] i  cloud.firestore: checking firestore.rules for compilation errors... 
+[debug] [2026-01-08T22:41:17.749Z] Checked if tokens are valid: true, expires at: 1767915647309
+[debug] [2026-01-08T22:41:17.749Z] Checked if tokens are valid: true, expires at: 1767915647309
+[debug] [2026-01-08T22:41:17.749Z] >>> [apiv2][query] POST https://firebaserules.googleapis.com/v1/projects/obour-institutes-a607d:test [none]
+[debug] [2026-01-08T22:41:17.749Z] >>> [apiv2][body] POST https://firebaserules.googleapis.com/v1/projects/obour-institutes-a607d:test [omitted]
+[debug] [2026-01-08T22:41:19.285Z] <<< [apiv2][status] POST https://firebaserules.googleapis.com/v1/projects/obour-institutes-a607d:test 200
+[debug] [2026-01-08T22:41:19.285Z] <<< [apiv2][body] POST https://firebaserules.googleapis.com/v1/projects/obour-institutes-a607d:test {}
+[info] +  cloud.firestore: rules file firestore.rules compiled successfully 
+[debug] [2026-01-08T22:41:19.295Z] Checked if tokens are valid: true, expires at: 1767915647309
+[debug] [2026-01-08T22:41:19.295Z] Checked if tokens are valid: true, expires at: 1767915647309
+[debug] [2026-01-08T22:41:19.295Z] >>> [apiv2][query] POST https://firebasehosting.googleapis.com/v1beta1/projects/-/sites/obourinstitutes/versions [none]
+[debug] [2026-01-08T22:41:19.296Z] >>> [apiv2][body] POST https://firebasehosting.googleapis.com/v1beta1/projects/-/sites/obourinstitutes/versions {"status":"CREATED","labels":{"deployment-tool":"cli-firebase"}}
+[debug] [2026-01-08T22:41:21.796Z] <<< [apiv2][status] POST https://firebasehosting.googleapis.com/v1beta1/projects/-/sites/obourinstitutes/versions 200
+[debug] [2026-01-08T22:41:21.796Z] <<< [apiv2][body] POST https://firebasehosting.googleapis.com/v1beta1/projects/-/sites/obourinstitutes/versions {"name":"projects/761134603194/sites/obourinstitutes/versions/0132f6790a393864","status":"CREATED","config":{},"labels":{"deployment-tool":"cli-firebase"}}

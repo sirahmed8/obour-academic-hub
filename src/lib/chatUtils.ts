@@ -16,7 +16,7 @@ import {
 import { filterProfanity } from "./profanityFilter";
 
 // Types
-import { ChatMessage } from "@/types";
+import { ChatMessage, TodoTask } from "@/types";
 
 // Helpers
 // Add context to the function signature
@@ -29,8 +29,7 @@ export const sendMessage = async (
   replyTo: ChatMessage["replyTo"] = undefined,
   context: "bot" | "live" = "live",
   attachment?: { url: string; name: string; size: number; type: string },
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  additionalData?: { action?: "confirm_task" | "live_chat"; taskData?: any }
+  additionalData?: { action?: "confirm_task" | "live_chat"; taskData?: Partial<TodoTask> }
 ) => {
   if (!text.trim() && !attachment && !additionalData?.taskData) return;
 

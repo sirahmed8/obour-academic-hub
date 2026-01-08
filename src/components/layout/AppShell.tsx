@@ -28,6 +28,7 @@ import { CookieConsent } from "@/components/ui/CookieConsent";
 import { Loader2, ExternalLink } from "lucide-react";
 import { motion } from "framer-motion";
 import { useGlobalKeyboard } from "@/hooks/useGlobalKeyboard";
+import { PageTransition } from "@/components/ui/Animations";
 
 export function AppShell({ children }: { children: React.ReactNode }) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -113,15 +114,9 @@ export function AppShell({ children }: { children: React.ReactNode }) {
             className="flex-1 w-full h-full overflow-y-auto pb-24 lg:pb-10"
             style={{ scrollbarGutter: "stable" }}
           >
-            {/* Page content without exit animation to prevent layout shift */}
-            <motion.div
-              key={pathname}
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ duration: 0.2, ease: "easeOut" }}
-              className="min-h-full flex flex-col w-full"
-            >
-              {children}
+            {/* Page content with smooth transition */}
+            <motion.div className="min-h-full flex flex-col w-full">
+              <PageTransition>{children}</PageTransition>
             </motion.div>
 
             <footer className="py-8 mt-auto text-center space-y-4">

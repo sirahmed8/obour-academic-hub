@@ -7,6 +7,7 @@ import { ref, onValue } from "firebase/database";
 import { useLanguage } from "@/contexts";
 import { AppShell } from "@/components/layout/AppShell";
 import { Subject } from "@/types";
+import { StaggerChildren, ScaleIn, FadeIn } from "@/components/ui/Animations";
 import { BarChart3, Users, BookOpen, Activity, Loader2, RefreshCw } from "lucide-react";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
 import { cn } from "@/lib/utils";
@@ -109,8 +110,8 @@ export default function AdminAnalyticsPage() {
 
   return (
     <AppShell>
-      <div className="p-6 lg:p-10 w-full space-y-8">
-        <div className="flex items-center justify-between">
+      <div className="p-6 lg:p-10 w-full space-y-8 page-transition">
+        <FadeIn className="flex items-center justify-between">
           <h1 className="text-2xl font-bold text-foreground flex items-center gap-3">
             <BarChart3 className="text-primary" />
             {t("admin.analytics")}
@@ -123,22 +124,30 @@ export default function AdminAnalyticsPage() {
           >
             <RefreshCw className={cn("w-5 h-5", refreshing && "animate-spin")} />
           </button>
-        </div>
+        </FadeIn>
 
         {loading ? (
           <div className="flex items-center justify-center py-20">
             <Loader2 className="animate-spin text-primary" size={40} />
           </div>
         ) : (
-          <>
+          <StaggerChildren className="space-y-8">
             {/* Stats Cards */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
               {stats.map((stat, idx) => {
                 const Icon = stat.icon;
                 return (
-                  <div key={idx} className="bg-card rounded-2xl p-6 border border-border">
+                  <ScaleIn
+                    key={idx}
+                    className="bg-card rounded-2xl p-6 border border-border bg-gradient-to-br from-card to-muted/20"
+                  >
                     <div className="flex items-center gap-4">
-                      <div className={cn("p-3 rounded-xl text-white", stat.color)}>
+                      <div
+                        className={cn(
+                          "p-3 rounded-xl text-white shadow-lg shadow-primary/10",
+                          stat.color
+                        )}
+                      >
                         <Icon size={24} />
                       </div>
                       <div>
@@ -146,29 +155,45 @@ export default function AdminAnalyticsPage() {
                         <p className="text-3xl font-bold text-foreground">{stat.value}</p>
                       </div>
                     </div>
-                  </div>
+                  </ScaleIn>
                 );
               })}
             </div>
 
             {/* Subject Views Chart */}
-            <div className="bg-card rounded-2xl p-6 border border-border">
-              <div className="flex items-center justify-between mb-6">
-                <h2 className="text-lg font-bold text-foreground">
+            <ScaleIn className="bg-card rounded-3xl p-8 border border-border shadow-sm">
+              <div className="flex items-center justify-between mb-8">
+                <h2 className="text-xl font-bold text-foreground flex items-center gap-2">
+                  <BarChart3 className="w-5 h-5 text-primary" />
                   {language === "ar" ? "مشاهدات المواد" : "Subject Views"}
                 </h2>
               </div>
-              <div className="h-80">
+              <div className="h-96 w-full">
                 {data.subjectViews.length > 0 ? (
                   <ResponsiveContainer width="100%" height="100%">
-                    <BarChart data={data.subjectViews}>
-                      <CartesianGrid strokeDasharray="3 3" className="stroke-border" />
+                    <BarChart
+                      data={data.subjectViews}
+                      margin={{ top: 10, right: 10, left: 10, bottom: 0 }}
+                    >
+                      <CartesianGrid
+                        strokeDasharray="3 3"
+                        className="stroke-border/50"
+                        vertical={false}
+                      />
                       <XAxis
                         dataKey="name"
-                        className="text-xs"
+                        className="text-xs font-medium"
                         tick={{ fill: "hsl(var(--muted-foreground))" }}
+                        axisLine={false}
+                        tickLine={false}
+                        dy={10}
                       />
-                      <YAxis className="text-xs" tick={{ fill: "hsl(var(--muted-foreground))" }} />
+                      <YAxis
+                        className="text-xs font-medium"
+                        tick={{ fill: "hsl(var(--muted-foreground))" }}
+                        axisLine={false}
+                        tickLine={false}
+                      />
                       <Tooltip
                         contentStyle={{
                           backgroundColor: "hsl(var(--card))",
@@ -179,24 +204,30 @@ export default function AdminAnalyticsPage() {
                         labelStyle={{
                           color: "hsl(var(--foreground))",
                           fontWeight: "bold",
+                          marginBottom: "4px",
                         }}
                         itemStyle={{ color: "hsl(var(--primary))" }}
                         cursor={{ fill: "hsl(var(--primary) / 0.1)" }}
                       />
-                      <Bar dataKey="views" fill="hsl(var(--primary))" radius={[8, 8, 0, 0]} />
+                      <Bar
+                        dataKey="views"
+                        fill="hsl(var(--primary))"
+                        radius={[6, 6, 0, 0]}
+                        barSize={40}
+                      />
                     </BarChart>
                   </ResponsiveContainer>
                 ) : (
                   <div className="h-full flex flex-col items-center justify-center text-muted-foreground">
-                    <BarChart3 className="w-12 h-12 mb-2 opacity-20" />
+                    <BarChart3 className="w-16 h-16 mb-4 opacity-20" />
                     <p>
                       {language === "ar" ? "لا توجد بيانات للمواد" : "No subject data available"}
                     </p>
                   </div>
                 )}
               </div>
-            </div>
-          </>
+            </ScaleIn>
+          </StaggerChildren>
         )}
       </div>
     </AppShell>

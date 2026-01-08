@@ -9,6 +9,7 @@ import { Users, UserPlus, Trash2, Shield, Mail, Loader2, CheckCircle2, Crown } f
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { User } from "@/types";
+import { FadeIn, ScaleIn, StaggerChildren } from "@/components/ui/Animations";
 
 interface TeamMember {
   email: string;
@@ -180,9 +181,9 @@ export default function AdminTeamPage() {
 
   return (
     <AppShell>
-      <div className="w-full p-4 md:p-8 space-y-8 animate-fade-in">
+      <div className="w-full p-4 md:p-8 space-y-8 page-transition">
         {/* Header */}
-        <div>
+        <FadeIn>
           <h1 className="text-3xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-primary to-purple-600 flex items-center gap-3">
             <Shield className="w-8 h-8 text-primary" />
             {language === "ar" ? "إدارة الفريق" : "Team Management"}
@@ -192,15 +193,15 @@ export default function AdminTeamPage() {
               ? "إضافة أو إزالة المسؤولين من خلال البريد الإلكتروني"
               : "Add or remove admins by email address"}
           </p>
-        </div>
+        </FadeIn>
 
         {/* Add Admin Form */}
-        <div className="bg-card border border-border rounded-2xl p-6 shadow-sm">
+        <FadeIn delay={0.1} className="bg-card border border-border rounded-2xl p-6 shadow-sm">
           <h2 className="text-lg font-semibold mb-4 flex items-center gap-2">
             <UserPlus className="w-5 h-5 text-green-500" />
             {language === "ar" ? "إضافة مسؤول جديد" : "Add New Admin"}
           </h2>
-          <div className="flex gap-3">
+          <div className="flex flex-col sm:flex-row gap-3">
             <div className="flex-1 relative">
               <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
               <input
@@ -217,7 +218,7 @@ export default function AdminTeamPage() {
             <button
               onClick={handleAddAdmin}
               disabled={!newEmail.trim() || adding}
-              className="px-6 py-3 bg-primary text-primary-foreground rounded-xl font-medium hover:opacity-90 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+              className="px-6 py-3 bg-primary text-primary-foreground rounded-xl font-medium hover:opacity-90 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 min-w-[120px] shadow-lg shadow-primary/20"
             >
               {adding ? (
                 <Loader2 className="w-4 h-4 animate-spin" />
@@ -232,10 +233,10 @@ export default function AdminTeamPage() {
               ? "سيحصل المستخدم على صلاحيات المسؤول عند تسجيل الدخول التالي"
               : "User will get admin privileges on their next login"}
           </p>
-        </div>
+        </FadeIn>
 
         {/* Team Members List */}
-        <div className="bg-card border border-border rounded-2xl p-6 shadow-sm">
+        <FadeIn delay={0.2} className="bg-card border border-border rounded-2xl p-6 shadow-sm">
           <h2 className="text-lg font-semibold mb-4 flex items-center gap-2">
             <Users className="w-5 h-5 text-blue-500" />
             {language === "ar" ? "أعضاء الفريق" : "Team Members"}
@@ -249,101 +250,103 @@ export default function AdminTeamPage() {
               {language === "ar" ? "لا يوجد أعضاء في الفريق" : "No team members yet"}
             </div>
           ) : (
-            <div className="space-y-3">
+            <StaggerChildren className="space-y-3">
               {teamMembers.map((member) => (
-                <div
-                  key={member.email}
-                  className="group flex items-center justify-between p-4 bg-muted/30 rounded-xl border border-transparent hover:border-border transition-all"
-                >
-                  <div className="flex items-center gap-3">
-                    <div
-                      className={cn(
-                        "w-10 h-10 rounded-full flex items-center justify-center",
-                        member.role === "owner"
-                          ? "bg-amber-100 dark:bg-amber-900/30"
-                          : "bg-primary/10"
-                      )}
-                    >
-                      {member.role === "owner" ? (
-                        <Crown className="w-5 h-5 text-amber-600 dark:text-amber-400" />
-                      ) : (
-                        <Shield className="w-5 h-5 text-primary" />
-                      )}
-                    </div>
-                    <div>
-                      <div className="flex items-center gap-2">
-                        <p className="font-medium">{member.email}</p>
-                        {member.displayName && (
-                          <span className="text-xs text-muted-foreground">
-                            ({member.displayName})
-                          </span>
+                <ScaleIn key={member.email}>
+                  <div className="group flex items-center justify-between p-4 bg-muted/30 rounded-xl border border-transparent hover:border-border transition-all hover:bg-muted/50">
+                    <div className="flex items-center gap-3 overflow-hidden">
+                      <div
+                        className={cn(
+                          "w-10 h-10 rounded-full flex items-center justify-center shrink-0",
+                          member.role === "owner"
+                            ? "bg-amber-100 dark:bg-amber-900/30"
+                            : "bg-primary/10"
+                        )}
+                      >
+                        {member.role === "owner" ? (
+                          <Crown className="w-5 h-5 text-amber-600 dark:text-amber-400" />
+                        ) : (
+                          <Shield className="w-5 h-5 text-primary" />
                         )}
                       </div>
-                      <div className="flex items-center gap-2 text-xs text-muted-foreground mt-0.5">
-                        {member.isActiveUser && (
-                          <>
-                            <CheckCircle2 className="w-3 h-3 text-green-500" />
-                            <span className="text-green-600 dark:text-green-400">
-                              {language === "ar" ? "نشط" : "Active User"}
+                      <div className="min-w-0">
+                        <div className="flex items-center gap-2 flex-wrap">
+                          <p className="font-medium truncate">{member.email}</p>
+                          {member.displayName && (
+                            <span className="text-xs text-muted-foreground truncate">
+                              ({member.displayName})
                             </span>
-                          </>
-                        )}
-                        {member.isWhitelisted && (
+                          )}
+                        </div>
+                        <div className="flex items-center gap-2 text-xs text-muted-foreground mt-0.5 flex-wrap">
+                          {member.isActiveUser && (
+                            <div className="flex items-center gap-1">
+                              <CheckCircle2 className="w-3 h-3 text-green-500" />
+                              <span className="text-green-600 dark:text-green-400">
+                                {language === "ar" ? "نشط" : "Active User"}
+                              </span>
+                            </div>
+                          )}
+                          {member.isWhitelisted && (
+                            <span
+                              className={cn(
+                                "px-2 py-0.5 rounded-full",
+                                member.isActiveUser
+                                  ? "bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300"
+                                  : "bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-300"
+                              )}
+                            >
+                              {member.isActiveUser
+                                ? language === "ar"
+                                  ? "مدرج في القائمة"
+                                  : "Whitelisted"
+                                : language === "ar"
+                                  ? "في انتظار التسجيل"
+                                  : "Pending Login"}
+                            </span>
+                          )}
                           <span
                             className={cn(
-                              "px-2 py-0.5 rounded-full",
-                              member.isActiveUser
-                                ? "bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300"
-                                : "bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-300"
+                              "px-2 py-0.5 rounded-full font-medium",
+                              member.role === "owner"
+                                ? "bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-300"
+                                : "bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-300"
                             )}
                           >
-                            {member.isActiveUser
-                              ? language === "ar"
-                                ? "مدرج في القائمة"
-                                : "Whitelisted"
-                              : language === "ar"
-                                ? "في انتظار التسجيل"
-                                : "Pending Login"}
+                            {member.role}
                           </span>
-                        )}
-                        <span
-                          className={cn(
-                            "px-2 py-0.5 rounded-full font-medium",
-                            member.role === "owner"
-                              ? "bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-300"
-                              : "bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-300"
-                          )}
-                        >
-                          {member.role}
-                        </span>
+                        </div>
                       </div>
                     </div>
-                  </div>
 
-                  {isOwner && member.role !== "owner" && member.isWhitelisted && (
-                    <button
-                      onClick={() => handleRemoveAdmin(member.email)}
-                      className="opacity-0 group-hover:opacity-100 p-2 hover:bg-red-50 dark:hover:bg-red-900/20 text-red-400 hover:text-red-600 dark:hover:text-red-300 rounded-lg transition-all"
-                      title={language === "ar" ? "إزالة من القائمة" : "Remove from whitelist"}
-                    >
-                      <Trash2 className="w-5 h-5" />
-                    </button>
-                  )}
-                </div>
+                    {isOwner && member.role !== "owner" && member.isWhitelisted && (
+                      <button
+                        onClick={() => handleRemoveAdmin(member.email)}
+                        className="opacity-0 group-hover:opacity-100 p-2 hover:bg-red-50 dark:hover:bg-red-900/20 text-red-400 hover:text-red-600 dark:hover:text-red-300 rounded-lg transition-all"
+                        title={language === "ar" ? "إزالة من القائمة" : "Remove from whitelist"}
+                      >
+                        <Trash2 className="w-5 h-5" />
+                      </button>
+                    )}
+                  </div>
+                </ScaleIn>
               ))}
-            </div>
+            </StaggerChildren>
           )}
-        </div>
+        </FadeIn>
 
         {/* Info Note */}
-        <div className="bg-blue-50 dark:bg-blue-950/30 border border-blue-200 dark:border-blue-900 rounded-xl p-4 text-sm">
+        <FadeIn
+          delay={0.3}
+          className="bg-blue-50 dark:bg-blue-950/30 border border-blue-200 dark:border-blue-900 rounded-xl p-4 text-sm"
+        >
           <p className="text-blue-800 dark:text-blue-200">
             <strong>{language === "ar" ? "ملاحظة:" : "Note:"}</strong>{" "}
             {language === "ar"
               ? "عند إضافة بريد إلكتروني هنا، سيحصل المستخدم تلقائياً على صلاحيات المسؤول عند تسجيل الدخول (أو إنشاء حساب جديد) باستخدام هذا البريد."
               : "When you add an email here, the user will automatically get admin privileges when they log in (or create an account) with that email."}
           </p>
-        </div>
+        </FadeIn>
       </div>
     </AppShell>
   );

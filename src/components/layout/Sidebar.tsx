@@ -155,7 +155,7 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
       {/* Sidebar */}
       <aside
         className={cn(
-          "glass-fixed fixed top-0 h-full w-[85vw] max-w-[280px] lg:max-w-none lg:w-72 bg-white/10 dark:bg-black/10 backdrop-blur-xl backdrop-saturate-150 shadow-2xl z-[100] transition-transform duration-300 ease-in-out supports-[backdrop-filter]:bg-white/5 supports-[backdrop-filter]:dark:bg-black/10 border-none border-r-0",
+          "glass-fixed fixed top-0 h-full w-[85vw] max-w-[280px] lg:max-w-none lg:w-72 bg-white/10 dark:bg-black/10 backdrop-blur-xl backdrop-saturate-150 shadow-2xl z-[100] transition-transform duration-500 cubic-bezier(0.32, 0.72, 0, 1) ease-in-out supports-[backdrop-filter]:bg-white/5 supports-[backdrop-filter]:dark:bg-black/10 border-none border-r-0",
           "lg:z-40 lg:translate-x-0 lg:shadow-none lg:border-r lg:border-white/5", // Desktop: Fixed z-40 (Below Navbar z-50)
           language === "ar" ? "right-0 lg:right-0" : "left-0 lg:left-0",
           isOpen ? "translate-x-0" : language === "ar" ? "translate-x-full" : "-translate-x-full"
@@ -184,7 +184,7 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
             {/* Close button for mobile */}
             <button
               onClick={onClose}
-              className="lg:hidden p-2 hover:bg-white/10 rounded-full transition-colors"
+              className="lg:hidden p-2 hover:bg-white/10 rounded-full transition-colors active:scale-95"
             >
               <X size={20} />
             </button>
@@ -193,7 +193,7 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
           <nav
             ref={navRef}
             onScroll={handleScroll}
-            className="flex-1 px-4 space-y-6 overflow-y-auto [&::-webkit-scrollbar]:hidden [-ms-overflow-style:'none'] [scrollbar-width:none] pt-4 lg:pt-20" // Add top padding (16 + 4) for Desktop to clear Navbar
+            className="flex-1 px-4 space-y-6 overflow-y-auto scrollbar-hide pt-4 lg:pt-20" // Add top padding (16 + 4) for Desktop to clear Navbar
           >
             {/* Main Nav */}
             <div className="space-y-2">
@@ -207,16 +207,16 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
                     onClick={onClose}
                     prefetch={false}
                     className={cn(
-                      "flex items-center gap-3 px-3 py-2.5 lg:px-4 lg:py-3 rounded-xl transition-all duration-200 font-medium select-none active:scale-95",
+                      "flex items-center gap-3 px-3 py-2.5 lg:px-4 lg:py-3 rounded-xl transition-all duration-300 font-medium select-none active:scale-95 group",
                       isActive
-                        ? "bg-primary/10 text-primary border-l-4 border-primary active-link"
-                        : "text-muted-foreground hover:bg-muted hover:text-foreground active:bg-muted/80"
+                        ? "bg-primary/10 text-primary border-l-4 border-primary shadow-sm"
+                        : "text-muted-foreground hover:bg-muted/50 hover:text-foreground hover:translate-x-1"
                     )}
                   >
-                    <div className="relative">
+                    <div className="relative group-hover:scale-110 transition-transform duration-300">
                       <Icon size={18} className="lg:w-5 lg:h-5" />
                       {item.badge && (
-                        <span className="absolute -top-2 -right-2 bg-red-500 text-white text-[10px] w-4 h-4 rounded-full flex items-center justify-center">
+                        <span className="absolute -top-2 -right-2 bg-red-500 text-white text-[10px] w-4 h-4 rounded-full flex items-center justify-center animate-pulse">
                           {item.badge > 9 ? "9+" : item.badge}
                         </span>
                       )}
@@ -243,16 +243,16 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
                       onClick={onClose}
                       prefetch={false}
                       className={cn(
-                        "flex items-center gap-3 px-3 py-2.5 lg:px-4 lg:py-3 rounded-xl transition-all duration-200 font-medium select-none active:scale-95",
+                        "flex items-center gap-3 px-3 py-2.5 lg:px-4 lg:py-3 rounded-xl transition-all duration-300 font-medium select-none active:scale-95 group",
                         isActive
-                          ? "bg-primary/10 text-primary border-l-4 border-primary"
-                          : "text-muted-foreground hover:bg-muted hover:text-foreground active:bg-muted/80"
+                          ? "bg-primary/10 text-primary border-l-4 border-primary shadow-sm"
+                          : "text-muted-foreground hover:bg-muted/50 hover:text-foreground hover:translate-x-1"
                       )}
                     >
-                      <div className="relative">
+                      <div className="relative group-hover:scale-110 transition-transform duration-300">
                         <Icon size={18} className="lg:w-5 lg:h-5" />
                         {item.badge !== undefined && item.badge > 0 && (
-                          <span className="absolute -top-2 -right-2 bg-red-500 text-white text-[10px] w-4 h-4 rounded-full flex items-center justify-center">
+                          <span className="absolute -top-2 -right-2 bg-red-500 text-white text-[10px] w-4 h-4 rounded-full flex items-center justify-center animate-pulse">
                             {item.badge > 9 ? "9+" : item.badge}
                           </span>
                         )}
@@ -280,13 +280,16 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
                       onClick={onClose}
                       prefetch={false}
                       className={cn(
-                        "flex items-center gap-3 px-3 py-2.5 lg:px-4 lg:py-3 rounded-xl transition-all duration-200 font-medium select-none active:scale-95",
+                        "flex items-center gap-3 px-3 py-2.5 lg:px-4 lg:py-3 rounded-xl transition-all duration-300 font-medium select-none active:scale-95 group",
                         isActive
-                          ? "bg-primary/10 text-primary border-l-4 border-primary active-link"
-                          : "text-muted-foreground hover:bg-muted hover:text-foreground active:bg-muted/80"
+                          ? "bg-primary/10 text-primary border-l-4 border-primary shadow-sm"
+                          : "text-muted-foreground hover:bg-muted/50 hover:text-foreground hover:translate-x-1"
                       )}
                     >
-                      <Icon size={18} className="lg:w-5 lg:h-5" />
+                      <Icon
+                        size={18}
+                        className="lg:w-5 lg:h-5 group-hover:scale-110 transition-transform duration-300"
+                      />
                       <span className="text-sm lg:text-base">{item.name}</span>
                     </Link>
                   );

@@ -7,7 +7,7 @@ import Image from "next/image";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import { cn } from "@/lib/utils";
-import { ChatMessage, User } from "@/types";
+import { ChatMessage, User, TodoTask } from "@/types";
 import { FileAttachmentDisplay } from "@/components/features/FileUpload";
 
 const QUICK_EMOJIS = ["👍", "❤️", "😂", "😮", "😢", "🙏"];
@@ -25,8 +25,7 @@ interface ChatMessageProps {
   onReply?: (msg: ChatMessage) => void;
   onReact?: (msg: ChatMessage, emoji: string) => void;
   isAdminView?: boolean;
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  onTaskAction?: (action: "confirm" | "edit", taskData: any) => void;
+  onTaskAction?: (action: "confirm" | "edit", taskData: Partial<TodoTask>) => void;
 }
 
 export const ChatMessageItem = memo(function ChatMessageItem({
@@ -123,13 +122,13 @@ export const ChatMessageItem = memo(function ChatMessageItem({
                 </div>
                 <div className="flex gap-2">
                   <button
-                    onClick={() => onTaskAction("confirm", msg.taskData)}
+                    onClick={() => onTaskAction("confirm", msg.taskData!)}
                     className="flex-1 bg-primary text-primary-foreground py-1.5 rounded-lg text-xs font-medium hover:bg-primary/90 transition-colors"
                   >
                     Confirm
                   </button>
                   <button
-                    onClick={() => onTaskAction("edit", msg.taskData)}
+                    onClick={() => onTaskAction("edit", msg.taskData!)}
                     className="flex-1 bg-muted hover:bg-muted/80 py-1.5 rounded-lg text-xs font-medium transition-colors"
                   >
                     Edit

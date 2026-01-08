@@ -19,8 +19,7 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import { CustomSelect } from "@/components/ui/CustomSelect";
-import { motion } from "framer-motion";
-import { listContainer, listItem } from "@/lib/motion";
+import { FadeIn, ScaleIn, StaggerChildren } from "@/components/ui/Animations";
 
 interface SubjectClientProps {
   subjectName?: string;
@@ -182,29 +181,36 @@ export function SubjectClient({ subjectName }: SubjectClientProps) {
 
   return (
     <AppShell>
-      <div className="p-6 lg:p-10 w-full space-y-8">
+      <div className="p-6 lg:p-10 w-full space-y-8 page-transition">
         {/* Back Button */}
-        <Link
-          href="/"
-          className="inline-flex items-center gap-2 text-muted-foreground hover:text-foreground transition-colors"
-        >
-          <ArrowLeft size={20} />
-          {language === "ar" ? "العودة" : "Back"}
-        </Link>
+        <FadeIn>
+          <Link
+            href="/"
+            className="inline-flex items-center gap-2 text-muted-foreground hover:text-foreground transition-colors"
+          >
+            <ArrowLeft size={20} />
+            {language === "ar" ? "العودة" : "Back"}
+          </Link>
+        </FadeIn>
 
         {/* Header */}
-        <div className={cn("rounded-3xl p-8 text-white relative overflow-hidden", bgColorClass)}>
+        <ScaleIn
+          className={cn(
+            "rounded-3xl p-8 text-white relative overflow-hidden shadow-xl",
+            bgColorClass
+          )}
+        >
           <div className="absolute top-0 right-0 w-64 h-64 bg-white/10 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2" />
 
           <div className="relative z-10 flex items-start gap-6">
-            <div className="p-4 bg-white/20 rounded-2xl backdrop-blur-sm">
+            <div className="p-4 bg-white/20 rounded-2xl backdrop-blur-sm shadow-inner">
               <IconComponent size={40} />
             </div>
             <div>
               <h1 className="text-3xl font-black">
                 {language === "ar" && subject.nameAr ? subject.nameAr : subject.name}
               </h1>
-              <p className="text-white/80 mt-2">
+              <p className="text-white/80 mt-2 font-medium">
                 {language === "ar" ? "د." : "Dr."}{" "}
                 {language === "ar" && subject.profNameAr ? subject.profNameAr : subject.profName}
               </p>
@@ -213,52 +219,56 @@ export function SubjectClient({ subjectName }: SubjectClientProps) {
               )}
             </div>
           </div>
-        </div>
+        </ScaleIn>
 
         {/* Resources */}
         <div>
-          <h2 className="text-xl font-bold text-foreground mb-4 flex items-center gap-2">
-            <FileText className="text-primary" />
-            {language === "ar" ? "الموارد" : "Resources"} ({resources.length})
-          </h2>
+          <FadeIn delay={0.2} className="flex items-center justify-between mb-4">
+            <h2 className="text-xl font-bold text-foreground flex items-center gap-2">
+              <FileText className="text-primary" />
+              {language === "ar" ? "الموارد" : "Resources"} ({resources.length})
+            </h2>
+          </FadeIn>
 
           {/* Search & Sort Controls */}
-          <div className="flex flex-col sm:flex-row gap-3 mb-6">
-            <div className="relative flex-1">
-              <Search
-                className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground"
-                size={18}
-              />
-              <input
-                type="text"
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                placeholder={language === "ar" ? "بحث في الموارد..." : "Search resources..."}
-                className="w-full pl-10 pr-4 py-2.5 rounded-xl bg-muted/50 border border-border focus:ring-2 focus:ring-primary/20 outline-none transition-all"
-              />
+          <FadeIn delay={0.3}>
+            <div className="flex flex-col sm:flex-row gap-3 mb-6">
+              <div className="relative flex-1">
+                <Search
+                  className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground"
+                  size={18}
+                />
+                <input
+                  type="text"
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  placeholder={language === "ar" ? "بحث في الموارد..." : "Search resources..."}
+                  className="w-full pl-10 pr-4 py-2.5 rounded-xl bg-muted/50 border border-border focus:ring-2 focus:ring-primary/20 outline-none transition-all"
+                />
+              </div>
+              <div className="w-48">
+                <CustomSelect
+                  options={[
+                    {
+                      value: "default",
+                      label: language === "ar" ? "الترتيب الافتراضي" : "Default Order",
+                    },
+                    {
+                      value: "name",
+                      label: language === "ar" ? "الاسم" : "Name",
+                    },
+                    {
+                      value: "type",
+                      label: language === "ar" ? "النوع" : "Type",
+                    },
+                  ]}
+                  value={sortBy}
+                  onChange={(val) => setSortBy(val as "default" | "name" | "type")}
+                  placeholder={language === "ar" ? "الترتيب" : "Sort by"}
+                />
+              </div>
             </div>
-            <div className="w-48">
-              <CustomSelect
-                options={[
-                  {
-                    value: "default",
-                    label: language === "ar" ? "الترتيب الافتراضي" : "Default Order",
-                  },
-                  {
-                    value: "name",
-                    label: language === "ar" ? "الاسم" : "Name",
-                  },
-                  {
-                    value: "type",
-                    label: language === "ar" ? "النوع" : "Type",
-                  },
-                ]}
-                value={sortBy}
-                onChange={(val) => setSortBy(val as "default" | "name" | "type")}
-                placeholder={language === "ar" ? "الترتيب" : "Sort by"}
-              />
-            </div>
-          </div>
+          </FadeIn>
 
           {(() => {
             // Filter and sort resources
@@ -276,44 +286,39 @@ export function SubjectClient({ subjectName }: SubjectClientProps) {
 
             if (filtered.length === 0) {
               return (
-                <div className="text-center py-20 bg-muted/20 rounded-3xl border-2 border-dashed border-border animate-fade-in-up">
-                  <div className="w-16 h-16 bg-muted rounded-full flex items-center justify-center mx-auto mb-4">
-                    <Icons.FileQuestion className="w-8 h-8 text-muted-foreground" />
+                <FadeIn delay={0.4}>
+                  <div className="text-center py-20 bg-muted/20 rounded-3xl border-2 border-dashed border-border">
+                    <div className="w-16 h-16 bg-muted rounded-full flex items-center justify-center mx-auto mb-4">
+                      <Icons.FileQuestion className="w-8 h-8 text-muted-foreground" />
+                    </div>
+                    <h3 className="text-lg font-bold text-foreground mb-1">
+                      {searchTerm
+                        ? language === "ar"
+                          ? "لا توجد نتائج بحث"
+                          : "No search results"
+                        : language === "ar"
+                          ? "لا توجد موارد بعد"
+                          : "No resources found"}
+                    </h3>
+                    <p className="text-muted-foreground max-w-xs mx-auto text-sm">
+                      {searchTerm
+                        ? language === "ar"
+                          ? "جرب البحث بكلمات مختلفة أو تحقق من الكتابة."
+                          : "Try different keywords or check your spelling."
+                        : language === "ar"
+                          ? "لم يتم إضافة أي موارد لهذه المادة حتى الآن. عد لاحقاً."
+                          : "This subject has no resources yet. Check back later."}
+                    </p>
                   </div>
-                  <h3 className="text-lg font-bold text-foreground mb-1">
-                    {searchTerm
-                      ? language === "ar"
-                        ? "لا توجد نتائج بحث"
-                        : "No search results"
-                      : language === "ar"
-                        ? "لا توجد موارد بعد"
-                        : "No resources found"}
-                  </h3>
-                  <p className="text-muted-foreground max-w-xs mx-auto text-sm">
-                    {searchTerm
-                      ? language === "ar"
-                        ? "جرب البحث بكلمات مختلفة أو تحقق من الكتابة."
-                        : "Try different keywords or check your spelling."
-                      : language === "ar"
-                        ? "لم يتم إضافة أي موارد لهذه المادة حتى الآن. عد لاحقاً."
-                        : "This subject has no resources yet. Check back later."}
-                  </p>
-                </div>
+                </FadeIn>
               );
             }
 
             return (
-              <motion.div
-                variants={listContainer}
-                initial="hidden"
-                animate="visible"
-                className="space-y-4"
-              >
+              <StaggerChildren className="space-y-4">
                 {filtered.map((resource) => (
-                  <motion.div
-                    variants={listItem}
+                  <ScaleIn
                     key={resource.id}
-                    ref={resource.id === highlightedId ? highlightRef : undefined}
                     className={cn(
                       "group bg-card p-4 rounded-xl border border-border hover:shadow-lg transition-all flex items-center justify-between",
                       resource.id === highlightedId &&
@@ -351,9 +356,9 @@ export function SubjectClient({ subjectName }: SubjectClientProps) {
                         <ExternalLink size={20} />
                       )}
                     </a>
-                  </motion.div>
+                  </ScaleIn>
                 ))}
-              </motion.div>
+              </StaggerChildren>
             );
           })()}
         </div>

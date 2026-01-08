@@ -26,8 +26,9 @@ import {
 import { toast } from "sonner";
 import { formatDate, formatDateArabic } from "@/lib/utils";
 import { ActivityLog } from "@/types";
-import { motion } from "framer-motion";
 import { doc, deleteDoc as deleteDocFn } from "firebase/firestore";
+import { FadeIn, ScaleIn, StaggerChildren } from "@/components/ui/Animations";
+import { cn } from "@/lib/utils";
 
 export default function AdminLogsPage() {
   const [logs, setLogs] = useState<ActivityLog[]>([]);
@@ -83,8 +84,8 @@ export default function AdminLogsPage() {
 
   return (
     <AppShell>
-      <div className="p-6 lg:p-10 w-full">
-        <div className="flex items-center justify-between mb-8">
+      <div className="p-6 lg:p-10 w-full page-transition">
+        <FadeIn className="flex items-center justify-between mb-8">
           <h1 className="text-2xl font-bold text-foreground flex items-center gap-3">
             <FileText className="text-primary" />
             {t("admin.logs")}
@@ -99,7 +100,7 @@ export default function AdminLogsPage() {
               {language === "ar" ? "مسح السجلات" : "Clear Logs"}
             </button>
           )}
-        </div>
+        </FadeIn>
 
         <div className="space-y-4">
           {loading ? (
@@ -107,69 +108,63 @@ export default function AdminLogsPage() {
               <Loader2 className="animate-spin text-primary" size={40} />
             </div>
           ) : logs.length === 0 ? (
-            <div className="text-center py-20 bg-muted/30 rounded-3xl border-2 border-dashed border-border">
-              <FileText size={48} className="mx-auto text-muted-foreground mb-4 opacity-50" />
-              <p className="text-muted-foreground font-medium">
-                {language === "ar" ? "لا توجد سجلات" : "No activity logs found"}
-              </p>
-            </div>
+            <FadeIn>
+              <div className="text-center py-20 bg-muted/30 rounded-3xl border-2 border-dashed border-border">
+                <FileText size={48} className="mx-auto text-muted-foreground mb-4 opacity-50" />
+                <p className="text-muted-foreground font-medium">
+                  {language === "ar" ? "لا توجد سجلات" : "No activity logs found"}
+                </p>
+              </div>
+            </FadeIn>
           ) : (
-            logs.map((log, index) => (
-              <motion.div
-                key={log.id}
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: index * 0.05 }}
-                whileHover={{ y: -4 }}
-                style={{ backfaceVisibility: "hidden" }}
-                className="group bg-card p-4 rounded-2xl border border-border hover:shadow-xl hover:shadow-primary/10 hover:border-primary/50 transition-all duration-300 flex items-start gap-4 transform-gpu will-change-transform subpixel-antialiased"
-              >
-                <motion.div
-                  className="p-3 bg-muted rounded-xl"
-                  whileHover={{ scale: 1.05 }}
-                  transition={{ duration: 0.15 }}
-                >
-                  {getLogIcon(log.action)}
-                </motion.div>
-
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-start justify-between gap-4">
-                    <div>
-                      <h3 className="font-semibold text-foreground text-sm">{log.action}</h3>
-                      <p className="text-sm text-muted-foreground mt-0.5 line-clamp-2">
-                        {log.details}
-                      </p>
+            <StaggerChildren className="space-y-3">
+              {logs.map((log) => (
+                <ScaleIn key={log.id}>
+                  <div className="group bg-card p-4 rounded-2xl border border-border hover:shadow-xl hover:shadow-primary/5 hover:border-primary/20 transition-all duration-300 flex items-start gap-4">
+                    <div className="p-3 bg-muted rounded-xl transition-transform group-hover:scale-110 duration-300">
+                      {getLogIcon(log.action)}
                     </div>
-                    <div className="flex items-center gap-2">
-                      <span className="text-[10px] font-mono text-muted-foreground bg-muted px-2 py-1 rounded-lg whitespace-nowrap">
-                        {language === "ar"
-                          ? formatDateArabic(log.timestamp)
-                          : formatDate(log.timestamp)}
-                      </span>
-                      <button
-                        onClick={async () => {
-                          try {
-                            await deleteDocFn(doc(db, "logs", log.id));
-                            toast.success(language === "ar" ? "تم حذف السجل" : "Log deleted");
-                          } catch {
-                            toast.error(language === "ar" ? "فشل الحذف" : "Delete failed");
-                          }
-                        }}
-                        className="p-1.5 opacity-0 group-hover:opacity-100 hover:bg-destructive/10 rounded-lg transition-all"
-                        title={language === "ar" ? "حذف" : "Delete"}
-                      >
-                        <Trash2 size={14} className="text-destructive" />
-                      </button>
+
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-start justify-between gap-4">
+                        <div>
+                          <h3 className="font-semibold text-foreground text-sm">{log.action}</h3>
+                          <p className="text-sm text-muted-foreground mt-0.5 line-clamp-2">
+                            {log.details}
+                          </p>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <span className="text-[10px] font-mono text-muted-foreground bg-muted px-2 py-1 rounded-lg whitespace-nowrap">
+                            {language === "ar"
+                              ? formatDateArabic(log.timestamp)
+                              : formatDate(log.timestamp)}
+                          </span>
+                          <button
+                            onClick={async () => {
+                              try {
+                                await deleteDocFn(doc(db, "logs", log.id));
+                                toast.success(language === "ar" ? "تم حذف السجل" : "Log deleted");
+                              } catch {
+                                toast.error(language === "ar" ? "فشل الحذف" : "Delete failed");
+                              }
+                            }}
+                            className="p-1.5 opacity-0 group-hover:opacity-100 hover:bg-destructive/10 rounded-lg transition-all"
+                            title={language === "ar" ? "حذف" : "Delete"}
+                          >
+                            <Trash2 size={14} className="text-destructive" />
+                          </button>
+                        </div>
+                      </div>
+
+                      <div className="mt-2 flex items-center gap-2 text-xs text-muted-foreground/80">
+                        <div className="w-1.5 h-1.5 rounded-full bg-primary/40" />
+                        {log.userEmail || "System"}
+                      </div>
                     </div>
                   </div>
-
-                  <div className="mt-2 flex items-center gap-2 text-xs text-muted-foreground/80">
-                    <div className="w-1.5 h-1.5 rounded-full bg-primary/40" />
-                    {log.userEmail || "System"}
-                  </div>
-                </div>
-              </motion.div>
-            ))
+                </ScaleIn>
+              ))}
+            </StaggerChildren>
           )}
         </div>
       </div>

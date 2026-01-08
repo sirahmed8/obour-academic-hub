@@ -22,6 +22,7 @@ import { cn } from "@/lib/utils";
 import { Subject } from "@/types";
 import { ConfirmationModal } from "@/components/ui/ConfirmationModal";
 import { motion, AnimatePresence } from "framer-motion";
+import { FadeIn, StaggerChildren, ScaleIn } from "@/components/ui/Animations";
 
 const ICON_OPTIONS = [
   "BookOpen",
@@ -187,16 +188,18 @@ export default function AdminSubjectsPage() {
 
   return (
     <AppShell>
-      <div className="p-6 lg:p-10 w-full page-transition">
-        <h1 className="text-2xl font-bold text-foreground mb-8 flex items-center gap-3 animate-fade-in-up">
-          <BookOpen className="text-primary" />
-          {language === "ar" ? "المواد" : "Subjects"}
-        </h1>
+      <div className="p-6 lg:p-10 w-full">
+        <FadeIn className="mb-8">
+          <h1 className="text-2xl font-bold text-foreground flex items-center gap-3">
+            <BookOpen className="text-primary" />
+            {language === "ar" ? "المواد" : "Subjects"}
+          </h1>
+        </FadeIn>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           {/* Create Form */}
-          <div className="lg:col-span-1 animate-fade-in-up animate-delay-100">
-            <div className="bg-card p-6 rounded-2xl border border-border sticky top-24">
+          <FadeIn delay={0.1} className="lg:col-span-1">
+            <div className="bg-card p-6 rounded-2xl border border-border sticky top-24 shadow-sm">
               <h2 className="text-xl font-bold mb-6 flex items-center gap-2">
                 <Plus className="w-5 h-5 text-primary" />
                 {language === "ar" ? "إضافة مادة جديدة" : "Add New Subject"}
@@ -348,27 +351,29 @@ export default function AdminSubjectsPage() {
                 </button>
               </form>
             </div>
-          </div>
+          </FadeIn>
 
           {/* List */}
-          <div className="lg:col-span-2 animate-fade-in-up animate-delay-200">
-            <h2 className="text-xl font-bold mb-6">
-              {language === "ar" ? "المواد الحالية" : "Existing Subjects"} ({subjects.length})
-            </h2>
+          <div className="lg:col-span-2">
+            <FadeIn delay={0.2} className="mb-6">
+              <h2 className="text-xl font-bold">
+                {language === "ar" ? "المواد الحالية" : "Existing Subjects"} ({subjects.length})
+              </h2>
+            </FadeIn>
 
             {loading ? (
-              <div className="flex justify-center py-10">
+              <FadeIn className="flex justify-center py-10">
                 <Loader2 className="animate-spin text-primary" size={40} />
-              </div>
+              </FadeIn>
             ) : subjects.length === 0 ? (
-              <div className="text-center py-10 text-muted-foreground border-2 border-dashed border-border rounded-xl">
+              <FadeIn className="text-center py-10 text-muted-foreground border-2 border-dashed border-border rounded-xl">
                 {language === "ar"
                   ? "لا توجد مواد. أنشئ واحدة للبدء."
                   : "No subjects found. Create one to get started."}
-              </div>
+              </FadeIn>
             ) : (
-              <div className="grid gap-4">
-                {subjects.map((subject, idx) => {
+              <StaggerChildren className="grid gap-4">
+                {subjects.map((subject) => {
                   const IconComp =
                     (
                       Icons as unknown as Record<
@@ -379,13 +384,12 @@ export default function AdminSubjectsPage() {
                   const isEditing = editingId === subject.id;
 
                   return (
-                    <div
+                    <ScaleIn
                       key={subject.id}
                       className={cn(
-                        "bg-card rounded-xl border border-border overflow-hidden transition-all duration-300",
+                        "bg-card rounded-xl border border-border overflow-hidden transition-all duration-300 shadow-sm",
                         isEditing ? "ring-2 ring-primary" : ""
                       )}
-                      style={{ animationDelay: `${idx * 50}ms` }}
                     >
                       <div className="p-4 flex items-center justify-between">
                         <div className="flex items-center gap-4">
@@ -542,10 +546,10 @@ export default function AdminSubjectsPage() {
                           </motion.div>
                         )}
                       </AnimatePresence>
-                    </div>
+                    </ScaleIn>
                   );
                 })}
-              </div>
+              </StaggerChildren>
             )}
           </div>
         </div>

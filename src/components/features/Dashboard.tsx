@@ -9,6 +9,7 @@ import { SubjectCard } from "@/components/features/SubjectCard";
 import { getGreeting } from "@/lib/utils";
 import { BookOpen, Sparkles } from "lucide-react";
 import { StaggerChildren, ScaleIn } from "@/components/ui/Animations";
+import { SkeletonCard } from "@/components/ui/Skeleton";
 
 export function Dashboard() {
   const [subjects, setSubjects] = useState<Subject[]>([]);
@@ -90,16 +91,7 @@ export function Dashboard() {
         {loading ? (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {[1, 2, 3, 4, 5, 6].map((i) => (
-              <div key={i} className="bg-card rounded-2xl p-6 border border-border">
-                <div className="flex items-start gap-4">
-                  <div className="skeleton w-16 h-16 rounded-2xl" />
-                  <div className="flex-1 space-y-3">
-                    <div className="skeleton h-5 w-3/4" />
-                    <div className="skeleton h-4 w-1/2" />
-                    <div className="skeleton h-3 w-full" />
-                  </div>
-                </div>
-              </div>
+              <SkeletonCard key={i} />
             ))}
           </div>
         ) : subjects.length === 0 ? (

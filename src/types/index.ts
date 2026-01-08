@@ -94,8 +94,7 @@ export interface ChatMessage {
   attachmentType?: string;
   role?: "user" | "assistant" | "system";
   action?: "confirm_task" | "live_chat";
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  taskData?: any;
+  taskData?: Partial<TodoTask>;
 }
 
 export interface InboxMessage {
@@ -169,6 +168,5 @@ export interface TodoTask {
     completed: boolean;
   }[];
   orderIndex: number;
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  createdAt: any;
+  createdAt: string | { seconds: number; nanoseconds: number };
 }

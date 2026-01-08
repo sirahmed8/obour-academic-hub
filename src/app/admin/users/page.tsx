@@ -12,6 +12,7 @@ import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { ConfirmationModal } from "@/components/ui/ConfirmationModal";
 import { AnimatedCheckbox } from "@/components/ui/AnimatedCheckbox";
+import { FadeIn, StaggerChildren, ScaleIn } from "@/components/ui/Animations";
 
 import { BulkActionsBar } from "@/components/admin/BulkActionsBar";
 import { UserDetailModal } from "@/components/admin/UserDetailModal";
@@ -386,7 +387,7 @@ export default function AdminUsersPage() {
     <AppShell>
       <div className="p-4 lg:p-10 w-full h-[calc(100vh-100px)] flex flex-col overflow-x-hidden">
         {/* Header Section */}
-        <div className="flex flex-col gap-4 mb-6 shrink-0">
+        <FadeIn className="flex flex-col gap-4 mb-6 shrink-0">
           <h1 className="text-2xl font-bold text-foreground flex items-center gap-3">
             <Users className="text-primary" />
             {language === "ar" ? "المستخدمين" : "Users"}
@@ -436,10 +437,10 @@ export default function AdminUsersPage() {
               +
             </button>
           </form>
-        </div>
+        </FadeIn>
 
         {/* User List - Mobile: Cards, Desktop: Table */}
-        <div className="bg-card rounded-2xl border border-border overflow-hidden flex-1 flex flex-col min-h-[400px] overflow-x-hidden">
+        <div className="bg-card rounded-2xl border border-border overflow-hidden flex-1 flex flex-col min-h-[400px] overflow-x-hidden shadow-sm">
           {/* Table Header - Desktop Only */}
           <div className="hidden lg:grid grid-cols-[3fr_1.5fr_1.5fr_2fr] bg-muted/50 border-b border-border font-semibold text-muted-foreground text-sm">
             <div className="px-6 py-4 flex items-center gap-2">
@@ -470,21 +471,21 @@ export default function AdminUsersPage() {
           {/* List Content */}
           <div ref={listContainerRef} className="flex-1 w-full min-h-0 overflow-y-auto">
             {loading ? (
-              <div className="flex items-center justify-center h-full py-12">
+              <FadeIn className="flex items-center justify-center h-full py-12">
                 <Loader2 className="animate-spin text-primary" size={40} />
-              </div>
+              </FadeIn>
             ) : filteredUsers.length === 0 ? (
-              <div className="flex items-center justify-center h-full text-muted-foreground py-12">
+              <FadeIn className="flex items-center justify-center h-full text-muted-foreground py-12">
                 {language === "ar" ? "لا يوجد مستخدمين" : "No users found"}
-              </div>
+              </FadeIn>
             ) : (
               <>
                 {/* Mobile Cards View */}
-                <div className="lg:hidden divide-y divide-border">
+                <StaggerChildren className="lg:hidden divide-y divide-border">
                   {filteredUsers.map((user) => {
                     const isSelected = selectedUsers.has(user.uid);
                     return (
-                      <div
+                      <ScaleIn
                         key={user.uid}
                         className={cn("p-4 transition-colors", isSelected ? "bg-primary/5" : "")}
                       >
@@ -608,13 +609,13 @@ export default function AdminUsersPage() {
                             )}
                           </div>
                         )}
-                      </div>
+                      </ScaleIn>
                     );
                   })}
-                </div>
+                </StaggerChildren>
 
                 {/* Desktop Table View */}
-                <div className="hidden lg:block">
+                <FadeIn className="hidden lg:block">
                   <FixedSizeList
                     height={containerSize.height}
                     itemCount={filteredUsers.length}
@@ -623,7 +624,7 @@ export default function AdminUsersPage() {
                   >
                     {Row}
                   </FixedSizeList>
-                </div>
+                </FadeIn>
               </>
             )}
           </div>

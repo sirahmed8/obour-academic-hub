@@ -30,6 +30,7 @@ import Image from "next/image";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { Subject } from "@/types";
+import { FadeIn } from "@/components/ui/Animations";
 
 export default function AdminResourcesPage() {
   const [subjects, setSubjects] = useState<Subject[]>([]);
@@ -193,229 +194,235 @@ export default function AdminResourcesPage() {
   return (
     <AppShell>
       <div className="p-6 lg:p-10 w-full page-transition">
-        <h1 className="text-2xl font-bold text-foreground mb-8 flex items-center gap-3 animate-fade-in-up">
-          <FileText className="text-primary" />
-          {t("admin.resources")}
-        </h1>
+        <FadeIn className="mb-8">
+          <h1 className="text-2xl font-bold text-foreground flex items-center gap-3">
+            <FileText className="text-primary" />
+            {t("admin.resources")}
+          </h1>
+        </FadeIn>
 
-        <div className="bg-card p-8 rounded-3xl border border-border shadow-sm animate-fade-in-up animate-delay-100">
-          <h2 className="text-xl font-bold mb-6 flex items-center gap-2 border-b pb-4">
-            <Plus className="w-5 h-5 text-primary" />
-            {language === "ar" ? "إضافة مورد جديد" : "Add New Resource"}
-          </h2>
+        <FadeIn delay={0.1}>
+          <div className="bg-card p-8 rounded-3xl border border-border shadow-sm">
+            <h2 className="text-xl font-bold mb-6 flex items-center gap-2 border-b pb-4">
+              <Plus className="w-5 h-5 text-primary" />
+              {language === "ar" ? "إضافة مورد جديد" : "Add New Resource"}
+            </h2>
 
-          <form onSubmit={handleSubmit} className="space-y-6">
-            {/* Subject Selection */}
-            <div className="grid grid-cols-1 gap-4">
-              <label className="block text-sm font-medium mb-1">
-                {language === "ar" ? "المادة الدراسية" : "Subject"}{" "}
-                <span className="text-red-500">*</span>
-              </label>
-              {loadingSubjects ? (
-                <div className="h-12 bg-muted rounded-2xl animate-pulse" />
-              ) : (
-                <CustomSelect
-                  options={subjects.map((s) => ({
-                    value: s.id,
-                    label: language === "ar" ? s.nameAr || s.name : s.name,
-                  }))}
-                  value={form.subjectId}
-                  onChange={(val) => setForm({ ...form, subjectId: val })}
-                  placeholder={language === "ar" ? "اختر المادة" : "Select Subject"}
-                />
-              )}
-            </div>
-
-            {/* Type Selection */}
-            <div>
-              <label className="block text-sm font-medium mb-3">
-                {language === "ar" ? "نوع المصدر" : "Resource Type"}
-              </label>
-              <div className="grid grid-cols-3 sm:grid-cols-6 gap-3">
-                {resourceTypes.map((type) => (
-                  <button
-                    key={type.value}
-                    type="button"
-                    onClick={() => setForm({ ...form, type: type.value })}
-                    className={cn(
-                      "p-3 rounded-xl border flex flex-col items-center gap-2 transition-all duration-200",
-                      form.type === type.value
-                        ? "border-primary bg-primary/10 text-primary scale-105 shadow-md"
-                        : "border-border hover:bg-muted/50 hover:border-muted-foreground/50"
-                    )}
-                  >
-                    <type.icon className="w-5 h-5" />
-                    <span className="text-xs font-medium">
-                      {language === "ar" ? type.labelAr : type.labelEn}
-                    </span>
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            {/* Titles */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
+            <form onSubmit={handleSubmit} className="space-y-6">
+              {/* Subject Selection */}
+              <div className="grid grid-cols-1 gap-4">
                 <label className="block text-sm font-medium mb-1">
-                  {language === "ar" ? "العنوان (إنجليزي)" : "Title (English)"}{" "}
+                  {language === "ar" ? "المادة الدراسية" : "Subject"}{" "}
                   <span className="text-red-500">*</span>
                 </label>
-                <input
-                  type="text"
-                  value={form.title}
-                  onChange={(e) => setForm({ ...form, title: e.target.value })}
-                  className="w-full rounded-lg border border-border px-4 py-2.5 bg-background focus:ring-2 focus:ring-primary/20 outline-none transition-all"
-                  placeholder="e.g. Chapter 1 Notes"
-                />
+                {loadingSubjects ? (
+                  <div className="h-12 bg-muted rounded-2xl animate-pulse" />
+                ) : (
+                  <CustomSelect
+                    options={subjects.map((s) => ({
+                      value: s.id,
+                      label: language === "ar" ? s.nameAr || s.name : s.name,
+                    }))}
+                    value={form.subjectId}
+                    onChange={(val) => setForm({ ...form, subjectId: val })}
+                    placeholder={language === "ar" ? "اختر المادة" : "Select Subject"}
+                  />
+                )}
               </div>
-              <div>
-                <label className="block text-sm font-medium mb-1">
-                  {language === "ar" ? "العنوان (عربي)" : "Title (Arabic)"}
-                </label>
-                <input
-                  type="text"
-                  value={form.titleAr}
-                  onChange={(e) => setForm({ ...form, titleAr: e.target.value })}
-                  className="w-full rounded-lg border border-border px-4 py-2.5 bg-background focus:ring-2 focus:ring-primary/20 outline-none transition-all"
-                  placeholder="مثال: مذكرات الفصل الأول"
-                  dir="rtl"
-                />
-              </div>
-            </div>
 
-            {/* Descriptions */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {/* Type Selection */}
               <div>
-                <label className="block text-sm font-medium mb-1">
-                  {language === "ar"
-                    ? "الوصف (إنجليزي) - اختياري"
-                    : "Description (English) - Optional"}
+                <label className="block text-sm font-medium mb-3">
+                  {language === "ar" ? "نوع المصدر" : "Resource Type"}
                 </label>
-                <textarea
-                  value={form.description}
-                  onChange={(e) => setForm({ ...form, description: e.target.value })}
-                  className="w-full rounded-lg border border-border px-4 py-2.5 bg-background h-24 resize-none focus:ring-2 focus:ring-primary/20 outline-none transition-all"
-                  placeholder="Brief description..."
-                />
+                <div className="grid grid-cols-3 sm:grid-cols-6 gap-3">
+                  {resourceTypes.map((type) => (
+                    <button
+                      key={type.value}
+                      type="button"
+                      onClick={() => setForm({ ...form, type: type.value })}
+                      className={cn(
+                        "p-3 rounded-xl border flex flex-col items-center gap-2 transition-all duration-200",
+                        form.type === type.value
+                          ? "border-primary bg-primary/10 text-primary scale-105 shadow-md"
+                          : "border-border hover:bg-muted/50 hover:border-muted-foreground/50"
+                      )}
+                    >
+                      <type.icon className="w-5 h-5" />
+                      <span className="text-xs font-medium">
+                        {language === "ar" ? type.labelAr : type.labelEn}
+                      </span>
+                    </button>
+                  ))}
+                </div>
               </div>
-              <div>
-                <label className="block text-sm font-medium mb-1">
-                  {language === "ar" ? "الوصف (عربي) - اختياري" : "Description (Arabic) - Optional"}
-                </label>
-                <textarea
-                  value={form.descriptionAr}
-                  onChange={(e) => setForm({ ...form, descriptionAr: e.target.value })}
-                  className="w-full rounded-lg border border-border px-4 py-2.5 bg-background h-24 resize-none focus:ring-2 focus:ring-primary/20 outline-none transition-all"
-                  placeholder="وصف مختصر..."
-                  dir="rtl"
-                />
-              </div>
-            </div>
 
-            {/* Source Input (Link or File) */}
-            <div className="space-y-4">
-              <label className="block text-sm font-medium">
-                {language === "ar" ? "المصدر" : "Source Content"}
-              </label>
-
+              {/* Titles */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {/* URL Input */}
-                <div className="relative">
-                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-muted-foreground">
-                    <Globe size={16} />
-                  </div>
+                <div>
+                  <label className="block text-sm font-medium mb-1">
+                    {language === "ar" ? "العنوان (إنجليزي)" : "Title (English)"}{" "}
+                    <span className="text-red-500">*</span>
+                  </label>
                   <input
-                    type="url"
-                    value={form.linkUrl}
-                    onChange={(e) => setForm({ ...form, linkUrl: e.target.value })}
-                    className="w-full rounded-lg border border-border pl-10 pr-4 py-2.5 bg-background focus:ring-2 focus:ring-primary/20 outline-none transition-all"
-                    placeholder={
-                      language === "ar" ? "رابط (Drive, YouTube...)" : "URL (Drive, YouTube...)"
-                    }
+                    type="text"
+                    value={form.title}
+                    onChange={(e) => setForm({ ...form, title: e.target.value })}
+                    className="w-full rounded-lg border border-border px-4 py-2.5 bg-background focus:ring-2 focus:ring-primary/20 outline-none transition-all"
+                    placeholder="e.g. Chapter 1 Notes"
                   />
                 </div>
-
-                {/* File Upload */}
-                <div className="border-2 border-dashed border-border rounded-xl p-4 text-center hover:bg-muted/30 transition-colors cursor-pointer relative group">
+                <div>
+                  <label className="block text-sm font-medium mb-1">
+                    {language === "ar" ? "العنوان (عربي)" : "Title (Arabic)"}
+                  </label>
                   <input
-                    type="file"
-                    onChange={(e) => setForm({ ...form, file: e.target.files?.[0] || null })}
-                    className="absolute inset-0 opacity-0 cursor-pointer z-10"
+                    type="text"
+                    value={form.titleAr}
+                    onChange={(e) => setForm({ ...form, titleAr: e.target.value })}
+                    className="w-full rounded-lg border border-border px-4 py-2.5 bg-background focus:ring-2 focus:ring-primary/20 outline-none transition-all"
+                    placeholder="مثال: مذكرات الفصل الأول"
+                    dir="rtl"
                   />
-                  <div className="flex items-center justify-center gap-2 text-muted-foreground group-hover:text-primary transition-colors">
-                    <Upload className="w-5 h-5" />
-                    <span className="text-sm font-medium truncate max-w-[200px]">
-                      {form.file
-                        ? form.file.name
-                        : language === "ar"
-                          ? "أو ارفع ملف مباشرة"
-                          : "Or upload file directly"}
-                    </span>
-                  </div>
                 </div>
               </div>
-            </div>
 
-            {/* Thumbnail Upload (Optional) */}
-            <div>
-              <label className="block text-sm font-medium mb-2">
-                {language === "ar" ? "صورة مصغرة (اختياري)" : "Thumbnail (Optional)"}
-              </label>
-              <div className="flex items-center gap-4">
-                <div className="w-16 h-16 rounded-lg border-2 border-dashed border-border flex items-center justify-center bg-muted/20 relative overflow-hidden">
-                  {form.thumbnailFile || form.thumbnailUrl ? (
-                    <Image
-                      src={
-                        form.thumbnailFile
-                          ? URL.createObjectURL(form.thumbnailFile)
-                          : form.thumbnailUrl
+              {/* Descriptions */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium mb-1">
+                    {language === "ar"
+                      ? "الوصف (إنجليزي) - اختياري"
+                      : "Description (English) - Optional"}
+                  </label>
+                  <textarea
+                    value={form.description}
+                    onChange={(e) => setForm({ ...form, description: e.target.value })}
+                    className="w-full rounded-lg border border-border px-4 py-2.5 bg-background h-24 resize-none focus:ring-2 focus:ring-primary/20 outline-none transition-all"
+                    placeholder="Brief description..."
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium mb-1">
+                    {language === "ar"
+                      ? "الوصف (عربي) - اختياري"
+                      : "Description (Arabic) - Optional"}
+                  </label>
+                  <textarea
+                    value={form.descriptionAr}
+                    onChange={(e) => setForm({ ...form, descriptionAr: e.target.value })}
+                    className="w-full rounded-lg border border-border px-4 py-2.5 bg-background h-24 resize-none focus:ring-2 focus:ring-primary/20 outline-none transition-all"
+                    placeholder="وصف مختصر..."
+                    dir="rtl"
+                  />
+                </div>
+              </div>
+
+              {/* Source Input (Link or File) */}
+              <div className="space-y-4">
+                <label className="block text-sm font-medium">
+                  {language === "ar" ? "المصدر" : "Source Content"}
+                </label>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {/* URL Input */}
+                  <div className="relative">
+                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-muted-foreground">
+                      <Globe size={16} />
+                    </div>
+                    <input
+                      type="url"
+                      value={form.linkUrl}
+                      onChange={(e) => setForm({ ...form, linkUrl: e.target.value })}
+                      className="w-full rounded-lg border border-border pl-10 pr-4 py-2.5 bg-background focus:ring-2 focus:ring-primary/20 outline-none transition-all"
+                      placeholder={
+                        language === "ar" ? "رابط (Drive, YouTube...)" : "URL (Drive, YouTube...)"
                       }
-                      alt="Thumbnail"
-                      fill
-                      className="object-cover"
                     />
-                  ) : (
-                    <ImageIcon className="w-6 h-6 text-muted-foreground/50" />
-                  )}
-                  <input
-                    type="file"
-                    accept="image/*"
-                    onChange={(e) =>
-                      setForm({
-                        ...form,
-                        thumbnailFile: e.target.files?.[0] || null,
-                      })
-                    }
-                    className="absolute inset-0 opacity-0 cursor-pointer"
-                  />
-                </div>
-                <div className="text-sm text-muted-foreground">
-                  <p>{language === "ar" ? "اضغط لرفع صورة" : "Click to upload image"}</p>
-                  <p className="text-xs opacity-70">
-                    {language === "ar" ? "يفضل أبعاد 16:9" : "Aspect ratio 16:9 preferred"}
-                  </p>
+                  </div>
+
+                  {/* File Upload */}
+                  <div className="border-2 border-dashed border-border rounded-xl p-4 text-center hover:bg-muted/30 transition-colors cursor-pointer relative group">
+                    <input
+                      type="file"
+                      onChange={(e) => setForm({ ...form, file: e.target.files?.[0] || null })}
+                      className="absolute inset-0 opacity-0 cursor-pointer z-10"
+                    />
+                    <div className="flex items-center justify-center gap-2 text-muted-foreground group-hover:text-primary transition-colors">
+                      <Upload className="w-5 h-5" />
+                      <span className="text-sm font-medium truncate max-w-[200px]">
+                        {form.file
+                          ? form.file.name
+                          : language === "ar"
+                            ? "أو ارفع ملف مباشرة"
+                            : "Or upload file directly"}
+                      </span>
+                    </div>
+                  </div>
                 </div>
               </div>
-            </div>
 
-            <button
-              type="submit"
-              disabled={uploading}
-              className="w-full bg-primary hover:bg-primary/90 disabled:bg-muted text-primary-foreground font-bold py-3.5 rounded-xl transition-all flex items-center justify-center gap-2 shadow-lg shadow-primary/20 hover:shadow-primary/30"
-            >
-              {uploading ? (
-                <>
-                  <Loader2 className="w-5 h-5 animate-spin" />
-                  {language === "ar" ? "جاري الرفع..." : "Uploading..."}
-                </>
-              ) : language === "ar" ? (
-                "إضافة المورد"
-              ) : (
-                "Add Resource"
-              )}
-            </button>
-          </form>
-        </div>
+              {/* Thumbnail Upload (Optional) */}
+              <div>
+                <label className="block text-sm font-medium mb-2">
+                  {language === "ar" ? "صورة مصغرة (اختياري)" : "Thumbnail (Optional)"}
+                </label>
+                <div className="flex items-center gap-4">
+                  <div className="w-16 h-16 rounded-lg border-2 border-dashed border-border flex items-center justify-center bg-muted/20 relative overflow-hidden">
+                    {form.thumbnailFile || form.thumbnailUrl ? (
+                      <Image
+                        src={
+                          form.thumbnailFile
+                            ? URL.createObjectURL(form.thumbnailFile)
+                            : form.thumbnailUrl
+                        }
+                        alt="Thumbnail"
+                        fill
+                        className="object-cover"
+                      />
+                    ) : (
+                      <ImageIcon className="w-6 h-6 text-muted-foreground/50" />
+                    )}
+                    <input
+                      type="file"
+                      accept="image/*"
+                      onChange={(e) =>
+                        setForm({
+                          ...form,
+                          thumbnailFile: e.target.files?.[0] || null,
+                        })
+                      }
+                      className="absolute inset-0 opacity-0 cursor-pointer"
+                    />
+                  </div>
+                  <div className="text-sm text-muted-foreground">
+                    <p>{language === "ar" ? "اضغط لرفع صورة" : "Click to upload image"}</p>
+                    <p className="text-xs opacity-70">
+                      {language === "ar" ? "يفضل أبعاد 16:9" : "Aspect ratio 16:9 preferred"}
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              <button
+                type="submit"
+                disabled={uploading}
+                className="w-full bg-primary hover:bg-primary/90 disabled:bg-muted text-primary-foreground font-bold py-3.5 rounded-xl transition-all flex items-center justify-center gap-2 shadow-lg shadow-primary/20 hover:shadow-primary/30"
+              >
+                {uploading ? (
+                  <>
+                    <Loader2 className="w-5 h-5 animate-spin" />
+                    {language === "ar" ? "جاري الرفع..." : "Uploading..."}
+                  </>
+                ) : language === "ar" ? (
+                  "إضافة المورد"
+                ) : (
+                  "Add Resource"
+                )}
+              </button>
+            </form>
+          </div>
+        </FadeIn>
       </div>
     </AppShell>
   );

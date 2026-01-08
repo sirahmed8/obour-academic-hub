@@ -77,7 +77,7 @@ export function ChatInput({
           onChange={(e) => setInput(e.target.value)}
           onKeyDown={handleKeyPress}
           placeholder={language === "ar" ? "اكتب رسالتك لفريق الدعم..." : "Message Support..."}
-          className="flex-1 bg-muted/50 border-none rounded-xl px-4 py-3 text-sm focus:ring-1 focus:ring-primary/50 transition-all placeholder:text-muted-foreground/50 max-h-24 min-h-[44px]"
+          className="flex-1 bg-muted/50 border border-transparent rounded-xl px-4 py-3 text-sm transition-all placeholder:text-muted-foreground/50 max-h-24 min-h-[44px] outline-none focus:outline-none shadow-none focus:shadow-none"
         />
         <button
           onClick={() => handleSend()}

@@ -12,6 +12,7 @@ import { toast } from "sonner";
 import { ConfirmationModal } from "@/components/ui/ConfirmationModal";
 import { ChatMessages } from "./chatbot/ChatMessages";
 import { ChatInput } from "./chatbot/ChatInput";
+import { springConfig } from "@/components/ui/Animations";
 
 /**
  * LiveSupportChat - Live Support Chat Component
@@ -189,7 +190,7 @@ export function AIChatbot() {
         whileTap={{ scale: 0.9 }}
         initial={{ scale: 0, opacity: 0 }}
         animate={{ scale: 1, opacity: 1 }}
-        transition={{ type: "spring", stiffness: 260, damping: 20 }}
+        transition={springConfig}
         className="fixed bottom-6 right-6 z-[100] p-4 bg-primary text-primary-foreground rounded-full shadow-lg shadow-primary/25 hover:shadow-xl hover:shadow-primary/30 transition-all active:scale-95 duration-200 ease-out sm:w-16 sm:h-16 w-14 h-14 flex items-center justify-center"
       >
         <AnimatePresence mode="wait" initial={false}>
@@ -230,7 +231,7 @@ export function AIChatbot() {
             initial={{ opacity: 0, y: 20, scale: 0.95, transformOrigin: "bottom right" }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: 20, scale: 0.95 }}
-            transition={{ duration: 0.3, type: "spring", stiffness: 300, damping: 30 }}
+            transition={springConfig}
             className="glass-container fixed bottom-24 right-6 z-[100] w-[380px] max-w-[calc(100vw-3rem)] h-[600px] max-h-[calc(100vh-8rem)] bg-white/70 dark:bg-black/40 backdrop-blur-xl backdrop-saturate-150 border border-primary/20 dark:border-white/10 rounded-2xl shadow-2xl flex flex-col overflow-hidden origin-bottom-right"
           >
             {/* Header - Simplified Live Support Only */}

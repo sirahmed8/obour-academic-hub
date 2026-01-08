@@ -1,32 +1,50 @@
 "use client";
 
-import { motion, AnimatePresence } from "framer-motion";
+import { motion, AnimatePresence, Variants } from "framer-motion";
 import { usePathname } from "next/navigation";
 import { ReactNode } from "react";
 
-interface PageTransitionProps {
+// --- Configuration ---
+export const springConfig = {
+  type: "spring" as const,
+  stiffness: 100,
+  damping: 20,
+  mass: 1,
+};
+
+const easeConfig = [0.22, 1, 0.36, 1] as const; // Custom easing for non-spring transitions
+
+// --- Interfaces ---
+interface AnimationProps {
   children: ReactNode;
+  className?: string;
+  delay?: number;
+  duration?: number;
 }
 
+interface SlideInProps extends AnimationProps {
+  direction?: "left" | "right" | "up" | "down";
+}
+
+// --- Components ---
+
 /**
- * PageTransition - Wraps page content with smooth fade/slide animations
- * Uses Framer Motion for GPU-accelerated animations
- * Apply to individual page.tsx or layout.tsx components
+ * PageTransition
+ * Wraps page content with a seamless fade/slide transition.
+ * Uses `mode="wait"` to ensure the old page leaves before the new one enters.
  */
-export function PageTransition({ children }: PageTransitionProps) {
+export function PageTransition({ children }: { children: ReactNode }) {
   const pathname = usePathname();
 
   return (
     <AnimatePresence mode="wait">
       <motion.div
         key={pathname}
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        exit={{ opacity: 0, y: -20 }}
-        transition={{
-          duration: 0.3,
-          ease: [0.22, 1, 0.36, 1], // Custom easing for smooth feel
-        }}
+        initial={{ opacity: 0, y: 15, scale: 0.99 }}
+        animate={{ opacity: 1, y: 0, scale: 1 }}
+        exit={{ opacity: 0, y: -15, scale: 0.99, transition: { duration: 0.2 } }}
+        transition={springConfig}
+        className="w-full h-full"
       >
         {children}
       </motion.div>
@@ -35,27 +53,16 @@ export function PageTransition({ children }: PageTransitionProps) {
 }
 
 /**
- * FadeIn - Simple fade animation wrapper
- * Use for staggered content loading
+ * FadeIn
+ * Simple, elegant fade in.
  */
-export function FadeIn({
-  children,
-  delay = 0,
-  className = "",
-}: {
-  children: ReactNode;
-  delay?: number;
-  className?: string;
-}) {
+export function FadeIn({ children, delay = 0, className = "", duration = 0.4 }: AnimationProps) {
   return (
     <motion.div
-      initial={{ opacity: 0, y: 10 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{
-        duration: 0.4,
-        delay,
-        ease: "easeOut",
-      }}
+      initial={{ opacity: 0 }}
+      whileInView={{ opacity: 1 }}
+      viewport={{ once: true, margin: "-50px" }}
+      transition={{ duration, delay, ease: "easeOut" }}
       className={className}
     >
       {children}
@@ -64,27 +71,17 @@ export function FadeIn({
 }
 
 /**
- * ScaleIn - Scale + fade animation
- * Use for cards, modals, important elements
+ * ScaleIn
+ * Best for cards, modals, and spotlight items.
+ * Uses a gentle spring for a "pop" effect.
  */
-export function ScaleIn({
-  children,
-  delay = 0,
-  className = "",
-}: {
-  children: ReactNode;
-  delay?: number;
-  className?: string;
-}) {
+export function ScaleIn({ children, delay = 0, className = "" }: AnimationProps) {
   return (
     <motion.div
-      initial={{ opacity: 0, scale: 0.95 }}
-      animate={{ opacity: 1, scale: 1 }}
-      transition={{
-        duration: 0.3,
-        delay,
-        ease: [0.22, 1, 0.36, 1],
-      }}
+      initial={{ opacity: 0, scale: 0.92 }}
+      whileInView={{ opacity: 1, scale: 1 }}
+      viewport={{ once: true }}
+      transition={{ ...springConfig, delay }}
       className={className}
     >
       {children}
@@ -93,36 +90,23 @@ export function ScaleIn({
 }
 
 /**
- * SlideIn - Slide from direction animation
- * Use for sidebars, drawers, navigation elements
+ * SlideIn
+ * Directional entrance. Great for sidebars or list items.
  */
-export function SlideIn({
-  children,
-  direction = "left",
-  delay = 0,
-  className = "",
-}: {
-  children: ReactNode;
-  direction?: "left" | "right" | "up" | "down";
-  delay?: number;
-  className?: string;
-}) {
+export function SlideIn({ children, direction = "up", delay = 0, className = "" }: SlideInProps) {
   const directionMap = {
-    left: { x: -30, y: 0 },
-    right: { x: 30, y: 0 },
-    up: { x: 0, y: -30 },
-    down: { x: 0, y: 30 },
+    left: { x: -40, y: 0 },
+    right: { x: 40, y: 0 },
+    up: { x: 0, y: 40 },
+    down: { x: 0, y: -40 },
   };
 
   return (
     <motion.div
       initial={{ opacity: 0, ...directionMap[direction] }}
-      animate={{ opacity: 1, x: 0, y: 0 }}
-      transition={{
-        duration: 0.4,
-        delay,
-        ease: "easeOut",
-      }}
+      whileInView={{ opacity: 1, x: 0, y: 0 }}
+      viewport={{ once: true, margin: "-50px" }}
+      transition={{ ...springConfig, delay }}
       className={className}
     >
       {children}
@@ -131,30 +115,55 @@ export function SlideIn({
 }
 
 /**
- * StaggerChildren - Container that staggers children animations
- * Wrap multiple FadeIn/ScaleIn components for sequential animation
+ * StaggerChildren
+ * Orchestrates a sequence of animations for its children.
+ * Best used with lists or grids.
  */
 export function StaggerChildren({
   children,
-  staggerDelay = 0.1,
+  staggerDelay = 0.05,
   className = "",
 }: {
   children: ReactNode;
   staggerDelay?: number;
   className?: string;
 }) {
+  const containerVariants: Variants = {
+    hidden: { opacity: 0 },
+    visible: {
+      opacity: 1,
+      transition: {
+        staggerChildren: staggerDelay,
+        delayChildren: 0.1,
+      },
+    },
+  };
+
   return (
     <motion.div
       initial="hidden"
-      animate="visible"
-      variants={{
-        hidden: {},
-        visible: {
-          transition: {
-            staggerChildren: staggerDelay,
-          },
-        },
-      }}
+      whileInView="visible"
+      viewport={{ once: true, margin: "-50px" }}
+      variants={containerVariants}
+      className={className}
+    >
+      {children}
+    </motion.div>
+  );
+}
+
+/**
+ * Reveal
+ * A specialized variant of FadeIn that adds a slight vertical movement.
+ * Good for text blocks.
+ */
+export function Reveal({ children, delay = 0, className = "" }: AnimationProps) {
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 20 }}
+      whileInView={{ opacity: 1, y: 0 }}
+      viewport={{ once: true }}
+      transition={{ duration: 0.5, delay, ease: easeConfig }}
       className={className}
     >
       {children}

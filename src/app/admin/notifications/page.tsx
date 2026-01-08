@@ -7,6 +7,8 @@ import { AppShell } from "@/components/layout/AppShell";
 import { useAuth } from "@/contexts";
 import { Bell, Send, Loader2, CheckCircle, AlertTriangle, Info } from "lucide-react";
 import { toast } from "sonner";
+import { FadeIn, ScaleIn } from "@/components/ui/Animations";
+import { cn } from "@/lib/utils";
 
 export default function AdminNotificationsPage() {
   const [title, setTitle] = useState("");
@@ -47,15 +49,15 @@ export default function AdminNotificationsPage() {
 
   return (
     <AppShell>
-      <div className="w-full p-6 space-y-8">
-        <div className="flex items-center gap-3">
+      <div className="w-full p-6 space-y-8 page-transition">
+        <FadeIn className="flex items-center gap-3">
           <div className="p-3 bg-primary/10 rounded-2xl">
             <Bell className="w-6 h-6 text-primary" />
           </div>
           <h1 className="text-2xl font-bold">Send Notifications</h1>
-        </div>
+        </FadeIn>
 
-        <div className="bg-card border border-border rounded-xl p-6 shadow-sm">
+        <ScaleIn delay={0.1} className="bg-card border border-border rounded-xl p-6 shadow-sm">
           <form onSubmit={handleSend} className="space-y-6">
             <div className="space-y-2">
               <label className="text-sm font-medium">Title</label>
@@ -81,7 +83,7 @@ export default function AdminNotificationsPage() {
               />
             </div>
 
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div className="space-y-2">
                 <label className="text-sm font-medium">Type</label>
                 <div className="flex gap-2">
@@ -102,11 +104,12 @@ export default function AdminNotificationsPage() {
                       key={option.val}
                       type="button"
                       onClick={() => setType(option.val as "info" | "warning" | "success")}
-                      className={`flex-1 p-2 rounded-lg border flex justify-center items-center gap-2 transition-all ${
+                      className={cn(
+                        "flex-1 p-2 rounded-lg border flex justify-center items-center gap-2 transition-all",
                         type === option.val
                           ? "bg-primary/10 border-primary ring-1 ring-primary"
                           : "border-input hover:bg-muted"
-                      }`}
+                      )}
                     >
                       <option.icon className={`w-4 h-4 ${option.color}`} />
                       <span className="capitalize text-sm">{option.val}</span>
@@ -131,7 +134,7 @@ export default function AdminNotificationsPage() {
             <button
               type="submit"
               disabled={sending}
-              className="w-full py-3 bg-primary text-primary-foreground rounded-xl font-medium hover:bg-primary/90 transition-colors flex items-center justify-center gap-2 disabled:opacity-50"
+              className="w-full py-3 bg-primary text-primary-foreground rounded-xl font-medium hover:bg-primary/90 transition-colors flex items-center justify-center gap-2 disabled:opacity-50 shadow-md hover:shadow-lg active:scale-[0.99]"
             >
               {sending ? (
                 <>
@@ -146,7 +149,7 @@ export default function AdminNotificationsPage() {
               )}
             </button>
           </form>
-        </div>
+        </ScaleIn>
       </div>
     </AppShell>
   );

@@ -29,6 +29,7 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
+import { FadeIn, ScaleIn, StaggerChildren } from "@/components/ui/Animations";
 
 interface Banner {
   id: string;
@@ -181,9 +182,9 @@ export default function AdminBannersPage() {
 
   return (
     <AppShell>
-      <div className="w-full p-4 md:p-8 space-y-8 animate-fade-in">
+      <div className="w-full p-4 md:p-8 space-y-8 page-transition">
         {/* Header */}
-        <div className="flex items-center justify-between">
+        <FadeIn className="flex items-center justify-between">
           <div>
             <h1 className="text-3xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-primary to-purple-600">
               {language === "ar" ? "لوحة الإعلانات" : "Live Banners"}
@@ -196,21 +197,21 @@ export default function AdminBannersPage() {
           </div>
           <button
             onClick={() => setIsAdding(!isAdding)}
-            className="flex items-center gap-2 bg-primary text-primary-foreground px-4 py-2 rounded-xl hover:opacity-90 transition-all font-medium"
+            className="flex items-center gap-2 bg-primary text-primary-foreground px-4 py-2 rounded-xl hover:opacity-90 transition-all font-medium shadow-md hover:shadow-lg"
           >
             {isAdding ? <X size={18} /> : <Plus size={18} />}
             {language === "ar" ? "إعلان جديد" : "New Banner"}
           </button>
-        </div>
+        </FadeIn>
 
         {/* Add Form with transitions */}
         <div
           className={cn(
             "overflow-hidden transition-all duration-300 ease-in-out",
-            isAdding ? "max-h-[500px] opacity-100" : "max-h-0 opacity-0"
+            isAdding ? "max-h-[600px] opacity-100" : "max-h-0 opacity-0"
           )}
         >
-          <div className="bg-card border border-border rounded-2xl p-6 shadow-sm space-y-4 mb-8">
+          <div className="bg-card border border-border rounded-2xl p-6 shadow-sm space-y-4 mb-4 mt-2">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="space-y-2">
                 <label className="text-sm font-medium">Text (Arabic)</label>
@@ -233,10 +234,10 @@ export default function AdminBannersPage() {
               </div>
             </div>
 
-            <div className="flex items-center gap-4">
+            <div className="flex flex-col sm:flex-row sm:items-center gap-4">
               <div className="space-y-2 flex-1">
                 <label className="text-sm font-medium">Type</label>
-                <div className="flex gap-2">
+                <div className="flex gap-2 flex-wrap">
                   {(["info", "warning", "success", "urgent"] as const).map((t) => (
                     <button
                       key={t}
@@ -244,7 +245,7 @@ export default function AdminBannersPage() {
                       className={cn(
                         "px-3 py-1.5 rounded-lg text-sm transition-all border",
                         formData.type === t
-                          ? "bg-primary text-primary-foreground border-primary"
+                          ? "bg-primary text-primary-foreground border-primary shadow-sm scale-105"
                           : "bg-muted text-muted-foreground border-transparent hover:bg-muted/80"
                       )}
                     >
@@ -253,11 +254,11 @@ export default function AdminBannersPage() {
                   ))}
                 </div>
               </div>
-              <div className="flex items-end pt-8">
+              <div className="flex items-end pt-2 sm:pt-0">
                 <button
                   onClick={handleSubmit}
                   disabled={!formData.textAr || !formData.textEn}
-                  className="bg-green-500 text-white px-6 py-2 rounded-lg font-medium hover:bg-green-600 transition-all flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="bg-green-500 text-white px-6 py-2 rounded-lg font-medium hover:bg-green-600 transition-all flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed shadow-md hover:shadow-green-500/20"
                 >
                   <Megaphone size={18} />
                   {language === "ar" ? "نشر" : "Publish"}
@@ -268,46 +269,62 @@ export default function AdminBannersPage() {
         </div>
 
         {/* Active Banners */}
-        <div className="space-y-3">
-          <h2 className="text-xl font-bold flex items-center gap-2">
-            <Megaphone className="w-5 h-5 text-green-500" />
-            {language === "ar" ? "نشط حالياً" : "Active Now"}
-          </h2>
+        <div className="space-y-4">
+          <FadeIn delay={0.1}>
+            <h2 className="text-xl font-bold flex items-center gap-2">
+              <Megaphone className="w-5 h-5 text-green-500" />
+              {language === "ar" ? "نشط حالياً" : "Active Now"}
+            </h2>
+          </FadeIn>
+
           {(activeBanners || []).length === 0 ? (
-            <div className="text-center py-8 bg-muted/20 rounded-xl border border-dashed text-muted-foreground text-sm">
-              {language === "ar" ? "لا توجد إعلانات نشطة" : "No active banners"}
-            </div>
+            <FadeIn delay={0.2}>
+              <div className="text-center py-8 bg-muted/20 rounded-xl border border-dashed text-muted-foreground text-sm">
+                {language === "ar" ? "لا توجد إعلانات نشطة" : "No active banners"}
+              </div>
+            </FadeIn>
           ) : (
-            (activeBanners || []).map((banner) => (
-              <BannerCard
-                key={banner.id}
-                banner={banner}
-                toggleActive={toggleActive}
-                deleteBanner={deleteBanner}
-              />
-            ))
+            <StaggerChildren className="space-y-3">
+              {(activeBanners || []).map((banner) => (
+                <ScaleIn key={banner.id}>
+                  <BannerCard
+                    banner={banner}
+                    toggleActive={toggleActive}
+                    deleteBanner={deleteBanner}
+                  />
+                </ScaleIn>
+              ))}
+            </StaggerChildren>
           )}
         </div>
 
         {/* History / Inactive */}
-        <div className="space-y-3 pt-8 border-t">
-          <h2 className="text-xl font-bold flex items-center gap-2 text-muted-foreground">
-            <History className="w-5 h-5" />
-            {language === "ar" ? "السجل / غير نشط" : "History / Inactive"}
-          </h2>
+        <div className="space-y-4 pt-8 border-t">
+          <FadeIn delay={0.2}>
+            <h2 className="text-xl font-bold flex items-center gap-2 text-muted-foreground">
+              <History className="w-5 h-5" />
+              {language === "ar" ? "السجل / غير نشط" : "History / Inactive"}
+            </h2>
+          </FadeIn>
+
           {(historyBanners || []).length === 0 ? (
-            <div className="text-center py-8 bg-muted/20 rounded-xl border border-dashed text-muted-foreground text-sm">
-              {language === "ar" ? "السجل فارغ" : "History is empty"}
-            </div>
+            <FadeIn delay={0.3}>
+              <div className="text-center py-8 bg-muted/20 rounded-xl border border-dashed text-muted-foreground text-sm">
+                {language === "ar" ? "السجل فارغ" : "History is empty"}
+              </div>
+            </FadeIn>
           ) : (
-            (historyBanners || []).map((banner) => (
-              <BannerCard
-                key={banner.id}
-                banner={banner}
-                toggleActive={toggleActive}
-                deleteBanner={deleteBanner}
-              />
-            ))
+            <StaggerChildren className="space-y-3">
+              {(historyBanners || []).map((banner) => (
+                <ScaleIn key={banner.id}>
+                  <BannerCard
+                    banner={banner}
+                    toggleActive={toggleActive}
+                    deleteBanner={deleteBanner}
+                  />
+                </ScaleIn>
+              ))}
+            </StaggerChildren>
           )}
         </div>
       </div>
@@ -342,14 +359,14 @@ function BannerCard({
       className={cn(
         "group flex items-center justify-between p-4 rounded-xl border transition-all",
         banner.isActive
-          ? "bg-card border-l-4 border-l-primary shadow-sm"
-          : "bg-muted/30 border-dashed opacity-70"
+          ? "bg-card border-l-4 border-l-primary shadow-sm hover:shadow-md"
+          : "bg-muted/30 border-dashed opacity-70 hover:opacity-100"
       )}
     >
       <div className="flex items-start gap-4">
         <div
           className={cn(
-            "p-2 rounded-full mt-1",
+            "p-2 rounded-full mt-1 shrink-0",
             banner.type === "urgent"
               ? "bg-red-100 text-red-600"
               : banner.type === "success"
@@ -368,7 +385,7 @@ function BannerCard({
           )}
         </div>
         <div>
-          <div className="flex items-center gap-2 mb-1">
+          <div className="flex items-center gap-2 mb-1 flex-wrap">
             <span
               className={cn(
                 "text-xs px-2 py-0.5 rounded-full font-medium uppercase tracking-wider",
@@ -377,7 +394,7 @@ function BannerCard({
             >
               {banner.isActive ? "Active" : "Inactive"}
             </span>
-            <span className="text-xs text-muted-foreground">{banner.type}</span>
+            <span className="text-xs text-muted-foreground uppercase">{banner.type}</span>
             {/* Show Date */}
             <span className="text-[10px] text-muted-foreground flex items-center gap-1">
               <Clock size={10} />

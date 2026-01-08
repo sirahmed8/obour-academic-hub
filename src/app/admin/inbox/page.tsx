@@ -32,6 +32,7 @@ import { sendMessage, markMessagesAsSeen, toggleReaction, deleteMessage } from "
 import { ChatSession, ChatMessage } from "@/types";
 import Image from "next/image";
 import { ConfirmationModal } from "@/components/ui/ConfirmationModal";
+import { FadeIn, Reveal, SlideIn, StaggerChildren, ScaleIn } from "@/components/ui/Animations";
 
 export default function AdminInboxPage() {
   const [sessions, setSessions] = useState<ChatSession[]>([]);
@@ -238,11 +239,12 @@ export default function AdminInboxPage() {
 
   return (
     <AppShell>
-      <div className="flex h-[calc(100vh-theme(spacing.20))] w-full overflow-hidden bg-background">
+      <div className="flex h-[calc(100vh-theme(spacing.20))] w-full overflow-hidden bg-background page-transition">
         {/* Sidebar - Chat List */}
-        <div
+        <SlideIn
+          direction="left"
           className={cn(
-            "w-full lg:w-96 border-r border-border flex flex-col bg-card",
+            "w-full lg:w-96 border-r border-border flex flex-col bg-card h-full",
             selectedSessionId ? "hidden lg:flex" : "flex"
           )}
         >
@@ -298,11 +300,6 @@ export default function AdminInboxPage() {
 
           <div className="flex-1 overflow-y-auto">
             {activeTab === "bot" || activeTab === "support" ? (
-              /* Unified List for now, but selection triggers difference in filtering */
-              /* Ideally we filter sessions that HAVE bot messages? 
-                But since we haven't tracked 'hasBotMessages' in session metadata, 
-                we simply show all users and let admin check. 
-             */
               loadingSessions ? (
                 <div className="p-8 flex justify-center">
                   <Loader2 className="animate-spin text-primary" />
@@ -310,104 +307,107 @@ export default function AdminInboxPage() {
               ) : sessions.length === 0 ? (
                 <div className="p-8 text-center text-muted-foreground text-sm">No active chats</div>
               ) : (
-                sortedSessions.map((session) => (
-                  <div
-                    key={session.userId}
-                    onClick={() => {
-                      setSelectedSessionId(session.userId);
-                    }}
-                    className={cn(
-                      "flex items-center gap-3 p-4 hover:bg-muted/50 transition-colors cursor-pointer border-b border-border/50 group relative",
-                      selectedSessionId === session.userId &&
-                        "bg-primary/5 border-l-4 border-l-primary"
-                    )}
-                  >
-                    {session.isPinned && (
-                      <Pin
-                        className="absolute top-2 right-2 w-3 h-3 text-primary rotate-45"
-                        fill="currentColor"
-                      />
-                    )}
-
-                    <Image
-                      src={`https://ui-avatars.com/api/?name=${
-                        session.userName || "User"
-                      }&background=random`}
-                      alt={session.userName}
-                      width={48}
-                      height={48}
-                      className="rounded-full"
-                    />
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center justify-between mb-1">
-                        <h3 className="font-bold truncate text-sm flex items-center gap-2">
-                          {session.userName}
-                        </h3>
-                        <span className="text-[10px] text-muted-foreground">
-                          {formatTime(session.lastMessageTime)}
-                        </span>
-                      </div>
-                      <p
+                <StaggerChildren className="divide-y divide-border/50">
+                  {sortedSessions.map((session) => (
+                    <ScaleIn key={session.userId}>
+                      <div
+                        onClick={() => {
+                          setSelectedSessionId(session.userId);
+                        }}
                         className={cn(
-                          "text-sm truncate pr-6",
-                          (session.adminUnreadCount || 0) > 0
-                            ? "text-foreground font-semibold"
-                            : "text-muted-foreground"
+                          "flex items-center gap-3 p-4 hover:bg-muted/50 transition-colors cursor-pointer group relative",
+                          selectedSessionId === session.userId &&
+                            "bg-primary/5 border-l-4 border-l-primary"
                         )}
                       >
-                        {activeTab === "bot"
-                          ? session.lastMessage || "View Bot History"
-                          : session.lastMessage || "No messages"}
-                      </p>
-                    </div>
+                        {session.isPinned && (
+                          <Pin
+                            className="absolute top-2 right-2 w-3 h-3 text-primary rotate-45"
+                            fill="currentColor"
+                          />
+                        )}
 
-                    {/* Actions Group */}
-                    <div className="flex flex-col items-end gap-1">
-                      {activeTab === "support" && (session.adminUnreadCount || 0) > 0 && (
-                        <div className="min-w-[20px] h-5 bg-primary text-primary-foreground rounded-full text-[10px] flex items-center justify-center font-bold px-1.5 animate-pulse">
-                          {session.adminUnreadCount}
+                        <Image
+                          src={`https://ui-avatars.com/api/?name=${
+                            session.userName || "User"
+                          }&background=random`}
+                          alt={session.userName}
+                          width={48}
+                          height={48}
+                          className="rounded-full"
+                        />
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center justify-between mb-1">
+                            <h3 className="font-bold truncate text-sm flex items-center gap-2">
+                              {session.userName}
+                            </h3>
+                            <span className="text-[10px] text-muted-foreground">
+                              {formatTime(session.lastMessageTime)}
+                            </span>
+                          </div>
+                          <p
+                            className={cn(
+                              "text-sm truncate pr-6",
+                              (session.adminUnreadCount || 0) > 0
+                                ? "text-foreground font-semibold"
+                                : "text-muted-foreground"
+                            )}
+                          >
+                            {activeTab === "bot"
+                              ? session.lastMessage || "View Bot History"
+                              : session.lastMessage || "No messages"}
+                          </p>
                         </div>
-                      )}
 
-                      <div className="opacity-0 group-hover:opacity-100 transition-opacity absolute right-2 bottom-2 bg-card shadow-sm border border-border rounded-lg flex">
-                        <button
-                          onClick={(e) => togglePin(e, session)}
-                          className="p-1.5 hover:bg-muted rounded-l-lg text-muted-foreground hover:text-primary"
-                          title="Pin Chat"
-                        >
-                          <Pin size={14} />
-                        </button>
-                        <button
-                          onClick={(e) => toggleReadStatus(e, session)}
-                          className="p-1.5 hover:bg-muted rounded-r-lg text-muted-foreground hover:text-primary border-l border-border"
-                          title={session.adminUnreadCount ? "Mark as Read" : "Mark as Unread"}
-                        >
-                          {session.adminUnreadCount ? (
-                            <CheckCheck size={14} />
-                          ) : (
-                            <MessageSquare size={14} />
+                        {/* Actions Group */}
+                        <div className="flex flex-col items-end gap-1">
+                          {activeTab === "support" && (session.adminUnreadCount || 0) > 0 && (
+                            <div className="min-w-[20px] h-5 bg-primary text-primary-foreground rounded-full text-[10px] flex items-center justify-center font-bold px-1.5 animate-pulse">
+                              {session.adminUnreadCount}
+                            </div>
                           )}
-                        </button>
+
+                          <div className="opacity-0 group-hover:opacity-100 transition-opacity absolute right-2 bottom-2 bg-card shadow-sm border border-border rounded-lg flex">
+                            <button
+                              onClick={(e) => togglePin(e, session)}
+                              className="p-1.5 hover:bg-muted rounded-l-lg text-muted-foreground hover:text-primary"
+                              title="Pin Chat"
+                            >
+                              <Pin size={14} />
+                            </button>
+                            <button
+                              onClick={(e) => toggleReadStatus(e, session)}
+                              className="p-1.5 hover:bg-muted rounded-r-lg text-muted-foreground hover:text-primary border-l border-border"
+                              title={session.adminUnreadCount ? "Mark as Read" : "Mark as Unread"}
+                            >
+                              {session.adminUnreadCount ? (
+                                <CheckCheck size={14} />
+                              ) : (
+                                <MessageSquare size={14} />
+                              )}
+                            </button>
+                          </div>
+                        </div>
                       </div>
-                    </div>
-                  </div>
-                ))
+                    </ScaleIn>
+                  ))}
+                </StaggerChildren>
               )
             ) : null}
           </div>
-        </div>
+        </SlideIn>
 
         {/* Main Chat Area */}
-        <div
+        <Reveal
           className={cn(
-            "flex-1 flex flex-col bg-muted/10 h-full",
+            "flex-1 flex flex-col bg-muted/10 h-full overflow-hidden",
             !selectedSessionId ? "hidden lg:flex" : "flex"
           )}
         >
           {selectedSessionId ? (
             <>
               {/* Chat Header */}
-              <div className="h-16 border-b border-border bg-card flex items-center px-6 justify-between shadow-sm">
+              <div className="h-16 shrink-0 border-b border-border bg-card flex items-center px-6 justify-between shadow-sm">
                 <div className="flex items-center gap-3">
                   <button
                     onClick={() => {
@@ -451,7 +451,7 @@ export default function AdminInboxPage() {
               {/* Messages */}
               <div className="flex-1 overflow-y-auto p-6 space-y-4 bg-muted/10">
                 {messages.map((msg) => (
-                  <div
+                  <FadeIn
                     key={msg.id}
                     className={cn(
                       "flex flex-col max-w-[70%] group relative",
@@ -571,13 +571,13 @@ export default function AdminInboxPage() {
                     <span className="text-[10px] text-muted-foreground mt-1 px-1">
                       {formatTime(msg.timestamp)}
                     </span>
-                  </div>
+                  </FadeIn>
                 ))}
                 <div ref={messagesEndRef} />
               </div>
 
               {/* Input */}
-              <div className="p-4 bg-card border-t border-border">
+              <div className="p-4 bg-card border-t border-border mt-auto">
                 {/* Reply Preview */}
                 {replyTo && (
                   <div className="flex items-center justify-between bg-muted/50 p-2 rounded-lg mb-2 border-l-2 border-primary max-w-4xl mx-auto">
@@ -626,7 +626,7 @@ export default function AdminInboxPage() {
               <p>Select a conversation to start messaging</p>
             </div>
           )}
-        </div>
+        </Reveal>
       </div>
 
       <ConfirmationModal
