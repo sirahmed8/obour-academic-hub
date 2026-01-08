@@ -38,9 +38,6 @@ export {
 export { uploadToCloudinary, getCloudinaryUrl } from "./cloudinary";
 export type { UploadResult } from "./cloudinary";
 
-// Local Bot
-export { getLocalBotResponse } from "./bot";
-
 // Notifications
 export {
   isMessagingSupported,
@@ -49,10 +46,6 @@ export {
   onForegroundMessage,
   showLocalNotification,
 } from "./notifications";
-
-// Quick Replies
-export { QUICK_REPLIES } from "./quickReplies";
-export type { QuickReply } from "./quickReplies";
 
 // Profanity Filter
 export { filterProfanity, containsProfanity } from "./profanityFilter";
