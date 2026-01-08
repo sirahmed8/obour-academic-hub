@@ -11,6 +11,12 @@ import { ChatMessage, User } from "@/types";
 import { FileAttachmentDisplay } from "@/components/features/FileUpload";
 
 const QUICK_EMOJIS = ["👍", "❤️", "😂", "😮", "😢", "🙏"];
+const REMARK_PLUGINS = [remarkGfm];
+
+// Memoized Markdown component to prevent expensive re-parsing when parent re-renders
+const MarkdownContent = memo(function MarkdownContent({ content }: { content: string }) {
+  return <ReactMarkdown remarkPlugins={REMARK_PLUGINS}>{content}</ReactMarkdown>;
+});
 
 interface ChatMessageProps {
   message: ChatMessage;
@@ -99,7 +105,7 @@ export const ChatMessageItem = memo(function ChatMessageItem({
             )}
           >
             {/* MARKDOWN RENDERING */}
-            <ReactMarkdown remarkPlugins={[remarkGfm]}>{msg.text}</ReactMarkdown>
+            <MarkdownContent content={msg.text} />
 
             {/* Task Confirmation Card */}
             {isBot && msg.action === "confirm_task" && msg.taskData && onTaskAction && (
