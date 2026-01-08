@@ -235,7 +235,7 @@ export function AddTodoModal({
               if (showDatePicker) setShowDatePicker(false);
             }}
             className={cn(
-              "w-full max-w-lg rounded-2xl shadow-2xl my-auto transition-colors duration-300 bg-white/10 dark:bg-black/10 backdrop-blur-xl backdrop-saturate-150 border border-white/20 dark:border-white/10"
+              "w-full max-w-lg rounded-2xl shadow-2xl my-auto transition-colors duration-300 bg-background/80 dark:bg-black/10 backdrop-blur-xl backdrop-saturate-150 border border-white/20 dark:border-white/10 overflow-hidden"
             )}
             dir={isRtl ? "rtl" : "ltr"}
           >

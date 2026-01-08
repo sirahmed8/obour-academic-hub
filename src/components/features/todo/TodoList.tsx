@@ -214,7 +214,7 @@ export function TodoList() {
                 exit={{ opacity: 0, y: -10, scale: 0.95 }}
                 transition={{ type: "spring", damping: 25, stiffness: 300 }}
                 className={cn(
-                  "absolute top-full left-0 mt-2 z-20 rounded-xl shadow-2xl p-2 min-w-[180px] bg-white/10 dark:bg-black/10 backdrop-blur-xl backdrop-saturate-150 border border-white/20 dark:border-white/10"
+                  "absolute top-full left-0 mt-2 z-20 rounded-xl shadow-2xl p-2 min-w-[180px] bg-background/80 dark:bg-black/10 backdrop-blur-xl backdrop-saturate-150 border border-white/20 dark:border-white/10"
                 )}
               >
                 {(["all", "incomplete", "high", "medium", "low"] as const).map((f) => (
