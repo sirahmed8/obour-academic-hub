@@ -25,14 +25,7 @@ import {
   Smile,
   X,
   Pin,
-  MoreVertical,
 } from "lucide-react";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { sendMessage, markMessagesAsSeen, toggleReaction, deleteMessage } from "@/lib/chatUtils";
@@ -101,7 +94,7 @@ export default function AdminInboxPage() {
         isPinned: !session.isPinned,
       });
       toast.success(session.isPinned ? "Chat unpinned" : "Chat pinned");
-    } catch (err) {
+    } catch {
       toast.error("Failed to update chat");
     }
   };
@@ -114,7 +107,7 @@ export default function AdminInboxPage() {
         adminUnreadCount: newCount,
       });
       toast.success(newCount === 0 ? "Marked as read" : "Marked as unread");
-    } catch (err) {
+    } catch {
       toast.error("Failed to update status");
     }
   };

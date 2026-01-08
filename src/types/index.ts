@@ -150,6 +150,7 @@ export interface ChatSession {
   unreadCount: number; // For User (how many admin messages they haven't seen)
   adminUnreadCount: number; // For Admin (how many user messages admin hasn't seen)
   isTyping?: boolean;
+  isPinned?: boolean;
 }
 
 export interface TodoTask {

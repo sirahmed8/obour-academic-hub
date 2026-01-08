@@ -5,7 +5,7 @@ export async function logError(
   error: unknown,
   context: string,
   userId?: string,
-  metadata: Record<string, any> = {}
+  metadata: Record<string, unknown> = {}
 ) {
   try {
     const errorMsg = error instanceof Error ? error.message : String(error);
