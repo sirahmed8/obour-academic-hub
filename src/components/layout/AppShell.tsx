@@ -89,61 +89,64 @@ export function AppShell({ children }: { children: React.ReactNode }) {
         {/* Right side blob */}
         <div className="absolute top-[-20%] right-[-10%] w-[600px] h-[600px] bg-blue-500/10 dark:bg-blue-900/20 rounded-full blur-[100px] mix-blend-multiply dark:mix-blend-screen opacity-50" />
       </div>
-
       <SkipLink />
-      <Sidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
-      <div className="flex-1 flex flex-col h-full overflow-hidden relative">
-        <div className="absolute top-0 left-0 right-0 z-40">
-          <Navbar onMenuClick={() => setSidebarOpen((prev) => !prev)} />
-        </div>
-        <LiveBanner />
-        <main
-          id="main-content"
-          className="flex-1 w-full h-full overflow-y-auto pt-16 pb-24 lg:pb-10"
-          style={{ scrollbarGutter: "stable" }}
-        >
-          {/* Page content without exit animation to prevent layout shift */}
-          <motion.div
-            key={pathname}
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ duration: 0.2, ease: "easeOut" }}
-            className="min-h-full flex flex-col w-full"
+      {/* Top Navigation Bar (Full Width) */}
+      <Navbar onMenuClick={() => setSidebarOpen((prev) => !prev)} />
+      {/* Main Layout Area */}
+      <div className="flex h-full pt-16">
+        {" "}
+        {/* Add padding top for fixed Navbar */}
+        <Sidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
+        <div className="flex-1 flex flex-col h-full overflow-hidden relative">
+          <LiveBanner />
+          <main
+            id="main-content"
+            className="flex-1 w-full h-full overflow-y-auto pb-24 lg:pb-10"
+            style={{ scrollbarGutter: "stable" }}
           >
-            {children}
-          </motion.div>
-
-          <footer className="py-8 mt-auto text-center space-y-4">
-            <a
-              href="https://linktr.ee/sir.ahmed"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="inline-flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-primary to-purple-600 text-primary-foreground rounded-full font-medium hover:opacity-90 transition-all shadow-lg"
+            {/* Page content without exit animation to prevent layout shift */}
+            <motion.div
+              key={pathname}
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ duration: 0.2, ease: "easeOut" }}
+              className="min-h-full flex flex-col w-full"
             >
-              <ExternalLink className="w-4 h-4" />
-              {language === "ar" ? "تواصل مع المطور" : "Connect with Developer"}
-            </a>
-            <div className="flex flex-wrap justify-center gap-4 text-xs text-muted-foreground/60">
-              <Link href="/legal/privacy" className="hover:text-primary transition-colors">
-                {language === "ar" ? "سياسة الخصوصية" : "Privacy Policy"}
-              </Link>
-              <span>•</span>
-              <Link href="/legal/terms" className="hover:text-primary transition-colors">
-                {language === "ar" ? "شروط الاستخدام" : "Terms of Service"}
-              </Link>
-              <span>•</span>
-              <Link href="/legal/cookies" className="hover:text-primary transition-colors">
-                {language === "ar" ? "ملفات الارتباط" : "Cookie Policy"}
-              </Link>
-            </div>
-            <p className="text-[10px] text-muted-foreground/40">
-              &copy; 2026 Obour Academic Hub. All rights reserved.
-            </p>
-          </footer>
-        </main>
-        <AIChatbot />
-      </div>
+              {children}
+            </motion.div>
 
+            <footer className="py-8 mt-auto text-center space-y-4">
+              <a
+                href="https://linktr.ee/sir.ahmed"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-primary to-purple-600 text-primary-foreground rounded-full font-medium hover:opacity-90 transition-all shadow-lg"
+              >
+                <ExternalLink className="w-4 h-4" />
+                {language === "ar" ? "تواصل مع المطور" : "Connect with Developer"}
+              </a>
+              <div className="flex flex-wrap justify-center gap-4 text-xs text-muted-foreground/60">
+                <Link href="/legal/privacy" className="hover:text-primary transition-colors">
+                  {language === "ar" ? "سياسة الخصوصية" : "Privacy Policy"}
+                </Link>
+                <span>•</span>
+                <Link href="/legal/terms" className="hover:text-primary transition-colors">
+                  {language === "ar" ? "شروط الاستخدام" : "Terms of Service"}
+                </Link>
+                <span>•</span>
+                <Link href="/legal/cookies" className="hover:text-primary transition-colors">
+                  {language === "ar" ? "ملفات الارتباط" : "Cookie Policy"}
+                </Link>
+              </div>
+              <p className="text-[10px] text-muted-foreground/40">
+                &copy; 2026 Obour Academic Hub. All rights reserved.
+              </p>
+            </footer>
+          </main>
+          <AIChatbot />
+        </div>
+      </div>{" "}
+      {/* Close Main Layout Area */}
       {/* Profile Setup Modal */}
       {showProfileSetup && (
         <StudentProfileSetup
@@ -155,7 +158,6 @@ export function AppShell({ children }: { children: React.ReactNode }) {
           }}
         />
       )}
-
       {/* Cookie Consent Banner */}
       <CookieConsent />
     </div>

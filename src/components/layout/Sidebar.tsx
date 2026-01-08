@@ -156,14 +156,14 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
       <aside
         className={cn(
           "glass-fixed fixed top-0 h-full w-[85vw] max-w-[280px] lg:max-w-none lg:w-72 bg-white/10 dark:bg-black/10 backdrop-blur-xl backdrop-saturate-150 shadow-2xl z-[100] transform transition-transform duration-300 ease-in-out supports-[backdrop-filter]:bg-white/5 supports-[backdrop-filter]:dark:bg-black/10 border-none border-r-0",
-          "lg:translate-x-0 lg:static lg:shadow-none",
+          "lg:translate-x-0 lg:static lg:shadow-none lg:border-r lg:border-white/5",
           language === "ar" ? "right-0" : "left-0",
           isOpen ? "translate-x-0" : language === "ar" ? "translate-x-full" : "-translate-x-full"
         )}
       >
         <div className="flex flex-col h-full">
-          {/* Header - Connected to Navbar (No Right Border) */}
-          <div className="h-16 flex items-center justify-between px-4 border-b border-white/5 dark:border-white/5">
+          {/* Header - Visible ONLY on Mobile (Desktop uses Navbar Logo) */}
+          <div className="h-16 flex items-center justify-between px-4 border-b border-white/5 dark:border-white/5 lg:hidden">
             <div className="flex items-center gap-3">
               <div className="relative w-10 h-10 flex-shrink-0 bg-transparent rounded-full p-0.5 overflow-hidden z-20">
                 <Image
@@ -174,25 +174,22 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
                   className="object-cover w-full h-full opacity-100"
                 />
               </div>
-              <div>
-                <h1 className="font-bold text-foreground text-lg leading-tight truncate">
-                  {language === "ar" ? "معاهد العبور" : "Obour Hub"}
-                </h1>
-                <p className="text-[10px] text-muted-foreground truncate opacity-80">
-                  {language === "ar" ? "نظام إدارة التعلم الذكي" : "Smart Learning System"}
-                </p>
+              <div className="flex flex-col">
+                <span className="font-harman text-lg font-bold leading-tight">Obour Hub</span>
+                <span className="text-[10px] text-muted-foreground font-medium">
+                  Smart Learning System
+                </span>
               </div>
             </div>
-            {/* Close Button (Mobile Only) */}
+            {/* Close button for mobile */}
             <button
               onClick={onClose}
-              className="lg:hidden p-2 text-muted-foreground hover:bg-muted/20 rounded-lg transition-colors"
+              className="lg:hidden p-2 hover:bg-white/10 rounded-full transition-colors"
             >
               <X size={20} />
             </button>
           </div>
 
-          {/* Navigation - With Right Border */}
           <nav
             ref={navRef}
             onScroll={handleScroll}
