@@ -36,7 +36,7 @@ export function BulkActionsBar({
         initial={{ y: 100, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
         exit={{ y: 100, opacity: 0 }}
-        className="fixed bottom-4 left-1/2 -translate-x-1/2 z-40 bg-primary text-primary-foreground rounded-full shadow-2xl px-6 py-4 flex items-center gap-4"
+        className="fixed bottom-4 left-1/2 -translate-x-1/2 z-40 bg-primary/70 backdrop-blur-xl backdrop-saturate-150 text-primary-foreground rounded-full shadow-2xl px-6 py-4 flex items-center gap-4 border border-white/20"
       >
         {/* Selection count */}
         <div className="flex items-center gap-2">

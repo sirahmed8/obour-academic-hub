@@ -7,6 +7,7 @@ import { useAuth, useLanguage } from "@/contexts";
 import { Sidebar, Navbar } from "@/components/layout";
 import dynamic from "next/dynamic";
 import { SkipLink } from "@/components/ui/SkipLink";
+import { cn } from "@/lib/utils";
 // Lazy load AIChatbot for better initial bundle size
 const AIChatbot = dynamic(
   () => import("@/components/features/AIChatbot").then((mod) => mod.AIChatbot),
@@ -27,6 +28,7 @@ import { CookieConsent } from "@/components/ui/CookieConsent";
 import { Loader2, ExternalLink } from "lucide-react";
 import { motion } from "framer-motion";
 import { useGlobalKeyboard } from "@/hooks/useGlobalKeyboard";
+import { usePageTracking } from "@/hooks/usePageTracking";
 
 export function AppShell({ children }: { children: React.ReactNode }) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -45,6 +47,9 @@ export function AppShell({ children }: { children: React.ReactNode }) {
 
   // Enable global keyboard shortcuts
   useGlobalKeyboard();
+
+  // Enable Real Page Tracking (Analytics) - TEMPORARILY DISABLED FOR DEBUGGING
+  // usePageTracking();
 
   // Check if profile is incomplete using useMemo (no effect)
   const showProfileSetup = useMemo(() => {
@@ -93,11 +98,16 @@ export function AppShell({ children }: { children: React.ReactNode }) {
       {/* Top Navigation Bar (Full Width) */}
       <Navbar onMenuClick={() => setSidebarOpen((prev) => !prev)} />
       {/* Main Layout Area */}
-      <div className="flex h-full pt-16">
+      <div className="flex w-full h-full pt-16">
         {" "}
         {/* Add padding top for fixed Navbar */}
         <Sidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
-        <div className="flex-1 flex flex-col h-full overflow-hidden relative">
+        <div
+          className={cn(
+            "flex-1 flex flex-col h-full overflow-hidden relative transition-all duration-300",
+            language === "ar" ? "lg:pr-72" : "lg:pl-72" // Push content for Fixed Sidebar
+          )}
+        >
           <LiveBanner />
           <main
             id="main-content"

@@ -11,8 +11,10 @@ import Image from "next/image";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { ConfirmationModal } from "@/components/ui/ConfirmationModal";
+import { AnimatedCheckbox } from "@/components/ui/AnimatedCheckbox";
 
 import { BulkActionsBar } from "@/components/admin/BulkActionsBar";
+import { UserDetailModal } from "@/components/admin/UserDetailModal";
 import { FixedSizeList } from "react-window";
 
 // Define permissions
@@ -77,6 +79,14 @@ export default function AdminUsersPage() {
     user: null,
     name: "",
     code: "",
+  });
+
+  const [viewModal, setViewModal] = useState<{
+    isOpen: boolean;
+    user: UserType | null;
+  }>({
+    isOpen: false,
+    user: null,
   });
 
   const canEditUser = (targetUser: UserType) => {
@@ -253,11 +263,10 @@ export default function AdminUsersPage() {
         <div className="px-6 py-4 flex items-center gap-3 overflow-hidden">
           {/* Hide checkbox for current user (owner can't select themselves) */}
           {user.uid !== currentUser?.uid ? (
-            <input
-              type="checkbox"
+            <AnimatedCheckbox
               checked={isSelected}
               onChange={() => toggleUserSelection(user.uid)}
-              className="rounded border-input text-primary w-4 h-4 mr-2"
+              className="mr-2"
             />
           ) : (
             <div className="w-4 h-4 mr-2" /> // Spacer for alignment
@@ -319,6 +328,17 @@ export default function AdminUsersPage() {
                 >
                   {language === "ar" ? "تبديل الدور" : "Switch Role"}
                 </button>
+                {/* User Data Button (Owner Only) */}
+                {currentUser?.role === "owner" && (
+                  <button
+                    onClick={() => setViewModal({ isOpen: true, user })}
+                    className="text-xs text-blue-500 hover:text-blue-600 font-medium flex items-center gap-1"
+                    title={language === "ar" ? "عرض البيانات" : "View Data"}
+                  >
+                    <User size={12} />
+                    {language === "ar" ? "البيانات" : "Data"}
+                  </button>
+                )}
                 {canEditUser(user) && (
                   <button
                     onClick={() =>
@@ -423,8 +443,7 @@ export default function AdminUsersPage() {
           {/* Table Header - Desktop Only */}
           <div className="hidden lg:grid grid-cols-[3fr_1.5fr_1.5fr_2fr] bg-muted/50 border-b border-border font-semibold text-muted-foreground text-sm">
             <div className="px-6 py-4 flex items-center gap-2">
-              <input
-                type="checkbox"
+              <AnimatedCheckbox
                 checked={
                   selectedUsers.size ===
                     filteredUsers.filter((u) => u.uid !== currentUser?.uid).length &&
@@ -439,7 +458,7 @@ export default function AdminUsersPage() {
                     setSelectedUsers(new Set(selectableUsers.map((u) => u.uid)));
                   }
                 }}
-                className="rounded border-input text-primary w-4 h-4 mr-2"
+                className="mr-2"
               />
               {language === "ar" ? "المستخدم" : "User"}
             </div>
@@ -632,6 +651,15 @@ export default function AdminUsersPage() {
           title={confirmModal.title}
           message={confirmModal.message}
         />
+
+        {/* User Data Modal */}
+        {viewModal.isOpen && viewModal.user && (
+          <UserDetailModal
+            user={viewModal.user}
+            language={language}
+            onClose={() => setViewModal({ isOpen: false, user: null })}
+          />
+        )}
 
         {/* Edit User Modal */}
         {editModal.isOpen && (

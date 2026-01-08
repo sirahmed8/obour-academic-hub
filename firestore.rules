@@ -93,18 +93,32 @@ service cloud.firestore {
       allow write: if isAdmin();
     }
     
-    // System Logs
-    match /logs/{logId} {
+    // Analytics Logs (Page Views - NEW)
+    match /analytics_logs/{logId} {
       allow read: if isAdmin();
       allow delete: if isAdmin();
+      allow create: if request.auth != null; // Allow users to log views
+    }
+    
+    // System Errors (NEW)
+    match /error_logs/{errorId} {
+      allow read: if isAdmin();
+      allow delete: if isAdmin();
+      allow create: if request.auth != null; // Allow users to log errors
+    }
+    
+    // Activity Logs (LEGACY - used by admin/logs page)
+    match /logs/{logId} {
+      allow read: if isAdmin();
+      allow write: if isAdmin();
       allow create: if request.auth != null;
     }
     
-    // System Errors
+    // System Errors (LEGACY - used by admin/errors page)
     match /system_errors/{errorId} {
       allow read: if isAdmin();
       allow write: if isAdmin();
-      allow create: if request.auth != null; // Allow users to log errors
+      allow create: if request.auth != null;
     }
     
     // Default deny for anything else

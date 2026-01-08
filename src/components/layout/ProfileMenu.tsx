@@ -66,7 +66,7 @@ export function ProfileMenu({ onClose, isClosing }: ProfileMenuProps) {
       <div className="fixed inset-0 z-[60]" onClick={onClose} />
       <div
         className={cn(
-          "fixed top-20 w-72 bg-white/10 dark:bg-black/10 backdrop-blur-xl backdrop-saturate-150 border border-white/20 dark:border-white/10 rounded-2xl shadow-2xl z-[70] p-4 space-y-4",
+          "fixed top-20 w-72 bg-white/80 dark:bg-black/40 backdrop-blur-xl backdrop-saturate-150 border border-primary/10 dark:border-white/10 rounded-2xl shadow-2xl z-[70] p-4 space-y-4",
           "transition-all duration-150 ease-out",
           isClosing ? "animate-scale-out" : "animate-scale-in",
           language === "ar" ? "left-4 origin-top-left" : "right-4 origin-top-right"

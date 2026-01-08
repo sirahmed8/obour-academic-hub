@@ -155,15 +155,15 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
       {/* Sidebar */}
       <aside
         className={cn(
-          "glass-fixed fixed top-0 h-full w-[85vw] max-w-[280px] lg:max-w-none lg:w-72 bg-white/10 dark:bg-black/10 backdrop-blur-xl backdrop-saturate-150 shadow-2xl z-[100] transform transition-transform duration-300 ease-in-out supports-[backdrop-filter]:bg-white/5 supports-[backdrop-filter]:dark:bg-black/10 border-none border-r-0",
-          "lg:translate-x-0 lg:static lg:shadow-none lg:border-r lg:border-white/5",
-          language === "ar" ? "right-0" : "left-0",
+          "glass-fixed fixed top-0 h-full w-[85vw] max-w-[280px] lg:max-w-none lg:w-72 bg-white/10 dark:bg-black/10 backdrop-blur-xl backdrop-saturate-150 shadow-2xl z-[100] transition-transform duration-300 ease-in-out supports-[backdrop-filter]:bg-white/5 supports-[backdrop-filter]:dark:bg-black/10 border-none border-r-0",
+          "lg:z-40 lg:translate-x-0 lg:shadow-none lg:border-r lg:border-white/5", // Desktop: Fixed z-40 (Below Navbar z-50)
+          language === "ar" ? "right-0 lg:right-0" : "left-0 lg:left-0",
           isOpen ? "translate-x-0" : language === "ar" ? "translate-x-full" : "-translate-x-full"
         )}
       >
         <div className="flex flex-col h-full">
-          {/* Header - Visible ONLY on Mobile (Desktop uses Navbar Logo) */}
-          <div className="h-16 flex items-center justify-between px-4 border-b border-white/5 dark:border-white/5 lg:hidden">
+          {/* Header - Mobile Only */}
+          <div className="h-16 flex items-center justify-between px-4 border-b border-white/5 dark:border-white/5 lg:hidden flex-shrink-0">
             <div className="flex items-center gap-3">
               <div className="relative w-10 h-10 flex-shrink-0 bg-transparent rounded-full p-0.5 overflow-hidden z-20">
                 <Image
@@ -193,7 +193,7 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
           <nav
             ref={navRef}
             onScroll={handleScroll}
-            className="flex-1 py-6 px-4 space-y-6 overflow-y-auto [&::-webkit-scrollbar]:hidden [-ms-overflow-style:'none'] [scrollbar-width:none]"
+            className="flex-1 px-4 space-y-6 overflow-y-auto [&::-webkit-scrollbar]:hidden [-ms-overflow-style:'none'] [scrollbar-width:none] pt-4 lg:pt-20" // Add top padding (16 + 4) for Desktop to clear Navbar
           >
             {/* Main Nav */}
             <div className="space-y-2">
