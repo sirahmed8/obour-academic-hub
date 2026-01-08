@@ -83,8 +83,11 @@ export function AppShell({ children }: { children: React.ReactNode }) {
     <div className="flex h-screen bg-background overflow-hidden relative" dir={dir}>
       {/* Global Ambient Background for Seamless Blur */}
       <div className="fixed inset-0 z-0 pointer-events-none overflow-hidden">
-        <div className="absolute top-[-20%] right-0 w-[800px] h-[600px] bg-primary/5 dark:bg-primary/10 rounded-full blur-[120px] mix-blend-multiply dark:mix-blend-screen opacity-50" />
-        <div className="absolute top-[-20%] left-0 w-[600px] h-[600px] bg-blue-400/5 dark:bg-blue-900/10 rounded-full blur-[100px] mix-blend-multiply dark:mix-blend-screen opacity-50" />
+        {/* Stronger Purple Blob behind Sidebar (Top Left) to match Navbar's look */}
+        <div className="absolute top-[-10%] left-[-10%] w-[500px] h-[500px] bg-primary/20 dark:bg-primary/10 rounded-full blur-[120px] mix-blend-multiply dark:mix-blend-screen opacity-100" />
+
+        {/* Right side blob */}
+        <div className="absolute top-[-20%] right-[-10%] w-[600px] h-[600px] bg-blue-500/10 dark:bg-blue-900/20 rounded-full blur-[100px] mix-blend-multiply dark:mix-blend-screen opacity-50" />
       </div>
 
       <SkipLink />
