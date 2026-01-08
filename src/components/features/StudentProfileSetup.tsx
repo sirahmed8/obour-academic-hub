@@ -2,9 +2,12 @@
 
 import { useState } from "react";
 import { useAuth, useLanguage } from "@/contexts";
+import { motion } from "framer-motion";
 import { User, Hash, Lock, MessageCircle } from "lucide-react";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
+import { scaleIn, getMotionProps } from "@/lib/motion";
+import { useReducedMotion } from "@/hooks/useReducedMotion";
 
 interface StudentProfileSetupProps {
   onComplete: () => void;
@@ -13,6 +16,7 @@ interface StudentProfileSetupProps {
 export function StudentProfileSetup({ onComplete }: StudentProfileSetupProps) {
   const { user, updateProfile } = useAuth();
   const { language } = useLanguage();
+  const { shouldReduceMotion } = useReducedMotion();
   const [displayName, setDisplayName] = useState(user?.displayName || "");
   const [studentCode, setStudentCode] = useState(user?.studentCode || "");
   const [loading, setLoading] = useState(false);
@@ -99,9 +103,17 @@ export function StudentProfileSetup({ onComplete }: StudentProfileSetupProps) {
 
   return (
     <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-      <div className="bg-card rounded-3xl shadow-2xl max-w-md w-full p-8 border border-border animate-scale-in">
+      <motion.div
+        {...getMotionProps(shouldReduceMotion, {
+          variants: scaleIn,
+          initial: "hidden",
+          animate: "visible",
+          exit: "exit",
+        })}
+        className="bg-card/90 dark:bg-black/40 backdrop-blur-xl backdrop-saturate-150 rounded-3xl shadow-2xl max-w-md w-full p-8 border border-white/20 dark:border-white/10"
+      >
         <div className="text-center mb-6">
-          <div className="w-16 h-16 bg-primary/10 rounded-2xl mx-auto flex items-center justify-center mb-4">
+          <div className="w-16 h-16 bg-primary/10 rounded-2xl mx-auto flex items-center justify-center mb-4 border border-primary/20">
             <User className="w-8 h-8 text-primary" />
           </div>
           <h2 className="text-2xl font-bold text-foreground">
@@ -130,8 +142,8 @@ export function StudentProfileSetup({ onComplete }: StudentProfileSetupProps) {
               {language === "ar" ? "الاسم (بالعربية)" : "Name (Arabic)"}
               {isNameLocked && <Lock className="w-3 h-3 text-muted-foreground" />}
             </label>
-            <div className="relative">
-              <User className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
+            <div className="relative group">
+              <User className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground group-focus-within:text-primary transition-colors" />
               <input
                 type="text"
                 value={displayName}
@@ -139,10 +151,10 @@ export function StudentProfileSetup({ onComplete }: StudentProfileSetupProps) {
                 placeholder={language === "ar" ? "أحمد محمد علي" : "Ahmed Mohamed Ali"}
                 disabled={isNameLocked}
                 className={cn(
-                  "w-full pl-10 pr-4 py-3 rounded-xl border border-border bg-background transition",
+                  "w-full pl-10 pr-4 py-3 rounded-xl border bg-background/50 transition-all duration-300",
                   isNameLocked
-                    ? "opacity-60 cursor-not-allowed bg-muted"
-                    : "focus:ring-2 focus:ring-primary/20 focus:border-primary"
+                    ? "opacity-60 cursor-not-allowed bg-muted border-transparent"
+                    : "border-border focus:ring-2 focus:ring-primary/20 focus:border-primary hover:border-primary/50"
                 )}
                 dir="rtl"
               />
@@ -155,8 +167,8 @@ export function StudentProfileSetup({ onComplete }: StudentProfileSetupProps) {
               {language === "ar" ? "كود الطالب (6 أرقام)" : "Student Code (6 digits)"}
               {isCodeLocked && <Lock className="w-3 h-3 text-muted-foreground" />}
             </label>
-            <div className="relative">
-              <Hash className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
+            <div className="relative group">
+              <Hash className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground group-focus-within:text-primary transition-colors" />
               <input
                 type="text"
                 value={studentCode}
@@ -167,10 +179,10 @@ export function StudentProfileSetup({ onComplete }: StudentProfileSetupProps) {
                 maxLength={6}
                 disabled={isCodeLocked}
                 className={cn(
-                  "w-full pl-10 pr-4 py-3 rounded-xl border border-border bg-background font-mono text-lg tracking-widest transition",
+                  "w-full pl-10 pr-4 py-3 rounded-xl border bg-background/50 font-mono text-lg tracking-widest transition-all duration-300",
                   isCodeLocked
-                    ? "opacity-60 cursor-not-allowed bg-muted"
-                    : "focus:ring-2 focus:ring-primary/20 focus:border-primary"
+                    ? "opacity-60 cursor-not-allowed bg-muted border-transparent"
+                    : "border-border focus:ring-2 focus:ring-primary/20 focus:border-primary hover:border-primary/50"
                 )}
               />
             </div>
@@ -179,27 +191,33 @@ export function StudentProfileSetup({ onComplete }: StudentProfileSetupProps) {
 
           {isCodeLocked ? (
             <div className="space-y-3 pt-2">
-              <button
+              <motion.button
                 type="button"
                 onClick={handleContactSupport}
-                className="w-full py-3 bg-muted text-foreground font-medium rounded-xl hover:bg-muted/80 transition flex items-center justify-center gap-2"
+                whileHover={{ scale: 1.02 }}
+                whileTap={{ scale: 0.98 }}
+                className="w-full py-3 bg-muted/80 backdrop-blur text-foreground font-medium rounded-xl hover:bg-muted transition flex items-center justify-center gap-2 border border-border"
               >
                 <MessageCircle className="w-5 h-5" />
                 {language === "ar" ? "تواصل مع الدعم" : "Contact Support"}
-              </button>
-              <button
+              </motion.button>
+              <motion.button
                 type="button"
                 onClick={onComplete}
+                whileHover={{ scale: 1.02 }}
+                whileTap={{ scale: 0.98 }}
                 className="w-full py-3 bg-primary text-primary-foreground font-bold rounded-xl hover:bg-primary/90 transition shadow-lg shadow-primary/20"
               >
                 {language === "ar" ? "إغلاق" : "Close"}
-              </button>
+              </motion.button>
             </div>
           ) : (
-            <button
+            <motion.button
               type="submit"
               disabled={loading}
-              className="w-full py-3 bg-primary text-primary-foreground font-bold rounded-xl hover:bg-primary/90 transition shadow-lg shadow-primary/20 disabled:opacity-50 active:scale-[0.98]"
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.98 }}
+              className="w-full py-3 bg-primary text-primary-foreground font-bold rounded-xl hover:bg-primary/90 transition shadow-lg shadow-primary/20 disabled:opacity-50"
             >
               {loading
                 ? language === "ar"
@@ -208,10 +226,10 @@ export function StudentProfileSetup({ onComplete }: StudentProfileSetupProps) {
                 : language === "ar"
                   ? "حفظ والمتابعة"
                   : "Save & Continue"}
-            </button>
+            </motion.button>
           )}
         </form>
-      </div>
+      </motion.div>
     </div>
   );
 }

@@ -28,7 +28,6 @@ import { formatDate, formatDateArabic } from "@/lib/utils";
 import { ActivityLog } from "@/types";
 import { doc, deleteDoc as deleteDocFn } from "firebase/firestore";
 import { FadeIn, ScaleIn, StaggerChildren } from "@/components/ui/Animations";
-import { cn } from "@/lib/utils";
 
 export default function AdminLogsPage() {
   const [logs, setLogs] = useState<ActivityLog[]>([]);

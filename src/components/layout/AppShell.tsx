@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useMemo } from "react";
-import { useRouter, usePathname } from "next/navigation";
+import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { useAuth, useLanguage } from "@/contexts";
 import { Sidebar, Navbar } from "@/components/layout";
@@ -43,7 +43,6 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   const { dir, language } = useLanguage();
 
   const router = useRouter();
-  const pathname = usePathname();
 
   // Enable global keyboard shortcuts
   useGlobalKeyboard();

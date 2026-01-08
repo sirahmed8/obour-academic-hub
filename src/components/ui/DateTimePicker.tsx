@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo, useEffect, useRef } from "react";
+import { useState, useMemo, useEffect, useRef, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { ChevronLeft, ChevronRight, Clock } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -151,7 +151,7 @@ export function DateTimePicker({ value, onChange, onClose, language }: DateTimeP
     );
   };
 
-  const handleConfirm = () => {
+  const handleConfirm = useCallback(() => {
     if (selectedDate) {
       const hours = isPM ? (selectedHour % 12) + 12 : selectedHour % 12;
       const finalDate = new Date(
@@ -165,7 +165,7 @@ export function DateTimePicker({ value, onChange, onClose, language }: DateTimeP
       onChange(formatted);
     }
     onClose();
-  };
+  }, [selectedDate, isPM, selectedHour, selectedMinute, onChange, onClose]);
 
   // Keyboard support - moved after handleConfirm
   useEffect(() => {
@@ -181,7 +181,7 @@ export function DateTimePicker({ value, onChange, onClose, language }: DateTimeP
 
     document.addEventListener("keydown", handleKeyDown);
     return () => document.removeEventListener("keydown", handleKeyDown);
-  }, [selectedDate, selectedHour, selectedMinute, isPM, onClose]);
+  }, [selectedDate, handleConfirm, onClose]);
 
   const handleClear = () => {
     onChange("");

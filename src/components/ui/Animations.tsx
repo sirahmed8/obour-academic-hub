@@ -170,3 +170,63 @@ export function Reveal({ children, delay = 0, className = "" }: AnimationProps) 
     </motion.div>
   );
 }
+
+/**
+ * HoverScale
+ * subtle scale effect on hover.
+ */
+export function HoverScale({
+  children,
+  className = "",
+  scale = 1.05,
+}: {
+  children: ReactNode;
+  className?: string;
+  scale?: number;
+}) {
+  return (
+    <motion.div whileHover={{ scale }} transition={springConfig} className={className}>
+      {children}
+    </motion.div>
+  );
+}
+
+/**
+ * TapScale
+ * subtle shrink effect on click/tap.
+ */
+export function TapScale({
+  children,
+  className = "",
+  scale = 0.95,
+}: {
+  children: ReactNode;
+  className?: string;
+  scale?: number;
+}) {
+  return (
+    <motion.div whileTap={{ scale }} transition={springConfig} className={className}>
+      {children}
+    </motion.div>
+  );
+}
+
+/**
+ * SmoothTransition
+ * Layout transition wrapper.
+ */
+export function SmoothTransition({
+  children,
+  className = "",
+  layoutId,
+}: {
+  children: ReactNode;
+  className?: string;
+  layoutId?: string;
+}) {
+  return (
+    <motion.div layout layoutId={layoutId} transition={springConfig} className={className}>
+      {children}
+    </motion.div>
+  );
+}

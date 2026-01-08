@@ -219,7 +219,7 @@ export function AddTodoModal({
           exit="exit"
           variants={modalBackdrop}
           className={cn(
-            "fixed inset-0 z-[999] flex items-start justify-center p-4 pt-8 pb-8 overflow-y-auto bg-black/30 backdrop-blur-md backdrop-saturate-150"
+            "fixed inset-0 z-[999] flex items-start justify-center p-4 pt-8 pb-8 overflow-y-auto bg-black/60 backdrop-blur-md backdrop-saturate-150"
           )}
         >
           <motion.div
@@ -231,17 +231,16 @@ export function AddTodoModal({
             })}
             onClick={(e) => {
               e.stopPropagation();
-              // Close date picker if open when clicking on modal body
               if (showDatePicker) setShowDatePicker(false);
             }}
             className={cn(
-              "w-full max-w-lg rounded-2xl shadow-2xl my-auto transition-colors duration-300 bg-background/80 dark:bg-black/10 backdrop-blur-xl backdrop-saturate-150 border border-white/20 dark:border-white/10 overflow-hidden"
+              "w-full max-w-lg rounded-3xl shadow-2xl my-auto transition-colors duration-300 bg-card/90 dark:bg-black/40 backdrop-blur-xl backdrop-saturate-150 border border-white/20 dark:border-white/10 overflow-hidden"
             )}
             dir={isRtl ? "rtl" : "ltr"}
           >
             {/* Header */}
-            <div className="p-4 border-b border-border flex items-center justify-between">
-              <h2 className="text-lg font-bold">
+            <div className="p-5 border-b border-white/10 flex items-center justify-between">
+              <h2 className="text-xl font-bold bg-gradient-to-r from-foreground to-foreground/70 bg-clip-text text-transparent">
                 {editTask
                   ? language === "ar"
                     ? "تعديل المهمة"
@@ -252,18 +251,22 @@ export function AddTodoModal({
               </h2>
               <motion.button
                 onClick={onClose}
-                whileHover={{ scale: 1.1 }}
+                whileHover={{ scale: 1.1, rotate: 90 }}
                 whileTap={{ scale: 0.9 }}
-                className="p-1 hover:bg-muted rounded-full transition-colors"
+                className="p-2 hover:bg-muted/50 rounded-full transition-colors text-muted-foreground hover:text-foreground"
               >
                 <X size={20} />
               </motion.button>
             </div>
 
             {/* Body */}
-            <div ref={scrollContainerRef} className="p-4 space-y-4">
+            <div ref={scrollContainerRef} className="p-5 space-y-5">
               {errors.length > 0 && (
-                <div className="bg-destructive/10 text-destructive p-3 rounded-xl flex items-center justify-between">
+                <motion.div
+                  initial={{ opacity: 0, scale: 0.9 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  className="bg-destructive/10 text-destructive p-3 rounded-2xl flex items-center justify-between border border-destructive/10"
+                >
                   <div className="flex items-center gap-2">
                     <AlertCircle size={18} />
                     <span className="text-sm font-medium">{errors[0]}</span>
@@ -272,13 +275,13 @@ export function AddTodoModal({
                     onClick={() => setErrors([])}
                     className="text-xs bg-background/50 px-2 py-1 rounded hover:bg-background transition-colors"
                   >
-                    {language === "ar" ? "مسح الأخطاء" : "Clear Errors"}
+                    {language === "ar" ? "مسح" : "Clear"}
                   </button>
-                </div>
+                </motion.div>
               )}
 
               {/* Title */}
-              <div className="space-y-1">
+              <div className="space-y-1.5">
                 <label className="text-sm font-medium text-muted-foreground">
                   {language === "ar" ? "عنوان المهمة" : "Task Title"}
                 </label>
@@ -286,7 +289,7 @@ export function AddTodoModal({
                   type="text"
                   value={title}
                   onChange={(e) => setTitle(e.target.value)}
-                  className="w-full bg-background border border-border rounded-xl px-4 py-2.5 outline-none focus:ring-2 focus:ring-primary/20 transition-all font-medium"
+                  className="w-full bg-background/50 border border-border rounded-xl px-4 py-3 outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary/50 transition-all font-medium placeholder:text-muted-foreground/50"
                   placeholder={
                     language === "ar" ? "ماذا تريد أن تنجز؟" : "What do you want to get done?"
                   }
@@ -294,45 +297,46 @@ export function AddTodoModal({
               </div>
 
               {/* Description */}
-              <div className="space-y-1">
+              <div className="space-y-1.5">
                 <label className="text-sm font-medium text-muted-foreground">
                   {language === "ar" ? "الوصـف" : "Description"}
                 </label>
                 <textarea
                   value={description}
                   onChange={(e) => setDescription(e.target.value)}
-                  className="w-full bg-background border border-border rounded-xl px-4 py-2.5 outline-none focus:ring-2 focus:ring-primary/20 transition-all min-h-[80px] resize-none"
+                  className="w-full bg-background/50 border border-border rounded-xl px-4 py-3 outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary/50 transition-all min-h-[100px] resize-none placeholder:text-muted-foreground/50"
                   placeholder={language === "ar" ? "أضف تفاصيل..." : "Add details..."}
                 />
               </div>
 
               <div className="grid grid-cols-2 gap-4">
                 {/* Priority */}
-                <div className="space-y-1">
+                <div className="space-y-1.5">
                   <label className="text-sm font-medium text-muted-foreground flex items-center gap-2">
                     <Flag size={14} />
                     {language === "ar" ? "الأولوية" : "Priority"}
                   </label>
-                  <div className="flex gap-1 bg-background p-1 rounded-xl border border-border">
+                  <div className="flex gap-1 bg-background/50 p-1.5 rounded-xl border border-border">
                     {priorities.map((p) => (
-                      <button
+                      <motion.button
                         key={p.value}
                         onClick={() => setPriority(p.value)}
+                        whileTap={{ scale: 0.95 }}
                         className={cn(
-                          "flex-1 text-[10px] sm:text-xs py-1.5 rounded-lg font-medium transition-all border border-transparent",
+                          "flex-1 text-[10px] sm:text-xs py-2 rounded-lg font-medium transition-all border border-transparent",
                           priority === p.value
                             ? p.color + " shadow-sm"
-                            : "text-muted-foreground hover:bg-background/50"
+                            : "text-muted-foreground hover:bg-background/80"
                         )}
                       >
                         {p.label}
-                      </button>
+                      </motion.button>
                     ))}
                   </div>
                 </div>
 
                 {/* Due Date */}
-                <div className="space-y-1 relative">
+                <div className="space-y-1.5 relative">
                   <label className="text-sm font-medium text-muted-foreground flex items-center gap-2">
                     <Calendar size={14} />
                     {language === "ar" ? "تاريخ الاستحقاق" : "Due Date"}
@@ -342,9 +346,9 @@ export function AddTodoModal({
                     onClick={() => setShowDatePicker(!showDatePicker)}
                     {...getHoverProps(shouldReduceMotion)}
                     className={cn(
-                      "w-full bg-background border border-border rounded-xl px-3 py-2 h-[38px] text-xs outline-none text-left flex items-center justify-between transition-all",
-                      showDatePicker && "ring-2 ring-primary/20 border-primary/30",
-                      dueDate ? "text-foreground" : "text-muted-foreground"
+                      "w-full bg-background/50 border border-border rounded-xl px-3 py-2 h-[46px] text-xs outline-none text-left flex items-center justify-between transition-all hover:bg-background/80",
+                      showDatePicker && "ring-2 ring-primary/20 border-primary/50",
+                      dueDate ? "text-foreground font-medium" : "text-muted-foreground"
                     )}
                   >
                     <span>
@@ -360,7 +364,6 @@ export function AddTodoModal({
                     <Calendar size={14} className="text-muted-foreground" />
                   </motion.button>
 
-                  {/* Custom Date Time Picker (In-flow for expand animation) */}
                   <div ref={datePickerContainerRef}>
                     <AnimatePresence>
                       {showDatePicker && (
@@ -379,25 +382,26 @@ export function AddTodoModal({
               </div>
 
               {/* Recurrence */}
-              <div className="space-y-1">
+              <div className="space-y-1.5">
                 <label className="text-sm font-medium text-muted-foreground flex items-center gap-2">
                   <RefreshCw size={14} />
                   {language === "ar" ? "التكرار" : "Repeat"}
                 </label>
-                <div className="flex gap-1 bg-background p-1 rounded-xl border border-border">
+                <div className="flex gap-1 bg-background/50 p-1.5 rounded-xl border border-border">
                   {repeats.map((r) => (
-                    <button
+                    <motion.button
                       key={r.value}
                       onClick={() => setRepeat(r.value)}
+                      whileTap={{ scale: 0.95 }}
                       className={cn(
-                        "flex-1 text-[10px] sm:text-xs py-1.5 px-2 rounded-lg font-medium transition-all border border-transparent",
+                        "flex-1 text-[10px] sm:text-xs py-2 px-2 rounded-lg font-medium transition-all border border-transparent",
                         repeat === r.value
                           ? "bg-primary/10 text-primary shadow-sm border-primary/20"
-                          : "text-muted-foreground hover:bg-background/50"
+                          : "text-muted-foreground hover:bg-background/80"
                       )}
                     >
                       {r.label}
-                    </button>
+                    </motion.button>
                   ))}
                 </div>
               </div>
@@ -407,7 +411,7 @@ export function AddTodoModal({
                 <label className="text-sm font-medium text-muted-foreground">
                   {language === "ar" ? "المهام الفرعية" : "Sub-tasks"}
                 </label>
-                <div className="space-y-2">
+                <div className="space-y-2 bg-background/30 p-2 rounded-2xl border border-white/5">
                   <AnimatePresence mode="popLayout">
                     {subtasks.map((st) => (
                       <motion.div
@@ -416,51 +420,55 @@ export function AddTodoModal({
                         animate={{ opacity: 1, x: 0, height: "auto" }}
                         exit={{ opacity: 0, x: 20, height: 0 }}
                         transition={{ type: "spring", damping: 25, stiffness: 300 }}
-                        className="flex items-center gap-2 group"
+                        className="flex items-center gap-3 group p-2 rounded-lg hover:bg-background/50 transition-colors"
                       >
                         <div
                           className={cn(
-                            "w-2 h-2 rounded-full",
-                            st.completed ? "bg-green-500" : "bg-muted-foreground"
+                            "w-2.5 h-2.5 rounded-full ring-2 ring-offset-2 ring-offset-background",
+                            st.completed
+                              ? "bg-green-500 ring-green-500/20"
+                              : "bg-muted-foreground/30 ring-muted-foreground/10"
                           )}
                         />
-                        <span className="flex-1 text-sm">{st.title}</span>
+                        <span className="flex-1 text-sm font-medium">{st.title}</span>
                         <button
                           onClick={() => handleRemoveSubtask(st.id)}
-                          className="opacity-0 group-hover:opacity-100 text-destructive p-1 transition-opacity"
+                          className="opacity-0 group-hover:opacity-100 text-destructive p-1.5 hover:bg-destructive/10 rounded-lg transition-all"
                         >
                           <Trash2 size={14} />
                         </button>
                       </motion.div>
                     ))}
                   </AnimatePresence>
-                  <div className="flex gap-2">
+                  <div className="flex gap-2 pt-1">
                     <input
                       type="text"
                       value={newSubtask}
                       onChange={(e) => setNewSubtask(e.target.value)}
                       onKeyDown={(e) => e.key === "Enter" && handleAddSubtask()}
-                      className="flex-1 bg-background border border-border rounded-xl px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-primary/20"
+                      className="flex-1 bg-background/50 border border-border rounded-xl px-4 py-2 text-sm outline-none focus:ring-2 focus:ring-primary/20 placeholder:text-muted-foreground/50 transition-all"
                       placeholder={language === "ar" ? "أضف مهمة فرعية..." : "Add a sub-task..."}
                     />
-                    <button
+                    <motion.button
                       onClick={handleAddSubtask}
+                      whileHover={{ scale: 1.05 }}
+                      whileTap={{ scale: 0.95 }}
                       className="bg-primary/10 text-primary p-2 rounded-xl hover:bg-primary/20 transition-colors"
                     >
-                      <Plus size={18} />
-                    </button>
+                      <Plus size={20} />
+                    </motion.button>
                   </div>
                 </div>
               </div>
             </div>
 
             {/* Footer */}
-            <div className="p-4 border-t border-border flex justify-end gap-3 bg-muted/20">
+            <div className="p-5 border-t border-white/10 flex justify-end gap-3 bg-muted/20">
               <motion.button
                 onClick={onClose}
                 whileHover={{ scale: 1.02 }}
                 whileTap={{ scale: 0.98 }}
-                className="px-4 py-2 text-sm font-medium text-muted-foreground hover:bg-muted rounded-xl transition-colors"
+                className="px-5 py-2.5 text-sm font-medium text-muted-foreground hover:text-foreground hover:bg-muted rounded-xl transition-colors"
               >
                 {language === "ar" ? "إلغاء" : "Cancel"}
               </motion.button>
@@ -469,7 +477,7 @@ export function AddTodoModal({
                 disabled={isSubmitting}
                 whileHover={{ scale: 1.02 }}
                 whileTap={{ scale: 0.98 }}
-                className="px-6 py-2 text-sm font-medium bg-primary text-primary-foreground rounded-xl shadow-lg shadow-primary/25 hover:shadow-xl hover:shadow-primary/30 transition-all disabled:opacity-50 disabled:pointer-events-none"
+                className="px-8 py-2.5 text-sm font-bold bg-primary text-primary-foreground rounded-xl shadow-lg shadow-primary/25 hover:shadow-xl hover:shadow-primary/30 transition-all disabled:opacity-50 disabled:pointer-events-none"
               >
                 {isSubmitting
                   ? language === "ar"

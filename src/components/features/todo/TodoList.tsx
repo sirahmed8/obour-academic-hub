@@ -13,33 +13,50 @@ import {
 import { db } from "@/lib/firebase";
 import { useAuth, useLanguage } from "@/contexts";
 import { TodoTask } from "@/types";
-import { Reorder, AnimatePresence, motion } from "framer-motion";
+import { AnimatePresence, motion } from "framer-motion";
 import { TodoItem } from "./TodoItem";
 import { AddTodoModal } from "./AddTodoModal";
-import { Plus, Filter, SortAsc } from "lucide-react";
+import { Plus, Filter, ChevronDown, CheckCircle2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 import { notificationService } from "@/services/notification.service";
 import { useReducedMotion } from "@/hooks/useReducedMotion";
 import { listContainer, getMotionProps } from "@/lib/motion";
 import { ConfirmationModal } from "@/components/ui/ConfirmationModal";
+import {
+  DndContext,
+  closestCenter,
+  useSensor,
+  useSensors,
+  PointerSensor,
+  DragEndEvent,
+} from "@dnd-kit/core";
+import { SortableContext, verticalListSortingStrategy, arrayMove } from "@dnd-kit/sortable";
+import { restrictToVerticalAxis } from "@dnd-kit/modifiers";
 
 export function TodoList() {
   const { user } = useAuth();
   const { language } = useLanguage();
   const [tasks, setTasks] = useState<TodoTask[]>([]);
-  const [filter, setFilter] = useState<
-    "all" | "high" | "medium" | "low" | "incomplete" | "completed"
-  >("all");
+  // Simplified filter state to match the UI design
+  const [filter, setFilter] = useState<"all" | "pending" | "completed">("all");
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingTask, setEditingTask] = useState<TodoTask | undefined>(undefined);
   const [isLoading, setIsLoading] = useState(true);
-  const [isFilterOpen, setIsFilterOpen] = useState(false);
+  const [showFilter, setShowFilter] = useState(false);
   const [deleteConfirm, setDeleteConfirm] = useState<{ open: boolean; taskId: string | null }>({
     open: false,
     taskId: null,
   });
   const { shouldReduceMotion } = useReducedMotion();
+
+  const sensors = useSensors(
+    useSensor(PointerSensor, {
+      activationConstraint: {
+        distance: 8,
+      },
+    })
+  );
 
   // Fetch tasks
   useEffect(() => {
@@ -63,32 +80,26 @@ export function TodoList() {
   // Derived state for filtered tasks
   const filteredTasks = useMemo(() => {
     if (filter === "all") return tasks;
-    if (filter === "incomplete") return tasks.filter((t) => !t.completed);
+    if (filter === "pending") return tasks.filter((t) => !t.completed);
     if (filter === "completed") return tasks.filter((t) => t.completed);
-    return tasks.filter((t) => t.priority === filter);
+    return tasks;
   }, [tasks, filter]);
 
-  const handleReorder = (newOrder: TodoTask[]) => {
-    // Optimistic update logic would go here if we were maintaining local state for order
-    // For now, we rely on the main 'tasks' state which is updated by Firestore snapshot
-    // Since Reorder component requires state update, we can't easily reorder *filtered* lists without local state
-    // but 'tasks' is the source of truth.
-    // If we want visual reordering, we need to update 'tasks' based on the reorder provided it's the full list
-    if (filter === "all") {
-      setTasks(newOrder);
-    }
-  };
+  const handleDragEnd = async (event: DragEndEvent) => {
+    const { active, over } = event;
+    if (filter !== "all" || !user || !over || active.id === over.id) return;
 
-  const handleDragEnd = async () => {
-    if (filter !== "all" || !user) return;
-    const uid = user.uid;
+    const oldIndex = tasks.findIndex((t) => t.id === active.id);
+    const newIndex = tasks.findIndex((t) => t.id === over.id);
 
-    // Create updates for all tasks that have changed position
-    const updates = tasks.map((task, index) => {
-      if (task.orderIndex !== index) {
-        return updateDoc(doc(db, `users/${uid}/tasks`, task.id), { orderIndex: index });
-      }
-      return Promise.resolve();
+    const newTasks = arrayMove(tasks, oldIndex, newIndex);
+
+    // Optimistic update
+    setTasks(newTasks);
+
+    // Save to DB
+    const updates = newTasks.map((task, index) => {
+      return updateDoc(doc(db, `users/${user.uid}/tasks`, task.id), { orderIndex: index });
     });
 
     await Promise.all(updates);
@@ -103,8 +114,6 @@ export function TodoList() {
       });
 
       if (newStatus) {
-        // Send completion notification
-        // We use the notification service we built earlier
         await notificationService.create({
           target: user.uid,
           title: language === "ar" ? "مهمة مكتملة!" : "Task Completed!",
@@ -141,188 +150,200 @@ export function TodoList() {
     setDeleteConfirm({ open: false, taskId: null });
   };
 
-  const handleEdit = (task: TodoTask) => {
-    setEditingTask(task);
-    setIsModalOpen(true);
-  };
-
-  const openNewTaskModal = () => {
-    setEditingTask(undefined);
-    setIsModalOpen(true);
+  const handleSaveTask = async () => {
+    setIsModalOpen(false);
+    toast.success(language === "ar" ? "تم حفظ المهمة" : "Task saved");
   };
 
   return (
     <div className="max-w-4xl mx-auto p-4 sm:p-6 space-y-6">
-      <div className="flex items-center justify-between gap-4">
-        <div>
-          <h1 className="text-2xl font-bold">
-            {language === "ar" ? "قائمة المهام" : "To-Do List"}
-          </h1>
-          <p className="text-muted-foreground text-sm">
-            {language === "ar"
-              ? "نظم وقتك وأنجز مهامك بكفاءة"
-              : "Organize your time and get things done"}
-          </p>
-        </div>
-        <button
-          onClick={openNewTaskModal}
-          className="bg-primary text-primary-foreground px-4 py-2 rounded-xl flex items-center gap-2 font-medium shadow-lg shadow-primary/25 hover:shadow-xl hover:shadow-primary/30 transition-all active:scale-95"
-        >
-          <Plus size={20} />
-          <span className="hidden sm:inline">{language === "ar" ? "مهمة جديدة" : "New Task"}</span>
-        </button>
-      </div>
+      {/* Header & Filters */}
+      <div className="flex flex-col md:flex-row gap-4 mb-6 items-start md:items-center justify-between">
+        <h1 className="text-3xl font-black tracking-tight text-transparent bg-clip-text bg-gradient-to-r from-primary to-primary/60">
+          {language === "ar" ? "قائمة المهام" : "My Tasks"}
+        </h1>
 
-      {/* Filters */}
-      <div className="relative">
-        <button
-          onClick={() => setIsFilterOpen(!isFilterOpen)}
-          className={cn(
-            "flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium transition-all border",
-            isFilterOpen
-              ? "bg-primary text-primary-foreground border-primary"
-              : "bg-card text-muted-foreground border-border hover:bg-muted"
-          )}
-        >
-          <Filter size={16} />
-          <span>{language === "ar" ? "الفلتر" : "Filter"}</span>
-          {filter !== "all" && (
-            <span className="bg-primary/20 text-primary text-xs px-2 py-0.5 rounded-full">
-              {filter === "incomplete"
-                ? language === "ar"
-                  ? "غير مكتملة"
-                  : "Incomplete"
-                : filter.charAt(0).toUpperCase() + filter.slice(1)}
-            </span>
-          )}
-        </button>
-
-        <AnimatePresence>
-          {isFilterOpen && (
-            <>
-              {/* Click-outside overlay */}
-              <motion.div
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                exit={{ opacity: 0 }}
-                className="fixed inset-0 z-10"
-                onClick={() => setIsFilterOpen(false)}
-              />
-              <motion.div
-                initial={{ opacity: 0, y: -10, scale: 0.95 }}
-                animate={{ opacity: 1, y: 0, scale: 1 }}
-                exit={{ opacity: 0, y: -10, scale: 0.95 }}
-                transition={{ type: "spring", damping: 25, stiffness: 300 }}
-                className={cn(
-                  "absolute top-full left-0 mt-2 z-20 rounded-xl shadow-2xl p-2 min-w-[180px] bg-background/50 dark:bg-black/10 backdrop-blur-xl backdrop-saturate-150 border border-white/20 dark:border-white/10"
-                )}
-              >
-                {(["all", "incomplete", "high", "medium", "low"] as const).map((f) => (
-                  <button
-                    key={f}
-                    onClick={() => {
-                      setFilter(f);
-                      setIsFilterOpen(false);
-                    }}
-                    className={cn(
-                      "w-full px-3 py-2 rounded-lg text-sm font-medium text-start transition-colors flex items-center gap-2",
-                      filter === f
-                        ? "bg-primary/10 text-primary"
-                        : "text-muted-foreground hover:bg-muted"
-                    )}
-                  >
-                    <span
-                      className={cn(
-                        "w-2 h-2 rounded-full",
-                        f === "high" && "bg-red-500",
-                        f === "medium" && "bg-yellow-500",
-                        f === "low" && "bg-green-500",
-                        f === "all" && "bg-primary",
-                        f === "incomplete" && "bg-muted-foreground"
-                      )}
-                    />
-                    {f === "all"
+        <div className="flex gap-2 w-full md:w-auto">
+          {/* Filter Dropdown */}
+          <div className="relative flex-1 md:flex-none">
+            <motion.button
+              onClick={() => setShowFilter(!showFilter)}
+              whileTap={{ scale: 0.95 }}
+              className={cn(
+                "w-full md:w-48 px-4 py-2.5 rounded-xl border flex items-center justify-between transition-all duration-200",
+                showFilter
+                  ? "bg-primary/5 border-primary/20 text-primary shadow-sm ring-2 ring-primary/10"
+                  : "bg-background border-border hover:border-primary/30 hover:bg-muted/50"
+              )}
+            >
+              <div className="flex items-center gap-2">
+                <Filter size={16} />
+                <span className="text-sm font-medium">
+                  {filter === "all"
+                    ? language === "ar"
+                      ? "الكل"
+                      : "All Tasks"
+                    : filter === "pending"
                       ? language === "ar"
-                        ? "الكل"
-                        : "All"
-                      : f === "incomplete"
+                        ? "معلقة"
+                        : "Pending"
+                      : language === "ar"
+                        ? "مكتملة"
+                        : "Completed"}
+                </span>
+              </div>
+              <ChevronDown
+                size={16}
+                className={cn("transition-transform duration-200", showFilter && "rotate-180")}
+              />
+            </motion.button>
+            <AnimatePresence>
+              {showFilter && (
+                <motion.div
+                  initial={{ opacity: 0, y: 8, scale: 0.95 }}
+                  animate={{ opacity: 1, y: 0, scale: 1 }}
+                  exit={{ opacity: 0, y: 8, scale: 0.95 }}
+                  className="absolute top-full mt-2 left-0 w-full bg-card/90 backdrop-blur-xl border border-border/50 rounded-xl shadow-xl z-10 overflow-hidden"
+                >
+                  {(["all", "pending", "completed"] as const).map((f) => (
+                    <button
+                      key={f}
+                      onClick={() => {
+                        setFilter(f);
+                        setShowFilter(false);
+                      }}
+                      className={cn(
+                        "w-full text-left px-4 py-3 text-sm transition-colors hover:bg-muted font-medium flex items-center gap-2",
+                        filter === f && "bg-primary/5 text-primary"
+                      )}
+                    >
+                      {filter === f && (
+                        <motion.div
+                          layoutId="active-filter-indicator"
+                          className="w-1.5 h-1.5 rounded-full bg-primary"
+                        />
+                      )}
+                      {f === "all"
                         ? language === "ar"
-                          ? "غير مكتملة"
-                          : "Incomplete"
-                        : f.charAt(0).toUpperCase() + f.slice(1)}
-                  </button>
-                ))}
-              </motion.div>
-            </>
-          )}
-        </AnimatePresence>
+                          ? "الجميع"
+                          : "All Tasks"
+                        : f === "pending"
+                          ? language === "ar"
+                            ? "قيد الانتظار"
+                            : "Pending"
+                          : language === "ar"
+                            ? "مكتملة"
+                            : "Completed"}
+                    </button>
+                  ))}
+                </motion.div>
+              )}
+            </AnimatePresence>
+          </div>
+
+          <motion.button
+            onClick={() => {
+              setEditingTask(undefined);
+              setIsModalOpen(true);
+            }}
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
+            className="flex-shrink-0 bg-primary text-primary-foreground px-4 py-2.5 rounded-xl font-bold shadow-lg shadow-primary/25 hover:bg-primary/90 hover:shadow-primary/30 transition-all flex items-center gap-2"
+          >
+            <Plus size={18} />
+            <span className="hidden sm:inline">
+              {language === "ar" ? "مهمة جديدة" : "New Task"}
+            </span>
+          </motion.button>
+        </div>
       </div>
 
-      {/* List */}
-      <div className="min-h-[300px]">
-        {isLoading ? (
-          <div className="space-y-3">
-            {[1, 2, 3].map((i) => (
-              <div key={i} className="h-24 bg-muted/20 rounded-xl animate-pulse" />
-            ))}
-          </div>
-        ) : filteredTasks.length === 0 ? (
-          <div className="flex flex-col items-center justify-center py-20 text-center text-muted-foreground">
-            <div className="bg-muted/30 p-4 rounded-full mb-4">
-              <SortAsc size={32} className="opacity-50" />
-            </div>
-            <p>
-              {language === "ar"
-                ? "لا توجد مهام هنا. أضف مهمتك الأولى!"
-                : "No tasks here. Add your first task!"}
-            </p>
-          </div>
-        ) : filter === "all" && !shouldReduceMotion ? (
-          <Reorder.Group
-            axis="y"
-            values={filteredTasks}
-            onReorder={handleReorder}
-            as="ul"
-            className="space-y-3"
-          >
-            {filteredTasks.map((task) => (
-              <div key={task.id} onPointerUp={handleDragEnd}>
-                <TodoItem
-                  task={task}
-                  onToggle={handleToggle}
-                  onDelete={handleDelete}
-                  onEdit={handleEdit}
-                />
+      <DndContext
+        sensors={sensors}
+        collisionDetection={closestCenter}
+        onDragEnd={handleDragEnd}
+        modifiers={[restrictToVerticalAxis]}
+      >
+        <div className="space-y-3">
+          <AnimatePresence mode="popLayout">
+            {isLoading ? (
+              <div className="space-y-3">
+                {[1, 2, 3].map((i) => (
+                  <div key={i} className="h-24 bg-muted/20 rounded-xl animate-pulse" />
+                ))}
               </div>
-            ))}
-          </Reorder.Group>
-        ) : (
-          <motion.ul
-            {...getMotionProps(shouldReduceMotion, {
-              variants: listContainer,
-              initial: "hidden",
-              animate: "visible",
-            })}
-            className="space-y-3"
-          >
-            <AnimatePresence mode="popLayout">
-              {filteredTasks.map((task) => (
-                <TodoItem
-                  key={task.id}
-                  task={task}
-                  onToggle={handleToggle}
-                  onDelete={handleDelete}
-                  onEdit={handleEdit}
-                />
-              ))}
-            </AnimatePresence>
-          </motion.ul>
-        )}
-      </div>
+            ) : filteredTasks.length === 0 ? (
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, scale: 0.95 }}
+                className="text-center py-16 bg-muted/20 rounded-3xl border-2 border-dashed border-muted flex flex-col items-center justify-center p-6"
+              >
+                <div className="w-20 h-20 bg-primary/5 rounded-full flex items-center justify-center mb-4 ring-4 ring-primary/5">
+                  <CheckCircle2 className="w-10 h-10 text-primary/40" />
+                </div>
+                <h3 className="text-xl font-bold text-muted-foreground">
+                  {filter === "completed"
+                    ? language === "ar"
+                      ? "لا توجد مهام مكتملة بعد"
+                      : "No completed tasks yet"
+                    : language === "ar"
+                      ? "كل شيء نظيف! 🎉"
+                      : "All caught up! 🎉"}
+                </h3>
+                <p className="text-sm text-muted-foreground/60 mt-2 max-w-xs mx-auto mb-6">
+                  {filter === "completed"
+                    ? language === "ar"
+                      ? "المهام التي تنجزها ستظهر هنا."
+                      : "Tasks you finish will appear here."
+                    : language === "ar"
+                      ? "استرخِ أو أضف مهامًا جديدة لإدارة وقتك بذكاء."
+                      : "Relax or add new tasks to manage your time wisely."}
+                </p>
+                {filter !== "completed" && (
+                  <motion.button
+                    onClick={() => setIsModalOpen(true)}
+                    whileHover={{ scale: 1.05 }}
+                    whileTap={{ scale: 0.95 }}
+                    className="text-primary font-bold text-sm bg-primary/10 px-6 py-2 rounded-full hover:bg-primary/20 transition-colors"
+                  >
+                    {language === "ar" ? "أضف مهمة الآن" : "Add a task now"}
+                  </motion.button>
+                )}
+              </motion.div>
+            ) : (
+              <SortableContext items={filteredTasks} strategy={verticalListSortingStrategy}>
+                <motion.ul
+                  {...getMotionProps(shouldReduceMotion, {
+                    variants: listContainer,
+                    initial: "hidden",
+                    animate: "visible",
+                  })}
+                  className="space-y-3"
+                >
+                  {filteredTasks.map((task) => (
+                    <TodoItem
+                      key={task.id}
+                      task={task}
+                      onToggle={handleToggle}
+                      onDelete={handleDelete}
+                      onEdit={(t) => {
+                        setEditingTask(t);
+                        setIsModalOpen(true);
+                      }}
+                    />
+                  ))}
+                </motion.ul>
+              </SortableContext>
+            )}
+          </AnimatePresence>
+        </div>
+      </DndContext>
 
       <AddTodoModal
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
+        onSuccess={handleSaveTask}
         editTask={editingTask}
       />
 

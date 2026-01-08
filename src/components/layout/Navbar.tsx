@@ -5,6 +5,7 @@ import { Menu } from "lucide-react"; // Only imported what is used
 import { useAuth, useLanguage } from "@/contexts";
 import Image from "next/image";
 import { ProfileMenu } from "./ProfileMenu";
+import { AnimatePresence } from "framer-motion";
 
 interface NavbarProps {
   onMenuClick: () => void;
@@ -12,18 +13,8 @@ interface NavbarProps {
 
 export function Navbar({ onMenuClick }: NavbarProps) {
   const [showSettings, setShowSettings] = useState(false);
-  const [isClosing, setIsClosing] = useState(false);
   const { user } = useAuth();
   const { language } = useLanguage();
-
-  // Close menu with animation
-  const closeMenu = () => {
-    setIsClosing(true);
-    setTimeout(() => {
-      setShowSettings(false);
-      setIsClosing(false);
-    }, 150);
-  };
 
   return (
     <header className="fixed top-0 left-0 right-0 h-16 flex items-center justify-between px-4 lg:px-6 z-50 bg-white/10 dark:bg-black/10 backdrop-blur-xl backdrop-saturate-150">
@@ -69,7 +60,7 @@ export function Navbar({ onMenuClick }: NavbarProps) {
       {/* Settings Dropdown */}
       <div className="relative">
         <button
-          onClick={() => (showSettings ? closeMenu() : setShowSettings(true))}
+          onClick={() => setShowSettings(!showSettings)}
           className="flex items-center gap-2 p-2 hover:bg-muted/20 rounded-xl transition-colors relative"
         >
           {user && (
@@ -109,7 +100,9 @@ export function Navbar({ onMenuClick }: NavbarProps) {
           )}
         </button>
 
-        {showSettings && <ProfileMenu onClose={closeMenu} isClosing={isClosing} />}
+        <AnimatePresence>
+          {showSettings && <ProfileMenu onClose={() => setShowSettings(false)} />}
+        </AnimatePresence>
       </div>
     </header>
   );

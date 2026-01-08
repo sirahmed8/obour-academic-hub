@@ -8,16 +8,32 @@ import { toast } from "sonner";
 import { doc, updateDoc } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import { ThemeToggle } from "./ThemeToggle";
+import { motion, Variants } from "framer-motion";
 
 interface ProfileMenuProps {
   onClose: () => void;
-  isClosing: boolean;
 }
 
 // Check if we're on client side (for SSR-safe portal)
 const isClient = typeof window !== "undefined";
 
-export function ProfileMenu({ onClose, isClosing }: ProfileMenuProps) {
+const menuVariants: Variants = {
+  hidden: { opacity: 0, scale: 0.9, y: -20 },
+  visible: {
+    opacity: 1,
+    scale: 1,
+    y: 0,
+    transition: { type: "spring", duration: 0.3, bounce: 0.2 },
+  },
+  exit: {
+    opacity: 0,
+    scale: 0.9,
+    y: -20,
+    transition: { duration: 0.2 },
+  },
+};
+
+export function ProfileMenu({ onClose }: ProfileMenuProps) {
   const { user, logout } = useAuth();
   const { language, setLanguage, t } = useLanguage();
 
@@ -63,12 +79,14 @@ export function ProfileMenu({ onClose, isClosing }: ProfileMenuProps) {
 
   return createPortal(
     <>
-      <div className="fixed inset-0 z-[60]" onClick={onClose} />
-      <div
+      <div className="fixed inset-0 z-[60] bg-transparent" onClick={onClose} />
+      <motion.div
+        variants={menuVariants}
+        initial="hidden"
+        animate="visible"
+        exit="exit"
         className={cn(
-          "fixed top-20 w-72 bg-white/80 dark:bg-black/40 backdrop-blur-xl backdrop-saturate-150 border border-primary/10 dark:border-white/10 rounded-2xl shadow-2xl z-[70] p-4 space-y-4",
-          "transition-all duration-150 ease-out",
-          isClosing ? "animate-scale-out" : "animate-scale-in",
+          "fixed top-20 w-72 bg-card/90 dark:bg-black/90 backdrop-blur-xl backdrop-saturate-150 border border-primary/10 dark:border-white/10 rounded-2xl shadow-2xl z-[70] p-4 space-y-4",
           language === "ar" ? "left-4 origin-top-left" : "right-4 origin-top-right"
         )}
       >
@@ -99,7 +117,7 @@ export function ProfileMenu({ onClose, isClosing }: ProfileMenuProps) {
                       })
                     );
                   }}
-                  className="text-[10px] text-primary hover:underline text-center w-full cursor-pointer"
+                  className="text-[10px] text-primary hover:underline text-center w-full cursor-pointer hover:text-primary/80 transition-colors"
                 >
                   {language === "ar"
                     ? "تواصل مع الدعم لتغيير البيانات"
@@ -136,7 +154,7 @@ export function ProfileMenu({ onClose, isClosing }: ProfileMenuProps) {
                 <button
                   onClick={handleSaveProfile}
                   disabled={isSaving}
-                  className="w-full py-2 bg-primary text-primary-foreground rounded-lg text-xs font-bold hover:bg-primary/90 transition-colors"
+                  className="w-full py-2 bg-primary text-primary-foreground rounded-lg text-xs font-bold hover:bg-primary/90 transition-colors disabled:opacity-50"
                 >
                   {isSaving ? "Saving..." : language === "ar" ? "حفظ وتثبيت" : "Save & Lock"}
                 </button>
@@ -152,7 +170,7 @@ export function ProfileMenu({ onClose, isClosing }: ProfileMenuProps) {
               className={cn(
                 "flex-1 py-1.5 px-3 rounded-lg flex items-center justify-center gap-2 transition-all text-xs font-medium",
                 language === "en"
-                  ? "bg-primary text-primary-foreground"
+                  ? "bg-primary text-primary-foreground shadow-sm"
                   : "bg-muted hover:bg-muted/80 text-muted-foreground"
               )}
             >
@@ -163,7 +181,7 @@ export function ProfileMenu({ onClose, isClosing }: ProfileMenuProps) {
               className={cn(
                 "flex-1 py-1.5 px-3 rounded-lg flex items-center justify-center gap-2 transition-all text-xs font-medium",
                 language === "ar"
-                  ? "bg-primary text-primary-foreground"
+                  ? "bg-primary text-primary-foreground shadow-sm"
                   : "bg-muted hover:bg-muted/80 text-muted-foreground"
               )}
             >
@@ -257,7 +275,7 @@ export function ProfileMenu({ onClose, isClosing }: ProfileMenuProps) {
             {language === "ar" ? "تسجيل خروج" : "Log out"}
           </button>
         </div>
-      </div>
+      </motion.div>
     </>,
     document.body
   );
