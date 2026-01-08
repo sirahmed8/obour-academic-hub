@@ -1,21 +1,9 @@
-```javascript
 "use client";
 
-import { Bell, Menu, Search, Video, Mic, LogOut, Settings, User, X } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { useState } from "react";
+import { Menu } from "lucide-react"; // Only imported what is used
 import { useAuth, useLanguage } from "@/contexts";
-import { useNavigate } from "@/hooks/useNavigate";
-import { getInitials } from "@/lib/utils";
-import { ThemeToggle } from "@/components/ui/ThemeToggle";
+import { useRouter } from "next/navigation";
 import Image from "next/image";
 import { ProfileMenu } from "./ProfileMenu";
 
@@ -27,8 +15,8 @@ export function Navbar({ onMenuClick }: NavbarProps) {
   const [showSettings, setShowSettings] = useState(false);
   const [isClosing, setIsClosing] = useState(false);
   const { user, logout } = useAuth();
-  const { t, language } = useLanguage();
-  const navigate = useNavigate();
+  const { language } = useLanguage();
+  const router = useRouter();
 
   // Close menu with animation
   const closeMenu = () => {
@@ -42,7 +30,7 @@ export function Navbar({ onMenuClick }: NavbarProps) {
   const handleLogout = async () => {
     try {
       await logout();
-      navigate("/");
+      router.push("/");
     } catch (error) {
       console.error("Logout failed:", error);
     }
@@ -50,7 +38,6 @@ export function Navbar({ onMenuClick }: NavbarProps) {
 
   return (
     <header className="fixed top-0 left-0 right-0 h-16 flex items-center justify-between px-4 lg:px-6 z-50 bg-white/10 dark:bg-black/10 backdrop-blur-xl backdrop-saturate-150 border-b border-white/5 dark:border-white/5">
-      
       {/* LEFT SIDE: Logo (Desktop) & Menu Button (Mobile) */}
       <div className="flex items-center gap-4">
         {/* Mobile Menu Button */}
@@ -73,8 +60,12 @@ export function Navbar({ onMenuClick }: NavbarProps) {
             />
           </div>
           <div className="flex flex-col">
-            <span className="font-harman text-lg font-bold leading-tight hidden lg:block">Obour Hub</span>
-            <span className="font-harman text-base font-bold leading-tight lg:hidden">Obour Hub</span>
+            <span className="font-harman text-lg font-bold leading-tight hidden lg:block">
+              Obour Hub
+            </span>
+            <span className="font-harman text-base font-bold leading-tight lg:hidden">
+              Obour Hub
+            </span>
             <span className="text-[10px] text-muted-foreground font-medium hidden lg:block">
               {language === "ar" ? "نظام إدارة التعلم الذكي" : "Smart Learning System"}
             </span>
@@ -88,20 +79,20 @@ export function Navbar({ onMenuClick }: NavbarProps) {
       <div className="relative">
         <button
           onClick={() => (showSettings ? closeMenu() : setShowSettings(true))}
-          className="flex items-center gap-2 p-2 hover:bg-muted rounded-xl transition-colors relative"
+          className="flex items-center gap-2 p-2 hover:bg-muted/20 rounded-xl transition-colors relative"
         >
           {user && (
             <>
               {user.photoURL ? (
                 <Image
                   src={user.photoURL}
-                  alt={user.displayName}
+                  alt={user.displayName || "User"}
                   width={36}
                   height={36}
                   className="rounded-full border-2 border-primary/20"
                 />
               ) : (
-                <div className="w-9 h-9 rounded-full border-2 border-primary/20 bg-muted flex items-center justify-center">
+                <div className="w-9 h-9 rounded-full border-2 border-primary/20 bg-muted/50 flex items-center justify-center">
                   <svg
                     xmlns="http://www.w3.org/2000/svg"
                     width="20"
