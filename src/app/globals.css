@@ -106,7 +106,7 @@ input:not([type="checkbox"]):not([type="radio"]),
 textarea,
 select,
 [contenteditable="true"] {
-  transition: 
+  transition:
     outline-color 0.2s ease-out,
     outline-offset 0.15s ease-out,
     border-color 0.2s ease-out,
@@ -121,7 +121,7 @@ select:focus,
   outline: 2px solid hsl(var(--primary) / 0.4) !important;
   outline-offset: 2px !important;
   border-color: hsl(var(--primary) / 0.6) !important;
-  box-shadow: 
+  box-shadow:
     0 0 0 3px hsl(var(--primary) / 0.1),
     0 0 15px hsl(var(--primary) / 0.08) !important;
 }
