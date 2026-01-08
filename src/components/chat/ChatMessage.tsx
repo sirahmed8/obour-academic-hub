@@ -12,6 +12,9 @@ import { FileAttachmentDisplay } from "@/components/features/FileUpload";
 
 const QUICK_EMOJIS = ["👍", "❤️", "😂", "😮", "😢", "🙏"];
 
+// Optimization: Define plugins array outside component to maintain referential equality
+const REMARK_PLUGINS = [remarkGfm];
+
 interface ChatMessageProps {
   message: ChatMessage;
   user: User; // Current logged-in user
@@ -96,7 +99,7 @@ export const ChatMessageItem = memo(function ChatMessageItem({
             )}
           >
             {/* MARKDOWN RENDERING */}
-            <ReactMarkdown remarkPlugins={[remarkGfm]}>{msg.text}</ReactMarkdown>
+            <ReactMarkdown remarkPlugins={REMARK_PLUGINS}>{msg.text}</ReactMarkdown>
           </div>
 
           {/* Attachments */}
