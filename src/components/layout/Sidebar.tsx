@@ -154,7 +154,7 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
       {/* Sidebar */}
       <aside
         className={cn(
-          "fixed top-0 h-full w-[85vw] max-w-[280px] lg:max-w-none lg:w-72 bg-white/10 dark:bg-black/10 backdrop-blur-xl backdrop-saturate-150 shadow-2xl z-50 transform transition-transform duration-300 ease-in-out supports-[backdrop-filter]:bg-white/5 supports-[backdrop-filter]:dark:bg-black/10",
+          "glass-fixed fixed top-0 h-full w-[85vw] max-w-[280px] lg:max-w-none lg:w-72 bg-white/10 dark:bg-black/10 backdrop-blur-xl backdrop-saturate-150 shadow-2xl z-50 transform transition-transform duration-300 ease-in-out supports-[backdrop-filter]:bg-white/5 supports-[backdrop-filter]:dark:bg-black/10",
           "lg:translate-x-0 lg:static lg:shadow-none",
           language === "ar" ? "right-0" : "left-0",
           isOpen ? "translate-x-0" : language === "ar" ? "translate-x-full" : "-translate-x-full"

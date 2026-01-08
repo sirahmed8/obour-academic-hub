@@ -69,8 +69,8 @@ export default function RootLayout({
                   toastOptions={{
                     classNames: {
                       toast:
-                        "bg-white/10 dark:bg-black/10 backdrop-blur-xl backdrop-saturate-150 border border-white/20 dark:border-white/10 shadow-lg !text-foreground",
-                      title: "text-foreground",
+                        "bg-card/90 dark:bg-card/90 backdrop-blur-xl backdrop-saturate-150 border border-border shadow-lg text-foreground",
+                      title: "text-foreground font-medium",
                       description: "text-muted-foreground",
                       actionButton: "bg-primary text-primary-foreground",
                       cancelButton: "bg-muted text-muted-foreground",

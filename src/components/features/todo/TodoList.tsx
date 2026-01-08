@@ -22,6 +22,7 @@ import { toast } from "sonner";
 import { notificationService } from "@/services/notification.service";
 import { useReducedMotion } from "@/hooks/useReducedMotion";
 import { listContainer, getMotionProps } from "@/lib/motion";
+import { ConfirmationModal } from "@/components/ui/ConfirmationModal";
 
 export function TodoList() {
   const { user } = useAuth();
@@ -34,6 +35,10 @@ export function TodoList() {
   const [editingTask, setEditingTask] = useState<TodoTask | undefined>(undefined);
   const [isLoading, setIsLoading] = useState(true);
   const [isFilterOpen, setIsFilterOpen] = useState(false);
+  const [deleteConfirm, setDeleteConfirm] = useState<{ open: boolean; taskId: string | null }>({
+    open: false,
+    taskId: null,
+  });
   const { shouldReduceMotion } = useReducedMotion();
 
   // Fetch tasks
@@ -122,16 +127,18 @@ export function TodoList() {
 
   const handleDelete = async (id: string) => {
     if (!user) return;
-    if (
-      confirm(language === "ar" ? "هل أنت متأكد من الحذف؟" : "Are you sure you want to delete?")
-    ) {
-      try {
-        await deleteDoc(doc(db, `users/${user.uid}/tasks`, id));
-        toast.success("Task deleted");
-      } catch {
-        toast.error("Failed to delete task");
-      }
+    setDeleteConfirm({ open: true, taskId: id });
+  };
+
+  const confirmDelete = async () => {
+    if (!user || !deleteConfirm.taskId) return;
+    try {
+      await deleteDoc(doc(db, `users/${user.uid}/tasks`, deleteConfirm.taskId));
+      toast.success(language === "ar" ? "تم حذف المهمة" : "Task deleted");
+    } catch {
+      toast.error(language === "ar" ? "فشل في الحذف" : "Failed to delete task");
     }
+    setDeleteConfirm({ open: false, taskId: null });
   };
 
   const handleEdit = (task: TodoTask) => {
@@ -317,6 +324,21 @@ export function TodoList() {
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
         editTask={editingTask}
+      />
+
+      <ConfirmationModal
+        isOpen={deleteConfirm.open}
+        onClose={() => setDeleteConfirm({ open: false, taskId: null })}
+        onConfirm={confirmDelete}
+        title={language === "ar" ? "حذف المهمة" : "Delete Task"}
+        message={
+          language === "ar"
+            ? "هل أنت متأكد من حذف هذه المهمة؟ لا يمكن التراجع عن هذا الإجراء."
+            : "Are you sure you want to delete this task? This action cannot be undone."
+        }
+        confirmText={language === "ar" ? "حذف" : "Delete"}
+        cancelText={language === "ar" ? "إلغاء" : "Cancel"}
+        type="danger"
       />
     </div>
   );

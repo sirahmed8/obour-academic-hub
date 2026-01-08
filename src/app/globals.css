@@ -731,3 +731,54 @@ select:focus {
   transform: translateY(-2px);
   box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
 }
+
+/* ===========================================
+   GPU-Optimized Blur Performance Utilities
+   =========================================== */
+
+/**
+ * Apply to blur containers for optimal performance on mobile.
+ * Uses CSS containment to isolate paint/layout calculations.
+ */
+.glass-container {
+  transform: translateZ(0);
+  will-change: transform;
+  backface-visibility: hidden;
+  contain: layout style paint;
+  -webkit-transform: translateZ(0);
+  -webkit-backface-visibility: hidden;
+}
+
+/**
+ * Lighter version for smaller elements
+ */
+.glass-element {
+  transform: translateZ(0);
+  backface-visibility: hidden;
+  -webkit-transform: translateZ(0);
+  -webkit-backface-visibility: hidden;
+}
+
+/**
+ * For fixed elements with blur (navbar, sidebar)
+ * Prevents repaint storms on scroll
+ */
+.glass-fixed {
+  transform: translate3d(0, 0, 0);
+  will-change: transform;
+  contain: layout style;
+  backface-visibility: hidden;
+}
+
+/**
+ * Reduce blur intensity on low-capability devices
+ * Uses @supports to detect if reduce motion is preferred
+ */
+@media (prefers-reduced-motion: reduce) {
+  .glass-container,
+  .glass-element,
+  .glass-fixed {
+    backdrop-filter: blur(8px) !important;
+    -webkit-backdrop-filter: blur(8px) !important;
+  }
+}
