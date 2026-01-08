@@ -196,7 +196,7 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
           <nav
             ref={navRef}
             onScroll={handleScroll}
-            className="flex-1 py-6 px-4 space-y-6 overflow-y-auto border-r border-white/5 dark:border-white/5"
+            className="flex-1 py-6 px-4 space-y-6 overflow-y-auto [&::-webkit-scrollbar]:hidden [-ms-overflow-style:'none'] [scrollbar-width:none]"
           >
             {/* Main Nav */}
             <div className="space-y-2">
