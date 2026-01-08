@@ -4,67 +4,79 @@
 
 ![Obour Logo](public/obour-logo.png)
 
-**A modern educational platform for Obour Institutes students**
+**🎓 A Premium Educational Platform for Obour Institutes**
 
-[![Live Demo](https://img.shields.io/badge/Live-obourinstitutes.web.app-blue?style=for-the-badge)](https://obourinstitutes.web.app)
-[![Next.js](https://img.shields.io/badge/Next.js-16-black?style=for-the-badge&logo=next.js)](https://nextjs.org)
-[![Firebase](https://img.shields.io/badge/Firebase-Hosting-orange?style=for-the-badge&logo=firebase)](https://firebase.google.com)
+[![Live Demo](https://img.shields.io/badge/🚀_Live-obourinstitutes.web.app-6366f1?style=for-the-badge)](https://obourinstitutes.web.app)
+[![Next.js](https://img.shields.io/badge/Next.js-15-black?style=for-the-badge&logo=next.js)](https://nextjs.org)
+[![Firebase](https://img.shields.io/badge/Firebase-Powered-orange?style=for-the-badge&logo=firebase)](https://firebase.google.com)
+[![TypeScript](https://img.shields.io/badge/TypeScript-100%25-blue?style=for-the-badge&logo=typescript)](https://typescriptlang.org)
 
 </div>
 
 ---
 
-## 🚀 Tech Stack
+## ✨ Highlights
+
+- 🌗 **Live Blur Glassmorphism** - Premium UI with GPU-optimized backdrop blur
+- 🤖 **AI Chatbot** - Bilingual (Arabic/English) with 40+ pre-trained responses
+- 📱 **Mobile-First** - Fully responsive with smooth animations
+- 🔐 **Role-Based Access** - Owner, Admin, Student permissions
+- 🌐 **RTL Support** - Full Arabic language support
+
+---
+
+## 🛠️ Tech Stack
 
 | Technology        | Purpose                           |
 | ----------------- | --------------------------------- |
-| **Next.js 16**    | App Router with Turbopack         |
+| **Next.js 15**    | App Router + Turbopack            |
 | **TypeScript**    | Full type safety                  |
 | **Tailwind CSS**  | Utility-first styling             |
 | **Firebase**      | Auth, Firestore, Storage, Hosting |
-| **Framer Motion** | Smooth animations                 |
+| **Framer Motion** | Smooth, GPU-optimized animations  |
 | **Cloudinary**    | Image/file uploads                |
 
-## 📁 Project Structure
+---
+
+## 📂 Project Structure
 
 ```
 src/
-├── app/                    # Next.js App Router
-│   ├── admin/              # Admin dashboard (protected)
-│   ├── main/               # Student dashboard
-│   ├── subject/            # Subject pages
-│   └── layout.tsx          # Root layout
+├── app/                 # Next.js App Router
+│   ├── admin/           # Admin dashboard (protected)
+│   ├── main/            # Student dashboard
+│   └── todo/            # Task management
 ├── components/
-│   ├── chat/               # Chat components
-│   ├── features/           # Feature components (Chatbot, etc.)
-│   ├── layout/             # Layout (Navbar, Sidebar)
-│   └── ui/                 # Reusable UI components
-├── contexts/               # React Context (Auth, Theme, Language)
-├── lib/                    # Utilities & Firebase config
-│   └── bot/                # LocalBot engine & knowledge base
-├── services/               # Business logic services
-└── types/                  # TypeScript definitions
+│   ├── features/        # Chatbot, Dashboard, Todo
+│   ├── layout/          # Navbar, Sidebar, AppShell
+│   └── ui/              # Reusable components
+├── contexts/            # Auth, Theme, Language
+├── hooks/               # Custom React hooks
+├── lib/                 # Utilities & Firebase
+│   └── bot/             # LocalBot engine
+├── services/            # Business logic
+└── types/               # TypeScript definitions
 ```
 
-## 🔧 Quick Start
+---
+
+## 🚀 Quick Start
 
 ```bash
-# 1. Clone and install
+# Clone & install
 git clone https://github.com/sirahmed8/obour-academic-hub.git
 cd obour-academic-hub
 npm install
 
-# 2. Configure environment
+# Configure environment
 cp .env.example .env.local
-# Fill in your Firebase, Cloudinary credentials
+# Fill in Firebase & Cloudinary credentials
 
-# 3. Run development server
+# Run dev server
 npm run dev
 ```
 
-## 🔐 Environment Variables
-
-Required in `.env.local`:
+## 🔑 Environment Variables
 
 ```env
 # Firebase
@@ -78,71 +90,67 @@ NEXT_PUBLIC_FIREBASE_APP_ID=
 # Cloudinary
 NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME=
 
-# Owner Email
+# Owner
 NEXT_PUBLIC_OWNER_EMAIL=
 ```
+
+---
 
 ## 📱 Features
 
 ### For Students
 
-- 📚 Browse subjects and resources
-- 🤖 Smart bilingual chatbot (Arabic/English)
+- 📚 Browse subjects & resources
+- 🤖 Smart bilingual chatbot
+- ✅ Personal task management (Todo)
 - 💬 Live support chat
 - 🔔 Real-time notifications
 - 🌙 Dark/Light mode
-- 🌐 Full RTL/LTR support
 
 ### For Admins
 
-- 👥 User management with roles (Owner, Admin, Student)
-- 📂 Resource management
+- 👥 User management with roles
 - 📊 Analytics dashboard
 - 📣 Banner system
-- 📬 Inbox for support chats
+- 📬 Support inbox
 - 📝 Activity logs
 
-### Smart Chatbot
-
-The platform includes an intelligent local bot with:
-
-- 40+ pre-trained bilingual Q&A pairs
-- Automatic language detection
-- Live support escalation
-- Quick reply suggestions
+---
 
 ## 🌐 Deployment
 
 ### Firebase Hosting (Recommended)
 
 ```bash
-# Build static export
 npm run build
-
-# Deploy to Firebase
 firebase deploy --only hosting
 ```
 
 ### Vercel
 
-Push to main branch - auto-deploys via Vercel integration.
+Auto-deploys on push to `main` branch.
+
+---
 
 ## 🔒 Security
 
 - Firebase Auth with Google Sign-In
 - Firestore security rules with role-based access
 - Content Security Policy headers
-- Profanity filter with word boundary matching
-- Secure file uploads via Cloudinary
+- GPU-optimized blur without performance compromise
+
+---
 
 ## 📄 License
 
-MIT License - see [LICENSE](LICENSE) for details.
+[MIT License](LICENSE) - © 2026 Obour Academic Hub
 
 ---
 
 <div align="center">
-  Made with ❤️ by the Obour Innovators Team
   
-  [Connect with Developer](https://linktr.ee/sir.ahmed)
+  Made with ❤️ by **Sir Ahmed**
+  
+  [![Connect](https://img.shields.io/badge/Connect-linktr.ee/sir.ahmed-green?style=for-the-badge)](https://linktr.ee/sir.ahmed)
+
 </div>

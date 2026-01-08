@@ -1,51 +1,56 @@
 # Security Policy
 
-## Supported Versions
+## 🛡️ Supported Versions
 
-| Version | Supported         |
+| Version | Status            |
 | ------- | ----------------- |
 | 1.x.x   | ✅ Active support |
 
-## Security Features
+---
+
+## 🔐 Security Features
 
 ### Authentication
 
 - **Google OAuth 2.0** via Firebase Authentication
 - No password storage - delegated to Google
-- Session management with Firebase tokens
+- Secure session management with Firebase tokens
 
 ### Authorization
 
-- **Role-based access control** (Owner, Admin, Student)
-- Firestore security rules enforce permissions
-- Owner email hardcoded for emergency access
+- **Role-based access control**: Owner > Admin > Student
+- Firestore security rules enforce all permissions
+- Owner email stored in environment variable (not hardcoded)
 
 ### Data Protection
 
-- All data encrypted in transit (HTTPS)
-- Firebase manages encryption at rest
-- No sensitive data stored in localStorage
+- ✅ All data encrypted in transit (HTTPS)
+- ✅ Firebase manages encryption at rest
+- ✅ No sensitive data in localStorage/cookies
 
 ### Content Security
 
-- **CSP headers** configured in middleware
+- Content Security Policy (CSP) headers
 - XSS protection enabled
-- Frame options set to DENY
-- Profanity filter with word boundaries
+- Frame options: DENY
+- Profanity filter with word boundary matching
 
-### File Uploads
+### Performance Security
 
-- Cloudinary handles file sanitization
-- File type validation on client and server
-- Size limits enforced
+- GPU-optimized blur with CSS containment
+- `will-change` and `contain` properties for isolation
+- No memory leaks from animation subscriptions
 
-## Reporting a Vulnerability
+---
 
-If you discover a security vulnerability, please:
+## 🚨 Reporting a Vulnerability
 
-1. **Do NOT** open a public GitHub issue
-2. Email the maintainer directly via [linktr.ee/sir.ahmed](https://linktr.ee/sir.ahmed)
-3. Include:
+**DO NOT** open a public GitHub issue for security vulnerabilities.
+
+### How to Report
+
+1. Contact the maintainer directly via [linktr.ee/sir.ahmed](https://linktr.ee/sir.ahmed)
+2. Include:
    - Description of the vulnerability
    - Steps to reproduce
    - Potential impact
@@ -53,21 +58,25 @@ If you discover a security vulnerability, please:
 
 ### Response Timeline
 
+| Severity    | Response Time |
+| ----------- | ------------- |
+| 🔴 Critical | 24-48 hours   |
+| 🟠 High     | 1 week        |
+| 🟡 Medium   | 2 weeks       |
+| 🟢 Low      | Next release  |
+
 - **Acknowledgment**: Within 48 hours
 - **Initial assessment**: Within 1 week
-- **Fix deployment**: Depends on severity
-  - Critical: 24-48 hours
-  - High: 1 week
-  - Medium: 2 weeks
-  - Low: Next release cycle
 
-## Security Best Practices for Contributors
+---
 
-1. Never commit API keys or secrets
-2. Use environment variables for all credentials
-3. Validate all user input
-4. Follow the principle of least privilege
-5. Keep dependencies updated
+## 🔒 Best Practices for Contributors
+
+1. ❌ Never commit API keys or secrets
+2. ✅ Use environment variables for credentials
+3. ✅ Validate all user input
+4. ✅ Follow principle of least privilege
+5. ✅ Keep dependencies updated (`npm audit`)
 
 ---
 

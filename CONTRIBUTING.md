@@ -2,66 +2,79 @@
 
 Thank you for your interest in contributing! 🎉
 
-## Development Setup
+## 🛠️ Development Setup
 
 ```bash
-# 1. Clone the repository
+# Clone the repository
 git clone https://github.com/sirahmed8/obour-academic-hub.git
 cd obour-academic-hub
 
-# 2. Install dependencies
+# Install dependencies
 npm install
 
-# 3. Set up environment variables
+# Set up environment variables
 cp .env.example .env.local
 # Fill in your Firebase and Cloudinary credentials
 
-# 4. Run the development server
+# Run the development server
 npm run dev
 ```
 
-## Code Standards
+---
 
-### Linting and Formatting
+## 📋 Code Standards
 
-- **ESLint** for linting
-- **Prettier** for formatting
-- Run `npm run lint` to check for errors
-- Pre-commit hooks auto-format code
+### Linting & Formatting
+
+| Tool           | Purpose         |
+| -------------- | --------------- |
+| **ESLint**     | Linting         |
+| **Prettier**   | Code formatting |
+| **TypeScript** | Type checking   |
+
+```bash
+# Run all checks
+npm run lint        # ESLint
+npx tsc --noEmit    # TypeScript
+npx prettier --check .  # Prettier
+```
 
 ### Commit Messages
 
 Follow [Conventional Commits](https://www.conventionalcommits.org/):
 
-| Prefix      | Purpose               |
-| ----------- | --------------------- |
-| `feat:`     | New feature           |
-| `fix:`      | Bug fix               |
-| `docs:`     | Documentation changes |
-| `style:`    | Code style (no logic) |
-| `refactor:` | Code refactoring      |
-| `test:`     | Adding/updating tests |
-| `chore:`    | Maintenance tasks     |
+| Prefix      | Purpose                 |
+| ----------- | ----------------------- |
+| `feat:`     | New feature             |
+| `fix:`      | Bug fix                 |
+| `docs:`     | Documentation           |
+| `style:`    | Code style (no logic)   |
+| `refactor:` | Code refactoring        |
+| `perf:`     | Performance improvement |
+| `chore:`    | Maintenance             |
 
 **Examples:**
 
 ```
-feat: add bilingual chatbot responses
-fix: resolve login issue on Vercel
-docs: update README with deployment steps
+feat: add todo task management
+fix: resolve login redirect loop
+perf: GPU-optimize blur animations
 ```
 
-## Pull Request Process
+---
+
+## 🔄 Pull Request Process
 
 1. **Create a feature branch**
 
    ```bash
-   git checkout -b feat/your-feature-name
+   git checkout -b feat/your-feature
    ```
 
 2. **Make your changes**
    - Write clean, documented code
-   - Update documentation as needed
+   - Maintain TypeScript strict mode
+   - Follow existing patterns
 
 3. **Test your changes**
 
@@ -75,28 +88,29 @@ docs: update README with deployment steps
    ```bash
    git add .
    git commit -m "feat: add amazing feature"
-   git push origin feat/your-feature-name
+   git push origin feat/your-feature
    ```
 
 5. **Open a Pull Request**
-   - Clear description of changes
+   - Clear description
    - Reference related issues
-   - Ensure CI checks pass
+   - Ensure CI passes
 
-## Project Structure
+---
 
-```
-src/
-├── app/          # Next.js pages & routes
-├── components/   # React components
-├── contexts/     # React Context providers
-├── lib/          # Utilities & config
-│   └── bot/      # Chatbot engine
-├── services/     # Firebase services
-└── types/        # TypeScript types
-```
+## 📁 Key Directories
 
-## Questions?
+| Path                       | Purpose                |
+| -------------------------- | ---------------------- |
+| `src/app/`                 | Next.js pages & routes |
+| `src/components/features/` | Feature components     |
+| `src/components/ui/`       | Reusable UI            |
+| `src/lib/`                 | Utilities & config     |
+| `src/hooks/`               | Custom React hooks     |
+
+---
+
+## ❓ Questions?
 
 - Open an issue on GitHub
 - Contact: [linktr.ee/sir.ahmed](https://linktr.ee/sir.ahmed)
