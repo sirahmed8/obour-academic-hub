@@ -27,17 +27,10 @@ export function Navbar({ onMenuClick }: NavbarProps) {
     }, 150);
   };
 
-  const handleLogout = async () => {
-    try {
-      await logout();
-      router.push("/");
-    } catch (error) {
-      console.error("Logout failed:", error);
-    }
-  };
-
   return (
-    <header className="fixed top-0 left-0 right-0 h-16 flex items-center justify-between px-4 lg:px-6 z-50 bg-white/10 dark:bg-black/10 backdrop-blur-xl backdrop-saturate-150 border-b border-white/5 dark:border-white/5">
+    <header className="fixed top-0 left-0 right-0 h-16 flex items-center justify-between px-4 lg:px-6 z-50 bg-white/10 dark:bg-black/10 backdrop-blur-xl backdrop-saturate-150">
+      {/* Partial Bottom Border (Skips Logo area on Desktop to merge with Sidebar) */}
+      <div className="absolute bottom-0 right-0 h-[1px] bg-white/5 dark:bg-white/5 left-0 lg:left-[18rem] transition-all duration-300" />
       {/* LEFT SIDE: Logo (Desktop) & Menu Button (Mobile) */}
       <div className="flex items-center gap-4">
         {/* Mobile Menu Button */}
