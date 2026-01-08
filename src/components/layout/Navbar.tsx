@@ -25,7 +25,7 @@ export function Navbar({ onMenuClick }: NavbarProps) {
   };
 
   return (
-    <header className="glass-fixed h-16 bg-white/10 dark:bg-black/10 backdrop-blur-xl backdrop-saturate-150 border-b border-white/20 dark:border-white/10 flex items-center justify-between px-4 lg:px-8 sticky top-0 z-50 transition-all duration-300 ease-out shadow-sm supports-[backdrop-filter]:bg-white/5 supports-[backdrop-filter]:dark:bg-black/10">
+    <header className="glass-fixed h-16 bg-white/10 dark:bg-black/10 backdrop-blur-xl backdrop-saturate-150 flex items-center justify-between px-4 lg:px-8 sticky top-0 z-50 transition-all duration-300 ease-out shadow-sm supports-[backdrop-filter]:bg-white/5 supports-[backdrop-filter]:dark:bg-black/10">
       <button
         onClick={onMenuClick}
         className="lg:hidden p-2 text-muted-foreground hover:bg-muted rounded-lg transition-colors"

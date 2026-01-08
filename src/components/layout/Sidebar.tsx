@@ -15,6 +15,7 @@ import {
   Megaphone,
   LucideIcon,
   ListTodo,
+  X,
 } from "lucide-react";
 import { useAuth, useLanguage } from "@/contexts";
 import { Notification as AppNotification } from "@/types";
@@ -162,24 +163,33 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
       >
         <div className="flex flex-col h-full">
           {/* Header - Connected to Navbar (No Right Border) */}
-          <div className="h-16 flex items-center gap-3 px-4 border-b border-white/5 dark:border-white/5">
-            <div className="relative w-10 h-10 flex-shrink-0 bg-transparent rounded-full p-0.5 overflow-hidden z-20">
-              <Image
-                src="/obour-logo.png"
-                alt="Obour Logo"
-                width={40}
-                height={40}
-                className="object-cover w-full h-full opacity-100"
-              />
+          <div className="h-16 flex items-center justify-between px-4 border-b border-white/5 dark:border-white/5">
+            <div className="flex items-center gap-3">
+              <div className="relative w-10 h-10 flex-shrink-0 bg-transparent rounded-full p-0.5 overflow-hidden z-20">
+                <Image
+                  src="/obour-logo.png"
+                  alt="Obour Logo"
+                  width={40}
+                  height={40}
+                  className="object-cover w-full h-full opacity-100"
+                />
+              </div>
+              <div>
+                <h1 className="font-bold text-foreground text-lg leading-tight truncate">
+                  {language === "ar" ? "معاهد العبور" : "Obour Hub"}
+                </h1>
+                <p className="text-[10px] text-muted-foreground truncate opacity-80">
+                  {language === "ar" ? "نظام إدارة التعلم الذكي" : "Smart Learning System"}
+                </p>
+              </div>
             </div>
-            <div>
-              <h1 className="font-bold text-foreground text-lg leading-tight truncate">
-                {language === "ar" ? "معاهد العبور" : "Obour Hub"}
-              </h1>
-              <p className="text-[10px] text-muted-foreground truncate opacity-80">
-                {language === "ar" ? "نظام إدارة التعلم الذكي" : "Smart Learning System"}
-              </p>
-            </div>
+            {/* Close Button (Mobile Only) */}
+            <button
+              onClick={onClose}
+              className="lg:hidden p-2 text-muted-foreground hover:bg-muted/20 rounded-lg transition-colors"
+            >
+              <X size={20} />
+            </button>
           </div>
 
           {/* Navigation - With Right Border */}

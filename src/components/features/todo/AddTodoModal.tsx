@@ -286,7 +286,7 @@ export function AddTodoModal({
                   type="text"
                   value={title}
                   onChange={(e) => setTitle(e.target.value)}
-                  className="w-full bg-muted/50 border border-border rounded-xl px-4 py-2.5 outline-none focus:ring-2 focus:ring-primary/20 transition-all font-medium"
+                  className="w-full bg-background border border-border rounded-xl px-4 py-2.5 outline-none focus:ring-2 focus:ring-primary/20 transition-all font-medium"
                   placeholder={
                     language === "ar" ? "ماذا تريد أن تنجز؟" : "What do you want to get done?"
                   }
@@ -301,7 +301,7 @@ export function AddTodoModal({
                 <textarea
                   value={description}
                   onChange={(e) => setDescription(e.target.value)}
-                  className="w-full bg-muted/50 border border-border rounded-xl px-4 py-2.5 outline-none focus:ring-2 focus:ring-primary/20 transition-all min-h-[80px] resize-none"
+                  className="w-full bg-background border border-border rounded-xl px-4 py-2.5 outline-none focus:ring-2 focus:ring-primary/20 transition-all min-h-[80px] resize-none"
                   placeholder={language === "ar" ? "أضف تفاصيل..." : "Add details..."}
                 />
               </div>
@@ -313,7 +313,7 @@ export function AddTodoModal({
                     <Flag size={14} />
                     {language === "ar" ? "الأولوية" : "Priority"}
                   </label>
-                  <div className="flex gap-1 bg-muted/50 p-1 rounded-xl border border-border">
+                  <div className="flex gap-1 bg-background p-1 rounded-xl border border-border">
                     {priorities.map((p) => (
                       <button
                         key={p.value}
@@ -342,7 +342,7 @@ export function AddTodoModal({
                     onClick={() => setShowDatePicker(!showDatePicker)}
                     {...getHoverProps(shouldReduceMotion)}
                     className={cn(
-                      "w-full bg-muted/50 border border-border rounded-xl px-3 py-2 h-[38px] text-xs outline-none text-left flex items-center justify-between transition-all",
+                      "w-full bg-background border border-border rounded-xl px-3 py-2 h-[38px] text-xs outline-none text-left flex items-center justify-between transition-all",
                       showDatePicker && "ring-2 ring-primary/20 border-primary/30",
                       dueDate ? "text-foreground" : "text-muted-foreground"
                     )}
@@ -392,7 +392,7 @@ export function AddTodoModal({
                   <RefreshCw size={14} />
                   {language === "ar" ? "التكرار" : "Repeat"}
                 </label>
-                <div className="flex gap-1 bg-muted/50 p-1 rounded-xl border border-border">
+                <div className="flex gap-1 bg-background p-1 rounded-xl border border-border">
                   {repeats.map((r) => (
                     <button
                       key={r.value}
@@ -448,7 +448,7 @@ export function AddTodoModal({
                       value={newSubtask}
                       onChange={(e) => setNewSubtask(e.target.value)}
                       onKeyDown={(e) => e.key === "Enter" && handleAddSubtask()}
-                      className="flex-1 bg-muted/50 border border-border rounded-xl px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-primary/20"
+                      className="flex-1 bg-background border border-border rounded-xl px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-primary/20"
                       placeholder={language === "ar" ? "أضف مهمة فرعية..." : "Add a sub-task..."}
                     />
                     <button
