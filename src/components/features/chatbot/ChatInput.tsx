@@ -71,6 +71,15 @@ export function ChatInput({
         )}
       </AnimatePresence>
 
+      {/* AI Disclaimer */}
+      {mode === "bot" && (
+        <div className="text-[10px] text-center text-muted-foreground/70 mb-2 px-2">
+          {language === "ar"
+            ? "نظام ذكي مدرب قد يخطئ. يرجى مراجعة المعلومات الهامة."
+            : "AI can make mistakes. Please verify important information."}
+        </div>
+      )}
+
       <div className="flex gap-2 items-end">
         <FileUpload
           onFileUploaded={(attachment) => handleSend(undefined, attachment)}

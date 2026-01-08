@@ -45,8 +45,8 @@ export function CookieConsent() {
               </h4>
               <p className="text-xs text-muted-foreground">
                 {language === "ar"
-                  ? "نستخدم ملفات تعريف الارتباط لتحسين تجربتك وحفظ تفضيلاتك."
-                  : "We use cookies to enhance your experience and save your preferences."}
+                  ? "نستخدم ملفات تعريف الارتباط لتحسين تجربتك. بموافقتك، فأنت تقبل شروط الاستخدام وسياسة الخصوصية الخاصة بنا."
+                  : "We use cookies to improve your experience. By accepting, you agree to our Terms & Privacy Policy."}
               </p>
             </div>
             <div className="flex gap-3 w-full md:w-auto">

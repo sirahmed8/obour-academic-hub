@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useMemo } from "react";
 import { useRouter, usePathname } from "next/navigation";
+import Link from "next/link";
 import { useAuth, useLanguage } from "@/contexts";
 import { Sidebar, Navbar } from "@/components/layout";
 import dynamic from "next/dynamic";
@@ -113,7 +114,20 @@ export function AppShell({ children }: { children: React.ReactNode }) {
               <ExternalLink className="w-4 h-4" />
               {language === "ar" ? "تواصل مع المطور" : "Connect with Developer"}
             </a>
-            <p className="text-xs text-muted-foreground/60">
+            <div className="flex flex-wrap justify-center gap-4 text-xs text-muted-foreground/60">
+              <Link href="/legal/privacy" className="hover:text-primary transition-colors">
+                {language === "ar" ? "سياسة الخصوصية" : "Privacy Policy"}
+              </Link>
+              <span>•</span>
+              <Link href="/legal/terms" className="hover:text-primary transition-colors">
+                {language === "ar" ? "شروط الاستخدام" : "Terms of Service"}
+              </Link>
+              <span>•</span>
+              <Link href="/legal/cookies" className="hover:text-primary transition-colors">
+                {language === "ar" ? "ملفات الارتباط" : "Cookie Policy"}
+              </Link>
+            </div>
+            <p className="text-[10px] text-muted-foreground/40">
               &copy; 2026 Obour Academic Hub. All rights reserved.
             </p>
           </footer>
