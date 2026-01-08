@@ -17,8 +17,11 @@ export function ThemeToggle() {
   ];
 
   return (
-    <div className="space-y-2">
-      <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
+    <div className="space-y-2" role="radiogroup" aria-labelledby="theme-label">
+      <p
+        id="theme-label"
+        className="text-xs font-medium text-muted-foreground uppercase tracking-wider"
+      >
         {t("profile.theme")}
       </p>
       <div className="flex bg-muted/50 p-1 rounded-lg relative">
@@ -29,8 +32,12 @@ export function ThemeToggle() {
             <button
               key={t.value}
               onClick={() => setTheme(t.value)}
+              role="radio"
+              aria-checked={isActive}
+              aria-label={t.label}
               className={cn(
                 "flex-1 p-1.5 rounded-md flex items-center justify-center transition-all relative z-10",
+                "focus-visible:ring-2 focus-visible:ring-primary focus-visible:outline-none",
                 isActive ? "text-primary" : "text-muted-foreground hover:text-foreground"
               )}
               title={t.label}
