@@ -179,11 +179,11 @@ export const ChatMessageItem = memo(function ChatMessageItem({
             </div>
           )}
 
-          {/* Hover Actions (Reply, React) - Positioned below bubble */}
+          {/* Hover Actions (Reply, React) - Positioned to the side */}
           <div
             className={cn(
-              "opacity-0 group-hover/bubble:opacity-100 transition-opacity flex gap-1 mt-1",
-              isUser ? "flex-row-reverse" : ""
+              "absolute top-2 opacity-0 group-hover/bubble:opacity-100 transition-opacity flex gap-1 z-50",
+              isUser ? "right-full mr-2 flex-row-reverse" : "left-full ml-2"
             )}
           >
             {onReply && (
