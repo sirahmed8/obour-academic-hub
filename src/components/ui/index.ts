@@ -10,7 +10,6 @@ export { ThemeToggle } from "./ThemeToggle";
 export { ConfirmationModal } from "./ConfirmationModal";
 export { CustomSelect } from "./CustomSelect";
 export { CookieConsent } from "./CookieConsent";
-export { QuickReplies } from "./QuickReplies";
 export { SkipLink } from "./SkipLink";
 
 // Animation Components
