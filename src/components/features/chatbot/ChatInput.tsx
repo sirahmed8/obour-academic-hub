@@ -48,9 +48,10 @@ export function ChatInput({
       <AnimatePresence>
         {replyTo && (
           <motion.div
-            initial={{ opacity: 0, height: 0 }}
-            animate={{ opacity: 1, height: "auto" }}
-            exit={{ opacity: 0, height: 0 }}
+            initial={{ opacity: 0, height: 0, y: 10 }}
+            animate={{ opacity: 1, height: "auto", y: 0 }}
+            exit={{ opacity: 0, height: 0, y: 10 }}
+            transition={{ type: "spring", stiffness: 400, damping: 30 }}
             className="flex items-center justify-between text-xs bg-muted/50 p-2 rounded-lg mb-2 border-l-2 border-primary"
           >
             <div className="truncate">
