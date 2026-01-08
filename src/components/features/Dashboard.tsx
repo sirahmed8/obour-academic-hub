@@ -15,7 +15,7 @@ export function Dashboard() {
   const [loading, setLoading] = useState(true);
   const { user, isAdmin } = useAuth();
   const { language, t } = useLanguage();
-  const greeting = getGreeting();
+  const [greeting] = useState(() => getGreeting());
 
   useEffect(() => {
     const q = query(collection(db, "subjects"), orderBy("orderIndex"));
@@ -37,10 +37,14 @@ export function Dashboard() {
   return (
     <div className="p-6 lg:p-10 space-y-8 w-full page-transition">
       {/* Greeting Banner */}
-      <div className="bg-gradient-to-r from-primary/10 via-primary/5 to-transparent rounded-3xl p-8 relative overflow-hidden">
-        <div className="absolute top-0 right-0 w-64 h-64 bg-primary/5 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2" />
+      {/* Greeting Banner */}
+      <div className="relative rounded-3xl overflow-hidden isolation-auto transform-gpu will-change-transform shadow-2xl">
+        {/* Ambient Background */}
+        <div className="absolute inset-0 bg-gradient-to-br from-primary/20 via-transparent to-blue-500/10 dark:from-primary/10 dark:via-transparent dark:to-blue-900/10" />
+        <div className="absolute top-[-20%] right-[-10%] w-[400px] h-[400px] bg-primary/20 dark:bg-primary/10 rounded-full blur-[80px] pointer-events-none mix-blend-multiply dark:mix-blend-screen" />
 
-        <div className="relative z-10">
+        {/* Glass Content (Live Blur Applied) */}
+        <div className="relative z-10 p-8 bg-white/10 dark:bg-black/10 backdrop-blur-xl backdrop-saturate-150 border border-white/20 dark:border-white/10 shadow-sm">
           <div className="flex items-center gap-2 text-primary mb-2">
             <Sparkles size={20} className="animate-pulse" />
             <span className="text-sm font-medium">
@@ -48,18 +52,18 @@ export function Dashboard() {
             </span>
           </div>
 
-          <h1 className="text-3xl lg:text-4xl font-black text-foreground">
+          <h1 className="text-3xl lg:text-4xl font-black text-foreground drop-shadow-sm">
             {language === "ar" ? greeting.ar : greeting.en}, {user?.displayName?.split(" ")[0]} 👋
           </h1>
 
-          <p className="text-muted-foreground mt-2 text-lg">
+          <p className="text-muted-foreground mt-2 text-lg font-medium">
             {language === "ar"
               ? "خليك متابع دروسك ومتفوتش أي حاجة جديدة!"
               : "Stay on top of your studies and don't miss anything new!"}
           </p>
 
           {isAdmin && (
-            <div className="mt-4 inline-flex items-center gap-2 px-4 py-2 bg-primary/10 text-primary rounded-full text-sm font-medium">
+            <div className="mt-4 inline-flex items-center gap-2 px-4 py-2 bg-primary/10 text-primary rounded-full text-sm font-medium border border-primary/20 backdrop-blur-md shadow-sm">
               <span className="w-2 h-2 bg-primary rounded-full animate-pulse" />
               {language === "ar" ? "وضع المسؤول" : "Admin Mode"}
             </div>

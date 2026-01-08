@@ -154,16 +154,16 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
       {/* Sidebar */}
       <aside
         className={cn(
-          "fixed top-0 h-full w-[85vw] max-w-[280px] lg:max-w-none lg:w-72 bg-card shadow-2xl z-50 transform transition-transform duration-300 ease-in-out",
-          "lg:translate-x-0 lg:static lg:shadow-none border-r border-border",
+          "fixed top-0 h-full w-[85vw] max-w-[280px] lg:max-w-none lg:w-72 bg-white/10 dark:bg-black/10 backdrop-blur-xl backdrop-saturate-150 shadow-2xl z-50 transform transition-transform duration-300 ease-in-out supports-[backdrop-filter]:bg-white/5 supports-[backdrop-filter]:dark:bg-black/10",
+          "lg:translate-x-0 lg:static lg:shadow-none",
           language === "ar" ? "right-0" : "left-0",
           isOpen ? "translate-x-0" : language === "ar" ? "translate-x-full" : "-translate-x-full"
         )}
       >
         <div className="flex flex-col h-full">
-          {/* Header */}
-          <div className="p-4 flex items-center gap-3 border-b border-border/50">
-            <div className="relative w-10 h-10 flex-shrink-0 bg-white rounded-full p-0.5 overflow-hidden z-20 shadow-md ring-2 ring-border/50">
+          {/* Header - Connected to Navbar (No Right Border) */}
+          <div className="h-16 flex items-center gap-3 px-4 border-b border-white/5 dark:border-white/5">
+            <div className="relative w-10 h-10 flex-shrink-0 bg-transparent rounded-full p-0.5 overflow-hidden z-20">
               <Image
                 src="/obour-logo.png"
                 alt="Obour Logo"
@@ -182,11 +182,11 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
             </div>
           </div>
 
-          {/* Navigation */}
+          {/* Navigation - With Right Border */}
           <nav
             ref={navRef}
             onScroll={handleScroll}
-            className="flex-1 py-6 px-4 space-y-6 overflow-y-auto"
+            className="flex-1 py-6 px-4 space-y-6 overflow-y-auto border-r border-white/20 dark:border-white/10"
           >
             {/* Main Nav */}
             <div className="space-y-2">

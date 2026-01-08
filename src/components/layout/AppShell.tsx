@@ -80,13 +80,18 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   }
 
   return (
-    <div className="flex h-screen bg-background overflow-hidden" dir={dir}>
+    <div className="flex h-screen bg-background overflow-hidden relative" dir={dir}>
       <SkipLink />
       <Sidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
       <div className="flex-1 flex flex-col h-full overflow-hidden relative">
-        <Navbar onMenuClick={() => setSidebarOpen(true)} />
+        <div className="absolute top-0 left-0 right-0 z-40">
+          <Navbar onMenuClick={() => setSidebarOpen((prev) => !prev)} />
+        </div>
         <LiveBanner />
-        <main id="main-content" className="flex-1 overflow-y-auto pb-24 lg:pb-10">
+        <main
+          id="main-content"
+          className="flex-1 w-full h-full overflow-y-auto pt-16 pb-24 lg:pb-10"
+        >
           <AnimatePresence mode="wait">
             <motion.div
               key={pathname}

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef, useMemo } from "react";
 import { createPortal } from "react-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { X, Plus, Calendar, Flag, RefreshCw, Trash2, AlertCircle } from "lucide-react";
@@ -12,6 +12,8 @@ import { db } from "@/lib/firebase";
 import { useAuth } from "@/contexts";
 import { toast } from "sonner";
 import { DateTimePicker } from "@/components/ui/DateTimePicker";
+import { useReducedMotion } from "@/hooks/useReducedMotion";
+import { modalContent, modalBackdrop, getMotionProps, getHoverProps } from "@/lib/motion";
 
 interface AddTodoModalProps {
   isOpen: boolean;
@@ -31,6 +33,7 @@ export function AddTodoModal({
   const { language } = useLanguage();
   const { user } = useAuth();
   const isRtl = language === "ar";
+  const { shouldReduceMotion } = useReducedMotion();
 
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
@@ -44,6 +47,10 @@ export function AddTodoModal({
   const [errors, setErrors] = useState<string[]>([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [mounted, setMounted] = useState(false);
+
+  // Refs for auto-scroll
+  const scrollContainerRef = useRef<HTMLDivElement>(null);
+  const datePickerContainerRef = useRef<HTMLDivElement>(null);
 
   // Set mounted after hydration to avoid SSR mismatch
   useEffect(() => {
@@ -64,6 +71,20 @@ export function AddTodoModal({
     document.addEventListener("keydown", handleKeyDown);
     return () => document.removeEventListener("keydown", handleKeyDown);
   }, [isOpen, showDatePicker, onClose]);
+
+  // Auto-scroll when DateTimePicker opens
+  useEffect(() => {
+    if (showDatePicker && datePickerContainerRef.current && scrollContainerRef.current) {
+      // Small delay to let animation start
+      const timer = setTimeout(() => {
+        datePickerContainerRef.current?.scrollIntoView({
+          behavior: "smooth",
+          block: "center",
+        });
+      }, 100);
+      return () => clearTimeout(timer);
+    }
+  }, [showDatePicker]);
 
   useEffect(() => {
     if (editTask) {
@@ -153,30 +174,38 @@ export function AddTodoModal({
     }
   };
 
-  const priorities = [
-    {
-      value: "low",
-      label: language === "ar" ? "منخفض" : "Low",
-      color: "bg-green-500/10 text-green-500 border-green-500/20",
-    },
-    {
-      value: "medium",
-      label: language === "ar" ? "متوسط" : "Medium",
-      color: "bg-yellow-500/10 text-yellow-500 border-yellow-500/20",
-    },
-    {
-      value: "high",
-      label: language === "ar" ? "عالي" : "High",
-      color: "bg-red-500/10 text-red-500 border-red-500/20",
-    },
-  ] as const;
+  const priorities = useMemo(
+    () =>
+      [
+        {
+          value: "low",
+          label: language === "ar" ? "منخفض" : "Low",
+          color: "bg-green-500/10 text-green-500 border-green-500/20",
+        },
+        {
+          value: "medium",
+          label: language === "ar" ? "متوسط" : "Medium",
+          color: "bg-yellow-500/10 text-yellow-500 border-yellow-500/20",
+        },
+        {
+          value: "high",
+          label: language === "ar" ? "عالي" : "High",
+          color: "bg-red-500/10 text-red-500 border-red-500/20",
+        },
+      ] as const,
+    [language]
+  );
 
-  const repeats = [
-    { value: "none", label: language === "ar" ? "بدون تكرار" : "No Repeat" },
-    { value: "daily", label: language === "ar" ? "يومياً" : "Daily" },
-    { value: "weekly", label: language === "ar" ? "أسبوعياً" : "Weekly" },
-    { value: "monthly", label: language === "ar" ? "شهرياً" : "Monthly" },
-  ] as const;
+  const repeats = useMemo(
+    () =>
+      [
+        { value: "none", label: language === "ar" ? "بدون تكرار" : "No Repeat" },
+        { value: "daily", label: language === "ar" ? "يومياً" : "Daily" },
+        { value: "weekly", label: language === "ar" ? "أسبوعياً" : "Weekly" },
+        { value: "monthly", label: language === "ar" ? "شهرياً" : "Monthly" },
+      ] as const,
+    [language]
+  );
 
   // Don't render portal until mounted to avoid hydration mismatch
   if (!mounted) return null;
@@ -185,28 +214,30 @@ export function AddTodoModal({
     <AnimatePresence mode="wait">
       {isOpen && (
         <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          exit={{ opacity: 0 }}
-          transition={{ duration: 0.2 }}
-          className="fixed inset-0 z-[999] flex items-center justify-center p-4 bg-black/60 backdrop-blur-md"
+          initial="hidden"
+          animate="visible"
+          exit="exit"
+          variants={modalBackdrop}
+          className={cn(
+            "fixed inset-0 z-[999] flex items-start justify-center p-4 pt-8 pb-8 overflow-y-auto bg-black/30 backdrop-blur-md backdrop-saturate-150"
+          )}
         >
           <motion.div
-            initial={{ opacity: 0, scale: 0.9, y: 20 }}
-            animate={{ opacity: 1, scale: 1, y: 0 }}
-            exit={{ opacity: 0, scale: 0.9, y: 20 }}
-            transition={{
-              type: "spring",
-              damping: 25,
-              stiffness: 300,
-              duration: 0.3,
-            }}
+            {...getMotionProps(shouldReduceMotion, {
+              layout: true,
+              variants: modalContent,
+              initial: "hidden",
+              animate: "visible",
+              exit: "exit",
+            })}
             onClick={(e) => {
               e.stopPropagation();
               // Close date picker if open when clicking on modal body
               if (showDatePicker) setShowDatePicker(false);
             }}
-            className="bg-card w-full max-w-lg rounded-2xl shadow-xl border border-border overflow-hidden max-h-[90vh] flex flex-col"
+            className={cn(
+              "w-full max-w-lg rounded-2xl shadow-2xl my-auto transition-colors duration-300 bg-white/10 dark:bg-black/10 backdrop-blur-xl backdrop-saturate-150 border border-white/20 dark:border-white/10"
+            )}
             dir={isRtl ? "rtl" : "ltr"}
           >
             {/* Header */}
@@ -231,7 +262,7 @@ export function AddTodoModal({
             </div>
 
             {/* Body */}
-            <div className="p-4 overflow-y-auto space-y-4 flex-1">
+            <motion.div layout ref={scrollContainerRef} className="p-4 space-y-4">
               {errors.length > 0 && (
                 <div className="bg-destructive/10 text-destructive p-3 rounded-xl flex items-center justify-between">
                   <div className="flex items-center gap-2">
@@ -289,7 +320,7 @@ export function AddTodoModal({
                         key={p.value}
                         onClick={() => setPriority(p.value)}
                         className={cn(
-                          "flex-1 text-[10px] sm:text-xs py-1.5 rounded-lg font-medium transition-all",
+                          "flex-1 text-[10px] sm:text-xs py-1.5 rounded-lg font-medium transition-all border border-transparent",
                           priority === p.value
                             ? p.color + " shadow-sm"
                             : "text-muted-foreground hover:bg-background/50"
@@ -310,7 +341,7 @@ export function AddTodoModal({
                   <motion.button
                     type="button"
                     onClick={() => setShowDatePicker(!showDatePicker)}
-                    whileTap={{ scale: 0.98 }}
+                    {...getHoverProps(shouldReduceMotion)}
                     className={cn(
                       "w-full bg-muted/50 border border-border rounded-xl px-3 py-2 h-[38px] text-xs outline-none text-left flex items-center justify-between transition-all",
                       showDatePicker && "ring-2 ring-primary/20 border-primary/30",
@@ -330,19 +361,21 @@ export function AddTodoModal({
                     <Calendar size={14} className="text-muted-foreground" />
                   </motion.button>
 
-                  {/* Custom Date Time Picker */}
-                  <AnimatePresence>
-                    {showDatePicker && (
-                      <DateTimePicker
-                        value={dueDate}
-                        onChange={(value) => {
-                          setDueDate(value);
-                        }}
-                        onClose={() => setShowDatePicker(false)}
-                        language={language as "ar" | "en"}
-                      />
-                    )}
-                  </AnimatePresence>
+                  {/* Custom Date Time Picker (In-flow for expand animation) */}
+                  <div ref={datePickerContainerRef}>
+                    <AnimatePresence>
+                      {showDatePicker && (
+                        <DateTimePicker
+                          value={dueDate}
+                          onChange={(value) => {
+                            setDueDate(value);
+                          }}
+                          onClose={() => setShowDatePicker(false)}
+                          language={language as "ar" | "en"}
+                        />
+                      )}
+                    </AnimatePresence>
+                  </div>
                 </div>
               </div>
 
@@ -354,19 +387,18 @@ export function AddTodoModal({
                 </label>
                 <div className="flex gap-1 bg-muted/50 p-1 rounded-xl border border-border">
                   {repeats.map((r) => (
-                    <motion.button
+                    <button
                       key={r.value}
                       onClick={() => setRepeat(r.value)}
-                      whileTap={{ scale: 0.95 }}
                       className={cn(
-                        "flex-1 text-[10px] sm:text-xs py-1.5 px-2 rounded-lg font-medium transition-all",
+                        "flex-1 text-[10px] sm:text-xs py-1.5 px-2 rounded-lg font-medium transition-all border border-transparent",
                         repeat === r.value
-                          ? "bg-primary/10 text-primary shadow-sm border border-primary/20"
+                          ? "bg-primary/10 text-primary shadow-sm border-primary/20"
                           : "text-muted-foreground hover:bg-background/50"
                       )}
                     >
                       {r.label}
-                    </motion.button>
+                    </button>
                   ))}
                 </div>
               </div>
@@ -421,7 +453,7 @@ export function AddTodoModal({
                   </div>
                 </div>
               </div>
-            </div>
+            </motion.div>
 
             {/* Footer */}
             <div className="p-4 border-t border-border flex justify-end gap-3 bg-muted/20">

@@ -20,6 +20,8 @@ import { Plus, Filter, SortAsc } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 import { notificationService } from "@/services/notification.service";
+import { useReducedMotion } from "@/hooks/useReducedMotion";
+import { listContainer, getMotionProps } from "@/lib/motion";
 
 export function TodoList() {
   const { user } = useAuth();
@@ -32,6 +34,7 @@ export function TodoList() {
   const [editingTask, setEditingTask] = useState<TodoTask | undefined>(undefined);
   const [isLoading, setIsLoading] = useState(true);
   const [isFilterOpen, setIsFilterOpen] = useState(false);
+  const { shouldReduceMotion } = useReducedMotion();
 
   // Fetch tasks
   useEffect(() => {
@@ -131,16 +134,6 @@ export function TodoList() {
     }
   };
 
-  const handleEmailTask = (task: TodoTask) => {
-    // Create mailto link
-    const subject = encodeURIComponent(`Task: ${task.title}`);
-    const body = encodeURIComponent(
-      `Task Details:\n\nTitle: ${task.title}\nPriority: ${task.priority}\nDue: ${task.dueDate || "No due date"}\n\nDescription:\n${task.description || "No description"}`
-    );
-    window.open(`mailto:${user?.email || ""}?subject=${subject}&body=${body}`);
-    toast.success(language === "ar" ? "تم فتح البريد الإلكتروني" : "Email client opened");
-  };
-
   const handleEdit = (task: TodoTask) => {
     setEditingTask(task);
     setIsModalOpen(true);
@@ -213,7 +206,9 @@ export function TodoList() {
                 animate={{ opacity: 1, y: 0, scale: 1 }}
                 exit={{ opacity: 0, y: -10, scale: 0.95 }}
                 transition={{ type: "spring", damping: 25, stiffness: 300 }}
-                className="absolute top-full left-0 mt-2 z-20 bg-card border border-border rounded-xl shadow-xl p-2 min-w-[180px]"
+                className={cn(
+                  "absolute top-full left-0 mt-2 z-20 rounded-xl shadow-2xl p-2 min-w-[180px] bg-white/10 dark:bg-black/10 backdrop-blur-xl backdrop-saturate-150 border border-white/20 dark:border-white/10"
+                )}
               >
                 {(["all", "incomplete", "high", "medium", "low"] as const).map((f) => (
                   <button
@@ -275,7 +270,7 @@ export function TodoList() {
                 : "No tasks here. Add your first task!"}
             </p>
           </div>
-        ) : (
+        ) : filter === "all" && !shouldReduceMotion ? (
           <Reorder.Group
             axis="y"
             values={filteredTasks}
@@ -294,6 +289,27 @@ export function TodoList() {
               </div>
             ))}
           </Reorder.Group>
+        ) : (
+          <motion.ul
+            {...getMotionProps(shouldReduceMotion, {
+              variants: listContainer,
+              initial: "hidden",
+              animate: "visible",
+            })}
+            className="space-y-3"
+          >
+            <AnimatePresence mode="popLayout">
+              {filteredTasks.map((task) => (
+                <TodoItem
+                  key={task.id}
+                  task={task}
+                  onToggle={handleToggle}
+                  onDelete={handleDelete}
+                  onEdit={handleEdit}
+                />
+              ))}
+            </AnimatePresence>
+          </motion.ul>
         )}
       </div>
 

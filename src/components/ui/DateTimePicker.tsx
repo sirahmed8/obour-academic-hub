@@ -4,6 +4,8 @@ import { useState, useMemo, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { ChevronLeft, ChevronRight, Clock } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { useReducedMotion } from "@/hooks/useReducedMotion";
+import { getMotionProps, getHoverProps } from "@/lib/motion";
 
 interface DateTimePickerProps {
   value: string;
@@ -49,6 +51,7 @@ export function DateTimePicker({ value, onChange, onClose, language }: DateTimeP
   const days = isRtl ? DAYS_AR : DAYS_EN;
   const months = isRtl ? MONTHS_AR : MONTHS_EN;
   const containerRef = useRef<HTMLDivElement>(null);
+  const { shouldReduceMotion } = useReducedMotion();
 
   // Parse initial value or use current date
   const initialDate = useMemo(() => (value ? new Date(value) : new Date()), [value]);
@@ -73,10 +76,26 @@ export function DateTimePicker({ value, onChange, onClose, language }: DateTimeP
     setMinuteInput(selectedMinute.toString().padStart(2, "0"));
   }, [selectedMinute]);
 
+  // Ref for time picker section
+  const timePickerRef = useRef<HTMLDivElement>(null);
+
   // Focus the container for keyboard events
   useEffect(() => {
     containerRef.current?.focus();
   }, []);
+
+  // Scroll time picker into view when it opens
+  useEffect(() => {
+    if (showTimePicker && timePickerRef.current) {
+      const timer = setTimeout(() => {
+        timePickerRef.current?.scrollIntoView({
+          behavior: "smooth",
+          block: "nearest",
+        });
+      }, 50);
+      return () => clearTimeout(timer);
+    }
+  }, [showTimePicker]);
 
   // Get calendar days for the current month view
   const calendarDays = useMemo(() => {
@@ -227,11 +246,20 @@ export function DateTimePicker({ value, onChange, onClose, language }: DateTimeP
     <motion.div
       ref={containerRef}
       tabIndex={-1}
-      initial={{ opacity: 0, y: -10, scale: 0.95 }}
-      animate={{ opacity: 1, y: 0, scale: 1 }}
-      exit={{ opacity: 0, y: -10, scale: 0.95 }}
-      transition={{ type: "spring", damping: 20, stiffness: 300 }}
-      className="absolute top-full left-0 right-0 mt-2 z-50 bg-card border border-border rounded-2xl shadow-2xl overflow-hidden outline-none"
+      {...getMotionProps(shouldReduceMotion, {
+        layout: true,
+        initial: { opacity: 0, height: 0 },
+        animate: { opacity: 1, height: "auto" },
+        exit: { opacity: 0, height: 0 },
+        transition: {
+          layout: { type: "spring", damping: 25, stiffness: 300 },
+          opacity: { duration: 0.2 },
+          height: { type: "spring", damping: 25, stiffness: 300 },
+        },
+      })}
+      className={cn(
+        "mt-2 z-50 rounded-2xl shadow-xl overflow-hidden outline-none will-change-transform bg-popover/80 backdrop-blur-2xl border border-border/50"
+      )}
       dir={isRtl ? "rtl" : "ltr"}
       onClick={(e) => e.stopPropagation()}
     >
@@ -240,8 +268,7 @@ export function DateTimePicker({ value, onChange, onClose, language }: DateTimeP
         <motion.button
           type="button"
           onClick={goToPrevMonth}
-          whileHover={{ scale: 1.1 }}
-          whileTap={{ scale: 0.9 }}
+          {...getHoverProps(shouldReduceMotion)}
           className="p-2 hover:bg-muted rounded-lg transition-colors"
           aria-label={language === "ar" ? "الشهر السابق" : "Previous month"}
         >
@@ -255,8 +282,7 @@ export function DateTimePicker({ value, onChange, onClose, language }: DateTimeP
         <motion.button
           type="button"
           onClick={goToNextMonth}
-          whileHover={{ scale: 1.1 }}
-          whileTap={{ scale: 0.9 }}
+          {...getHoverProps(shouldReduceMotion)}
           className="p-2 hover:bg-muted rounded-lg transition-colors"
           aria-label={language === "ar" ? "الشهر التالي" : "Next month"}
         >
@@ -286,8 +312,7 @@ export function DateTimePicker({ value, onChange, onClose, language }: DateTimeP
                 <motion.button
                   type="button"
                   onClick={() => selectDay(day)}
-                  whileHover={{ scale: 1.1 }}
-                  whileTap={{ scale: 0.95 }}
+                  {...getHoverProps(shouldReduceMotion)}
                   className={cn(
                     "w-full h-full rounded-lg text-xs font-medium transition-all flex items-center justify-center",
                     isSelected(day)
@@ -310,7 +335,7 @@ export function DateTimePicker({ value, onChange, onClose, language }: DateTimeP
         <motion.button
           type="button"
           onClick={() => setShowTimePicker(!showTimePicker)}
-          whileTap={{ scale: 0.98 }}
+          {...getHoverProps(shouldReduceMotion)}
           className={cn(
             "w-full py-2 px-3 rounded-xl text-sm font-medium flex items-center justify-center gap-2 transition-all",
             showTimePicker
@@ -327,10 +352,13 @@ export function DateTimePicker({ value, onChange, onClose, language }: DateTimeP
       <AnimatePresence>
         {showTimePicker && (
           <motion.div
-            initial={{ height: 0, opacity: 0 }}
-            animate={{ height: "auto", opacity: 1 }}
-            exit={{ height: 0, opacity: 0 }}
-            transition={{ duration: 0.2 }}
+            ref={timePickerRef}
+            {...getMotionProps(shouldReduceMotion, {
+              initial: { height: 0, opacity: 0 },
+              animate: { height: "auto", opacity: 1 },
+              exit: { height: 0, opacity: 0 },
+              transition: { duration: 0.2 },
+            })}
             className="overflow-hidden"
           >
             <div className="px-3 pb-3 flex items-center justify-center gap-2">
@@ -339,7 +367,7 @@ export function DateTimePicker({ value, onChange, onClose, language }: DateTimeP
                 <motion.button
                   type="button"
                   onClick={() => setSelectedHour((h) => (h % 12) + 1)}
-                  whileTap={{ scale: 0.9 }}
+                  {...getHoverProps(shouldReduceMotion)}
                   className="p-1 hover:bg-muted rounded-lg"
                   aria-label={language === "ar" ? "زيادة الساعة" : "Increase hour"}
                 >
@@ -357,7 +385,7 @@ export function DateTimePicker({ value, onChange, onClose, language }: DateTimeP
                 <motion.button
                   type="button"
                   onClick={() => setSelectedHour((h) => ((h - 2 + 12) % 12) + 1)}
-                  whileTap={{ scale: 0.9 }}
+                  {...getHoverProps(shouldReduceMotion)}
                   className="p-1 hover:bg-muted rounded-lg"
                   aria-label={language === "ar" ? "إنقاص الساعة" : "Decrease hour"}
                 >
@@ -372,7 +400,7 @@ export function DateTimePicker({ value, onChange, onClose, language }: DateTimeP
                 <motion.button
                   type="button"
                   onClick={() => setSelectedMinute((m) => (m + 5) % 60)}
-                  whileTap={{ scale: 0.9 }}
+                  {...getHoverProps(shouldReduceMotion)}
                   className="p-1 hover:bg-muted rounded-lg"
                   aria-label={language === "ar" ? "زيادة الدقائق" : "Increase minutes"}
                 >
@@ -390,7 +418,7 @@ export function DateTimePicker({ value, onChange, onClose, language }: DateTimeP
                 <motion.button
                   type="button"
                   onClick={() => setSelectedMinute((m) => (m - 5 + 60) % 60)}
-                  whileTap={{ scale: 0.9 }}
+                  {...getHoverProps(shouldReduceMotion)}
                   className="p-1 hover:bg-muted rounded-lg"
                   aria-label={language === "ar" ? "إنقاص الدقائق" : "Decrease minutes"}
                 >
@@ -403,7 +431,7 @@ export function DateTimePicker({ value, onChange, onClose, language }: DateTimeP
                 <motion.button
                   type="button"
                   onClick={() => setIsPM(false)}
-                  whileTap={{ scale: 0.95 }}
+                  {...getHoverProps(shouldReduceMotion)}
                   className={cn(
                     "px-3 py-1.5 rounded-lg text-xs font-bold transition-all",
                     !isPM
@@ -416,7 +444,7 @@ export function DateTimePicker({ value, onChange, onClose, language }: DateTimeP
                 <motion.button
                   type="button"
                   onClick={() => setIsPM(true)}
-                  whileTap={{ scale: 0.95 }}
+                  {...getHoverProps(shouldReduceMotion)}
                   className={cn(
                     "px-3 py-1.5 rounded-lg text-xs font-bold transition-all",
                     isPM
@@ -438,8 +466,7 @@ export function DateTimePicker({ value, onChange, onClose, language }: DateTimeP
           <motion.button
             type="button"
             onClick={handleClear}
-            whileHover={{ scale: 1.02 }}
-            whileTap={{ scale: 0.98 }}
+            {...getHoverProps(shouldReduceMotion)}
             className="px-3 py-1.5 text-xs font-medium text-destructive hover:bg-destructive/10 rounded-lg transition-colors"
           >
             {language === "ar" ? "مسح" : "Clear"}
@@ -447,8 +474,7 @@ export function DateTimePicker({ value, onChange, onClose, language }: DateTimeP
           <motion.button
             type="button"
             onClick={handleToday}
-            whileHover={{ scale: 1.02 }}
-            whileTap={{ scale: 0.98 }}
+            {...getHoverProps(shouldReduceMotion)}
             className="px-3 py-1.5 text-xs font-medium text-muted-foreground hover:bg-muted rounded-lg transition-colors"
           >
             {language === "ar" ? "اليوم" : "Today"}

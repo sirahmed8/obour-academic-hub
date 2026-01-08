@@ -51,9 +51,33 @@ export function formatDateArabic(date: DateInput): string {
 
 export function getGreeting(): { en: string; ar: string } {
   const hour = new Date().getHours();
-  if (hour < 12) return { en: "Good Morning", ar: "صباح الخير" };
-  if (hour < 17) return { en: "Good Afternoon", ar: "مساء الخير" };
-  return { en: "Good Evening", ar: "مساء الخير" };
+
+  const morningmsgs = [
+    { en: "Good Morning", ar: "صباح الخير" },
+    { en: "Rise and Shine", ar: "صباح الهمة والنشاط" },
+    { en: "Ready to learn?", ar: "جاهز تكسر الدنيا؟" },
+    { en: "Morning Vibes", ar: "بداية يوم جميل" },
+  ];
+
+  const afternoonmsgs = [
+    { en: "Good Afternoon", ar: "مساء الخير" },
+    { en: "Keep Going", ar: "كمل، إنت قدها" },
+    { en: "Stay Focused", ar: "ركز وحقق هدفك" },
+    { en: "Halfway there", ar: "فاضل على الحلو دقة" },
+  ];
+
+  const eveningmsgs = [
+    { en: "Good Evening", ar: "مساء الروقان" },
+    { en: "Night Owl Mode", ar: "عاش يا بطل" },
+    { en: "Time to Focus", ar: "هدوء وتركيز" },
+    { en: "Wrap it up", ar: "ختامها مسك" },
+  ];
+
+  let list = eveningmsgs;
+  if (hour >= 5 && hour < 12) list = morningmsgs;
+  else if (hour >= 12 && hour < 17) list = afternoonmsgs;
+
+  return list[Math.floor(Math.random() * list.length)];
 }
 
 export function generateAvatarUrl(name: string, bgColor = "6366f1"): string {

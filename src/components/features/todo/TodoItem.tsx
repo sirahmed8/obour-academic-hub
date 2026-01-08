@@ -5,6 +5,8 @@ import { GripVertical, Clock, CheckCircle2, Circle, Edit2, Trash2 } from "lucide
 import { TodoTask } from "@/types";
 import { cn } from "@/lib/utils";
 import { useLanguage } from "@/contexts";
+import { useReducedMotion } from "@/hooks/useReducedMotion";
+import { listItem } from "@/lib/motion";
 
 interface TodoItemProps {
   task: TodoTask;
@@ -16,6 +18,7 @@ interface TodoItemProps {
 export function TodoItem({ task, onToggle, onDelete, onEdit }: TodoItemProps) {
   const { language } = useLanguage();
   const dragControls = useDragControls();
+  const { shouldReduceMotion } = useReducedMotion();
 
   const priorityColors = {
     high: "bg-red-500/10 text-red-500 border-red-500/20",
@@ -42,14 +45,19 @@ export function TodoItem({ task, onToggle, onDelete, onEdit }: TodoItemProps) {
       id={task.id}
       dragListener={false}
       dragControls={dragControls}
+      variants={shouldReduceMotion ? undefined : listItem}
+      initial={shouldReduceMotion ? { opacity: 1 } : "hidden"}
+      animate={shouldReduceMotion ? { opacity: 1 } : "visible"}
+      exit={shouldReduceMotion ? { opacity: 0 } : "exit"}
+      layout={shouldReduceMotion ? undefined : true}
       className="relative mb-3 group"
     >
       <div
         className={cn(
-          "bg-card border border-border rounded-xl p-4 flex items-start gap-3 transition-all",
+          "border rounded-xl p-4 flex items-start gap-3 transition-all duration-300 will-change-transform bg-card/70 backdrop-blur-md shadow-sm",
           task.completed
-            ? "opacity-60 bg-muted/30"
-            : "shadow-sm hover:shadow-md hover:border-primary/20"
+            ? "opacity-60 bg-muted/30 border-dashed"
+            : "hover:border-primary/30 hover:shadow-lg hover:shadow-primary/5 hover:-translate-y-[2px]"
         )}
       >
         {/* Drag Handle */}

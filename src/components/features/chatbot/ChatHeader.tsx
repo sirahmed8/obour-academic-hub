@@ -16,7 +16,7 @@ export function ChatHeader({ mode, setMode, setIsOpen, onClearHistory }: ChatHea
   const { language } = useLanguage();
 
   return (
-    <div className="p-4 border-b border-border bg-muted/30 flex items-center justify-between backdrop-blur-md">
+    <div className="p-4 border-b border-white/10 bg-transparent flex items-center justify-between">
       <div className="flex items-center gap-3">
         <div
           className={cn(

@@ -120,8 +120,9 @@ export default function AdminLogsPage() {
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: index * 0.05 }}
-                whileHover={{ scale: 1.02, y: -4 }}
-                className="group bg-card p-4 rounded-2xl border border-border hover:shadow-xl hover:shadow-primary/10 hover:border-primary/50 transition-all duration-300 flex items-start gap-4"
+                whileHover={{ y: -4 }}
+                style={{ backfaceVisibility: "hidden" }}
+                className="group bg-card p-4 rounded-2xl border border-border hover:shadow-xl hover:shadow-primary/10 hover:border-primary/50 transition-all duration-300 flex items-start gap-4 transform-gpu will-change-transform subpixel-antialiased"
               >
                 <motion.div
                   className="p-3 bg-muted rounded-xl"

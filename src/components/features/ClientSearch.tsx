@@ -88,7 +88,7 @@ export function ClientSearch({
               initial={{ opacity: 0, scale: 0.95, y: -20 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.95, y: -20 }}
-              className="fixed top-20 left-1/2 -translate-x-1/2 w-full max-w-2xl bg-background border rounded-lg shadow-lg z-50 overflow-hidden"
+              className="fixed top-20 left-1/2 -translate-x-1/2 w-full max-w-2xl bg-white/10 dark:bg-black/10 backdrop-blur-xl backdrop-saturate-150 border border-white/20 dark:border-white/10 rounded-lg shadow-lg z-50 overflow-hidden"
               role="dialog"
               aria-modal="true"
               aria-label="Search"

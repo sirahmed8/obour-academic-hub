@@ -80,14 +80,14 @@ export function LiveBanner() {
             }}
             layout
             className={cn(
-              "pointer-events-auto w-full max-w-3xl flex items-center justify-between p-4 rounded-xl shadow-lg border backdrop-blur-md",
+              "pointer-events-auto w-full max-w-3xl flex items-center justify-between p-4 rounded-xl shadow-lg border backdrop-blur-xl backdrop-saturate-150",
               banner.type === "urgent"
-                ? "bg-red-500/90 text-white border-red-600"
+                ? "bg-red-500/20 text-red-100 border-red-500/50"
                 : banner.type === "success"
-                  ? "bg-green-500/90 text-white border-green-600"
+                  ? "bg-green-500/20 text-green-100 border-green-500/50"
                   : banner.type === "warning"
-                    ? "bg-amber-500/90 text-white border-amber-600"
-                    : "bg-blue-500/90 text-white border-blue-600"
+                    ? "bg-amber-500/20 text-amber-100 border-amber-500/50"
+                    : "bg-blue-500/20 text-blue-100 border-blue-500/50"
             )}
           >
             <div className="flex items-center gap-3">

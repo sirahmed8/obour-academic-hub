@@ -64,7 +64,19 @@ export default function RootLayout({
             <LanguageProvider>
               <AuthProvider>
                 {children}
-                <Toaster position="top-center" richColors />
+                <Toaster
+                  position="top-center"
+                  toastOptions={{
+                    classNames: {
+                      toast:
+                        "bg-white/10 dark:bg-black/10 backdrop-blur-xl backdrop-saturate-150 border border-white/20 dark:border-white/10 shadow-lg !text-foreground",
+                      title: "text-foreground",
+                      description: "text-muted-foreground",
+                      actionButton: "bg-primary text-primary-foreground",
+                      cancelButton: "bg-muted text-muted-foreground",
+                    },
+                  }}
+                />
                 <Analytics />
               </AuthProvider>
             </LanguageProvider>

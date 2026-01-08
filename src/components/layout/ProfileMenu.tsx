@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { createPortal } from "react-dom";
 import { useAuth, useLanguage } from "@/contexts";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
@@ -13,6 +14,9 @@ interface ProfileMenuProps {
   isClosing: boolean;
 }
 
+// Check if we're on client side (for SSR-safe portal)
+const isClient = typeof window !== "undefined";
+
 export function ProfileMenu({ onClose, isClosing }: ProfileMenuProps) {
   const { user, logout } = useAuth();
   const { language, setLanguage, t } = useLanguage();
@@ -21,7 +25,7 @@ export function ProfileMenu({ onClose, isClosing }: ProfileMenuProps) {
   const [codeInput, setCodeInput] = useState(user?.studentCode || "");
   const [isSaving, setIsSaving] = useState(false);
   const [notifPermission, setNotifPermission] = useState<NotificationPermission>(
-    typeof window !== "undefined" ? Notification.permission : "default"
+    isClient ? Notification.permission : "default"
   );
 
   const handleSaveProfile = async () => {
@@ -54,17 +58,18 @@ export function ProfileMenu({ onClose, isClosing }: ProfileMenuProps) {
     setIsSaving(false);
   };
 
-  if (!user) return null;
+  // SSR safety: Don't render portal on server
+  if (!user || !isClient) return null;
 
-  return (
+  return createPortal(
     <>
-      <div className="fixed inset-0 z-40" onClick={onClose} />
+      <div className="fixed inset-0 z-[60]" onClick={onClose} />
       <div
         className={cn(
-          "absolute top-full mt-2 w-72 bg-card border border-border rounded-2xl shadow-2xl z-50 p-4 space-y-4",
+          "fixed top-20 w-72 bg-white/10 dark:bg-black/10 backdrop-blur-xl backdrop-saturate-150 border border-white/20 dark:border-white/10 rounded-2xl shadow-2xl z-[70] p-4 space-y-4",
           "transition-all duration-150 ease-out",
           isClosing ? "animate-scale-out" : "animate-scale-in",
-          language === "ar" ? "left-0 origin-top-left" : "right-0 origin-top-right"
+          language === "ar" ? "left-4 origin-top-left" : "right-4 origin-top-right"
         )}
       >
         <div className="pt-2 border-t border-border">
@@ -182,7 +187,8 @@ export function ProfileMenu({ onClose, isClosing }: ProfileMenuProps) {
                   );
                 } else {
                   const result = await Notification.requestPermission();
-                  setNotifPermission(result); // Live update!
+                  // Live update!
+                  setNotifPermission(result);
                   if (result === "granted") {
                     toast.success(
                       language === "ar" ? "تم تفعيل الإشعارات" : "Notifications enabled"
@@ -252,6 +258,7 @@ export function ProfileMenu({ onClose, isClosing }: ProfileMenuProps) {
           </button>
         </div>
       </div>
-    </>
+    </>,
+    document.body
   );
 }

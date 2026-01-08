@@ -40,7 +40,7 @@ export function ChatInput({
   };
 
   return (
-    <div className="p-3 bg-background border-t border-border">
+    <div className="p-3 bg-transparent border-t border-white/10">
       {/* Model Selector or other children */}
       {children}
 
