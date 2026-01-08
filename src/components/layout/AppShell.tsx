@@ -90,6 +90,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
         <main
           id="main-content"
           className="flex-1 w-full h-full overflow-y-auto pt-16 pb-24 lg:pb-10"
+          style={{ scrollbarGutter: "stable" }}
         >
           {/* Page content without exit animation to prevent layout shift */}
           <motion.div
