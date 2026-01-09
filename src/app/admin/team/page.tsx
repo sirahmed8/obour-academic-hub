@@ -5,11 +5,25 @@ import { AppShell } from "@/components/layout/AppShell";
 import { useAuth, useLanguage } from "@/contexts";
 import { db } from "@/lib/firebase";
 import { collection, onSnapshot, setDoc, deleteDoc, doc, query, where } from "firebase/firestore";
-import { Users, UserPlus, Trash2, Shield, Mail, Loader2, CheckCircle2, Crown } from "lucide-react";
+import {
+  Users,
+  UserPlus,
+  Trash2,
+  Shield,
+  Mail,
+  Loader2,
+  CheckCircle2,
+  Crown,
+  Heart,
+  Coffee,
+  Settings,
+  Grid,
+} from "lucide-react";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { User } from "@/types";
 import { FadeIn, ScaleIn, StaggerChildren } from "@/components/ui/Animations";
+import Image from "next/image";
 
 interface TeamMember {
   email: string;
@@ -20,6 +34,7 @@ interface TeamMember {
   isActiveUser?: boolean;
   displayName?: string;
   photoURL?: string;
+  bio?: string;
 }
 
 // Hardcoded owner email - MUST always appear in team
@@ -28,15 +43,16 @@ const OWNER_EMAIL = process.env.NEXT_PUBLIC_OWNER_EMAIL || "owner@example.com";
 export default function AdminTeamPage() {
   const { user, isAdmin, isOwner } = useAuth();
   const { language } = useLanguage();
+  const [activeTab, setActiveTab] = useState<"grid" | "manage">("grid");
+
+  // --- Manage State ---
   const [teamMembers, setTeamMembers] = useState<TeamMember[]>([]);
   const [loading, setLoading] = useState(true);
   const [newEmail, setNewEmail] = useState("");
   const [adding, setAdding] = useState(false);
 
   useEffect(() => {
-    if (!isAdmin) {
-      return;
-    }
+    if (!isAdmin) return;
 
     const unsubscribers: (() => void)[] = [];
     const membersMap = new Map<string, TeamMember>();
@@ -55,7 +71,6 @@ export default function AdminTeamPage() {
         const email = d.id;
         const existing = membersMap.get(email);
         if (email !== OWNER_EMAIL) {
-          // Don't override owner
           membersMap.set(email, {
             email,
             role: d.data().role || "admin",
@@ -81,10 +96,9 @@ export default function AdminTeamPage() {
           const email = userData.email;
           const existing = membersMap.get(email);
           if (email === OWNER_EMAIL) {
-            // Update owner info but keep role as owner
             membersMap.set(email, {
               email,
-              role: "owner", // ALWAYS owner regardless of DB
+              role: "owner",
               addedBy: existing?.addedBy,
               addedAt: existing?.addedAt || userData.createdAt,
               isWhitelisted: existing?.isWhitelisted,
@@ -112,7 +126,6 @@ export default function AdminTeamPage() {
 
     function updateTeamMembers() {
       const members = Array.from(membersMap.values());
-      // Sort: owner first, then admins, then by email
       members.sort((a, b) => {
         if (a.role === "owner" && b.role !== "owner") return -1;
         if (a.role !== "owner" && b.role === "owner") return 1;
@@ -130,7 +143,6 @@ export default function AdminTeamPage() {
   const handleAddAdmin = async () => {
     if (!newEmail.trim() || !user) return;
 
-    // Basic email validation
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(newEmail.trim())) {
       toast.error(language === "ar" ? "بريد إلكتروني غير صالح" : "Invalid email address");
@@ -179,174 +191,264 @@ export default function AdminTeamPage() {
     );
   }
 
+  const gridMembers = teamMembers.filter((m) => m.isActiveUser);
+
   return (
     <AppShell>
       <div className="w-full p-4 md:p-8 space-y-8 page-transition">
-        {/* Header */}
-        <FadeIn>
-          <h1 className="text-3xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-primary to-purple-600 flex items-center gap-3">
-            <Shield className="w-8 h-8 text-primary" />
-            {language === "ar" ? "إدارة الفريق" : "Team Management"}
-          </h1>
-          <p className="text-muted-foreground mt-2">
-            {language === "ar"
-              ? "إضافة أو إزالة المسؤولين من خلال البريد الإلكتروني"
-              : "Add or remove admins by email address"}
-          </p>
-        </FadeIn>
+        <FadeIn className="flex items-center justify-between flex-wrap gap-4">
+          <div className="flex items-center gap-3">
+            <h1 className="text-3xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-primary to-purple-600 flex items-center gap-3">
+              <Shield className="w-8 h-8 text-primary" />
+              {language === "ar" ? "إدارة الفريق" : "Team Management"}
+            </h1>
+          </div>
 
-        {/* Add Admin Form */}
-        <FadeIn delay={0.1} className="bg-card border border-border rounded-2xl p-6 shadow-sm">
-          <h2 className="text-lg font-semibold mb-4 flex items-center gap-2">
-            <UserPlus className="w-5 h-5 text-green-500" />
-            {language === "ar" ? "إضافة مسؤول جديد" : "Add New Admin"}
-          </h2>
-          <div className="flex flex-col sm:flex-row gap-3">
-            <div className="flex-1 relative">
-              <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
-              <input
-                type="email"
-                value={newEmail}
-                onChange={(e) => setNewEmail(e.target.value)}
-                onKeyDown={(e) => e.key === "Enter" && handleAddAdmin()}
-                placeholder={
-                  language === "ar" ? "البريد الإلكتروني للمسؤول الجديد..." : "Enter admin email..."
-                }
-                className="w-full bg-background border border-border rounded-xl pl-10 pr-4 py-3 outline-none focus:ring-2 ring-primary/20 transition-all"
-              />
-            </div>
+          <div className="flex bg-muted p-1 rounded-xl">
             <button
-              onClick={handleAddAdmin}
-              disabled={!newEmail.trim() || adding}
-              className="px-6 py-3 bg-primary text-primary-foreground rounded-xl font-medium hover:opacity-90 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 min-w-[120px] shadow-lg shadow-primary/20"
-            >
-              {adding ? (
-                <Loader2 className="w-4 h-4 animate-spin" />
-              ) : (
-                <UserPlus className="w-4 h-4" />
+              onClick={() => setActiveTab("grid")}
+              className={cn(
+                "px-4 py-2 rounded-lg text-sm font-medium transition-all flex items-center gap-2",
+                activeTab === "grid"
+                  ? "bg-background shadow text-foreground"
+                  : "text-muted-foreground hover:text-foreground"
               )}
-              {language === "ar" ? "إضافة" : "Add"}
+            >
+              <Grid size={16} />
+              {language === "ar" ? "عرض الفريق" : "Team Grid"}
+            </button>
+            <button
+              onClick={() => setActiveTab("manage")}
+              className={cn(
+                "px-4 py-2 rounded-lg text-sm font-medium transition-all flex items-center gap-2",
+                activeTab === "manage"
+                  ? "bg-background shadow text-foreground"
+                  : "text-muted-foreground hover:text-foreground"
+              )}
+            >
+              <Settings size={16} />
+              {language === "ar" ? "إدارة الصلاحيات" : "Manage Access"}
             </button>
           </div>
-          <p className="text-xs text-muted-foreground mt-3">
-            {language === "ar"
-              ? "سيحصل المستخدم على صلاحيات المسؤول عند تسجيل الدخول التالي"
-              : "User will get admin privileges on their next login"}
-          </p>
         </FadeIn>
 
-        {/* Team Members List */}
-        <FadeIn delay={0.2} className="bg-card border border-border rounded-2xl p-6 shadow-sm">
-          <h2 className="text-lg font-semibold mb-4 flex items-center gap-2">
-            <Users className="w-5 h-5 text-blue-500" />
-            {language === "ar" ? "أعضاء الفريق" : "Team Members"}
-            <span className="text-sm text-muted-foreground font-normal">
-              ({teamMembers.length})
-            </span>
-          </h2>
+        {activeTab === "grid" && (
+          <div className="space-y-8">
+            <FadeIn className="text-center space-y-4 max-w-2xl mx-auto">
+              <p className="text-xl text-muted-foreground">
+                {language === "ar"
+                  ? "العقول وراء منصة معاهد العبور. بُنيت بـ"
+                  : "The minds behind Obour Academic Hub. Built with"}
+                <Heart className="inline w-5 h-5 text-red-500 animate-pulse mx-1" />
+                {language === "ar" ? "والكثير من" : "and lots of"}
+                <Coffee className="inline w-5 h-5 text-amber-700 mx-1" />
+              </p>
+            </FadeIn>
 
-          {teamMembers.length === 0 ? (
-            <div className="text-center py-8 text-muted-foreground">
-              {language === "ar" ? "لا يوجد أعضاء في الفريق" : "No team members yet"}
-            </div>
-          ) : (
-            <StaggerChildren className="space-y-3">
-              {teamMembers.map((member) => (
-                <ScaleIn key={member.email}>
-                  <div className="group flex items-center justify-between p-4 bg-muted/30 rounded-xl border border-transparent hover:border-border transition-all hover:bg-muted/50">
-                    <div className="flex items-center gap-3 overflow-hidden">
-                      <div
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+              <StaggerChildren className="contents">
+                {gridMembers.map((member, idx) => (
+                  <ScaleIn key={idx} className="h-full">
+                    <div className="bg-card rounded-3xl p-8 text-center shadow-lg border border-border card-hover h-full flex flex-col items-center">
+                      <div className="w-32 h-32 mx-auto mb-6 rounded-full p-1 bg-gradient-to-tr from-primary to-purple-500">
+                        <Image
+                          src={
+                            member.photoURL ||
+                            `https://ui-avatars.com/api/?name=${encodeURIComponent(
+                              member.displayName || "User"
+                            )}&background=6366f1&color=fff`
+                          }
+                          alt={member.displayName || "User"}
+                          width={128}
+                          height={128}
+                          className="w-full h-full rounded-full object-cover border-4 border-card"
+                        />
+                      </div>
+
+                      <h3 className="text-2xl font-bold text-foreground mb-2">
+                        {member.displayName || member.email}
+                      </h3>
+                      <span
                         className={cn(
-                          "w-10 h-10 rounded-full flex items-center justify-center shrink-0",
+                          "inline-block px-4 py-1.5 rounded-full text-sm font-medium mb-4",
                           member.role === "owner"
-                            ? "bg-amber-100 dark:bg-amber-900/30"
-                            : "bg-primary/10"
+                            ? "bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400"
+                            : "bg-primary/10 text-primary"
                         )}
                       >
-                        {member.role === "owner" ? (
-                          <Crown className="w-5 h-5 text-amber-600 dark:text-amber-400" />
-                        ) : (
-                          <Shield className="w-5 h-5 text-primary" />
-                        )}
-                      </div>
-                      <div className="min-w-0">
-                        <div className="flex items-center gap-2 flex-wrap">
-                          <p className="font-medium truncate">{member.email}</p>
-                          {member.displayName && (
-                            <span className="text-xs text-muted-foreground truncate">
-                              ({member.displayName})
-                            </span>
-                          )}
-                        </div>
-                        <div className="flex items-center gap-2 text-xs text-muted-foreground mt-0.5 flex-wrap">
-                          {member.isActiveUser && (
-                            <div className="flex items-center gap-1">
-                              <CheckCircle2 className="w-3 h-3 text-green-500" />
-                              <span className="text-green-600 dark:text-green-400">
-                                {language === "ar" ? "نشط" : "Active User"}
-                              </span>
-                            </div>
-                          )}
-                          {member.isWhitelisted && (
-                            <span
-                              className={cn(
-                                "px-2 py-0.5 rounded-full",
-                                member.isActiveUser
-                                  ? "bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300"
-                                  : "bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-300"
-                              )}
-                            >
-                              {member.isActiveUser
-                                ? language === "ar"
-                                  ? "مدرج في القائمة"
-                                  : "Whitelisted"
-                                : language === "ar"
-                                  ? "في انتظار التسجيل"
-                                  : "Pending Login"}
-                            </span>
-                          )}
-                          <span
+                        {member.role === "owner"
+                          ? language === "ar"
+                            ? "المالك"
+                            : "Owner"
+                          : language === "ar"
+                            ? "مسؤول"
+                            : "Admin"}
+                      </span>
+
+                      <div className="mt-auto text-muted-foreground text-sm">{member.email}</div>
+                    </div>
+                  </ScaleIn>
+                ))}
+              </StaggerChildren>
+            </div>
+          </div>
+        )}
+
+        {activeTab === "manage" && (
+          <div className="space-y-8">
+            <FadeIn delay={0.1} className="bg-card border border-border rounded-2xl p-6 shadow-sm">
+              <h2 className="text-lg font-semibold mb-4 flex items-center gap-2">
+                <UserPlus className="w-5 h-5 text-green-500" />
+                {language === "ar" ? "إضافة مسؤول جديد" : "Add New Admin"}
+              </h2>
+              <div className="flex flex-col sm:flex-row gap-3">
+                <div className="flex-1 relative">
+                  <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
+                  <input
+                    type="email"
+                    value={newEmail}
+                    onChange={(e) => setNewEmail(e.target.value)}
+                    onKeyDown={(e) => e.key === "Enter" && handleAddAdmin()}
+                    placeholder={
+                      language === "ar"
+                        ? "البريد الإلكتروني للمسؤول الجديد..."
+                        : "Enter admin email..."
+                    }
+                    className="w-full bg-background border border-border rounded-xl pl-10 pr-4 py-3 outline-none focus:ring-2 ring-primary/20 transition-all"
+                  />
+                </div>
+                <button
+                  onClick={handleAddAdmin}
+                  disabled={!newEmail.trim() || adding}
+                  className="px-6 py-3 bg-primary text-primary-foreground rounded-xl font-medium hover:opacity-90 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 min-w-[120px] shadow-lg shadow-primary/20"
+                >
+                  {adding ? (
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                  ) : (
+                    <UserPlus className="w-4 h-4" />
+                  )}
+                  {language === "ar" ? "إضافة" : "Add"}
+                </button>
+              </div>
+              <p className="text-xs text-muted-foreground mt-3">
+                {language === "ar"
+                  ? "سيحصل المستخدم على صلاحيات المسؤول عند تسجيل الدخول التالي"
+                  : "User will get admin privileges on their next login"}
+              </p>
+            </FadeIn>
+
+            <FadeIn delay={0.2} className="bg-card border border-border rounded-2xl p-6 shadow-sm">
+              <h2 className="text-lg font-semibold mb-4 flex items-center gap-2">
+                <Users className="w-5 h-5 text-blue-500" />
+                {language === "ar" ? "قائمة الوصول" : "Access List"}
+                <span className="text-sm text-muted-foreground font-normal">
+                  ({teamMembers.length})
+                </span>
+              </h2>
+
+              {teamMembers.length === 0 ? (
+                <div className="text-center py-8 text-muted-foreground">
+                  {language === "ar" ? "لا يوجد أعضاء في الفريق" : "No team members yet"}
+                </div>
+              ) : (
+                <StaggerChildren className="space-y-3">
+                  {teamMembers.map((member) => (
+                    <ScaleIn key={member.email}>
+                      <div className="group flex items-center justify-between p-4 bg-muted/30 rounded-xl border border-transparent hover:border-border transition-all hover:bg-muted/50">
+                        <div className="flex items-center gap-3 overflow-hidden">
+                          <div
                             className={cn(
-                              "px-2 py-0.5 rounded-full font-medium",
+                              "w-10 h-10 rounded-full flex items-center justify-center shrink-0",
                               member.role === "owner"
-                                ? "bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-300"
-                                : "bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-300"
+                                ? "bg-amber-100 dark:bg-amber-900/30"
+                                : "bg-primary/10"
                             )}
                           >
-                            {member.role}
-                          </span>
+                            {member.role === "owner" ? (
+                              <Crown className="w-5 h-5 text-amber-600 dark:text-amber-400" />
+                            ) : (
+                              <Shield className="w-5 h-5 text-primary" />
+                            )}
+                          </div>
+                          <div className="min-w-0">
+                            <div className="flex items-center gap-2 flex-wrap">
+                              <p className="font-medium truncate">{member.email}</p>
+                              {member.displayName && (
+                                <span className="text-xs text-muted-foreground truncate">
+                                  ({member.displayName})
+                                </span>
+                              )}
+                            </div>
+                            <div className="flex items-center gap-2 text-xs text-muted-foreground mt-0.5 flex-wrap">
+                              {member.isActiveUser && (
+                                <div className="flex items-center gap-1">
+                                  <CheckCircle2 className="w-3 h-3 text-green-500" />
+                                  <span className="text-green-600 dark:text-green-400">
+                                    {language === "ar" ? "نشط" : "Active User"}
+                                  </span>
+                                </div>
+                              )}
+                              {member.isWhitelisted && (
+                                <span
+                                  className={cn(
+                                    "px-2 py-0.5 rounded-full",
+                                    member.isActiveUser
+                                      ? "bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300"
+                                      : "bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-300"
+                                  )}
+                                >
+                                  {member.isActiveUser
+                                    ? language === "ar"
+                                      ? "مدرج في القائمة"
+                                      : "Whitelisted"
+                                    : language === "ar"
+                                      ? "في انتظار التسجيل"
+                                      : "Pending Login"}
+                                </span>
+                              )}
+                              <span
+                                className={cn(
+                                  "px-2 py-0.5 rounded-full font-medium",
+                                  member.role === "owner"
+                                    ? "bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-300"
+                                    : "bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-300"
+                                )}
+                              >
+                                {member.role}
+                              </span>
+                            </div>
+                          </div>
                         </div>
+
+                        {isOwner && member.role !== "owner" && member.isWhitelisted && (
+                          <button
+                            onClick={() => handleRemoveAdmin(member.email)}
+                            className="opacity-0 group-hover:opacity-100 p-2 hover:bg-red-50 dark:hover:bg-red-900/20 text-red-400 hover:text-red-600 dark:hover:text-red-300 rounded-lg transition-all"
+                            title={language === "ar" ? "إزالة من القائمة" : "Remove from whitelist"}
+                          >
+                            <Trash2 className="w-5 h-5" />
+                          </button>
+                        )}
                       </div>
-                    </div>
+                    </ScaleIn>
+                  ))}
+                </StaggerChildren>
+              )}
+            </FadeIn>
 
-                    {isOwner && member.role !== "owner" && member.isWhitelisted && (
-                      <button
-                        onClick={() => handleRemoveAdmin(member.email)}
-                        className="opacity-0 group-hover:opacity-100 p-2 hover:bg-red-50 dark:hover:bg-red-900/20 text-red-400 hover:text-red-600 dark:hover:text-red-300 rounded-lg transition-all"
-                        title={language === "ar" ? "إزالة من القائمة" : "Remove from whitelist"}
-                      >
-                        <Trash2 className="w-5 h-5" />
-                      </button>
-                    )}
-                  </div>
-                </ScaleIn>
-              ))}
-            </StaggerChildren>
-          )}
-        </FadeIn>
-
-        {/* Info Note */}
-        <FadeIn
-          delay={0.3}
-          className="bg-blue-50 dark:bg-blue-950/30 border border-blue-200 dark:border-blue-900 rounded-xl p-4 text-sm"
-        >
-          <p className="text-blue-800 dark:text-blue-200">
-            <strong>{language === "ar" ? "ملاحظة:" : "Note:"}</strong>{" "}
-            {language === "ar"
-              ? "عند إضافة بريد إلكتروني هنا، سيحصل المستخدم تلقائياً على صلاحيات المسؤول عند تسجيل الدخول (أو إنشاء حساب جديد) باستخدام هذا البريد."
-              : "When you add an email here, the user will automatically get admin privileges when they log in (or create an account) with that email."}
-          </p>
-        </FadeIn>
+            <FadeIn
+              delay={0.3}
+              className="bg-blue-50 dark:bg-blue-950/30 border border-blue-200 dark:border-blue-900 rounded-xl p-4 text-sm"
+            >
+              <p className="text-blue-800 dark:text-blue-200">
+                <strong>{language === "ar" ? "ملاحظة:" : "Note:"}</strong>{" "}
+                {language === "ar"
+                  ? "عند إضافة بريد إلكتروني هنا، سيحصل المستخدم تلقائياً على صلاحيات المسؤول عند تسجيل الدخول (أو إنشاء حساب جديد) باستخدام هذا البريد."
+                  : "When you add an email here, the user will automatically get admin privileges when they log in (or create an account) with that email."}
+              </p>
+            </FadeIn>
+          </div>
+        )}
       </div>
     </AppShell>
   );

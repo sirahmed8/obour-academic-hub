@@ -141,6 +141,45 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                   {language === "ar" ? "ملفات الارتباط" : "Cookie Policy"}
                 </Link>
               </div>
+
+              {/* Repository Links */}
+              <div className="flex flex-wrap justify-center gap-4 text-[10px] text-muted-foreground/40 font-mono">
+                <a
+                  href="https://github.com/sirahmed8/obour-academic-hub/blob/main/README.md"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="hover:text-primary transition-colors"
+                >
+                  README
+                </a>
+                <span>•</span>
+                <a
+                  href="https://github.com/sirahmed8/obour-academic-hub/blob/main/CONTRIBUTING.md"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="hover:text-primary transition-colors"
+                >
+                  Contributing
+                </a>
+                <span>•</span>
+                <a
+                  href="https://github.com/sirahmed8/obour-academic-hub/blob/main/LICENSE"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="hover:text-primary transition-colors"
+                >
+                  MIT license
+                </a>
+                <span>•</span>
+                <a
+                  href="https://github.com/sirahmed8/obour-academic-hub/blob/main/SECURITY.md"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="hover:text-primary transition-colors"
+                >
+                  Security
+                </a>
+              </div>
               <p className="text-[10px] text-muted-foreground/40">
                 &copy; 2026 Obour Academic Hub. All rights reserved.
               </p>

@@ -388,7 +388,7 @@ export default function AdminUsersPage() {
       <div className="p-4 lg:p-10 w-full h-[calc(100vh-100px)] flex flex-col overflow-x-hidden">
         {/* Header Section */}
         <FadeIn className="flex flex-col gap-4 mb-6 shrink-0">
-          <h1 className="text-2xl font-bold text-foreground flex items-center gap-3">
+          <h1 className="text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-primary to-purple-600 flex items-center gap-3">
             <Users className="text-primary" />
             {language === "ar" ? "المستخدمين" : "Users"}
           </h1>

@@ -86,7 +86,7 @@ export function ProfileMenu({ onClose }: ProfileMenuProps) {
         animate="visible"
         exit="exit"
         className={cn(
-          "fixed top-20 w-72 bg-card/90 dark:bg-black/90 backdrop-blur-xl backdrop-saturate-150 border border-primary/10 dark:border-white/10 rounded-2xl shadow-2xl z-[70] p-4 space-y-4",
+          "fixed top-20 w-72 bg-card/60 dark:bg-black/60 backdrop-blur-xl backdrop-saturate-150 border border-primary/20 dark:border-white/10 rounded-2xl shadow-2xl z-[70] p-4 space-y-4",
           language === "ar" ? "left-4 origin-top-left" : "right-4 origin-top-right"
         )}
       >

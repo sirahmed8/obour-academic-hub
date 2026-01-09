@@ -12,10 +12,11 @@ import {
   MessageSquare,
   FileText,
   AlertTriangle,
-  Megaphone,
   LucideIcon,
   ListTodo,
   X,
+  Shield,
+  Send,
 } from "lucide-react";
 import { useAuth, useLanguage } from "@/contexts";
 import { Notification as AppNotification } from "@/types";
@@ -106,11 +107,15 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
     { name: t("admin.subjects"), path: "/admin/subjects", icon: FileText },
     { name: t("admin.resources"), path: "/admin/resources", icon: FileText },
     {
-      name: language === "ar" ? "الإعلانات" : "Banners",
-      path: "/admin/banners",
-      icon: Megaphone,
+      name: language === "ar" ? "إدارة الفريق" : "Team Management",
+      path: "/admin/team",
+      icon: Shield,
     },
-    { name: t("nav.team"), path: "/team", icon: Users },
+    {
+      name: language === "ar" ? "مركز الإشعارات" : "Notifications",
+      path: "/admin/notifications",
+      icon: Send,
+    },
     { name: t("admin.users"), path: "/admin/users", icon: Users },
     {
       name: t("admin.inbox"),

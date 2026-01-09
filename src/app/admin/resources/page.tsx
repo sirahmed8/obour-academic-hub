@@ -195,7 +195,7 @@ export default function AdminResourcesPage() {
     <AppShell>
       <div className="p-6 lg:p-10 w-full page-transition">
         <FadeIn className="mb-8">
-          <h1 className="text-2xl font-bold text-foreground flex items-center gap-3">
+          <h1 className="text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-primary to-purple-600 flex items-center gap-3">
             <FileText className="text-primary" />
             {t("admin.resources")}
           </h1>

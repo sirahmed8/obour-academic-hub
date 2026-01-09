@@ -112,7 +112,7 @@ export default function AdminAnalyticsPage() {
     <AppShell>
       <div className="p-6 lg:p-10 w-full space-y-8 page-transition">
         <FadeIn className="flex items-center justify-between">
-          <h1 className="text-2xl font-bold text-foreground flex items-center gap-3">
+          <h1 className="text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-primary to-purple-600 flex items-center gap-3">
             <BarChart3 className="text-primary" />
             {t("admin.analytics")}
           </h1>
