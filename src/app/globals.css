@@ -204,6 +204,7 @@
 }
 
 .aurora-bg {
-  background: radial-gradient(ellipse at top, hsl(var(--primary) / 0.15), transparent 70%),
-              radial-gradient(ellipse at bottom, hsl(var(--secondary) / 0.15), transparent 70%);
+  background:
+    radial-gradient(ellipse at top, hsl(var(--primary) / 0.15), transparent 70%),
+    radial-gradient(ellipse at bottom, hsl(var(--secondary) / 0.15), transparent 70%);
 }
