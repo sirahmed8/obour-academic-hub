@@ -2,7 +2,7 @@
 
 import { useState, useRef, useEffect } from "react";
 import { createPortal } from "react-dom";
-import { useAuth, useLanguage } from "@/contexts";
+import { useAuth, useLanguage, useSolidMode } from "@/contexts";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 import { doc, updateDoc } from "firebase/firestore";
@@ -37,6 +37,7 @@ const menuVariants: Variants = {
 export function ProfileMenu({ onClose, triggerRef }: ProfileMenuProps) {
   const { user, logout } = useAuth();
   const { language, setLanguage, t } = useLanguage();
+  const { toggleSolidMode, isSolid } = useSolidMode();
 
   const [nameInput, setNameInput] = useState(user?.displayName || "");
   const [codeInput, setCodeInput] = useState(user?.studentCode || "");
@@ -213,6 +214,51 @@ export function ProfileMenu({ onClose, triggerRef }: ProfileMenuProps) {
           </div>
 
           <ThemeToggle />
+
+          <div className="space-y-2 pt-2 border-t border-border mt-4">
+            {/* Solid Mode Toggle */}
+            <button
+              onClick={() => toggleSolidMode()}
+              className="w-full flex items-center justify-between p-3 rounded-xl bg-muted/50 hover:bg-muted transition-all duration-200 active:scale-[0.98]"
+            >
+              <span className="flex items-center gap-3 text-sm font-medium">
+                <span
+                  className={cn(
+                    "w-2.5 h-2.5 rounded-full transition-all",
+                    isSolid ? "bg-purple-500 shadow-[0_0_8px_rgba(168,85,247,0.5)]" : "bg-gray-400"
+                  )}
+                />
+                <span className="flex flex-col items-start text-xs">
+                  <span className="font-bold">
+                    {language === "ar" ? "الوضع الصلب" : "Solid Mode"}
+                  </span>
+                  <span className="text-[10px] text-muted-foreground font-normal">
+                    {language === "ar" ? "سريع للأجهزة الضعيفة" : "Faster for slow devices"}
+                  </span>
+                </span>
+              </span>
+              {/* iOS-style toggle */}
+              <div
+                className={cn(
+                  "w-11 h-6 rounded-full p-0.5 transition-colors duration-200 relative",
+                  isSolid ? "bg-purple-500" : "bg-gray-300 dark:bg-gray-600"
+                )}
+              >
+                <div
+                  className={cn(
+                    "w-5 h-5 bg-white rounded-full shadow-sm transition-all duration-200 absolute top-0.5",
+                    isSolid
+                      ? language === "ar"
+                        ? "left-0.5"
+                        : "right-0.5"
+                      : language === "ar"
+                        ? "right-0.5"
+                        : "left-0.5"
+                  )}
+                />
+              </div>
+            </button>
+          </div>
 
           <div className="space-y-2 pt-2 border-t border-border mt-4">
             <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">

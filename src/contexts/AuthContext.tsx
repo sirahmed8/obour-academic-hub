@@ -138,19 +138,23 @@ export function AuthProvider({ children }: { children: ReactNode }) {
                 // Set local state immediately to avoid waiting for next snapshot
                 setUser(newUserProfile as unknown as User);
               }
-            } catch (err) {
-              console.error("Error processing user data:", err);
-              // Fallback logic
-              setUser({
-                uid: firebaseUser.uid,
-                email: firebaseUser.email || "",
-                displayName: firebaseUser.displayName || "User",
-                role: "student", // Fallback to student role
-                createdAt: new Date().toISOString(),
-                lastLogin: new Date().toISOString(),
-              });
+            } catch (err: unknown) {
+              console.error("Error processing user data (Creation/Fetch):", err);
+              // Do NOT set a fallback user if creation failed.
+              // This hides the error and leaves the user in a broken state (logged in locally, but not in DB).
+              setUser(null);
+
+              const errorMessage = err instanceof Error ? err.message : "Unknown error";
+
+              toast.error(
+                language === "ar"
+                  ? "فشل إنشاء الملف الشخصي: " + errorMessage
+                  : "Profile Creation Failed: " + errorMessage
+              );
+
+              // Optionally sign them out so they can try again cleanly
+              await signOut(auth);
             } finally {
-              // ALWAYS release loading
               setLoading(false);
             }
           },

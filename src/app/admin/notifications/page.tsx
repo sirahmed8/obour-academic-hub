@@ -348,7 +348,7 @@ export default function AdminNotificationsPage() {
 
         {/* --- MANAGE BANNERS TAB --- */}
         {activeTab === "banners" && (
-          <div className="space-y-6">
+          <FadeIn className="space-y-6">
             <FadeIn delay={0.1} className="flex justify-end">
               <button
                 onClick={() => setIsAdding(!isAdding)}
@@ -474,7 +474,7 @@ export default function AdminNotificationsPage() {
                 </StaggerChildren>
               )}
             </div>
-          </div>
+          </FadeIn>
         )}
       </div>
 

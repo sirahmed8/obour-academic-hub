@@ -3,8 +3,9 @@
 import { useState, useEffect, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { useAuth, useLanguage } from "@/contexts";
+import { useAuth, useLanguage, useSolidMode } from "@/contexts";
 import { Sidebar, Navbar } from "@/components/layout";
+import { toast } from "sonner";
 import dynamic from "next/dynamic";
 import { SkipLink } from "@/components/ui/SkipLink";
 import { cn } from "@/lib/utils";
@@ -65,6 +66,29 @@ export function AppShell({ children }: { children: React.ReactNode }) {
       router.push("/");
     }
   }, [user, loading, router]);
+
+  // Solid Mode Hint
+  const { isSolid, toggleSolidMode } = useSolidMode();
+  useEffect(() => {
+    // Only show if user is logged in, not already in solid mode, and hasn't seen it recently (session based for now)
+    if (user && !isSolid && !sessionStorage.getItem("solidModeHintShown")) {
+      const timer = setTimeout(() => {
+        toast("Feels like slow performance?", {
+          description: "Try Solid site! Removes blur for better speed.",
+          action: {
+            label: "Activate Solid Mode",
+            onClick: () => {
+              toggleSolidMode();
+              toast.success("Solid Mode Activated 🚀");
+            },
+          },
+          duration: 8000,
+        });
+        sessionStorage.setItem("solidModeHintShown", "true");
+      }, 3000); // Show after 3 seconds
+      return () => clearTimeout(timer);
+    }
+  }, [user, isSolid, toggleSolidMode]);
 
   if (loading) {
     return (
@@ -141,44 +165,6 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                 </Link>
               </div>
 
-              {/* Repository Links */}
-              <div className="flex flex-wrap justify-center gap-4 text-[10px] text-muted-foreground/40 font-mono">
-                <a
-                  href="https://github.com/sirahmed8/obour-academic-hub/blob/main/README.md"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="hover:text-primary transition-colors"
-                >
-                  README
-                </a>
-                <span>•</span>
-                <a
-                  href="https://github.com/sirahmed8/obour-academic-hub/blob/main/CONTRIBUTING.md"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="hover:text-primary transition-colors"
-                >
-                  Contributing
-                </a>
-                <span>•</span>
-                <a
-                  href="https://github.com/sirahmed8/obour-academic-hub/blob/main/LICENSE"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="hover:text-primary transition-colors"
-                >
-                  MIT license
-                </a>
-                <span>•</span>
-                <a
-                  href="https://github.com/sirahmed8/obour-academic-hub/blob/main/SECURITY.md"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="hover:text-primary transition-colors"
-                >
-                  Security
-                </a>
-              </div>
               <p className="text-[10px] text-muted-foreground/40">
                 &copy; 2026 Obour Academic Hub. All rights reserved.
               </p>

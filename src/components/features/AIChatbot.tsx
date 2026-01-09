@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback, useRef } from "react";
 import { AnimatePresence, motion } from "framer-motion";
-import { X } from "lucide-react";
+import { X, Trash2 } from "lucide-react";
 import { useAuth, useLanguage } from "@/contexts";
 import { db } from "@/lib/firebase";
 import { collection, query, orderBy, onSnapshot, doc } from "firebase/firestore";
@@ -276,7 +276,7 @@ export function AIChatbot() {
                   title={language === "ar" ? "مسح السجل" : "Clear History"}
                   aria-label={language === "ar" ? "مسح السجل" : "Clear history"}
                 >
-                  <X className="w-4 h-4" />
+                  <Trash2 className="w-4 h-4" />
                 </button>
                 <button
                   onClick={() => setIsOpen(false)}

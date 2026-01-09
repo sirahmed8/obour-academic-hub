@@ -204,7 +204,7 @@ export function TodoList() {
                   animate={{ opacity: 1, y: 0, scale: 1, filter: "blur(0px)" }}
                   exit={{ opacity: 0, y: 8, scale: 0.95, filter: "blur(2px)" }}
                   transition={{ duration: 0.2, ease: [0.32, 0.72, 0, 1] }}
-                  className="absolute top-full mt-2 left-0 w-full bg-white/80 dark:bg-zinc-900/80 backdrop-blur-xl backdrop-saturate-150 border border-white/20 dark:border-white/10 rounded-xl shadow-2xl z-50 overflow-hidden"
+                  className="absolute top-full mt-2 left-0 w-full glass-premium rounded-xl shadow-2xl z-50 overflow-hidden"
                 >
                   {(["all", "pending", "completed"] as const).map((f) => (
                     <button
@@ -214,14 +214,14 @@ export function TodoList() {
                         setShowFilter(false);
                       }}
                       className={cn(
-                        "w-full text-left px-4 py-3 text-sm transition-colors hover:bg-muted font-medium flex items-center gap-2",
-                        filter === f && "bg-primary/5 text-primary"
+                        "w-full text-left px-4 py-3 text-sm transition-colors hover:bg-muted/50 font-medium flex items-center gap-2",
+                        filter === f ? "bg-primary text-primary-foreground" : "text-foreground"
                       )}
                     >
                       {filter === f && (
                         <motion.div
                           layoutId="active-filter-indicator"
-                          className="w-1.5 h-1.5 rounded-full bg-primary"
+                          className="w-1.5 h-1.5 rounded-full bg-primary-foreground"
                         />
                       )}
                       {f === "all"

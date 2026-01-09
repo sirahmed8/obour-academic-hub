@@ -326,7 +326,7 @@ export default function AdminSubjectsPage() {
         {/* Main Grid Layout */}
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
           {/* LEFT: Form Section (4 cols) */}
-          <div className="lg:col-span-5 xl:col-span-4 flex flex-col gap-6 sticky top-24">
+          <div className="lg:col-span-5 xl:col-span-4 flex flex-col gap-6 lg:sticky lg:top-24">
             <FadeIn delay={0.1}>
               <div className="bg-card rounded-2xl border border-border shadow-sm overflow-hidden">
                 {/* Visual Header for Form */}

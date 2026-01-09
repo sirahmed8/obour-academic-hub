@@ -1,55 +1,26 @@
 import type { Metadata, Viewport } from "next";
 import { Inter } from "next/font/google";
-import "./globals.css";
-import { ThemeProvider, AuthProvider, LanguageProvider } from "@/contexts";
+import { Analytics } from "@vercel/analytics/react";
 import { Toaster } from "sonner";
-import { Analytics } from "@vercel/analytics/next";
+import { ErrorBoundary } from "@/components/ErrorBoundary";
+import "./globals.css";
+import { ThemeProvider, AuthProvider, LanguageProvider, SolidModeProvider } from "@/contexts";
 
-const inter = Inter({
-  subsets: ["latin"],
-  variable: "--font-inter",
-  display: "swap",
-});
-
-export const viewport: Viewport = {
-  themeColor: "#6366f1",
-  width: "device-width",
-  initialScale: 1,
-  // Note: maximumScale removed to allow user zooming (WCAG 2.1 accessibility)
-};
+const inter = Inter({ subsets: ["latin"], variable: "--font-inter" });
 
 export const metadata: Metadata = {
-  metadataBase: new URL("https://obourinstitutes.web.app"),
-  title: "Obour Academic Hub | معاهد العبور",
-  description: "Smart Learning Management System - نظام إدارة التعلم الذكي",
-  manifest: "/manifest.json",
-  icons: {
-    icon: "/obour-logo.png",
-    shortcut: "/obour-logo.png",
-    apple: "/obour-logo.png",
-  },
-  appleWebApp: {
-    capable: true,
-    title: "Obour Hub",
-    statusBarStyle: "black-translucent",
-  },
-  openGraph: {
-    title: "Obour Academic Hub",
-    description: "Smart Learning Management System",
-    url: "https://obourinstitutes.web.app",
-    siteName: "Obour Academic Hub",
-    images: [{ url: "/obour-logo.png", width: 1200, height: 630 }],
-    locale: "en_US",
-  },
-  twitter: {
-    card: "summary_large_image",
-    title: "Obour Academic Hub",
-    description: "Smart Learning Management System",
-    images: ["/obour-logo.png"],
-  },
+  title: "Obour Academic Hub",
+  description: "A comprehensive academic platform for Obour Institutes students",
 };
 
-import { ErrorBoundary } from "@/components/ErrorBoundary";
+export const viewport: Viewport = {
+  themeColor: [
+    { media: "(prefers-color-scheme: light)", color: "white" },
+    { media: "(prefers-color-scheme: dark)", color: "black" },
+  ],
+};
+
+// ... (existing imports)
 
 export default function RootLayout({
   children,
@@ -63,21 +34,23 @@ export default function RootLayout({
           <ThemeProvider>
             <LanguageProvider>
               <AuthProvider>
-                {children}
-                <Toaster
-                  position="top-center"
-                  toastOptions={{
-                    classNames: {
-                      toast:
-                        "bg-card/90 dark:bg-card/90 backdrop-blur-xl backdrop-saturate-150 border border-border shadow-lg text-foreground",
-                      title: "text-foreground font-medium",
-                      description: "text-muted-foreground",
-                      actionButton: "bg-primary text-primary-foreground",
-                      cancelButton: "bg-muted text-muted-foreground",
-                    },
-                  }}
-                />
-                <Analytics />
+                <SolidModeProvider>
+                  {children}
+                  <Toaster
+                    position="top-center"
+                    toastOptions={{
+                      classNames: {
+                        toast:
+                          "bg-card/90 dark:bg-card/90 backdrop-blur-xl backdrop-saturate-150 border border-border shadow-lg text-foreground",
+                        title: "text-foreground font-medium",
+                        description: "text-muted-foreground",
+                        actionButton: "bg-primary text-primary-foreground",
+                        cancelButton: "bg-muted text-muted-foreground",
+                      },
+                    }}
+                  />
+                  <Analytics />
+                </SolidModeProvider>
               </AuthProvider>
             </LanguageProvider>
           </ThemeProvider>

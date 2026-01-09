@@ -67,6 +67,25 @@
       color 0.3s ease;
     overflow-x: hidden;
   }
+
+  /* Solid Mode overrides */
+  body.solid-mode * {
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+  }
+
+  body.solid-mode .glass-premium,
+  body.solid-mode .bg-card\/70,
+  body.solid-mode .bg-background\/40,
+  body.solid-mode .bg-black\/40 {
+    background-color: hsl(var(--card)) !important;
+    border-color: hsl(var(--border));
+    opacity: 1 !important;
+  }
+
+  body.solid-mode .sidebar-glass {
+    background: hsl(var(--background));
+  }
 }
 
 /* RTL Support */
