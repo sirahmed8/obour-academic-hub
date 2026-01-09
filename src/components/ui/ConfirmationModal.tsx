@@ -50,6 +50,10 @@ export function ConfirmationModal({
             onClick={onClose}
           />
           <motion.div
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="confirmation-modal-title"
+            aria-describedby="confirmation-modal-message"
             initial={{ opacity: 0, scale: 0.9, y: 20 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.9, y: 20 }}
@@ -70,11 +74,19 @@ export function ConfirmationModal({
                 <AlertTriangle className="w-6 h-6" />
               </div>
               <div className="flex-1 space-y-2">
-                <h3 className="text-xl font-bold text-foreground">{title}</h3>
-                <p className="text-muted-foreground leading-relaxed">{message}</p>
+                <h3 id="confirmation-modal-title" className="text-xl font-bold text-foreground">
+                  {title}
+                </h3>
+                <p
+                  id="confirmation-modal-message"
+                  className="text-muted-foreground leading-relaxed"
+                >
+                  {message}
+                </p>
               </div>
               <button
                 onClick={onClose}
+                aria-label="Close"
                 className="p-1 rounded-full hover:bg-muted transition-colors text-muted-foreground"
               >
                 <X className="w-5 h-5" />
