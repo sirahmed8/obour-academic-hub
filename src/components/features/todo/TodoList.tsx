@@ -11,7 +11,7 @@ import {
   updateDoc,
 } from "firebase/firestore";
 import { db } from "@/lib/firebase";
-import { useAuth, useLanguage } from "@/contexts";
+import { useAuth, useLanguage, useSolidMode } from "@/contexts";
 import { TodoTask } from "@/types";
 import { AnimatePresence, motion } from "framer-motion";
 import { TodoItem } from "./TodoItem";
@@ -49,6 +49,7 @@ export function TodoList() {
     taskId: null,
   });
   const { shouldReduceMotion } = useReducedMotion();
+  const { isSolid } = useSolidMode();
 
   const sensors = useSensors(
     useSensor(PointerSensor, {
@@ -200,11 +201,14 @@ export function TodoList() {
             <AnimatePresence>
               {showFilter && (
                 <motion.div
-                  initial={{ opacity: 0, y: 8, scale: 0.95, filter: "blur(4px)" }}
-                  animate={{ opacity: 1, y: 0, scale: 1, filter: "blur(0px)" }}
-                  exit={{ opacity: 0, y: 8, scale: 0.95, filter: "blur(2px)" }}
+                  initial={{ opacity: 0, y: 8, scale: 0.95 }}
+                  animate={{ opacity: 1, y: 0, scale: 1 }}
+                  exit={{ opacity: 0, y: 8, scale: 0.95 }}
                   transition={{ duration: 0.2, ease: [0.32, 0.72, 0, 1] }}
-                  className="absolute top-full mt-2 left-0 w-full glass-premium rounded-xl shadow-2xl z-50 overflow-hidden"
+                  className={cn(
+                    "absolute top-full mt-2 left-0 w-full rounded-xl shadow-2xl z-50 overflow-hidden border border-white/10",
+                    isSolid ? "bg-popover" : "bg-popover/60 backdrop-blur-xl"
+                  )}
                 >
                   {(["all", "pending", "completed"] as const).map((f) => (
                     <button

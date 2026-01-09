@@ -284,7 +284,7 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
         />
 
         {/* Scrollable Content Container - Full Height */}
-        <div className="relative z-10 h-full overflow-y-auto scrollbar-none lg:pt-[70px]">
+        <div className="relative z-10 h-full lg:h-[calc(100%-70px)] overflow-y-auto scrollbar-none lg:mt-[70px]">
           {/* Sticky Header - Mobile Only */}
           <div className="sticky top-0 z-20 h-16 flex items-center justify-between px-4 border-b border-white/10 lg:hidden">
             {/* Translucent background with blur to show content behind */}

@@ -29,6 +29,7 @@ import { CookieConsent } from "@/components/ui/CookieConsent";
 import { Loader2, ExternalLink } from "lucide-react";
 import { motion } from "framer-motion";
 import { useGlobalKeyboard } from "@/hooks/useGlobalKeyboard";
+import { usePerformance } from "@/hooks/usePerformance";
 import { PageTransition } from "@/components/ui/Animations";
 
 export function AppShell({ children }: { children: React.ReactNode }) {
@@ -69,26 +70,50 @@ export function AppShell({ children }: { children: React.ReactNode }) {
 
   // Solid Mode Hint
   const { isSolid, toggleSolidMode } = useSolidMode();
+  // 1. Monitor Performance
+  const { isLagging } = usePerformance();
+
   useEffect(() => {
-    // Only show if user is logged in, not already in solid mode, and hasn't seen it recently (session based for now)
-    if (user && !isSolid && !sessionStorage.getItem("solidModeHintShown")) {
-      const timer = setTimeout(() => {
-        toast("Feels like slow performance?", {
-          description: "Try Solid site! Removes blur for better speed.",
-          action: {
-            label: "Activate Solid Mode",
-            onClick: () => {
-              toggleSolidMode();
-              toast.success("Solid Mode Activated 🚀");
-            },
+    // Only proceed if:
+    // 1. User is logged in
+    // 2. Not already in solid mode
+    // 3. Hasn't seen hint in this session
+    if (!user || isSolid || sessionStorage.getItem("solidModeHintShown")) return;
+
+    const showHint = () => {
+      toast("Feels like slow performance?", {
+        description: "Try Solid site! Removes blur for better speed.",
+        action: {
+          label: "Activate Solid Mode",
+          onClick: () => {
+            toggleSolidMode();
+            toast.success("Solid Mode Activated 🚀");
           },
-          duration: 8000,
-        });
-        sessionStorage.setItem("solidModeHintShown", "true");
-      }, 3000); // Show after 3 seconds
-      return () => clearTimeout(timer);
+        },
+        duration: 8000,
+      });
+      sessionStorage.setItem("solidModeHintShown", "true");
+    };
+
+    // A. Time-based trigger: Show after 2 minutes (120000ms) of usage
+    const timeTimer = setTimeout(() => {
+      showHint();
+    }, 120000);
+
+    // B. Performance-based trigger: Show immediately if consistent lag is detected
+    if (isLagging) {
+      // Small debounce to avoid instant popup on single frame drop
+      const lagTimer = setTimeout(() => {
+        showHint();
+      }, 2000); // If lagging persists for 2 seconds
+      return () => {
+        clearTimeout(timeTimer);
+        clearTimeout(lagTimer);
+      };
     }
-  }, [user, isSolid, toggleSolidMode]);
+
+    return () => clearTimeout(timeTimer);
+  }, [user, isSolid, toggleSolidMode, isLagging]);
 
   if (loading) {
     return (
@@ -126,14 +151,14 @@ export function AppShell({ children }: { children: React.ReactNode }) {
         <Sidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
         <div
           className={cn(
-            "flex-1 flex flex-col h-full overflow-hidden relative transition-all duration-300",
+            "flex-1 flex flex-col h-full overflow-hidden relative transition-all duration-300 pt-16",
             language === "ar" ? "lg:pr-72" : "lg:pl-72" // Push content for Fixed Sidebar
           )}
         >
           <LiveBanner />
           <main
             id="main-content"
-            className="flex-1 w-full h-full overflow-y-auto pb-24 lg:pb-10 pt-16"
+            className="flex-1 w-full h-full overflow-y-auto pb-24 lg:pb-10"
             style={{ scrollbarGutter: "stable" }}
           >
             {/* Page content with smooth transition */}
