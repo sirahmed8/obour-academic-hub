@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { X, Headphones } from "lucide-react";
 import { useAuth, useLanguage } from "@/contexts";
@@ -33,6 +33,19 @@ export function AIChatbot() {
   const { user } = useAuth();
   const { language } = useLanguage();
 
+  // Refs to track state inside effect without triggering re-subscription
+  const isOpenRef = useRef(isOpen);
+  const languageRef = useRef(language);
+
+  // Update refs when state changes
+  useEffect(() => {
+    isOpenRef.current = isOpen;
+  }, [isOpen]);
+
+  useEffect(() => {
+    languageRef.current = language;
+  }, [language]);
+
   // Listen for messages (live support only)
   useEffect(() => {
     if (!user) return;
@@ -56,10 +69,12 @@ export function AIChatbot() {
       if (liveMessages.length > prevCount && prevCount > 0) {
         const lastMsg = liveMessages[liveMessages.length - 1];
         if (lastMsg.senderId === "admin") {
-          if (!isOpen) {
-            toast.info(language === "ar" ? "رد جديد من الدعم" : "New reply from support", {
+          // Use ref to check if open, avoiding effect re-run
+          if (!isOpenRef.current) {
+            const currentLang = languageRef.current;
+            toast.info(currentLang === "ar" ? "رد جديد من الدعم" : "New reply from support", {
               action: {
-                label: language === "ar" ? "فتح" : "Open",
+                label: currentLang === "ar" ? "فتح" : "Open",
                 onClick: () => {
                   setIsOpen(true);
                 },
@@ -74,7 +89,7 @@ export function AIChatbot() {
     });
 
     return () => unsubscribe();
-  }, [user, isOpen, language]);
+  }, [user]); // Removed isOpen and language from dependencies
 
   // Listen to Chat Session (Unread Count)
   useEffect(() => {
