@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { Menu } from "lucide-react"; // Only imported what is used
 import { useAuth, useLanguage } from "@/contexts";
 import Image from "next/image";
@@ -15,40 +15,35 @@ export function Navbar({ onMenuClick }: NavbarProps) {
   const [showSettings, setShowSettings] = useState(false);
   const { user } = useAuth();
   const { language } = useLanguage();
+  const buttonRef = useRef<HTMLButtonElement>(null);
 
   return (
-    <header className="fixed top-0 left-0 right-0 h-16 flex items-center justify-between px-4 lg:px-6 z-50 bg-white/50 dark:bg-black/50 backdrop-blur-xl backdrop-saturate-150 border-b border-border/50">
-      {/* Partial Bottom Border (Skips Logo area on Desktop to merge with Sidebar) */}
-      <div className="absolute bottom-0 right-0 h-[1px] bg-white/5 dark:bg-white/5 left-0 lg:left-[18rem] transition-all duration-300" />
-      {/* LEFT SIDE: Logo (Desktop) & Menu Button (Mobile) */}
-      <div className="flex items-center gap-4">
+    <header className="fixed top-0 left-0 right-0 h-16 flex items-center justify-between px-4 lg:px-6 z-50 glass-premium rounded-b-2xl transition-all duration-300">
+      {/* LEFT SIDE: Logo & Menu Button */}
+      <div className="relative z-10 flex items-center gap-4">
         {/* Mobile Menu Button */}
         <button
           onClick={onMenuClick}
-          className="lg:hidden p-2 text-muted-foreground hover:bg-white/10 rounded-lg transition-colors"
+          className="p-2 -ml-2 hover:bg-white/10 rounded-full lg:hidden transition-colors active:scale-95"
+          ref={buttonRef}
         >
-          <Menu size={24} />
+          <Menu className="w-6 h-6 text-foreground" />
         </button>
 
-        {/* Logo & Title - Visible on Desktop & Mobile (Merged Top Bar) */}
-        <div className="flex items-center gap-3">
-          <div className="relative w-9 h-9 flex-shrink-0 bg-transparent rounded-full overflow-hidden">
+        {/* Logo - Visible on Desktop & Mobile */}
+        <div className="flex items-center gap-2">
+          <div className="relative w-10 h-10 flex-shrink-0 rounded-xl overflow-hidden ring-2 ring-white/20 shadow-lg bg-white">
             <Image
               src="/obour-logo.png"
               alt="Obour Logo"
-              width={36}
-              height={36}
+              width={40}
+              height={40}
               className="object-cover w-full h-full"
             />
           </div>
           <div className="flex flex-col">
-            <span className="font-harman text-lg font-bold leading-tight hidden lg:block">
-              Obour Hub
-            </span>
-            <span className="font-harman text-base font-bold leading-tight lg:hidden">
-              Obour Hub
-            </span>
-            <span className="text-[10px] text-muted-foreground font-medium hidden lg:block">
+            <span className="font-harman text-base font-bold leading-none">Obour Hub</span>
+            <span className="text-[9px] text-muted-foreground font-medium">
               {language === "ar" ? "نظام إدارة التعلم الذكي" : "Smart Learning System"}
             </span>
           </div>
@@ -60,6 +55,7 @@ export function Navbar({ onMenuClick }: NavbarProps) {
       {/* Settings Dropdown */}
       <div className="relative">
         <button
+          ref={buttonRef}
           onClick={() => setShowSettings(!showSettings)}
           className="flex items-center gap-2 p-2 hover:bg-muted/20 rounded-xl transition-colors relative"
         >
@@ -101,7 +97,12 @@ export function Navbar({ onMenuClick }: NavbarProps) {
         </button>
 
         <AnimatePresence>
-          {showSettings && <ProfileMenu onClose={() => setShowSettings(false)} />}
+          {showSettings && (
+            <ProfileMenu
+              onClose={() => setShowSettings(false)}
+              triggerRef={buttonRef as React.RefObject<HTMLElement>}
+            />
+          )}
         </AnimatePresence>
       </div>
     </header>

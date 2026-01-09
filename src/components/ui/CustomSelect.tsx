@@ -67,13 +67,13 @@ export function CustomSelect({
       <AnimatePresence>
         {isOpen && (
           <motion.div
-            initial={{ opacity: 0, y: -10, scale: 0.95 }}
-            animate={{ opacity: 1, y: 0, scale: 1 }}
-            exit={{ opacity: 0, y: -10, scale: 0.95 }}
-            transition={{ duration: 0.15, ease: "easeOut" }}
-            className="absolute z-50 w-full mt-2 overflow-auto bg-card border border-border rounded-2xl shadow-xl max-h-60"
+            initial={{ opacity: 0, y: -8, scale: 0.96, filter: "blur(4px)" }}
+            animate={{ opacity: 1, y: 0, scale: 1, filter: "blur(0px)" }}
+            exit={{ opacity: 0, y: -8, scale: 0.96, filter: "blur(2px)" }}
+            transition={{ duration: 0.2, ease: [0.32, 0.72, 0, 1] }} // iOS ease
+            className="absolute z-50 w-full mt-2 overflow-hidden glass-premium rounded-2xl shadow-2xl max-h-60"
           >
-            <div className="p-1">
+            <div className="p-1 overflow-auto max-h-[14rem] scrollbar-hide">
               {options.length === 0 ? (
                 <div className="p-3 text-center text-sm text-muted-foreground">
                   {language === "ar" ? "لا توجد خيارات" : "No options"}
@@ -83,18 +83,18 @@ export function CustomSelect({
                   <motion.button
                     key={option.value}
                     type="button"
-                    initial={{ opacity: 0, x: -10 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    transition={{ delay: index * 0.03 }}
+                    initial={{ opacity: 0, y: -5 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: index * 0.03 + 0.05 }}
                     onClick={() => {
                       onChange(option.value);
                       setIsOpen(false);
                     }}
                     className={cn(
-                      "w-full flex items-center justify-between px-3 py-2.5 rounded-xl text-sm transition-colors",
+                      "w-full flex items-center justify-between px-3 py-2.5 rounded-xl text-sm transition-all duration-200",
                       option.value === value
-                        ? "bg-primary/10 text-primary font-medium"
-                        : "text-foreground hover:bg-muted"
+                        ? "bg-primary/20 text-primary font-bold shadow-sm"
+                        : "text-foreground hover:bg-black/5 dark:hover:bg-white/10"
                     )}
                   >
                     <span className="truncate">{option.label}</span>

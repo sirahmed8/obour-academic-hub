@@ -200,10 +200,11 @@ export function TodoList() {
             <AnimatePresence>
               {showFilter && (
                 <motion.div
-                  initial={{ opacity: 0, y: 8, scale: 0.95 }}
-                  animate={{ opacity: 1, y: 0, scale: 1 }}
-                  exit={{ opacity: 0, y: 8, scale: 0.95 }}
-                  className="absolute top-full mt-2 left-0 w-full bg-card/90 backdrop-blur-xl border border-border/50 rounded-xl shadow-xl z-10 overflow-hidden"
+                  initial={{ opacity: 0, y: 8, scale: 0.95, filter: "blur(4px)" }}
+                  animate={{ opacity: 1, y: 0, scale: 1, filter: "blur(0px)" }}
+                  exit={{ opacity: 0, y: 8, scale: 0.95, filter: "blur(2px)" }}
+                  transition={{ duration: 0.2, ease: [0.32, 0.72, 0, 1] }}
+                  className="absolute top-full mt-2 left-0 w-full bg-white/80 dark:bg-zinc-900/80 backdrop-blur-xl backdrop-saturate-150 border border-white/20 dark:border-white/10 rounded-xl shadow-2xl z-50 overflow-hidden"
                 >
                   {(["all", "pending", "completed"] as const).map((f) => (
                     <button
@@ -300,16 +301,6 @@ export function TodoList() {
                       ? "استرخِ أو أضف مهامًا جديدة لإدارة وقتك بذكاء."
                       : "Relax or add new tasks to manage your time wisely."}
                 </p>
-                {filter !== "completed" && (
-                  <motion.button
-                    onClick={() => setIsModalOpen(true)}
-                    whileHover={{ scale: 1.05 }}
-                    whileTap={{ scale: 0.95 }}
-                    className="text-primary font-bold text-sm bg-primary/10 px-6 py-2 rounded-full hover:bg-primary/20 transition-colors"
-                  >
-                    {language === "ar" ? "أضف مهمة الآن" : "Add a task now"}
-                  </motion.button>
-                )}
               </motion.div>
             ) : (
               <SortableContext items={filteredTasks} strategy={verticalListSortingStrategy}>

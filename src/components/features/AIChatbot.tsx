@@ -1,8 +1,8 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { AnimatePresence, motion } from "framer-motion";
-import { X, Headphones } from "lucide-react";
+import { X } from "lucide-react";
 import { useAuth, useLanguage } from "@/contexts";
 import { db } from "@/lib/firebase";
 import { collection, query, orderBy, onSnapshot, doc } from "firebase/firestore";
@@ -12,7 +12,8 @@ import { toast } from "sonner";
 import { ConfirmationModal } from "@/components/ui/ConfirmationModal";
 import { ChatMessages } from "./chatbot/ChatMessages";
 import { ChatInput } from "./chatbot/ChatInput";
-import { springConfig } from "@/components/ui/Animations";
+import { AnimatedIcon } from "@/components/ui/AnimatedIcon";
+import helpAnim from "react-useanimations/lib/help/help.json";
 
 /**
  * LiveSupportChat - Live Support Chat Component
@@ -32,6 +33,19 @@ export function AIChatbot() {
 
   const { user } = useAuth();
   const { language } = useLanguage();
+
+  // Refs to track state inside effect without triggering re-subscription
+  const isOpenRef = useRef(isOpen);
+  const languageRef = useRef(language);
+
+  // Update refs when state changes
+  useEffect(() => {
+    isOpenRef.current = isOpen;
+  }, [isOpen]);
+
+  useEffect(() => {
+    languageRef.current = language;
+  }, [language]);
 
   // Listen for messages (live support only)
   useEffect(() => {
@@ -56,10 +70,12 @@ export function AIChatbot() {
       if (liveMessages.length > prevCount && prevCount > 0) {
         const lastMsg = liveMessages[liveMessages.length - 1];
         if (lastMsg.senderId === "admin") {
-          if (!isOpen) {
-            toast.info(language === "ar" ? "رد جديد من الدعم" : "New reply from support", {
+          // Use ref to check if open, avoiding effect re-run
+          if (!isOpenRef.current) {
+            const currentLang = languageRef.current;
+            toast.info(currentLang === "ar" ? "رد جديد من الدعم" : "New reply from support", {
               action: {
-                label: language === "ar" ? "فتح" : "Open",
+                label: currentLang === "ar" ? "فتح" : "Open",
                 onClick: () => {
                   setIsOpen(true);
                 },
@@ -74,7 +90,7 @@ export function AIChatbot() {
     });
 
     return () => unsubscribe();
-  }, [user, isOpen, language]);
+  }, [user]); // Removed isOpen and language from dependencies
 
   // Listen to Chat Session (Unread Count)
   useEffect(() => {
@@ -190,7 +206,7 @@ export function AIChatbot() {
         whileTap={{ scale: 0.9 }}
         initial={{ scale: 0, opacity: 0 }}
         animate={{ scale: 1, opacity: 1 }}
-        transition={springConfig}
+        transition={{ type: "spring", stiffness: 400, damping: 25 }}
         className="fixed bottom-6 right-6 z-[100] p-4 bg-primary text-primary-foreground rounded-full shadow-lg shadow-primary/25 hover:shadow-xl hover:shadow-primary/30 transition-all active:scale-95 duration-200 ease-out sm:w-16 sm:h-16 w-14 h-14 flex items-center justify-center"
       >
         <AnimatePresence mode="wait" initial={false}>
@@ -213,7 +229,9 @@ export function AIChatbot() {
               transition={{ duration: 0.2 }}
               className="relative"
             >
-              <Headphones className="w-6 h-6 sm:w-7 sm:h-7" />
+              <div className="text-white">
+                <AnimatedIcon icon={helpAnim} size={28} useAnimation />
+              </div>
               {unreadCount > 0 && (
                 <span className="absolute -top-1 -right-1 flex h-4 w-4 items-center justify-center rounded-full bg-red-500 text-[10px] font-bold text-white ring-2 ring-white">
                   {unreadCount}
@@ -231,14 +249,14 @@ export function AIChatbot() {
             initial={{ opacity: 0, y: 20, scale: 0.95, transformOrigin: "bottom right" }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: 20, scale: 0.95 }}
-            transition={springConfig}
-            className="glass-container fixed bottom-24 right-6 z-[100] w-[380px] max-w-[calc(100vw-3rem)] h-[600px] max-h-[calc(100vh-8rem)] bg-white/70 dark:bg-black/40 backdrop-blur-xl backdrop-saturate-150 border border-primary/20 dark:border-white/10 rounded-2xl shadow-2xl flex flex-col overflow-hidden origin-bottom-right"
+            transition={{ type: "spring", stiffness: 400, damping: 25 }}
+            className="glass-premium fixed bottom-24 right-6 z-[100] w-[380px] max-w-[calc(100vw-3rem)] h-[500px] max-h-[calc(100vh-8rem)] rounded-2xl flex flex-col overflow-hidden origin-bottom-right shadow-2xl"
           >
             {/* Header - Simplified Live Support Only */}
             <div className="p-4 border-b border-white/10 bg-gradient-to-r from-primary/10 to-transparent flex items-center justify-between">
               <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-full bg-primary/20 flex items-center justify-center shadow-inner">
-                  <Headphones className="w-5 h-5 text-primary" />
+                <div className="w-10 h-10 rounded-full bg-primary/20 flex items-center justify-center shadow-inner text-primary">
+                  <AnimatedIcon icon={helpAnim} size={24} useAnimation />
                 </div>
                 <div>
                   <h3 className="font-bold text-sm">

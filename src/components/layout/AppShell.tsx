@@ -97,9 +97,8 @@ export function AppShell({ children }: { children: React.ReactNode }) {
       {/* Top Navigation Bar (Full Width) */}
       <Navbar onMenuClick={() => setSidebarOpen((prev) => !prev)} />
       {/* Main Layout Area */}
-      <div className="flex w-full h-full pt-16">
-        {" "}
-        {/* Add padding top for fixed Navbar */}
+      <div className="flex w-full h-full">
+        {/* Sidebar handles its own top padding on desktop */}
         <Sidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
         <div
           className={cn(
@@ -110,7 +109,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
           <LiveBanner />
           <main
             id="main-content"
-            className="flex-1 w-full h-full overflow-y-auto pb-24 lg:pb-10"
+            className="flex-1 w-full h-full overflow-y-auto pb-24 lg:pb-10 pt-16"
             style={{ scrollbarGutter: "stable" }}
           >
             {/* Page content with smooth transition */}

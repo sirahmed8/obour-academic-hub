@@ -20,6 +20,7 @@ import {
 import Link from "next/link";
 import { CustomSelect } from "@/components/ui/CustomSelect";
 import { FadeIn, ScaleIn, StaggerChildren } from "@/components/ui/Animations";
+import { AnimatedIcon } from "@/components/ui/AnimatedIcon";
 
 interface SubjectClientProps {
   subjectName?: string;
@@ -200,51 +201,56 @@ export function SubjectClient({ subjectName }: SubjectClientProps) {
             bgColorClass
           )}
         >
+          {/* Dark Overlay for Text Contrast */}
+          <div className="absolute inset-0 bg-black/20 pointer-events-none" />
+
           <div className="absolute top-0 right-0 w-64 h-64 bg-white/10 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2" />
 
           <div className="relative z-10 flex items-start gap-6">
             <div className="p-4 bg-white/20 rounded-2xl backdrop-blur-sm shadow-inner">
-              <IconComponent size={40} />
+              <AnimatedIcon icon={IconComponent} iconName={subject.icon} size={40} />
             </div>
             <div>
-              <h1 className="text-3xl font-black">
+              <h1 className="text-3xl font-black drop-shadow-md">
                 {language === "ar" && subject.nameAr ? subject.nameAr : subject.name}
               </h1>
-              <p className="text-white/80 mt-2 font-medium">
+              <p className="text-white/90 mt-2 font-bold drop-shadow-sm">
                 {language === "ar" ? "د." : "Dr."}{" "}
                 {language === "ar" && subject.profNameAr ? subject.profNameAr : subject.profName}
               </p>
               {subject.description && (
-                <p className="text-white/70 mt-4 max-w-xl">{subject.description}</p>
+                <p className="text-white/80 mt-4 max-w-xl font-medium drop-shadow-sm">
+                  {subject.description}
+                </p>
               )}
             </div>
           </div>
         </ScaleIn>
 
-        {/* Resources */}
+        {/* Resources -> Sources */}
         <div>
           <FadeIn delay={0.2} className="flex items-center justify-between mb-4">
             <h2 className="text-xl font-bold text-foreground flex items-center gap-2">
               <FileText className="text-primary" />
-              {language === "ar" ? "الموارد" : "Resources"} ({resources.length})
+              {language === "ar" ? "المصادر" : "Sources"} ({resources.length})
             </h2>
           </FadeIn>
 
           {/* Search & Sort Controls */}
           <FadeIn delay={0.3}>
             <div className="flex flex-col sm:flex-row gap-3 mb-6">
-              <div className="relative flex-1">
-                <Search
-                  className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground"
-                  size={18}
-                />
-                <input
-                  type="text"
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  placeholder={language === "ar" ? "بحث في الموارد..." : "Search resources..."}
-                  className="w-full pl-10 pr-4 py-2.5 rounded-xl bg-muted/50 border border-border focus:ring-2 focus:ring-primary/20 outline-none transition-all"
-                />
+              <div className="relative flex-1 group">
+                {/* Search Container - Unified Border Logic */}
+                <div className="flex items-center w-full px-3 py-2.5 rounded-xl bg-muted/50 border border-transparent focus-within:ring-2 focus-within:ring-primary/20 focus-within:border-primary/50 transition-all">
+                  <Search className="text-muted-foreground mr-2" size={18} />
+                  <input
+                    type="text"
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                    placeholder={language === "ar" ? "بحث في المصادر..." : "Search sources..."}
+                    className="flex-1 bg-transparent border-none outline-none text-sm placeholder:text-muted-foreground"
+                  />
+                </div>
               </div>
               <div className="w-48">
                 <CustomSelect

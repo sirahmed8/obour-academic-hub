@@ -1,10 +1,14 @@
 "use client";
 
+import * as React from "react";
 import Link from "next/link";
 import { Subject } from "@/types";
 import { useLanguage } from "@/contexts";
-import * as Icons from "lucide-react";
+import { motion } from "framer-motion";
 import { cn } from "@/lib/utils";
+import { AnimatedIcon } from "@/components/ui/AnimatedIcon";
+
+import { getSubjectAnimation } from "@/lib/subjectIcons";
 
 interface SubjectCardProps {
   subject: Subject;
@@ -13,13 +17,17 @@ interface SubjectCardProps {
 
 export function SubjectCard({ subject, resourceCount = 0 }: SubjectCardProps) {
   const { language } = useLanguage();
+  const [isHovered, setIsHovered] = React.useState(false);
 
-  // Dynamic icon
-  const IconComponent =
-    (Icons as unknown as Record<string, React.ElementType>)[subject.icon] || Icons.BookOpen;
+  // Dynamic animation determination using shared library
+  const animationToUse = getSubjectAnimation(subject.icon);
 
-  // Color classes - ensure fallback
-  const bgColorClass = subject.color?.startsWith("bg-") ? subject.color : "bg-blue-500";
+  // Color classes - ensure fallback and correct format
+  const rawColor = subject.color || "bg-blue-500";
+  // If color doesn't start with bg- or text-, assume it is a color name like 'orange-500' and prepend bg-
+  const bgColorClass =
+    rawColor.startsWith("bg-") || rawColor.startsWith("text-") ? rawColor : `bg-${rawColor}`;
+
   // Safe derivation of text color
   const textColorClass = bgColorClass.includes("500")
     ? bgColorClass.replace("bg-", "text-").replace("500", "600")
@@ -27,21 +35,38 @@ export function SubjectCard({ subject, resourceCount = 0 }: SubjectCardProps) {
 
   return (
     <Link href={`/subject?id=${subject.id}`}>
-      <div className="group bg-card rounded-2xl p-6 border border-border card-hover cursor-pointer relative overflow-hidden">
+      <motion.div
+        whileHover={{ y: -5, scale: 1.02 }}
+        whileTap={{ scale: 0.98 }}
+        onMouseEnter={() => setIsHovered(true)}
+        onMouseLeave={() => setIsHovered(false)}
+        className="group bg-card rounded-2xl p-6 border border-border card-hover cursor-pointer relative overflow-hidden transition-all duration-300 shadow-sm hover:shadow-xl"
+      >
         {/* Accent bar */}
         <div
           className={cn(
-            "absolute right-0 top-1/2 -translate-y-1/2 w-1.5 h-12 rounded-l-full",
+            "absolute right-0 top-1/2 -translate-y-1/2 w-1.5 h-12 rounded-l-full transition-all duration-300 group-hover:h-20",
             bgColorClass
           )}
         />
 
         <div className="flex items-start gap-4">
-          {/* Icon */}
+          {/* Icon - Fixed to use the full subject color */}
           <div
-            className={cn("p-4 rounded-2xl flex-shrink-0", bgColorClass + "/10", textColorClass)}
+            className={cn(
+              "relative w-14 h-14 rounded-2xl flex items-center justify-center flex-shrink-0 animate-in fade-in zoom-in duration-500",
+              bgColorClass
+            )}
           >
-            <IconComponent size={28} />
+            <div className="relative z-10 text-white">
+              <AnimatedIcon
+                icon={animationToUse}
+                iconName={subject.icon}
+                size={34} // Adjusted for the 14x14 container
+                active={isHovered}
+                useAnimation={true}
+              />
+            </div>
           </div>
 
           {/* Content */}
@@ -60,21 +85,18 @@ export function SubjectCard({ subject, resourceCount = 0 }: SubjectCardProps) {
               </p>
             )}
 
-            {/* Resource Count */}
+            {/* Resource Count - Fixed Opacity via Layering */}
             <div className="flex items-center gap-2 mt-4">
-              <div
-                className={cn(
-                  "px-3 py-1 rounded-full text-xs font-medium",
-                  bgColorClass + "/10",
-                  textColorClass
-                )}
-              >
-                {resourceCount} {language === "ar" ? "موارد" : "resources"}
+              <div className="relative px-3 py-1 rounded-full overflow-hidden">
+                <div className={cn("absolute inset-0 opacity-10", bgColorClass)} />
+                <span className={cn("relative z-10 text-xs font-bold", textColorClass)}>
+                  {resourceCount} {language === "ar" ? "مصادر" : "Sources"}
+                </span>
               </div>
             </div>
           </div>
         </div>
-      </div>
+      </motion.div>
     </Link>
   );
 }

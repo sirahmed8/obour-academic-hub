@@ -41,15 +41,15 @@ export function Dashboard() {
       {/* Greeting Banner */}
       {/* Greeting Banner (Redesigned: Vibrant Mesh Gradient) */}
       <div className="relative rounded-3xl overflow-hidden shadow-2xl isolate transform transition-all hover:scale-[1.01] duration-500">
-        {/* Main Background Gradient */}
-        <div className="absolute inset-0 bg-gradient-to-br from-violet-600 via-primary to-indigo-700 opacity-90 dark:opacity-80" />
+        {/* Main Background Gradient (Softer, Airier) */}
+        <div className="absolute inset-0 bg-gradient-to-br from-violet-400/90 via-primary/80 to-blue-400/90 dark:from-violet-900/40 dark:via-primary/30 dark:to-indigo-900/40" />
 
-        {/* Artistic Glowing Orbs */}
-        <div className="absolute -top-[50%] -right-[20%] w-[500px] h-[500px] bg-fuchsia-500/40 rounded-full blur-3xl mix-blend-overlay animate-pulse-slow" />
-        <div className="absolute -bottom-[50%] -left-[20%] w-[500px] h-[500px] bg-cyan-500/40 rounded-full blur-3xl mix-blend-overlay animate-pulse-slow delay-1000" />
+        {/* Artistic Glowing Orbs (Reduced intensity) */}
+        <div className="absolute -top-[50%] -right-[20%] w-[500px] h-[500px] bg-fuchsia-300/20 rounded-full blur-3xl mix-blend-overlay animate-pulse-slow" />
+        <div className="absolute -bottom-[50%] -left-[20%] w-[500px] h-[500px] bg-cyan-300/20 rounded-full blur-3xl mix-blend-overlay animate-pulse-slow delay-1000" />
 
-        {/* Glass Overlay for Texture */}
-        <div className="absolute inset-0 bg-white/5 backdrop-blur-[1px]" />
+        {/* Glass Overlay for Texture (Slightly more presence) */}
+        <div className="absolute inset-0 bg-white/10 dark:bg-black/20 backdrop-blur-[1px]" />
 
         {/* Content */}
         <div className="relative z-10 p-8 lg:p-10 text-white">
@@ -61,7 +61,17 @@ export function Dashboard() {
           </div>
 
           <h1 className="text-4xl lg:text-5xl font-black tracking-tight mb-2 drop-shadow-md">
-            {language === "ar" ? greeting.ar : greeting.en}, {user?.displayName?.split(" ")[0]} 👋
+            {(() => {
+              const text = language === "ar" ? greeting.ar : greeting.en;
+              const hasPunctuation = /[!?.؟]$/.test(text);
+              const separator = hasPunctuation ? "" : language === "ar" ? "،" : ",";
+              return (
+                <>
+                  {text}
+                  {separator} {user?.displayName?.split(" ")[0]} 👋
+                </>
+              );
+            })()}
           </h1>
 
           <p className="text-white/80 text-lg font-medium max-w-2xl leading-relaxed">

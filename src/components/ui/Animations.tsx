@@ -1,6 +1,6 @@
 "use client";
 
-import { motion, AnimatePresence, Variants } from "framer-motion";
+import { motion, AnimatePresence, Variants, HTMLMotionProps } from "framer-motion";
 import { usePathname } from "next/navigation";
 import { ReactNode } from "react";
 
@@ -15,9 +15,8 @@ export const springConfig = {
 const easeConfig = [0.22, 1, 0.36, 1] as const; // Custom easing for non-spring transitions
 
 // --- Interfaces ---
-interface AnimationProps {
+interface AnimationProps extends HTMLMotionProps<"div"> {
   children: ReactNode;
-  className?: string;
   delay?: number;
   duration?: number;
 }

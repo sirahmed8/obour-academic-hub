@@ -250,7 +250,7 @@ export function DateTimePicker({ value, onChange, onClose, language }: DateTimeP
         layout: true,
         initial: { opacity: 0, height: 0 },
         animate: { opacity: 1, height: "auto" },
-        exit: { opacity: 0, height: 0 },
+        exit: { opacity: 0, height: 0, transition: { duration: 0.15 } },
         transition: {
           layout: { type: "spring", damping: 25, stiffness: 300 },
           opacity: { duration: 0.2 },
@@ -379,7 +379,7 @@ export function DateTimePicker({ value, onChange, onClose, language }: DateTimeP
                   value={hourInput}
                   onChange={handleHourChange}
                   onBlur={handleHourBlur}
-                  className="bg-primary/10 text-primary rounded-lg px-3 py-2 text-lg font-bold w-[50px] text-center outline-none focus:ring-2 focus:ring-primary/30"
+                  className="bg-primary/10 text-primary rounded-lg px-2 py-2 text-lg font-bold w-[44px] text-center outline-none focus:ring-2 focus:ring-primary/30"
                   aria-label={language === "ar" ? "الساعة" : "Hour"}
                 />
                 <motion.button
@@ -412,7 +412,7 @@ export function DateTimePicker({ value, onChange, onClose, language }: DateTimeP
                   value={minuteInput}
                   onChange={handleMinuteChange}
                   onBlur={handleMinuteBlur}
-                  className="bg-primary/10 text-primary rounded-lg px-3 py-2 text-lg font-bold w-[50px] text-center outline-none focus:ring-2 focus:ring-primary/30"
+                  className="bg-primary/10 text-primary rounded-lg px-2 py-2 text-lg font-bold w-[44px] text-center outline-none focus:ring-2 focus:ring-primary/30"
                   aria-label={language === "ar" ? "الدقائق" : "Minutes"}
                 />
                 <motion.button

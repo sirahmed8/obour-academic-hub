@@ -159,8 +159,8 @@
 
 /* Ensure smooth focus states */
 :focus-visible {
-  outline: 2px solid hsl(var(--primary));
-  outline-offset: 2px;
+  outline: none;
+  border-radius: var(--radius);
 }
 
 .glass-fixed {
@@ -177,10 +177,21 @@
 @media (prefers-reduced-motion: reduce) {
   .glass-container,
   .glass-element,
-  .glass-fixed {
+  .glass-fixed,
+  .glass-standard {
     backdrop-filter: blur(8px) !important;
     -webkit-backdrop-filter: blur(8px) !important;
   }
+}
+
+/* Unified Glass Effect - The "Premium Blur" (Updated for Ultra-Clarity) */
+.glass-standard {
+  @apply bg-white/10 dark:bg-black/10 backdrop-blur-xl backdrop-saturate-150 border border-white/20 dark:border-white/10 shadow-lg;
+}
+
+/* Ultra-Premium "Pure" Glass - For Navbar, Sidebar, Menus */
+.glass-premium {
+  @apply bg-white/[0.03] dark:bg-black/[0.03] backdrop-blur-xl backdrop-saturate-150 border-b border-white/[0.08] dark:border-white/5 shadow-sm;
 }
 
 /* ============================================

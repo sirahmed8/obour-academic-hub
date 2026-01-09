@@ -68,21 +68,25 @@ export function ChatInput({
       </AnimatePresence>
 
       <div className="flex gap-2 items-end">
-        <FileUpload
-          onFileUploaded={(attachment) => handleSend(undefined, attachment)}
-          language={language as "en" | "ar"}
-        />
-        <input
-          value={input}
-          onChange={(e) => setInput(e.target.value)}
-          onKeyDown={handleKeyPress}
-          placeholder={language === "ar" ? "اكتب رسالتك لفريق الدعم..." : "Message Support..."}
-          className="flex-1 bg-muted/50 border border-transparent rounded-xl px-4 py-3 text-sm transition-all placeholder:text-muted-foreground/50 max-h-24 min-h-[44px] outline-none focus:outline-none shadow-none focus:shadow-none"
-        />
+        {/* Input Container - Unified Border/Ring */}
+        <div className="flex-1 flex items-center gap-2 bg-muted/50 border border-transparent focus-within:ring-2 focus-within:ring-primary/20 focus-within:border-primary/50 rounded-xl px-2 py-1 transition-all h-full min-h-[44px]">
+          <FileUpload
+            onFileUploaded={(attachment) => handleSend(undefined, attachment)}
+            language={language as "en" | "ar"}
+          />
+          <input
+            value={input}
+            onChange={(e) => setInput(e.target.value)}
+            onKeyDown={handleKeyPress}
+            placeholder={language === "ar" ? "اكتب رسالتك لفريق الدعم..." : "Message Support..."}
+            className="flex-1 bg-transparent border-none text-sm placeholder:text-muted-foreground/50 max-h-24 py-2 outline-none focus:ring-0 shadow-none ring-0"
+          />
+        </div>
+
         <button
           onClick={() => handleSend()}
           disabled={!input.trim()}
-          className="p-3 bg-primary text-primary-foreground rounded-xl hover:opacity-90 transition-opacity disabled:opacity-50 shadow-md h-[44px] flex items-center justify-center"
+          className="p-3 bg-primary text-primary-foreground rounded-xl hover:opacity-90 transition-opacity disabled:opacity-50 shadow-md h-[44px] flex items-center justify-center shrink-0"
           aria-label={language === "ar" ? "إرسال" : "Send"}
         >
           <Send className="w-5 h-5 rtl:-scale-x-100" />

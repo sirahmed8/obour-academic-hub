@@ -93,18 +93,25 @@ service cloud.firestore {
       allow write: if isAdmin();
     }
     
-    // Analytics Logs (Page Views - NEW)
+    // Analytics Logs (NEW with validation)
     match /analytics_logs/{logId} {
       allow read: if isAdmin();
       allow delete: if isAdmin();
-      allow create: if request.auth != null; // Allow users to log views
+      // Allow users to log views with strict validation to prevent abuse
+      allow create: if request.auth != null &&
+                   request.resource.data.keys().hasAll(['userId', 'path', 'timestamp']) &&
+                   request.resource.data.keys().size() < 10 &&
+                   (request.resource.data.userId == request.auth.uid || request.resource.data.userId == 'guest');
     }
     
-    // System Errors (NEW)
+    // System Errors (NEW with validation)
     match /error_logs/{errorId} {
       allow read: if isAdmin();
       allow delete: if isAdmin();
-      allow create: if request.auth != null; // Allow users to log errors
+      // Allow users to log errors with strict validation
+      allow create: if request.auth != null &&
+                   request.resource.data.keys().hasAll(['message', 'timestamp']) &&
+                   request.resource.data.keys().size() < 10;
     }
     
     // Activity Logs (LEGACY - used by admin/logs page)

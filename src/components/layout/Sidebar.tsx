@@ -4,25 +4,27 @@ import { useEffect, useState, useRef } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import Image from "next/image";
-import {
-  LayoutDashboard,
-  Bell,
-  Users,
-  BarChart3,
-  MessageSquare,
-  FileText,
-  AlertTriangle,
-  LucideIcon,
-  ListTodo,
-  X,
-  Shield,
-  Send,
-} from "lucide-react";
 import { useAuth, useLanguage } from "@/contexts";
 import { Notification as AppNotification } from "@/types";
 import { cn } from "@/lib/utils";
 import { db } from "@/lib/firebase";
 import { collection, query, orderBy, onSnapshot } from "firebase/firestore";
+import { motion, AnimatePresence } from "framer-motion";
+import { AnimatedIcon } from "@/components/ui/AnimatedIcon";
+import { X } from "lucide-react";
+
+// Animation JSON data (for lottie-react)
+import activityAnim from "react-useanimations/lib/activity/activity.json";
+import archiveAnim from "react-useanimations/lib/archive/archive.json";
+import userPlusAnim from "react-useanimations/lib/userPlus/userPlus.json";
+import alertCircleAnim from "react-useanimations/lib/alertCircle/alertCircle.json";
+import homeAnim from "react-useanimations/lib/home/home.json";
+import checkBoxAnim from "react-useanimations/lib/checkBox/checkBox.json";
+import notificationAnim from "react-useanimations/lib/notification/notification.json";
+import folderAnim from "react-useanimations/lib/folder/folder.json";
+import mailAnim from "react-useanimations/lib/mail/mail.json";
+import editAnim from "react-useanimations/lib/edit/edit.json";
+import settingsAnim from "react-useanimations/lib/settings/settings.json";
 
 interface SidebarProps {
   isOpen: boolean;
@@ -77,18 +79,7 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
     };
   }, [user, isAdmin]);
 
-  const navItems = [
-    { name: t("nav.home"), path: "/main", icon: LayoutDashboard },
-    { name: t("nav.todo"), path: "/todo", icon: ListTodo },
-    {
-      name: t("nav.notifications"),
-      path: "/notifications",
-      icon: Bell,
-      badge: unreadCount > 0 ? unreadCount : undefined,
-    },
-  ];
-
-  // Helper function to check if path is active (handles both / and /main for home)
+  // Helper function to check if path is active
   const isActivePath = (itemPath: string) => {
     if (itemPath === "/main") {
       return pathname === "/main" || pathname === "/";
@@ -96,39 +87,70 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
     return pathname === itemPath;
   };
 
-  interface NavItem {
-    name: string;
-    path: string;
-    icon: LucideIcon;
-    badge?: number;
-  }
+  const navItems = [
+    { name: t("nav.home"), path: "/main", icon: homeAnim, useAnimation: true },
+    { name: t("nav.todo"), path: "/todo", icon: checkBoxAnim, useAnimation: true },
+    {
+      name: t("nav.notifications"),
+      path: "/notifications",
+      icon: notificationAnim,
+      useAnimation: true,
+      badge: unreadCount > 0 ? unreadCount : undefined,
+    },
+  ];
 
-  const adminItems: NavItem[] = [
-    { name: t("admin.subjects"), path: "/admin/subjects", icon: FileText },
-    { name: t("admin.resources"), path: "/admin/resources", icon: FileText },
+  const adminItems = [
+    // 1. Team Management
     {
       name: language === "ar" ? "إدارة الفريق" : "Team Management",
       path: "/admin/team",
-      icon: Shield,
+      icon: settingsAnim,
+      useAnimation: true,
     },
-    {
-      name: language === "ar" ? "مركز الإشعارات" : "Notifications",
-      path: "/admin/notifications",
-      icon: Send,
-    },
-    { name: t("admin.users"), path: "/admin/users", icon: Users },
+    // 2. Users
+    { name: t("admin.users"), path: "/admin/users", icon: userPlusAnim, useAnimation: true },
+    // 3. Inbox
     {
       name: t("admin.inbox"),
       path: "/admin/inbox",
-      icon: MessageSquare,
+      icon: mailAnim,
+      useAnimation: true,
       badge: inboxUnreadCount > 0 ? inboxUnreadCount : undefined,
     },
-    { name: t("admin.analytics"), path: "/admin/analytics", icon: BarChart3 },
+    // 4. Announcements
+    {
+      name: language === "ar" ? "الإعلانات" : "Announcements",
+      path: "/admin/notifications",
+      icon: notificationAnim,
+      useAnimation: true,
+    },
+    // 5. Subject Management (formerly "Subjects")
+    {
+      name: language === "ar" ? "إدارة المواد" : "Subject Management",
+      path: "/admin/subjects",
+      icon: folderAnim,
+      useAnimation: true,
+    },
+    // 6. Sources
+    {
+      name: language === "ar" ? "المصادر" : "Sources",
+      path: "/admin/resources",
+      icon: archiveAnim,
+      useAnimation: true,
+    },
+    // 7. Analytics
+    {
+      name: t("admin.analytics"),
+      path: "/admin/analytics",
+      icon: activityAnim,
+      useAnimation: true,
+      iconName: "Activity",
+    },
   ];
 
   const ownerItems = [
-    { name: t("admin.logs"), path: "/admin/logs", icon: FileText },
-    { name: t("admin.errors"), path: "/admin/errors", icon: AlertTriangle },
+    { name: t("admin.logs"), path: "/admin/logs", icon: editAnim, useAnimation: true },
+    { name: t("admin.errors"), path: "/admin/errors", icon: alertCircleAnim, useAnimation: true },
   ];
 
   const navRef = useRef<HTMLElement>(null);
@@ -147,36 +169,136 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
     }
   };
 
+  // Interface for sidebar navigation items
+  interface SidebarItem {
+    name: string;
+    path: string;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    icon: any;
+    useAnimation: boolean;
+    badge?: number;
+    iconName?: string;
+  }
+
+  const SidebarLink = ({ item }: { item: SidebarItem }) => {
+    const isActive = isActivePath(item.path);
+    const [isHovered, setIsHovered] = useState(false);
+
+    return (
+      <Link
+        href={item.path}
+        onClick={onClose}
+        prefetch={false}
+        onMouseEnter={() => setIsHovered(true)}
+        onMouseLeave={() => setIsHovered(false)}
+        className={cn(
+          "flex items-center gap-3 px-3 py-2.5 lg:px-4 lg:py-3 rounded-xl transition-all duration-300 font-medium select-none group relative overflow-hidden",
+          isActive
+            ? "bg-primary/10 text-primary font-bold border-l-4 border-primary shadow-sm dark:bg-primary/20"
+            : "text-foreground/80 hover:bg-slate-200/80 dark:hover:bg-white/5 hover:text-foreground hover:translate-x-1"
+        )}
+      >
+        {/* Active Background Glow for Dark Mode */}
+        {isActive && <div className="absolute inset-0 bg-primary/5 blur-sm -z-10" />}
+
+        <div className="relative">
+          <AnimatedIcon
+            icon={item.icon}
+            iconName={item.iconName}
+            size={24}
+            className={cn(
+              "lg:w-6 lg:h-6 transition-all duration-200",
+              // LUCIDE ICONS: Use text color classes
+              !item.useAnimation && isActive && "text-primary",
+              !item.useAnimation && !isActive && "text-foreground/70 group-hover:text-foreground",
+
+              // LOTTIE ICONS (Black by default): Use filters
+              // Inactive: White in Dark Mode
+              item.useAnimation &&
+                !isActive &&
+                "dark:brightness-0 dark:invert opacity-70 group-hover:opacity-100",
+              // Active: Blue Filter (Approximate #3B82F6) -> Handled via style prop below or class if possible
+              // We use a specific class or style for active lottie
+              item.useAnimation && isActive && "lottie-active-filter"
+            )}
+            style={{
+              // FOR LOTTIE: Filter to turn Black -> Blue
+              filter:
+                item.useAnimation && isActive
+                  ? "invert(48%) sepia(79%) saturate(2476%) hue-rotate(200deg) brightness(118%) contrast(119%)"
+                  : undefined,
+              // FOR LUCIDE: Explicit Color to ensure Blue (#3B82F6 matches standard primary)
+              color: !item.useAnimation && isActive ? "#3B82F6" : undefined,
+            }}
+            active={isActive || isHovered}
+            useAnimation={item.useAnimation}
+          />
+          {item.badge && (
+            <span className="absolute -top-2 -right-2 bg-red-500 text-white text-[10px] w-4 h-4 rounded-full flex items-center justify-center animate-pulse z-10">
+              {item.badge > 9 ? "9+" : item.badge}
+            </span>
+          )}
+        </div>
+        <span className="text-sm lg:text-base relative z-10">{item.name}</span>
+      </Link>
+    );
+  };
+
   return (
     <>
       {/* Backdrop */}
-      {isOpen && (
-        <div
-          className="fixed inset-0 bg-black/20 z-[90] lg:hidden backdrop-blur-sm"
-          onClick={onClose}
-        />
-      )}
+      <AnimatePresence>
+        {isOpen && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            onClick={onClose}
+            className="fixed inset-0 z-40 bg-black/20 backdrop-blur-sm lg:hidden"
+          />
+        )}
+      </AnimatePresence>
 
       {/* Sidebar */}
       <aside
         className={cn(
-          "glass-fixed fixed top-0 h-full w-[85vw] max-w-[280px] lg:max-w-none lg:w-72 bg-white/10 dark:bg-black/10 backdrop-blur-xl backdrop-saturate-150 shadow-2xl z-[100] transition-transform duration-500 cubic-bezier(0.32, 0.72, 0, 1) ease-in-out supports-[backdrop-filter]:bg-white/5 supports-[backdrop-filter]:dark:bg-black/10 border-none border-r-0",
-          "lg:z-40 lg:translate-x-0 lg:shadow-none lg:border-r lg:border-white/5", // Desktop: Fixed z-40 (Below Navbar z-50)
-          language === "ar" ? "right-0 lg:right-0" : "left-0 lg:left-0",
+          "fixed top-0 h-full w-[85vw] max-w-[280px] lg:max-w-none lg:w-72 z-[100] transition-transform duration-500 cubic-bezier(0.32, 0.72, 0, 1) ease-in-out lg:z-40 lg:translate-x-0 lg:shadow-none mr-0 overflow-hidden",
+          // Mobile: rounded on right edge
+          "rounded-r-2xl",
+          // Desktop: height full, no top offset (content scrolls behind navbar)
+          "lg:h-full lg:rounded-tr-2xl lg:rounded-br-2xl",
+          language === "ar"
+            ? "right-0 lg:right-0 rounded-r-none rounded-l-2xl lg:rounded-l-none lg:rounded-tl-2xl lg:rounded-bl-2xl lg:rounded-tr-none lg:rounded-br-none"
+            : "left-0 lg:left-0",
           isOpen ? "translate-x-0" : language === "ar" ? "translate-x-full" : "-translate-x-full"
         )}
       >
-        <div className="flex flex-col h-full">
-          {/* Header - Mobile Only */}
-          <div className="h-16 flex items-center justify-between px-4 border-b border-white/5 dark:border-white/5 lg:hidden flex-shrink-0">
+        {/* Visual Background Layer - Full Glass */}
+        <div
+          className={cn(
+            "absolute inset-0 glass-premium border-r border-white/10 dark:border-white/5 shadow-2xl transition-all rounded-tr-2xl rounded-br-2xl",
+            "lg:shadow-none lg:top-16", // Background starts below navbar on desktop
+            language === "ar" &&
+              "border-r-0 border-l rounded-tr-none rounded-br-none rounded-tl-2xl rounded-bl-2xl"
+          )}
+        />
+
+        {/* Scrollable Content Container - Full Height */}
+        <div className="relative z-10 h-full overflow-y-auto scrollbar-none lg:pt-[70px]">
+          {/* Sticky Header - Mobile Only */}
+          <div className="sticky top-0 z-20 h-16 flex items-center justify-between px-4 border-b border-white/10 lg:hidden">
+            {/* Translucent background with blur to show content behind */}
+            <div className="absolute inset-0 bg-background/40 backdrop-blur-xl backdrop-saturate-150 -z-10" />
+
             <div className="flex items-center gap-3">
-              <div className="relative w-10 h-10 flex-shrink-0 bg-transparent rounded-full p-0.5 overflow-hidden z-20">
+              {/* Square Logo with Rounded Corners */}
+              <div className="relative w-10 h-10 flex-shrink-0 rounded-xl overflow-hidden ring-2 ring-white/20 shadow-lg bg-white">
                 <Image
                   src="/obour-logo.png"
                   alt="Obour Logo"
                   width={40}
                   height={40}
-                  className="object-cover w-full h-full opacity-100"
+                  className="object-cover w-full h-full"
                 />
               </div>
               <div className="flex flex-col">
@@ -186,7 +308,6 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
                 </span>
               </div>
             </div>
-            {/* Close button for mobile */}
             <button
               onClick={onClose}
               className="lg:hidden p-2 hover:bg-white/10 rounded-full transition-colors active:scale-95"
@@ -195,113 +316,41 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
             </button>
           </div>
 
-          <nav
-            ref={navRef}
-            onScroll={handleScroll}
-            className="flex-1 px-4 space-y-6 overflow-y-auto scrollbar-hide pt-4 lg:pt-20" // Add top padding (16 + 4) for Desktop to clear Navbar
-          >
-            {/* Main Nav */}
-            <div className="space-y-2">
-              {navItems.map((item) => {
-                const Icon = item.icon;
-                const isActive = isActivePath(item.path);
-                return (
-                  <Link
-                    key={item.path}
-                    href={item.path}
-                    onClick={onClose}
-                    prefetch={false}
-                    className={cn(
-                      "flex items-center gap-3 px-3 py-2.5 lg:px-4 lg:py-3 rounded-xl transition-all duration-300 font-medium select-none active:scale-95 group",
-                      isActive
-                        ? "bg-primary/10 text-primary border-l-4 border-primary shadow-sm"
-                        : "text-muted-foreground hover:bg-muted/50 hover:text-foreground hover:translate-x-1"
-                    )}
-                  >
-                    <div className="relative group-hover:scale-110 transition-transform duration-300">
-                      <Icon size={18} className="lg:w-5 lg:h-5" />
-                      {item.badge && (
-                        <span className="absolute -top-2 -right-2 bg-red-500 text-white text-[10px] w-4 h-4 rounded-full flex items-center justify-center animate-pulse">
-                          {item.badge > 9 ? "9+" : item.badge}
-                        </span>
-                      )}
-                    </div>
-                    <span className="text-sm lg:text-base">{item.name}</span>
-                  </Link>
-                );
-              })}
-            </div>
-
-            {/* Admin Section */}
-            {isAdmin && (
+          {/* Navigation Content */}
+          <div className="py-4">
+            <nav ref={navRef} onScroll={handleScroll} className="space-y-1 px-2">
+              {/* Main Nav */}
               <div className="space-y-2">
-                <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider px-4">
-                  {t("nav.admin")}
-                </p>
-                {adminItems.map((item) => {
-                  const Icon = item.icon;
-                  const isActive = isActivePath(item.path);
-                  return (
-                    <Link
-                      key={item.path}
-                      href={item.path}
-                      onClick={onClose}
-                      prefetch={false}
-                      className={cn(
-                        "flex items-center gap-3 px-3 py-2.5 lg:px-4 lg:py-3 rounded-xl transition-all duration-300 font-medium select-none active:scale-95 group",
-                        isActive
-                          ? "bg-primary/10 text-primary border-l-4 border-primary shadow-sm"
-                          : "text-muted-foreground hover:bg-muted/50 hover:text-foreground hover:translate-x-1"
-                      )}
-                    >
-                      <div className="relative group-hover:scale-110 transition-transform duration-300">
-                        <Icon size={18} className="lg:w-5 lg:h-5" />
-                        {item.badge !== undefined && item.badge > 0 && (
-                          <span className="absolute -top-2 -right-2 bg-red-500 text-white text-[10px] w-4 h-4 rounded-full flex items-center justify-center animate-pulse">
-                            {item.badge > 9 ? "9+" : item.badge}
-                          </span>
-                        )}
-                      </div>
-                      <span className="text-sm lg:text-base">{item.name}</span>
-                    </Link>
-                  );
-                })}
+                {navItems.map((item) => (
+                  <SidebarLink key={item.path} item={item} />
+                ))}
               </div>
-            )}
 
-            {/* Owner Section */}
-            {isOwner && (
-              <div className="space-y-2">
-                <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider px-4">
-                  Owner
-                </p>
-                {ownerItems.map((item) => {
-                  const Icon = item.icon;
-                  const isActive = isActivePath(item.path);
-                  return (
-                    <Link
-                      key={item.path}
-                      href={item.path}
-                      onClick={onClose}
-                      prefetch={false}
-                      className={cn(
-                        "flex items-center gap-3 px-3 py-2.5 lg:px-4 lg:py-3 rounded-xl transition-all duration-300 font-medium select-none active:scale-95 group",
-                        isActive
-                          ? "bg-primary/10 text-primary border-l-4 border-primary shadow-sm"
-                          : "text-muted-foreground hover:bg-muted/50 hover:text-foreground hover:translate-x-1"
-                      )}
-                    >
-                      <Icon
-                        size={18}
-                        className="lg:w-5 lg:h-5 group-hover:scale-110 transition-transform duration-300"
-                      />
-                      <span className="text-sm lg:text-base">{item.name}</span>
-                    </Link>
-                  );
-                })}
-              </div>
-            )}
-          </nav>
+              {/* Admin Section */}
+              {isAdmin && (
+                <div className="space-y-2 pt-2">
+                  <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider px-4 mb-2">
+                    {t("nav.admin")}
+                  </p>
+                  {adminItems.map((item) => (
+                    <SidebarLink key={item.path} item={item} />
+                  ))}
+                </div>
+              )}
+
+              {/* Owner Section */}
+              {isOwner && (
+                <div className="space-y-2 pt-2">
+                  <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider px-4 mb-2">
+                    Owner
+                  </p>
+                  {ownerItems.map((item) => (
+                    <SidebarLink key={item.path} item={item} />
+                  ))}
+                </div>
+              )}
+            </nav>
+          </div>
         </div>
       </aside>
     </>

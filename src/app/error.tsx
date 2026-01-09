@@ -26,7 +26,7 @@ export default function ErrorBoundary({
       await addDoc(collection(db, "system_errors"), {
         message: error.message,
         stack: error.stack,
-        digest: error.digest,
+        digest: error.digest || null,
         timestamp: new Date().toISOString(),
         userAgent: window.navigator.userAgent,
         url: window.location.href,

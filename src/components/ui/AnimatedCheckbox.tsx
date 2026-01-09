@@ -18,12 +18,13 @@ export function AnimatedCheckbox({
   className,
 }: AnimatedCheckboxProps) {
   return (
-    <button
+    <motion.button
       type="button"
       role="checkbox"
       aria-checked={checked}
       disabled={disabled}
       onClick={onChange}
+      whileTap={{ scale: 0.9 }}
       className={cn(
         "relative w-5 h-5 rounded-md border-2 transition-all duration-200 flex items-center justify-center shrink-0",
         checked
@@ -57,6 +58,6 @@ export function AnimatedCheckbox({
           className="absolute inset-0 bg-primary rounded-md"
         />
       )}
-    </button>
+    </motion.button>
   );
 }

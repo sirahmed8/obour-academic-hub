@@ -15,7 +15,6 @@ import { db } from "@/lib/firebase";
 import { AppShell } from "@/components/layout/AppShell";
 import { useAuth, useLanguage } from "@/contexts";
 import {
-  Bell,
   Send,
   Loader2,
   CheckCircle,
@@ -35,6 +34,7 @@ import { toast } from "sonner";
 import { FadeIn, ScaleIn, StaggerChildren } from "@/components/ui/Animations";
 import { cn } from "@/lib/utils";
 import { ConfirmationModal } from "@/components/ui/ConfirmationModal";
+import { CustomSelect } from "@/components/ui/CustomSelect";
 
 interface Banner {
   id: string;
@@ -207,16 +207,16 @@ export default function AdminNotificationsPage() {
         <FadeIn className="flex items-center justify-between flex-wrap gap-4">
           <div className="flex items-center gap-3">
             <div className="p-3 bg-primary/10 rounded-2xl">
-              <Bell className="w-6 h-6 text-primary" />
+              <Megaphone className="w-6 h-6 text-primary" />
             </div>
             <div>
               <h1 className="text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-primary to-purple-600">
-                {language === "ar" ? "مركز الإشعارات" : "Notifications Center"}
+                {language === "ar" ? "مركز الإعلانات" : "Announcements Center"}
               </h1>
               <p className="text-muted-foreground text-sm">
                 {language === "ar"
-                  ? "إرسال إشعارات وإدارة اللافتات الإعلانية"
-                  : "Send notifications and manage banners"}
+                  ? "إرسال إعلانات وإدارة اللافتات"
+                  : "Send announcements and manage banners"}
               </p>
             </div>
           </div>
@@ -314,14 +314,14 @@ export default function AdminNotificationsPage() {
 
                 <div className="space-y-2">
                   <label className="text-sm font-medium">Target Audience</label>
-                  <select
+                  <CustomSelect
                     value={target}
-                    onChange={(e) => setTarget(e.target.value as "all" | "admins")}
-                    className="w-full p-2.5 rounded-lg border border-input bg-background focus:ring-2 focus:ring-primary/20"
-                  >
-                    <option value="all">All Users</option>
-                    <option value="admins">Admins Only</option>
-                  </select>
+                    onChange={(val) => setTarget(val as "all" | "admins")}
+                    options={[
+                      { value: "all", label: "All Users" },
+                      { value: "admins", label: "Admins Only" },
+                    ]}
+                  />
                 </div>
               </div>
 

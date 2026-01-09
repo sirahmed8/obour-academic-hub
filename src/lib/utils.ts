@@ -71,6 +71,10 @@ export function getGreeting(): { en: string; ar: string } {
     { en: "Night Owl Mode", ar: "عاش يا بطل" },
     { en: "Time to Focus", ar: "هدوء وتركيز" },
     { en: "Wrap it up", ar: "ختامها مسك" },
+    { en: "Still grinding?", ar: "لسه شغال؟ الله يقويك" },
+    { en: "Late night study", ar: "مذاكرة رايقة" },
+    { en: "Don't stay up too late", ar: "ماتسهرش كتير" },
+    { en: "Dream Big", ar: "احلم كبير" },
   ];
 
   let list = eveningmsgs;

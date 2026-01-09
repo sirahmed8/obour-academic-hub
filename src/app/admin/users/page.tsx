@@ -27,6 +27,178 @@ const PERMISSIONS: { key: UserPermission; label: string }[] = [
   { key: "delete_chats", label: "Delete Chats" },
 ];
 
+interface UserRowData {
+  users: UserType[];
+  selectedUsers: Set<string>;
+  currentUser: UserType | null;
+  language: string;
+  toggleUserSelection: (uid: string) => void;
+  handleToggleRole: (uid: string, role: string, email: string) => void;
+  setViewModal: (data: { isOpen: boolean; user: UserType | null }) => void;
+  setEditModal: (data: {
+    isOpen: boolean;
+    user: UserType | null;
+    name: string;
+    code: string;
+  }) => void;
+  togglePermission: (uid: string, perms: UserPermission[], p: UserPermission) => void;
+  canEditUser: (u: UserType) => boolean;
+}
+
+// --- Extracted Row Component using React.memo to prevent re-renders ---
+const TableRow = ({
+  index,
+  style,
+  data,
+}: {
+  index: number;
+  style: React.CSSProperties;
+  data: UserRowData;
+}) => {
+  const user = data.users[index];
+  if (!user) return null;
+
+  const isSelected = data.selectedUsers.has(user.uid);
+  const {
+    currentUser,
+    language,
+    toggleUserSelection,
+    handleToggleRole,
+    setViewModal,
+    setEditModal,
+    togglePermission,
+    canEditUser,
+  } = data;
+
+  return (
+    <div
+      style={style}
+      className={cn(
+        "grid grid-cols-[3fr_1.5fr_1.5fr_2fr] border-b border-border transition-colors items-center",
+        isSelected ? "bg-primary/5" : "hover:bg-muted/30"
+      )}
+    >
+      {/* User Column */}
+      <div className="px-6 py-4 flex items-center gap-3 overflow-hidden">
+        {user.uid !== currentUser?.uid ? (
+          <AnimatedCheckbox
+            checked={isSelected}
+            onChange={() => toggleUserSelection(user.uid)}
+            className="mr-2"
+          />
+        ) : (
+          <div className="w-4 h-4 mr-2" />
+        )}
+        <Image
+          src={
+            user.photoURL ||
+            `https://ui-avatars.com/api/?name=${user.displayName}&background=6366f1&color=fff`
+          }
+          alt={user.displayName}
+          width={40}
+          height={40}
+          className="rounded-full shrink-0"
+        />
+        <div className="truncate">
+          <div className="font-bold text-foreground truncate">{user.displayName}</div>
+          <div className="text-sm text-muted-foreground truncate">{user.email}</div>
+        </div>
+      </div>
+
+      {/* Student Code */}
+      <div className="px-6 py-4 font-mono text-sm truncate">
+        {user.studentCode || (
+          <span className="text-muted-foreground italic">
+            {language === "ar" ? "غير محدد" : "Not set"}
+          </span>
+        )}
+      </div>
+
+      {/* Role */}
+      <div className="px-6 py-4">
+        <span
+          className={cn(
+            "inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium whitespace-nowrap",
+            user.role === "owner"
+              ? "bg-amber-100 text-amber-800"
+              : user.role === "admin"
+                ? "bg-purple-100 text-purple-800"
+                : "bg-green-100 text-green-800"
+          )}
+        >
+          {user.role === "admin" ? (
+            <Shield className="w-3 h-3 mr-1" />
+          ) : (
+            <User className="w-3 h-3 mr-1" />
+          )}
+          {user.role}
+        </span>
+      </div>
+
+      {/* Actions */}
+      <div className="px-6 py-4">
+        {user.role !== "owner" && (
+          <div className="flex flex-col gap-2">
+            <div className="flex items-center gap-3">
+              <button
+                onClick={() => handleToggleRole(user.uid, user.role, user.email)}
+                className="text-xs text-primary hover:text-primary/80 font-medium"
+              >
+                {language === "ar" ? "تبديل الدور" : "Switch Role"}
+              </button>
+              {currentUser?.role === "owner" && (
+                <button
+                  onClick={() => setViewModal({ isOpen: true, user })}
+                  className="text-xs text-blue-500 hover:text-blue-600 font-medium flex items-center gap-1"
+                  title={language === "ar" ? "عرض البيانات" : "View Data"}
+                >
+                  <User size={12} />
+                  {language === "ar" ? "البيانات" : "Data"}
+                </button>
+              )}
+              {canEditUser(user) && (
+                <button
+                  onClick={() =>
+                    setEditModal({
+                      isOpen: true,
+                      user: user,
+                      name: user.displayName || "",
+                      code: user.studentCode || "",
+                    })
+                  }
+                  className="text-xs text-orange-500 hover:text-orange-600 font-medium flex items-center gap-1"
+                >
+                  <Pencil size={12} />
+                  {language === "ar" ? "تعديل" : "Edit"}
+                </button>
+              )}
+            </div>
+
+            {user.role === "admin" && (
+              <div className="space-y-1 mt-2 border-t pt-2">
+                <p className="text-[10px] uppercase text-muted-foreground font-semibold">
+                  Permissions
+                </p>
+                {PERMISSIONS.map((def) => (
+                  <label key={def.key} className="flex items-center gap-2 cursor-pointer">
+                    <input
+                      type="checkbox"
+                      className="rounded border-input text-primary focus:ring-primary w-3 h-3"
+                      checked={user.permissions?.includes(def.key)}
+                      onChange={() => togglePermission(user.uid, user.permissions || [], def.key)}
+                    />
+                    <span className="text-xs">{def.label}</span>
+                  </label>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
+      </div>
+    </div>
+  );
+};
+
 export default function AdminUsersPage() {
   const { language } = useLanguage();
 
@@ -245,144 +417,6 @@ export default function AdminUsersPage() {
     setSelectedUsers(newSelected);
   };
 
-  // Virtualizer Row Component
-  const Row = ({ index, style }: { index: number; style: React.CSSProperties }) => {
-    const user = filteredUsers[index];
-    if (!user) return null;
-
-    const isSelected = selectedUsers.has(user.uid);
-
-    return (
-      <div
-        style={style}
-        className={cn(
-          "grid grid-cols-[3fr_1.5fr_1.5fr_2fr] border-b border-border transition-colors items-center",
-          isSelected ? "bg-primary/5" : "hover:bg-muted/30"
-        )}
-      >
-        {/* User Column */}
-        <div className="px-6 py-4 flex items-center gap-3 overflow-hidden">
-          {/* Hide checkbox for current user (owner can't select themselves) */}
-          {user.uid !== currentUser?.uid ? (
-            <AnimatedCheckbox
-              checked={isSelected}
-              onChange={() => toggleUserSelection(user.uid)}
-              className="mr-2"
-            />
-          ) : (
-            <div className="w-4 h-4 mr-2" /> // Spacer for alignment
-          )}
-          <Image
-            src={
-              user.photoURL ||
-              `https://ui-avatars.com/api/?name=${user.displayName}&background=6366f1&color=fff`
-            }
-            alt={user.displayName}
-            width={40}
-            height={40}
-            className="rounded-full shrink-0"
-          />
-          <div className="truncate">
-            <div className="font-bold text-foreground truncate">{user.displayName}</div>
-            <div className="text-sm text-muted-foreground truncate">{user.email}</div>
-          </div>
-        </div>
-
-        {/* Student Code Column */}
-        <div className="px-6 py-4 font-mono text-sm truncate">
-          {user.studentCode || (
-            <span className="text-muted-foreground italic">
-              {language === "ar" ? "غير محدد" : "Not set"}
-            </span>
-          )}
-        </div>
-
-        {/* Role Column */}
-        <div className="px-6 py-4">
-          <span
-            className={cn(
-              "inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium whitespace-nowrap",
-              user.role === "owner"
-                ? "bg-amber-100 text-amber-800"
-                : user.role === "admin"
-                  ? "bg-purple-100 text-purple-800"
-                  : "bg-green-100 text-green-800"
-            )}
-          >
-            {user.role === "admin" ? (
-              <Shield className="w-3 h-3 mr-1" />
-            ) : (
-              <User className="w-3 h-3 mr-1" />
-            )}
-            {user.role}
-          </span>
-        </div>
-
-        {/* Actions Column */}
-        <div className="px-6 py-4">
-          {user.role !== "owner" && (
-            <div className="flex flex-col gap-2">
-              <div className="flex items-center gap-3">
-                <button
-                  onClick={() => handleToggleRole(user.uid, user.role, user.email)}
-                  className="text-xs text-primary hover:text-primary/80 font-medium"
-                >
-                  {language === "ar" ? "تبديل الدور" : "Switch Role"}
-                </button>
-                {/* User Data Button (Owner Only) */}
-                {currentUser?.role === "owner" && (
-                  <button
-                    onClick={() => setViewModal({ isOpen: true, user })}
-                    className="text-xs text-blue-500 hover:text-blue-600 font-medium flex items-center gap-1"
-                    title={language === "ar" ? "عرض البيانات" : "View Data"}
-                  >
-                    <User size={12} />
-                    {language === "ar" ? "البيانات" : "Data"}
-                  </button>
-                )}
-                {canEditUser(user) && (
-                  <button
-                    onClick={() =>
-                      setEditModal({
-                        isOpen: true,
-                        user: user,
-                        name: user.displayName || "",
-                        code: user.studentCode || "",
-                      })
-                    }
-                    className="text-xs text-orange-500 hover:text-orange-600 font-medium flex items-center gap-1"
-                  >
-                    <Pencil size={12} />
-                    {language === "ar" ? "تعديل" : "Edit"}
-                  </button>
-                )}
-              </div>
-
-              {user.role === "admin" && (
-                <div className="space-y-1 mt-2 border-t pt-2">
-                  <p className="text-[10px] uppercase text-muted-foreground font-semibold">
-                    Permissions
-                  </p>
-                  {PERMISSIONS.map((def) => (
-                    <label key={def.key} className="flex items-center gap-2 cursor-pointer">
-                      <input
-                        type="checkbox"
-                        className="rounded border-input text-primary focus:ring-primary w-3 h-3"
-                        checked={user.permissions?.includes(def.key)}
-                        onChange={() => togglePermission(user.uid, user.permissions, def.key)}
-                      />
-                      <span className="text-xs">{def.label}</span>
-                    </label>
-                  ))}
-                </div>
-              )}
-            </div>
-          )}
-        </div>
-      </div>
-    );
-  };
-
   return (
     <AppShell>
       <div className="p-4 lg:p-10 w-full h-[calc(100vh-100px)] flex flex-col overflow-x-hidden">
@@ -492,11 +526,10 @@ export default function AdminUsersPage() {
                         {/* Top Row: Checkbox, Avatar, Name & Email */}
                         <div className="flex items-center gap-3 mb-3">
                           {user.uid !== currentUser?.uid ? (
-                            <input
-                              type="checkbox"
+                            <AnimatedCheckbox
                               checked={isSelected}
                               onChange={() => toggleUserSelection(user.uid)}
-                              className="rounded border-input text-primary w-5 h-5 shrink-0"
+                              className="mr-2"
                             />
                           ) : (
                             <div className="w-5 h-5 shrink-0" />
@@ -621,8 +654,20 @@ export default function AdminUsersPage() {
                     itemCount={filteredUsers.length}
                     itemSize={64}
                     width={containerSize.width}
+                    itemData={{
+                      users: filteredUsers,
+                      selectedUsers,
+                      currentUser,
+                      language,
+                      toggleUserSelection,
+                      handleToggleRole,
+                      setViewModal,
+                      setEditModal,
+                      togglePermission,
+                      canEditUser,
+                    }}
                   >
-                    {Row}
+                    {TableRow}
                   </FixedSizeList>
                 </FadeIn>
               </>

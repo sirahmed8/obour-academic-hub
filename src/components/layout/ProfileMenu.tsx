@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
 import { createPortal } from "react-dom";
 import { useAuth, useLanguage } from "@/contexts";
 import { cn } from "@/lib/utils";
@@ -12,6 +12,7 @@ import { motion, Variants } from "framer-motion";
 
 interface ProfileMenuProps {
   onClose: () => void;
+  triggerRef?: React.RefObject<HTMLElement>;
 }
 
 // Check if we're on client side (for SSR-safe portal)
@@ -33,7 +34,7 @@ const menuVariants: Variants = {
   },
 };
 
-export function ProfileMenu({ onClose }: ProfileMenuProps) {
+export function ProfileMenu({ onClose, triggerRef }: ProfileMenuProps) {
   const { user, logout } = useAuth();
   const { language, setLanguage, t } = useLanguage();
 
@@ -43,6 +44,28 @@ export function ProfileMenu({ onClose }: ProfileMenuProps) {
   const [notifPermission, setNotifPermission] = useState<NotificationPermission>(
     isClient ? Notification.permission : "default"
   );
+
+  // We need a real ref
+  const realMenuRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (
+        realMenuRef.current &&
+        !realMenuRef.current.contains(event.target as Node) &&
+        (!triggerRef?.current || !triggerRef.current.contains(event.target as Node))
+      ) {
+        onClose();
+      }
+    };
+
+    // Bind the event listener
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => {
+      // Unbind the event listener on clean up
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, [onClose, triggerRef]);
 
   const handleSaveProfile = async () => {
     if (!user) return;
@@ -79,14 +102,14 @@ export function ProfileMenu({ onClose }: ProfileMenuProps) {
 
   return createPortal(
     <>
-      <div className="fixed inset-0 z-[60] bg-transparent" onClick={onClose} />
       <motion.div
+        ref={realMenuRef}
         variants={menuVariants}
         initial="hidden"
         animate="visible"
         exit="exit"
         className={cn(
-          "fixed top-20 w-72 bg-card/60 dark:bg-black/60 backdrop-blur-xl backdrop-saturate-150 border border-primary/20 dark:border-white/10 rounded-2xl shadow-2xl z-[70] p-4 space-y-4",
+          "fixed top-20 w-72 glass-premium rounded-2xl z-[70] p-4 space-y-4 shadow-2xl",
           language === "ar" ? "left-4 origin-top-left" : "right-4 origin-top-right"
         )}
       >
