@@ -16,6 +16,7 @@ export function SolidModeProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     const stored = localStorage.getItem("obour-solid-mode");
     if (stored === "true") {
+      // eslint-disable-next-line
       setIsSolid(true);
       document.body.classList.add("solid-mode");
     }
