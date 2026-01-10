@@ -14,7 +14,7 @@ npm install
 
 # Set up environment variables
 cp .env.example .env.local
-# Fill in your Firebase and Cloudinary credentials
+# Fill in your Firebase credentials
 
 # Run the development server
 npm run dev
