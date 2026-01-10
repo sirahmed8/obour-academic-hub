@@ -2,34 +2,52 @@
 
 import { useState, useEffect, useRef } from "react";
 import { useSearchParams, usePathname } from "next/navigation";
-import { Subject, Resource } from "@/types";
-import { useLanguage } from "@/contexts";
-import { subjectService } from "@/services/subject.service";
+import Link from "next/link";
 import { AppShell } from "@/components/layout/AppShell";
-import { cn } from "@/lib/utils";
-import * as Icons from "lucide-react";
 import {
+  Loader2,
   ArrowLeft,
-  Download,
-  ExternalLink,
   FileText,
   Link as LinkIcon,
-  Loader2,
+  Download,
+  ExternalLink,
   Search,
+  SearchX,
+  FileQuestion,
+  BookOpen,
 } from "lucide-react";
-import Link from "next/link";
-import { CustomSelect } from "@/components/ui/CustomSelect";
+import * as LucideIcons from "lucide-react";
+import { cn } from "@/lib/utils";
 import { FadeIn, ScaleIn, StaggerChildren } from "@/components/ui/Animations";
 import { AnimatedIcon } from "@/components/ui/AnimatedIcon";
+import { CustomSelect } from "@/components/ui/CustomSelect";
+import { Subject, Resource } from "@/types";
+import { subjectService } from "@/services/subject.service";
+import { analyticsService } from "@/services/analytics.service";
+import { useAuth, useLanguage } from "@/contexts";
 
 interface SubjectClientProps {
   subjectName?: string;
 }
 
 export function SubjectClient({ subjectName }: SubjectClientProps) {
+  // ... existing hooks
+  const { language } = useLanguage();
+  const { user } = useAuth();
   const searchParams = useSearchParams();
   const pathname = usePathname();
-  const { language } = useLanguage();
+
+  // ...
+
+  // ...
+
+  const handleResourceClick = (resource: Resource) => {
+    if (user && subject) {
+      analyticsService.logFileOpen(user.uid, resource.title, resource.url, subject.id);
+    }
+  };
+
+  // ... in return JSX loop
 
   // Get ID from query param
   const subjectIdParam = searchParams.get("id");
@@ -94,6 +112,10 @@ export function SubjectClient({ subjectName }: SubjectClientProps) {
         if (data) {
           setSubject(data);
 
+          if (user) {
+            analyticsService.logSubjectOpen(user.uid, data.id, data.name);
+          }
+
           if (id) {
             // Increment views
             subjectService
@@ -115,7 +137,7 @@ export function SubjectClient({ subjectName }: SubjectClientProps) {
     return () => {
       cancelled = true;
     };
-  }, [subjectIdParam, finalSubjectName, isPlaceholder]);
+  }, [subjectIdParam, finalSubjectName, isPlaceholder, user]);
 
   // Separate effect for resources to handle the ID derived from name
   useEffect(() => {
@@ -144,7 +166,7 @@ export function SubjectClient({ subjectName }: SubjectClientProps) {
         <div className="flex flex-col items-center justify-center min-h-[60vh] text-muted-foreground animate-in fade-in zoom-in duration-500">
           <div className="bg-muted p-6 rounded-full mb-6 relative overflow-hidden group">
             <div className="absolute inset-0 bg-primary/10 translate-y-full group-hover:translate-y-0 transition-transform duration-500 rounded-full" />
-            <Icons.SearchX size={64} className="relative z-10" />
+            <SearchX size={64} className="relative z-10" />
           </div>
           <h2 className="text-2xl font-bold text-foreground mb-2">
             {language === "ar" ? "المادة غير موجودة" : "Subject Not Found"}
@@ -177,7 +199,7 @@ export function SubjectClient({ subjectName }: SubjectClientProps) {
   }
 
   const IconComponent =
-    (Icons as unknown as Record<string, React.ElementType>)[subject.icon] || Icons.BookOpen;
+    (LucideIcons as unknown as Record<string, React.ElementType>)[subject.icon] || BookOpen;
   const bgColorClass = subject.color || "bg-blue-500";
 
   return (
@@ -295,7 +317,7 @@ export function SubjectClient({ subjectName }: SubjectClientProps) {
                 <FadeIn delay={0.4}>
                   <div className="text-center py-20 bg-muted/20 rounded-3xl border-2 border-dashed border-border">
                     <div className="w-16 h-16 bg-muted rounded-full flex items-center justify-center mx-auto mb-4">
-                      <Icons.FileQuestion className="w-8 h-8 text-muted-foreground" />
+                      <FileQuestion className="w-8 h-8 text-muted-foreground" />
                     </div>
                     <h3 className="text-lg font-bold text-foreground mb-1">
                       {searchTerm
@@ -354,6 +376,7 @@ export function SubjectClient({ subjectName }: SubjectClientProps) {
                       href={resource.url}
                       target="_blank"
                       rel="noopener noreferrer"
+                      onClick={() => handleResourceClick(resource)}
                       className="p-3 bg-primary/10 text-primary rounded-xl hover:bg-primary hover:text-primary-foreground transition-colors"
                     >
                       {resource.type === "pdf" ? (

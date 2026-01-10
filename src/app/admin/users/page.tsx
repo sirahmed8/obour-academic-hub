@@ -13,6 +13,7 @@ import { cn } from "@/lib/utils";
 import { ConfirmationModal } from "@/components/ui/ConfirmationModal";
 import { AnimatedCheckbox } from "@/components/ui/AnimatedCheckbox";
 import { FadeIn, StaggerChildren, ScaleIn } from "@/components/ui/Animations";
+import { AnimatePresence } from "framer-motion";
 
 import { BulkActionsBar } from "@/components/admin/BulkActionsBar";
 import { UserDetailModal } from "@/components/admin/UserDetailModal";
@@ -589,13 +590,24 @@ export default function AdminUsersPage() {
                         {/* Actions Row */}
                         {user.role !== "owner" && (
                           <div className="px-8 space-y-3">
-                            <div className="flex items-center gap-4">
+                            <div className="flex items-center gap-4 flex-wrap">
                               <button
                                 onClick={() => handleToggleRole(user.uid, user.role, user.email)}
                                 className="text-sm text-primary hover:text-primary/80 font-medium"
                               >
                                 {language === "ar" ? "تبديل الدور" : "Switch Role"}
                               </button>
+
+                              {currentUser?.role === "owner" && (
+                                <button
+                                  onClick={() => setViewModal({ isOpen: true, user })}
+                                  className="text-sm text-blue-500 hover:text-blue-600 font-medium flex items-center gap-1"
+                                >
+                                  <User size={14} />
+                                  {language === "ar" ? "البيانات" : "Data"}
+                                </button>
+                              )}
+
                               {canEditUser(user) && (
                                 <button
                                   onClick={() =>
@@ -699,13 +711,15 @@ export default function AdminUsersPage() {
         />
 
         {/* User Data Modal */}
-        {viewModal.isOpen && viewModal.user && (
-          <UserDetailModal
-            user={viewModal.user}
-            language={language}
-            onClose={() => setViewModal({ isOpen: false, user: null })}
-          />
-        )}
+        <AnimatePresence>
+          {viewModal.isOpen && viewModal.user && (
+            <UserDetailModal
+              user={viewModal.user}
+              language={language}
+              onClose={() => setViewModal({ isOpen: false, user: null })}
+            />
+          )}
+        </AnimatePresence>
 
         {/* Edit User Modal */}
         {editModal.isOpen && (

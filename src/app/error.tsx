@@ -3,8 +3,12 @@
 import { useEffect, useState } from "react";
 import { addDoc, collection } from "firebase/firestore";
 import { db } from "@/lib/firebase";
-import { AlertTriangle, Loader2, CheckCircle2, RotateCcw } from "lucide-react";
+import { AlertTriangle, Loader2, CheckCircle2, RotateCcw, Home } from "lucide-react";
 import { motion } from "framer-motion";
+import { useAuth, useLanguage } from "@/contexts";
+import { analyticsService } from "@/services/analytics.service";
+import { AIChatbot } from "@/components/features/AIChatbot";
+import Link from "next/link";
 
 export default function ErrorBoundary({
   error,
@@ -15,6 +19,8 @@ export default function ErrorBoundary({
 }) {
   const [isReporting, setIsReporting] = useState(false);
   const [isReported, setIsReported] = useState(false);
+  const { user } = useAuth();
+  const { language } = useLanguage();
 
   useEffect(() => {
     console.error(error);
@@ -23,6 +29,7 @@ export default function ErrorBoundary({
   const reportError = async () => {
     try {
       setIsReporting(true);
+      // 1. System Log
       await addDoc(collection(db, "system_errors"), {
         message: error.message,
         stack: error.stack,
@@ -32,7 +39,14 @@ export default function ErrorBoundary({
         url: window.location.href,
         status: "open",
         type: "segment_error",
+        userId: user?.uid || "anonymous",
       });
+
+      // 2. Analytics Log (User Action)
+      if (user) {
+        await analyticsService.logReport(user.uid, `Error: ${error.message}`);
+      }
+
       setIsReported(true);
     } catch (err) {
       console.error("Failed to report error:", err);
@@ -42,43 +56,61 @@ export default function ErrorBoundary({
   };
 
   return (
-    <div className="flex flex-col items-center justify-center min-h-[50vh] p-6 text-center">
+    <div className="min-h-screen relative flex items-center justify-center p-6 bg-background overflow-hidden">
+      {/* Background Blobs */}
+      <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-destructive/5 rounded-full blur-[128px] pointer-events-none" />
+      <div className="absolute bottom-0 left-0 w-[500px] h-[500px] bg-primary/5 rounded-full blur-[128px] pointer-events-none" />
+
       <motion.div
-        initial={{ opacity: 0, scale: 0.9 }}
+        initial={{ opacity: 0, scale: 0.95 }}
         animate={{ opacity: 1, scale: 1 }}
-        className="max-w-md w-full space-y-6 bg-card border border-border p-8 rounded-3xl shadow-sm"
+        className="w-full max-w-lg bg-card/50 backdrop-blur-xl border border-border/50 p-8 rounded-3xl shadow-2xl relative z-10"
       >
-        <div className="flex justify-center">
-          <div className="h-20 w-20 rounded-full bg-destructive/10 flex items-center justify-center">
+        <div className="flex justify-center mb-6">
+          <div className="h-24 w-24 rounded-full bg-destructive/10 flex items-center justify-center relative">
+            <div className="absolute inset-0 bg-destructive/20 rounded-full animate-ping opacity-20" />
             <AlertTriangle className="h-10 w-10 text-destructive" />
           </div>
         </div>
 
-        <div className="space-y-2">
-          <h2 className="text-xl font-bold tracking-tight">Something went wrong</h2>
-          <p className="text-sm text-muted-foreground">
-            We couldn&apos;t load this section. Please try again.
+        <div className="space-y-3 text-center mb-8">
+          <h2 className="text-2xl font-bold tracking-tight text-foreground">
+            {language === "ar" ? "حدث خطأ غير متوقع" : "Something went wrong"}
+          </h2>
+          <p className="text-muted-foreground">
+            {language === "ar"
+              ? "نعتذر عن الإزعاج، حدث خطأ أثناء تحميل هذه الصفحة."
+              : "We couldn't load this section. Please try again."}
           </p>
         </div>
 
-        <div className="p-3 rounded-lg bg-muted text-left text-xs font-mono overflow-auto max-h-24 border border-border whitespace-pre-wrap">
+        <div className="p-4 rounded-xl bg-muted/50 border border-border/50 text-left text-xs font-mono overflow-auto max-h-32 mb-6 whitespace-pre-wrap scrollbar-thin scrollbar-thumb-border">
           {error.message || "Unknown error occurred"}
         </div>
 
-        <div className="flex flex-col sm:flex-row gap-3 justify-center pt-2">
+        <div className="flex flex-col sm:flex-row gap-3 justify-center">
           <button
             onClick={() => reset()}
-            className="flex-1 px-4 py-2 bg-primary text-primary-foreground rounded-xl hover:bg-primary/90 transition-all font-medium flex items-center justify-center gap-2"
+            className="flex-1 px-4 py-2.5 bg-primary text-primary-foreground rounded-xl hover:bg-primary/90 transition-all font-medium flex items-center justify-center gap-2 hover:scale-[1.02] active:scale-[0.98]"
           >
             <RotateCcw className="w-4 h-4" />
-            Try Again
+            {language === "ar" ? "إعادة المحاولة" : "Try Again"}
           </button>
 
+          <Link
+            href="/"
+            className="px-4 py-2.5 bg-secondary text-secondary-foreground rounded-xl hover:bg-secondary/80 transition-all font-medium flex items-center justify-center gap-2 hover:scale-[1.02] active:scale-[0.98]"
+          >
+            <Home className="w-4 h-4" />
+          </Link>
+        </div>
+
+        <div className="mt-4 pt-4 border-t border-border/50">
           <button
             onClick={reportError}
             disabled={isReporting || isReported}
-            className={`flex-1 px-4 py-2 border border-input bg-background hover:bg-accent hover:text-accent-foreground rounded-xl transition-all font-medium flex items-center justify-center gap-2 ${
-              isReported ? "text-green-600 border-green-200 bg-green-50" : ""
+            className={`w-full px-4 py-2.5 border border-input bg-background/50 hover:bg-accent/50 hover:text-accent-foreground rounded-xl transition-all font-medium flex items-center justify-center gap-2 ${
+              isReported ? "text-green-600 border-green-200 bg-green-50/50" : ""
             }`}
           >
             {isReporting ? (
@@ -86,16 +118,31 @@ export default function ErrorBoundary({
             ) : isReported ? (
               <CheckCircle2 className="h-4 w-4" />
             ) : (
-              "Report Issue"
+              <AlertTriangle className="h-4 w-4" />
             )}
-            {isReporting ? "Sending..." : isReported ? "Sent" : "Report"}
+            {isReporting
+              ? language === "ar"
+                ? "جاري الإرسال..."
+                : "Sending..."
+              : isReported
+                ? language === "ar"
+                  ? "تم الإبلاغ"
+                  : "Reported"
+                : language === "ar"
+                  ? "إبلاغ عن المشكلة"
+                  : "Report Issue"}
           </button>
         </div>
 
         {error.digest && (
-          <p className="text-[10px] text-muted-foreground font-mono">ID: {error.digest}</p>
+          <p className="text-[10px] text-muted-foreground font-mono text-center mt-4 opacity-50">
+            ID: {error.digest}
+          </p>
         )}
       </motion.div>
+
+      {/* Live Support */}
+      <AIChatbot />
     </div>
   );
 }

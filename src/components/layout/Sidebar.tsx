@@ -169,81 +169,6 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
     }
   };
 
-  // Interface for sidebar navigation items
-  interface SidebarItem {
-    name: string;
-    path: string;
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    icon: any;
-    useAnimation: boolean;
-    badge?: number;
-    iconName?: string;
-  }
-
-  const SidebarLink = ({ item }: { item: SidebarItem }) => {
-    const isActive = isActivePath(item.path);
-    const [isHovered, setIsHovered] = useState(false);
-
-    return (
-      <Link
-        href={item.path}
-        onClick={onClose}
-        prefetch={false}
-        onMouseEnter={() => setIsHovered(true)}
-        onMouseLeave={() => setIsHovered(false)}
-        className={cn(
-          "flex items-center gap-3 px-3 py-2.5 lg:px-4 lg:py-3 rounded-xl transition-all duration-300 font-medium select-none group relative overflow-hidden",
-          isActive
-            ? "bg-primary/10 text-primary font-bold border-l-4 border-primary shadow-sm dark:bg-primary/20"
-            : "text-foreground/80 hover:bg-slate-200/80 dark:hover:bg-white/5 hover:text-foreground hover:translate-x-1"
-        )}
-      >
-        {/* Active Background Glow for Dark Mode */}
-        {isActive && <div className="absolute inset-0 bg-primary/5 blur-sm -z-10" />}
-
-        <div className="relative">
-          <AnimatedIcon
-            icon={item.icon}
-            iconName={item.iconName}
-            size={24}
-            className={cn(
-              "lg:w-6 lg:h-6 transition-all duration-200",
-              // LUCIDE ICONS: Use text color classes
-              !item.useAnimation && isActive && "text-primary",
-              !item.useAnimation && !isActive && "text-foreground/70 group-hover:text-foreground",
-
-              // LOTTIE ICONS (Black by default): Use filters
-              // Inactive: White in Dark Mode
-              item.useAnimation &&
-                !isActive &&
-                "dark:brightness-0 dark:invert opacity-70 group-hover:opacity-100",
-              // Active: Blue Filter (Approximate #3B82F6) -> Handled via style prop below or class if possible
-              // We use a specific class or style for active lottie
-              item.useAnimation && isActive && "lottie-active-filter"
-            )}
-            style={{
-              // FOR LOTTIE: Filter to turn Black -> Blue
-              filter:
-                item.useAnimation && isActive
-                  ? "invert(48%) sepia(79%) saturate(2476%) hue-rotate(200deg) brightness(118%) contrast(119%)"
-                  : undefined,
-              // FOR LUCIDE: Explicit Color to ensure Blue (#3B82F6 matches standard primary)
-              color: !item.useAnimation && isActive ? "#3B82F6" : undefined,
-            }}
-            active={isActive || isHovered}
-            useAnimation={item.useAnimation}
-          />
-          {item.badge && (
-            <span className="absolute -top-2 -right-2 bg-red-500 text-white text-[10px] w-4 h-4 rounded-full flex items-center justify-center animate-pulse z-10">
-              {item.badge > 9 ? "9+" : item.badge}
-            </span>
-          )}
-        </div>
-        <span className="text-sm lg:text-base relative z-10">{item.name}</span>
-      </Link>
-    );
-  };
-
   return (
     <>
       {/* Backdrop */}
@@ -284,7 +209,7 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
         />
 
         {/* Scrollable Content Container - Full Height */}
-        <div className="relative z-10 h-full lg:h-[calc(100%-70px)] overflow-y-auto scrollbar-none lg:mt-[70px]">
+        <div className="relative z-10 h-full lg:h-[calc(100%-70px)] overflow-y-auto scrollbar-none lg:mt-[70px] lg:mr-1 rounded-tr-2xl rounded-br-2xl">
           {/* Sticky Header - Mobile Only */}
           <div className="sticky top-0 z-20 h-16 flex items-center justify-between px-4 border-b border-white/10 lg:hidden">
             {/* Translucent background with blur to show content behind */}
@@ -322,7 +247,12 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
               {/* Main Nav */}
               <div className="space-y-2">
                 {navItems.map((item) => (
-                  <SidebarLink key={item.path} item={item} />
+                  <SidebarLink
+                    key={item.path}
+                    item={item}
+                    isActive={isActivePath(item.path)}
+                    onClose={onClose}
+                  />
                 ))}
               </div>
 
@@ -333,7 +263,12 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
                     {t("nav.admin")}
                   </p>
                   {adminItems.map((item) => (
-                    <SidebarLink key={item.path} item={item} />
+                    <SidebarLink
+                      key={item.path}
+                      item={item}
+                      isActive={isActivePath(item.path)}
+                      onClose={onClose}
+                    />
                   ))}
                 </div>
               )}
@@ -345,7 +280,12 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
                     Owner
                   </p>
                   {ownerItems.map((item) => (
-                    <SidebarLink key={item.path} item={item} />
+                    <SidebarLink
+                      key={item.path}
+                      item={item}
+                      isActive={isActivePath(item.path)}
+                      onClose={onClose}
+                    />
                   ))}
                 </div>
               )}
@@ -356,3 +296,85 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
     </>
   );
 }
+
+// Extracted Component to prevent re-renders on parent state change
+interface SidebarItem {
+  name: string;
+  path: string;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  icon: any;
+  useAnimation: boolean;
+  badge?: number;
+  iconName?: string;
+}
+
+const SidebarLink = ({
+  item,
+  isActive,
+  onClose,
+}: {
+  item: SidebarItem;
+  isActive: boolean;
+  onClose: () => void;
+}) => {
+  const [isHovered, setIsHovered] = useState(false);
+
+  return (
+    <Link
+      href={item.path}
+      onClick={onClose}
+      prefetch={false}
+      onMouseEnter={() => setIsHovered(true)}
+      onMouseLeave={() => setIsHovered(false)}
+      className={cn(
+        "flex items-center gap-3 px-3 py-2.5 lg:px-4 lg:py-3 rounded-xl transition-all duration-300 font-medium select-none group relative overflow-hidden",
+        isActive
+          ? "bg-primary/10 text-primary font-bold border-l-4 border-primary shadow-sm dark:bg-primary/20"
+          : "text-foreground/80 hover:bg-slate-200/80 dark:hover:bg-white/5 hover:text-foreground hover:translate-x-1"
+      )}
+    >
+      {/* Active Background Glow for Dark Mode */}
+      {isActive && <div className="absolute inset-0 bg-primary/5 blur-sm -z-10" />}
+
+      <div className="relative">
+        <AnimatedIcon
+          icon={item.icon}
+          iconName={item.iconName}
+          size={24}
+          className={cn(
+            "lg:w-6 lg:h-6 transition-all duration-200",
+            // LUCIDE ICONS: Use text color classes
+            !item.useAnimation && isActive && "text-primary",
+            !item.useAnimation && !isActive && "text-foreground/70 group-hover:text-foreground",
+
+            // LOTTIE ICONS (Black by default): Use filters
+            // Inactive: White in Dark Mode
+            item.useAnimation &&
+              !isActive &&
+              "dark:brightness-0 dark:invert opacity-70 group-hover:opacity-100",
+            // Active: Blue Filter (Approximate #3B82F6) -> Handled via style prop below or class if possible
+            // We use a specific class or style for active lottie
+            item.useAnimation && isActive && "lottie-active-filter"
+          )}
+          style={{
+            // FOR LOTTIE: Filter to turn Black -> Blue
+            filter:
+              item.useAnimation && isActive
+                ? "invert(48%) sepia(79%) saturate(2476%) hue-rotate(200deg) brightness(118%) contrast(119%)"
+                : undefined,
+            // FOR LUCIDE: Explicit Color to ensure Blue (#3B82F6 matches standard primary)
+            color: !item.useAnimation && isActive ? "#3B82F6" : undefined,
+          }}
+          active={isActive || isHovered}
+          useAnimation={item.useAnimation}
+        />
+        {item.badge && (
+          <span className="absolute -top-2 -right-2 bg-red-500 text-white text-[10px] w-4 h-4 rounded-full flex items-center justify-center animate-pulse z-10">
+            {item.badge > 9 ? "9+" : item.badge}
+          </span>
+        )}
+      </div>
+      <span className="text-sm lg:text-base relative z-10">{item.name}</span>
+    </Link>
+  );
+};

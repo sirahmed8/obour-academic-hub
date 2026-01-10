@@ -11,6 +11,12 @@ const inter = Inter({ subsets: ["latin"], variable: "--font-inter" });
 export const metadata: Metadata = {
   title: "Obour Academic Hub",
   description: "A comprehensive academic platform for Obour Institutes students",
+  metadataBase: new URL(process.env.NEXT_PUBLIC_APP_URL || "https://obour-hub.vercel.app"),
+  icons: {
+    icon: "/favicon.ico",
+    shortcut: "/favicon.ico",
+    apple: "/apple-touch-icon.png",
+  },
 };
 
 export const viewport: Viewport = {

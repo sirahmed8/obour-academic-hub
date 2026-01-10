@@ -1,14 +1,16 @@
 "use client";
 
 import { useState, useEffect, useMemo } from "react";
-import { useRouter } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import Link from "next/link";
 import { useAuth, useLanguage, useSolidMode } from "@/contexts";
 import { Sidebar, Navbar } from "@/components/layout";
 import { toast } from "sonner";
 import dynamic from "next/dynamic";
+import { analyticsService } from "@/services/analytics.service";
 import { SkipLink } from "@/components/ui/SkipLink";
 import { cn } from "@/lib/utils";
+
 // Lazy load AIChatbot for better initial bundle size
 const AIChatbot = dynamic(
   () => import("@/components/features/AIChatbot").then((mod) => mod.AIChatbot),
@@ -45,12 +47,17 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   const { dir, language } = useLanguage();
 
   const router = useRouter();
+  const pathname = usePathname();
 
   // Enable global keyboard shortcuts
   useGlobalKeyboard();
 
-  // Enable Real Page Tracking (Analytics) - TEMPORARILY DISABLED FOR DEBUGGING
-  // usePageTracking();
+  // Log Page View
+  useEffect(() => {
+    if (user && pathname) {
+      analyticsService.logPageView(user.uid, pathname);
+    }
+  }, [user, pathname]);
 
   // Check if profile is incomplete using useMemo (no effect)
   const showProfileSetup = useMemo(() => {
@@ -195,10 +202,10 @@ export function AppShell({ children }: { children: React.ReactNode }) {
               </p>
             </footer>
           </main>
-          <AIChatbot />
         </div>
       </div>{" "}
       {/* Close Main Layout Area */}
+      <AIChatbot />
       {/* Profile Setup Modal */}
       {showProfileSetup && (
         <StudentProfileSetup

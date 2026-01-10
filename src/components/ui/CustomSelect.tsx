@@ -93,7 +93,7 @@ export function CustomSelect({
                     className={cn(
                       "w-full flex items-center justify-between px-3 py-2.5 rounded-xl text-sm transition-all duration-200",
                       option.value === value
-                        ? "bg-primary/20 text-primary font-bold shadow-sm"
+                        ? "bg-primary text-primary-foreground font-bold shadow-md"
                         : "text-foreground hover:bg-black/5 dark:hover:bg-white/10"
                     )}
                   >

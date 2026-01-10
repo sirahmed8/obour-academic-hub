@@ -35,7 +35,8 @@ export function AnimatedIcon({
   const variants = ICON_ANIMATION_VARIANTS[variantName];
 
   // Declarative animation state
-  const shouldAnimate = isHovered || active;
+  // FIX: If active is provided (controlled), ignore internal hover to prevent race conditions/glitches
+  const shouldAnimate = active !== undefined ? active : isHovered;
 
   // AUTO-DETECT: If Icon is an object, it's a Lottie animation JSON.
   // We MUST use LottieIconWrapper in this case, regardless of useAnimation.
@@ -91,7 +92,7 @@ function LottieIconWrapper({
   // Track previous state to only animate on CHANGES
   const prevActiveRef = React.useRef<boolean | undefined>(undefined);
 
-  const shouldBeActive = isHovered || active;
+  const shouldBeActive = active !== undefined ? active : isHovered;
 
   React.useEffect(() => {
     if (!lottieRef.current) return;

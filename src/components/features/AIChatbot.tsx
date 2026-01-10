@@ -207,7 +207,7 @@ export function AIChatbot() {
         initial={{ scale: 0, opacity: 0 }}
         animate={{ scale: 1, opacity: 1 }}
         transition={{ type: "spring", stiffness: 400, damping: 25 }}
-        className="fixed bottom-6 right-6 z-[100] p-4 bg-primary text-primary-foreground rounded-full shadow-lg shadow-primary/25 hover:shadow-xl hover:shadow-primary/30 transition-all active:scale-95 duration-200 ease-out sm:w-16 sm:h-16 w-14 h-14 flex items-center justify-center"
+        className="fixed bottom-6 right-6 z-[200] p-4 bg-primary text-primary-foreground rounded-full shadow-lg shadow-primary/25 hover:shadow-xl hover:shadow-primary/30 transition-all active:scale-95 duration-200 ease-out sm:w-16 sm:h-16 w-14 h-14 flex items-center justify-center"
       >
         <AnimatePresence mode="wait" initial={false}>
           {isOpen ? (
@@ -246,13 +246,12 @@ export function AIChatbot() {
       <AnimatePresence>
         {isOpen && (
           <motion.div
-            initial={{ opacity: 0, y: 20, scale: 0.95, transformOrigin: "bottom right" }}
-            animate={{ opacity: 1, y: 0, scale: 1 }}
-            exit={{ opacity: 0, y: 20, scale: 0.95 }}
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: 20 }}
             transition={{ type: "spring", stiffness: 400, damping: 25 }}
-            className="glass-premium fixed bottom-24 right-6 z-[100] w-[380px] max-w-[calc(100vw-3rem)] h-[500px] max-h-[calc(100vh-8rem)] rounded-2xl flex flex-col overflow-hidden origin-bottom-right shadow-2xl"
+            className="fixed bottom-24 right-6 z-[200] w-[380px] max-w-[calc(100vw-3rem)] h-[500px] max-h-[calc(100vh-8rem)] rounded-2xl flex flex-col overflow-hidden origin-bottom-right shadow-2xl glass-premium"
           >
-            {/* Header - Simplified Live Support Only */}
             <div className="p-4 border-b border-white/10 bg-gradient-to-r from-primary/10 to-transparent flex items-center justify-between">
               <div className="flex items-center gap-3">
                 <div className="w-10 h-10 rounded-full bg-primary/20 flex items-center justify-center shadow-inner text-primary">

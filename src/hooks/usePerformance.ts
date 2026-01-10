@@ -19,7 +19,7 @@ export function usePerformance() {
 
         // Consider lagging if FPS drops consistently below 35
         // We use a simple check here, but could smooth it over time if needed
-        setIsLagging(currentFps < 35);
+        setIsLagging(currentFps < 20);
 
         frameCount.current = 0;
         lastTime.current = now;
