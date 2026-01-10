@@ -15,3 +15,8 @@
 4. Loading states are communicated to screen readers
 
 **Action:** Check all button components for missing labels and focus styles.
+
+## 2026-03-02 - Mobile Interactive Elements
+
+**Learning:** Mobile-only interactive elements (like hamburger menus and close buttons) are often overlooked in desktop-first development, leaving mobile screen reader users stranded.
+**Action:** Always test responsiveness and ensure elements that appear only on mobile (using `lg:hidden` etc.) have proper ARIA labels.

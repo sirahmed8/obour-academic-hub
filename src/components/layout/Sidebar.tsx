@@ -236,6 +236,7 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
             <button
               onClick={onClose}
               className="lg:hidden p-2 hover:bg-white/10 rounded-full transition-colors active:scale-95"
+              aria-label={language === "ar" ? "إغلاق القائمة" : "Close menu"}
             >
               <X size={20} />
             </button>
