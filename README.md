@@ -28,14 +28,16 @@
 
 ## 🛠️ Tech Stack
 
-| Technology         | Purpose                         |
-| ------------------ | ------------------------------- |
-| **Next.js 16**     | App Router + Turbopack          |
-| **React 19**       | Modern Component Architecture   |
-| **TypeScript 5**   | Strict Type Safety              |
-| **Tailwind CSS 3** | Utility-first Premium Styling   |
-| **Firebase 12**    | Scalable Backend & Hosting      |
-| **Framer Motion**  | GPU-optimized smooth animations |
+| Technology | Purpose |
+| ------------------| Technology | Purpose |
+|------------|---------|
+| **Next.js 16** | App Router + Turbopack |
+| **React 19** | Modern Component Architecture |
+| **TypeScript 5** | Strict Type Safety |
+| **Tailwind CSS 4** | Oxide Engine + Modern Styling |
+| **Firebase 12** | Scalable Backend & Hosting |
+| **Framer Motion** | GPU-optimized smooth animations |
+| **SystemInfo** | Client-Side Device Monitoring |
 
 ---
 
