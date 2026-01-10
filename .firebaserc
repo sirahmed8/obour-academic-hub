@@ -1,0 +1,12 @@
+{
+  "projects": {
+    "default": "obour-institutes-a607d"
+  },
+  "targets": {
+    "obour-institutes-a607d": {
+      "hosting": {
+        "obourinstitutes": ["obourinstitutes"]
+      }
+    }
+  }
+}

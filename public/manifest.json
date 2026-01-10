@@ -1,0 +1,57 @@
+{
+  "name": "Obour Academic Hub",
+  "short_name": "Obour Hub",
+  "description": "Educational platform for Obour Institutes students",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#0a0a1a",
+  "theme_color": "#6366f1",
+  "orientation": "portrait-primary",
+  "icons": [
+    {
+      "src": "/obour-logo.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/obour-logo.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ],
+  "categories": ["education", "productivity"],
+  "lang": "ar",
+  "dir": "rtl",
+  "shortcuts": [
+    {
+      "name": "Notifications",
+      "short_name": "Notifs",
+      "description": "View updates",
+      "url": "/notifications",
+      "icons": [{ "src": "/obour-logo.png", "sizes": "192x192" }]
+    },
+    {
+      "name": "Subjects",
+      "url": "/main",
+      "icons": [{ "src": "/obour-logo.png", "sizes": "192x192" }]
+    }
+  ],
+  "screenshots": [
+    {
+      "src": "/screenshot-desktop.png",
+      "sizes": "1280x720",
+      "type": "image/png",
+      "form_factor": "wide",
+      "label": "Dashboard"
+    },
+    {
+      "src": "/screenshot-mobile.png",
+      "sizes": "1080x1920",
+      "type": "image/png",
+      "form_factor": "narrow",
+      "label": "Mobile View"
+    }
+  ]
+}

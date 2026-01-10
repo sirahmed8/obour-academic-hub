@@ -1,0 +1,31 @@
+
+> obour-academic-hub@0.1.0 lint
+> eslint
+
+
+C:\Users\a7med\Desktop\ObourPlatform\obour-academic-hub\src\components\features\inbox\ChatWindow.tsx
+  96:11  error  'position' is never reassigned. Use 'const' instead  prefer-const
+
+C:\Users\a7med\Desktop\ObourPlatform\obour-academic-hub\src\components\layout\Sidebar.tsx
+  15:3  warning  'LayoutDashboard' is defined but never used  @typescript-eslint/no-unused-vars
+  16:3  warning  'BookOpen' is defined but never used         @typescript-eslint/no-unused-vars
+  17:3  warning  'Users' is defined but never used            @typescript-eslint/no-unused-vars
+  18:3  warning  'Settings' is defined but never used         @typescript-eslint/no-unused-vars
+  19:3  warning  'LogOut' is defined but never used           @typescript-eslint/no-unused-vars
+  20:3  warning  'ChevronLeft' is defined but never used      @typescript-eslint/no-unused-vars
+  21:3  warning  'ChevronRight' is defined but never used     @typescript-eslint/no-unused-vars
+  22:3  warning  'Menu' is defined but never used             @typescript-eslint/no-unused-vars
+  23:3  warning  'X' is defined but never used                @typescript-eslint/no-unused-vars
+  24:3  warning  'GraduationCap' is defined but never used    @typescript-eslint/no-unused-vars
+  25:3  warning  'MessageSquare' is defined but never used    @typescript-eslint/no-unused-vars
+  40:8  warning  'activityAnim' is defined but never used     @typescript-eslint/no-unused-vars
+
+C:\Users\a7med\Desktop\ObourPlatform\obour-academic-hub\src\components\ui\AnimatedIcon.tsx
+  127:3  warning  Unused eslint-disable directive (no problems were reported from '@typescript-eslint/no-explicit-any')
+
+C:\Users\a7med\Desktop\ObourPlatform\obour-academic-hub\src\components\ui\LottieIcon.tsx
+  28:3  warning  Unused eslint-disable directive (no problems were reported from '@typescript-eslint/no-explicit-any')
+
+✖ 15 problems (1 error, 14 warnings)
+  1 error and 2 warnings potentially fixable with the `--fix` option.
+

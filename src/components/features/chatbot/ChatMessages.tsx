@@ -1,0 +1,52 @@
+"use client";
+
+import { useEffect, useRef } from "react";
+import { Headphones } from "lucide-react";
+import { useLanguage } from "@/contexts";
+import { ChatMessageItem } from "@/components/chat/ChatMessage";
+import { ChatMessage } from "@/types";
+import { User } from "@/types";
+
+interface ChatMessagesProps {
+  messages: ChatMessage[];
+  user: User;
+  onReply: (msg: ChatMessage) => void;
+  onReact: (msg: ChatMessage, emoji: string) => void;
+}
+
+export function ChatMessages({ messages, user, onReply, onReact }: ChatMessagesProps) {
+  const { language } = useLanguage();
+  const messagesEndRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  }, [messages]);
+
+  return (
+    <div className="flex-1 overflow-y-auto p-4 space-y-4 bg-muted/5 scrollbar-thin scrollbar-thumb-border">
+      {messages.length === 0 && (
+        <div className="h-full flex flex-col items-center justify-center text-center text-muted-foreground p-6 opacity-60">
+          <Headphones className="w-12 h-12 mb-3" />
+          <p className="text-sm">
+            {language === "ar"
+              ? "لا توجد رسائل بعد. ابدأ المحادثة مع فريق الدعم!"
+              : "No messages yet. Start chatting with support!"}
+          </p>
+        </div>
+      )}
+
+      {messages.map((msg) => (
+        <ChatMessageItem
+          key={msg.id}
+          message={msg}
+          user={user}
+          isUser={msg.senderId === user.uid}
+          onReply={onReply}
+          onReact={onReact}
+        />
+      ))}
+
+      <div ref={messagesEndRef} />
+    </div>
+  );
+}
