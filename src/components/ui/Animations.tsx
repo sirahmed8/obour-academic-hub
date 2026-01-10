@@ -12,6 +12,13 @@ export const springConfig = {
   mass: 1,
 };
 
+export const smoothSpring = {
+  type: "spring" as const,
+  stiffness: 85,
+  damping: 14,
+  mass: 1,
+};
+
 const easeConfig = [0.22, 1, 0.36, 1] as const; // Custom easing for non-spring transitions
 
 // --- Interfaces ---
@@ -88,6 +95,7 @@ export function ScaleIn({
   delay = 0,
   className = "",
   layout,
+  ...props
 }: AnimationProps & { layout?: boolean | "position" }) {
   return (
     <motion.div
@@ -97,8 +105,9 @@ export function ScaleIn({
       exit={{ opacity: 0, scale: 0.92, transition: { duration: 0.2 } }}
       whileInView={{ opacity: 1, scale: 1 }}
       viewport={{ once: true }}
-      transition={{ ...springConfig, delay }}
+      transition={{ ...(props.transition || springConfig), delay }}
       className={className}
+      {...props}
     >
       {children}
     </motion.div>

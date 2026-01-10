@@ -31,7 +31,7 @@ import { cn } from "@/lib/utils";
 import { Subject } from "@/types";
 import { ConfirmationModal } from "@/components/ui/ConfirmationModal";
 import { motion, AnimatePresence } from "framer-motion";
-import { FadeIn, StaggerChildren, ScaleIn } from "@/components/ui/Animations";
+import { FadeIn, StaggerChildren, ScaleIn, smoothSpring } from "@/components/ui/Animations";
 import { AnimatedIcon } from "@/components/ui/AnimatedIcon";
 import { PICKER_OPTIONS, getSubjectAnimation } from "@/lib/subjectIcons";
 
@@ -618,7 +618,7 @@ export default function AdminSubjectsPage() {
                 <StaggerChildren className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <AnimatePresence mode="popLayout">
                     {filteredSubjects.map((subject) => (
-                      <ScaleIn key={subject.id} layout>
+                      <ScaleIn key={subject.id} layout transition={smoothSpring}>
                         <SubjectCard
                           subject={subject}
                           language={language as "ar" | "en"}
