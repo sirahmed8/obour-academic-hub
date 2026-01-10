@@ -6,8 +6,6 @@
 | ------- | ----------------- |
 | 0.1.x   | ✅ Active support |
 
----
-
 ## 🔐 Security Features
 
 ### Authentication
@@ -41,8 +39,6 @@
 - `will-change` and `contain` properties for isolation
 - No memory leaks from animation subscriptions
 
----
-
 ## 🚨 Reporting a Vulnerability
 
 **DO NOT** open a public GitHub issue for security vulnerabilities.
@@ -68,8 +64,6 @@
 - **Acknowledgment**: Within 48 hours
 - **Initial assessment**: Within 1 week
 
----
-
 ## 🔒 Best Practices for Contributors
 
 1. ❌ Never commit API keys or secrets
@@ -77,7 +71,5 @@
 3. ✅ Validate all user input
 4. ✅ Follow principle of least privilege
 5. ✅ Keep dependencies updated (`npm audit`)
-
----
 
 Thank you for helping keep Obour Academic Hub secure! 🔒
