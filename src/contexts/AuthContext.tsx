@@ -99,10 +99,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
                   role: finalRole,
                 } as User);
 
-                // Log the login event
-                import("@/lib/activity-logger").then(({ logLogin }) => {
-                  logLogin(firebaseUser.uid, firebaseUser.email || "unknown");
-                });
+                // Log login removed from here to prevent duplicate logs on reload
               }
               // B. New User Creation
               else {
@@ -219,8 +216,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
     try {
       console.log("Starting Google Sign-In...");
-      await signInWithPopup(auth, googleProvider);
+      const result = await signInWithPopup(auth, googleProvider);
       console.log("Sign-in successful");
+
+      // Log explicit login action
+      if (result.user) {
+        import("@/lib/activity-logger").then(({ logLogin }) => {
+          logLogin(result.user.uid, result.user.email || "unknown");
+        });
+      }
       // Loading will be handled by the listener
     } catch (error: unknown) {
       const err = error as { code?: string; message?: string };

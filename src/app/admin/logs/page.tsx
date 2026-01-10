@@ -22,6 +22,8 @@ import {
   LogIn,
   PlusCircle,
   CheckCircle,
+  Search,
+  Download,
 } from "lucide-react";
 import { toast } from "sonner";
 import { formatDate, formatDateArabic } from "@/lib/utils";
@@ -34,6 +36,7 @@ export default function AdminLogsPage() {
   const [loading, setLoading] = useState(true);
   const [showClearModal, setShowClearModal] = useState(false);
   const [isClearing, setIsClearing] = useState(false);
+  const [searchTerm, setSearchTerm] = useState("");
   const { language, t } = useLanguage();
 
   useEffect(() => {
@@ -44,6 +47,41 @@ export default function AdminLogsPage() {
     });
     return () => unsubscribe();
   }, []);
+
+  const filteredLogs = logs.filter((log) => {
+    const searchLower = searchTerm.toLowerCase();
+    return (
+      log.action.toLowerCase().includes(searchLower) ||
+      log.details.toLowerCase().includes(searchLower) ||
+      (log.userEmail && log.userEmail.toLowerCase().includes(searchLower))
+    );
+  });
+
+  const downloadLogs = () => {
+    if (filteredLogs.length === 0) {
+      toast.error(language === "ar" ? "لا توجد سجلات لتحميلها" : "No logs to download");
+      return;
+    }
+
+    const headers = ["Timestamp", "Action", "Details", "User Email", "User ID"];
+    const csvContent = [
+      headers.join(","),
+      ...filteredLogs.map((log) => {
+        const date = new Date(log.timestamp.seconds * 1000).toISOString();
+        const details = `"${log.details.replace(/"/g, '""')}"`; // Escape quotes
+        return [date, log.action, details, log.userEmail || "System", log.userId || ""].join(",");
+      }),
+    ].join("\n");
+
+    const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.setAttribute("download", `logs_export_${new Date().toISOString().split("T")[0]}.csv`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
 
   const clearLogs = async () => {
     setShowClearModal(false);
@@ -89,16 +127,44 @@ export default function AdminLogsPage() {
             <FileText className="text-primary" />
             {t("admin.logs")}
           </h1>
-          {logs.length > 0 && (
-            <button
-              onClick={() => setShowClearModal(true)}
-              className="px-4 py-2 bg-destructive/10 hover:bg-destructive/20 text-destructive rounded-xl transition-all active:scale-95 font-medium flex items-center gap-2"
-              disabled={isClearing}
-            >
-              {isClearing ? <Loader2 className="animate-spin" size={18} /> : <Trash2 size={18} />}
-              {language === "ar" ? "مسح السجلات" : "Clear Logs"}
-            </button>
-          )}
+          <div className="flex flex-col sm:flex-row gap-4 items-center w-full sm:w-auto">
+            <div className="relative w-full sm:w-64">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground w-4 h-4 rtl:right-3 rtl:left-auto" />
+              <input
+                type="text"
+                placeholder={language === "ar" ? "بحث في السجلات..." : "Search logs..."}
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="w-full bg-muted/50 border border-transparent focus:border-primary/50 focus:bg-background rounded-xl py-2 px-10 text-sm outline-none transition-all"
+              />
+            </div>
+
+            <div className="flex gap-2 w-full sm:w-auto">
+              <button
+                onClick={downloadLogs}
+                className="flex-1 sm:flex-none px-4 py-2 bg-primary/10 hover:bg-primary/20 text-primary rounded-xl transition-all font-medium flex items-center justify-center gap-2"
+                title={language === "ar" ? "تحميل CSV" : "Download CSV"}
+              >
+                <Download size={18} />
+                <span className="hidden sm:inline">{language === "ar" ? "تصدير" : "Export"}</span>
+              </button>
+
+              {logs.length > 0 && (
+                <button
+                  onClick={() => setShowClearModal(true)}
+                  className="flex-1 sm:flex-none px-4 py-2 bg-destructive/10 hover:bg-destructive/20 text-destructive rounded-xl transition-all active:scale-95 font-medium flex items-center justify-center gap-2"
+                  disabled={isClearing}
+                >
+                  {isClearing ? (
+                    <Loader2 className="animate-spin" size={18} />
+                  ) : (
+                    <Trash2 size={18} />
+                  )}
+                  <span className="hidden sm:inline">{language === "ar" ? "مسح" : "Clear"}</span>
+                </button>
+              )}
+            </div>
+          </div>
         </FadeIn>
 
         <div className="space-y-4">
@@ -117,7 +183,7 @@ export default function AdminLogsPage() {
             </FadeIn>
           ) : (
             <StaggerChildren className="space-y-3">
-              {logs.map((log) => (
+              {filteredLogs.map((log) => (
                 <ScaleIn key={log.id}>
                   <div className="group bg-card p-4 rounded-2xl border border-border hover:shadow-xl hover:shadow-primary/5 hover:border-primary/20 transition-all duration-300 flex items-start gap-4">
                     <div className="p-3 bg-muted rounded-xl transition-transform group-hover:scale-110 duration-300">
@@ -155,7 +221,11 @@ export default function AdminLogsPage() {
                         </div>
                       </div>
 
-                      <div className="mt-2 flex items-center gap-2 text-xs text-muted-foreground/80">
+                      <div
+                        className="mt-2 flex items-center gap-2 text-xs text-muted-foreground/80 cursor-pointer hover:text-primary transition-colors"
+                        onClick={() => setSearchTerm(log.userEmail || "")}
+                        title={language === "ar" ? "عرض سجلات هذا المستخدم" : "Filter by this user"}
+                      >
                         <div className="w-1.5 h-1.5 rounded-full bg-primary/40" />
                         {log.userEmail || "System"}
                       </div>
@@ -163,6 +233,11 @@ export default function AdminLogsPage() {
                   </div>
                 </ScaleIn>
               ))}
+              {filteredLogs.length === 0 && logs.length > 0 && (
+                <div className="text-center py-10 text-muted-foreground">
+                  {language === "ar" ? "لا توجد نتائج للبحث" : "No logs match your search"}
+                </div>
+              )}
             </StaggerChildren>
           )}
         </div>

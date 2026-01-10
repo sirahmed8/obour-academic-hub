@@ -24,7 +24,7 @@ import settingsAnim from "react-useanimations/lib/settings/settings.json";
 import archiveAnim from "react-useanimations/lib/archive/archive.json";
 import userPlusAnim from "react-useanimations/lib/userPlus/userPlus.json";
 import alertCircleAnim from "react-useanimations/lib/alertCircle/alertCircle.json";
-// Actually, I'll remove activityAnim since I replaced it with BarChart2.
+import activityAnim from "react-useanimations/lib/activity/activity.json";
 
 interface SidebarProps {
   isOpen: boolean;
@@ -156,8 +156,8 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
     {
       name: t("admin.analytics"),
       path: "/admin/analytics",
-      icon: BarChart2,
-      useAnimation: false,
+      icon: activityAnim,
+      useAnimation: true,
     },
   ];
 
