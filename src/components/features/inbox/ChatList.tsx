@@ -88,7 +88,7 @@ export function ChatList({
           </div>
         ) : (
           <AnimatePresence mode="popLayout">
-            {sessions.map((session, _) => (
+            {sessions.map((session) => (
               <ScaleIn
                 key={session.userId}
                 layout
