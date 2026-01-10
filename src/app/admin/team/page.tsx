@@ -24,6 +24,7 @@ import { cn } from "@/lib/utils";
 import { User } from "@/types";
 import { FadeIn, ScaleIn, StaggerChildren } from "@/components/ui/Animations";
 import Image from "next/image";
+import { AnimatePresence } from "framer-motion";
 
 interface TeamMember {
   email: string;
@@ -247,48 +248,50 @@ export default function AdminTeamPage() {
 
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
               <StaggerChildren className="contents">
-                {gridMembers.map((member, idx) => (
-                  <ScaleIn key={idx} className="h-full">
-                    <div className="bg-card rounded-3xl p-8 text-center shadow-lg border border-border card-hover h-full flex flex-col items-center">
-                      <div className="w-32 h-32 mx-auto mb-6 rounded-full p-1 bg-linear-to-tr from-primary to-purple-500">
-                        <Image
-                          src={
-                            member.photoURL ||
-                            `https://ui-avatars.com/api/?name=${encodeURIComponent(
-                              member.displayName || "User"
-                            )}&background=6366f1&color=fff`
-                          }
-                          alt={member.displayName || "User"}
-                          width={128}
-                          height={128}
-                          className="w-full h-full rounded-full object-cover border-4 border-card"
-                        />
+                <AnimatePresence mode="popLayout">
+                  {gridMembers.map((member) => (
+                    <ScaleIn key={member.email} layout className="h-full">
+                      <div className="bg-card rounded-3xl p-8 text-center shadow-lg border border-border card-hover h-full flex flex-col items-center">
+                        <div className="w-32 h-32 mx-auto mb-6 rounded-full p-1 bg-linear-to-tr from-primary to-purple-500">
+                          <Image
+                            src={
+                              member.photoURL ||
+                              `https://ui-avatars.com/api/?name=${encodeURIComponent(
+                                member.displayName || "User"
+                              )}&background=6366f1&color=fff`
+                            }
+                            alt={member.displayName || "User"}
+                            width={128}
+                            height={128}
+                            className="w-full h-full rounded-full object-cover border-4 border-card"
+                          />
+                        </div>
+
+                        <h3 className="text-2xl font-bold text-foreground mb-2">
+                          {member.displayName || member.email}
+                        </h3>
+                        <span
+                          className={cn(
+                            "inline-block px-4 py-1.5 rounded-full text-sm font-medium mb-4",
+                            member.role === "owner"
+                              ? "bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400"
+                              : "bg-primary/10 text-primary"
+                          )}
+                        >
+                          {member.role === "owner"
+                            ? language === "ar"
+                              ? "المالك"
+                              : "Owner"
+                            : language === "ar"
+                              ? "مسؤول"
+                              : "Admin"}
+                        </span>
+
+                        <div className="mt-auto text-muted-foreground text-sm">{member.email}</div>
                       </div>
-
-                      <h3 className="text-2xl font-bold text-foreground mb-2">
-                        {member.displayName || member.email}
-                      </h3>
-                      <span
-                        className={cn(
-                          "inline-block px-4 py-1.5 rounded-full text-sm font-medium mb-4",
-                          member.role === "owner"
-                            ? "bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400"
-                            : "bg-primary/10 text-primary"
-                        )}
-                      >
-                        {member.role === "owner"
-                          ? language === "ar"
-                            ? "المالك"
-                            : "Owner"
-                          : language === "ar"
-                            ? "مسؤول"
-                            : "Admin"}
-                      </span>
-
-                      <div className="mt-auto text-muted-foreground text-sm">{member.email}</div>
-                    </div>
-                  </ScaleIn>
-                ))}
+                    </ScaleIn>
+                  ))}
+                </AnimatePresence>
               </StaggerChildren>
             </div>
           </div>
@@ -352,86 +355,90 @@ export default function AdminTeamPage() {
                 </div>
               ) : (
                 <StaggerChildren className="space-y-3">
-                  {teamMembers.map((member) => (
-                    <ScaleIn key={member.email}>
-                      <div className="group flex items-center justify-between p-4 bg-muted/30 rounded-xl border border-transparent hover:border-border transition-all hover:bg-muted/50">
-                        <div className="flex items-center gap-3 overflow-hidden">
-                          <div
-                            className={cn(
-                              "w-10 h-10 rounded-full flex items-center justify-center shrink-0",
-                              member.role === "owner"
-                                ? "bg-amber-100 dark:bg-amber-900/30"
-                                : "bg-primary/10"
-                            )}
-                          >
-                            {member.role === "owner" ? (
-                              <Crown className="w-5 h-5 text-amber-600 dark:text-amber-400" />
-                            ) : (
-                              <Shield className="w-5 h-5 text-primary" />
-                            )}
-                          </div>
-                          <div className="min-w-0">
-                            <div className="flex items-center gap-2 flex-wrap">
-                              <p className="font-medium truncate">{member.email}</p>
-                              {member.displayName && (
-                                <span className="text-xs text-muted-foreground truncate">
-                                  ({member.displayName})
-                                </span>
+                  <AnimatePresence mode="popLayout">
+                    {teamMembers.map((member) => (
+                      <ScaleIn key={member.email} layout>
+                        <div className="group flex items-center justify-between p-4 bg-muted/30 rounded-xl border border-transparent hover:border-border transition-all hover:bg-muted/50">
+                          <div className="flex items-center gap-3 overflow-hidden">
+                            <div
+                              className={cn(
+                                "w-10 h-10 rounded-full flex items-center justify-center shrink-0",
+                                member.role === "owner"
+                                  ? "bg-amber-100 dark:bg-amber-900/30"
+                                  : "bg-primary/10"
+                              )}
+                            >
+                              {member.role === "owner" ? (
+                                <Crown className="w-5 h-5 text-amber-600 dark:text-amber-400" />
+                              ) : (
+                                <Shield className="w-5 h-5 text-primary" />
                               )}
                             </div>
-                            <div className="flex items-center gap-2 text-xs text-muted-foreground mt-0.5 flex-wrap">
-                              {member.isActiveUser && (
-                                <div className="flex items-center gap-1">
-                                  <CheckCircle2 className="w-3 h-3 text-green-500" />
-                                  <span className="text-green-600 dark:text-green-400">
-                                    {language === "ar" ? "نشط" : "Active User"}
+                            <div className="min-w-0">
+                              <div className="flex items-center gap-2 flex-wrap">
+                                <p className="font-medium truncate">{member.email}</p>
+                                {member.displayName && (
+                                  <span className="text-xs text-muted-foreground truncate">
+                                    ({member.displayName})
                                   </span>
-                                </div>
-                              )}
-                              {member.isWhitelisted && (
+                                )}
+                              </div>
+                              <div className="flex items-center gap-2 text-xs text-muted-foreground mt-0.5 flex-wrap">
+                                {member.isActiveUser && (
+                                  <div className="flex items-center gap-1">
+                                    <CheckCircle2 className="w-3 h-3 text-green-500" />
+                                    <span className="text-green-600 dark:text-green-400">
+                                      {language === "ar" ? "نشط" : "Active User"}
+                                    </span>
+                                  </div>
+                                )}
+                                {member.isWhitelisted && (
+                                  <span
+                                    className={cn(
+                                      "px-2 py-0.5 rounded-full",
+                                      member.isActiveUser
+                                        ? "bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300"
+                                        : "bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-300"
+                                    )}
+                                  >
+                                    {member.isActiveUser
+                                      ? language === "ar"
+                                        ? "مدرج في القائمة"
+                                        : "Whitelisted"
+                                      : language === "ar"
+                                        ? "في انتظار التسجيل"
+                                        : "Pending Login"}
+                                  </span>
+                                )}
                                 <span
                                   className={cn(
-                                    "px-2 py-0.5 rounded-full",
-                                    member.isActiveUser
-                                      ? "bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300"
-                                      : "bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-300"
+                                    "px-2 py-0.5 rounded-full font-medium",
+                                    member.role === "owner"
+                                      ? "bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-300"
+                                      : "bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-300"
                                   )}
                                 >
-                                  {member.isActiveUser
-                                    ? language === "ar"
-                                      ? "مدرج في القائمة"
-                                      : "Whitelisted"
-                                    : language === "ar"
-                                      ? "في انتظار التسجيل"
-                                      : "Pending Login"}
+                                  {member.role}
                                 </span>
-                              )}
-                              <span
-                                className={cn(
-                                  "px-2 py-0.5 rounded-full font-medium",
-                                  member.role === "owner"
-                                    ? "bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-300"
-                                    : "bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-300"
-                                )}
-                              >
-                                {member.role}
-                              </span>
+                              </div>
                             </div>
                           </div>
-                        </div>
 
-                        {isOwner && member.role !== "owner" && member.isWhitelisted && (
-                          <button
-                            onClick={() => handleRemoveAdmin(member.email)}
-                            className="opacity-0 group-hover:opacity-100 p-2 hover:bg-red-50 dark:hover:bg-red-900/20 text-red-400 hover:text-red-600 dark:hover:text-red-300 rounded-lg transition-all"
-                            title={language === "ar" ? "إزالة من القائمة" : "Remove from whitelist"}
-                          >
-                            <Trash2 className="w-5 h-5" />
-                          </button>
-                        )}
-                      </div>
-                    </ScaleIn>
-                  ))}
+                          {isOwner && member.role !== "owner" && member.isWhitelisted && (
+                            <button
+                              onClick={() => handleRemoveAdmin(member.email)}
+                              className="opacity-0 group-hover:opacity-100 p-2 hover:bg-red-50 dark:hover:bg-red-900/20 text-red-400 hover:text-red-600 dark:hover:text-red-300 rounded-lg transition-all"
+                              title={
+                                language === "ar" ? "إزالة من القائمة" : "Remove from whitelist"
+                              }
+                            >
+                              <Trash2 className="w-5 h-5" />
+                            </button>
+                          )}
+                        </div>
+                      </ScaleIn>
+                    ))}
+                  </AnimatePresence>
                 </StaggerChildren>
               )}
             </FadeIn>

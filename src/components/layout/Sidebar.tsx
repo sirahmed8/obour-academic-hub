@@ -11,7 +11,6 @@ import { db } from "@/lib/firebase";
 import { collection, query, orderBy, onSnapshot } from "firebase/firestore";
 import { motion, AnimatePresence } from "framer-motion";
 import { AnimatedIcon } from "@/components/ui/AnimatedIcon";
-import { BarChart2 } from "lucide-react";
 
 // Animation JSON data (for lottie-react)
 import homeAnim from "react-useanimations/lib/home/home.json";
@@ -192,7 +191,7 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             onClick={onClose}
-            className="fixed inset-0 z-[60] bg-black/20 backdrop-blur-sm lg:hidden"
+            className="fixed inset-0 z-60 bg-black/20 backdrop-blur-sm lg:hidden"
           />
         )}
       </AnimatePresence>
@@ -200,7 +199,7 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
       {/* Sidebar */}
       <aside
         className={cn(
-          "fixed top-0 h-full w-[85vw] max-w-[280px] lg:max-w-none lg:w-72 z-[100] transition-transform duration-500 cubic-bezier(0.32, 0.72, 0, 1) ease-in-out lg:z-40 lg:translate-x-0 lg:shadow-none mr-0 overflow-hidden",
+          "fixed top-0 h-full w-[85vw] max-w-[280px] lg:max-w-none lg:w-72 z-100 transition-transform duration-500 cubic-bezier(0.32, 0.72, 0, 1) ease-in-out lg:z-40 lg:shadow-none mr-0 overflow-hidden",
           // Mobile: rounded on right edge
           "rounded-r-[2.5rem]",
           // Desktop: full height, acts as a layer behind navbar
@@ -230,7 +229,7 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
 
             <div className="flex items-center gap-3">
               {/* Square Logo with Rounded Corners */}
-              <div className="relative w-10 h-10 flex-shrink-0 rounded-xl overflow-hidden ring-2 ring-white/20 shadow-lg bg-white">
+              <div className="relative w-10 h-10 shrink-0 rounded-xl overflow-hidden ring-2 ring-white/20 shadow-lg bg-white">
                 <Image
                   src="/obour-logo.png"
                   alt="Obour Logo"

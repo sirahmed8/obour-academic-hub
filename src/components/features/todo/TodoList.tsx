@@ -16,7 +16,7 @@ import { TodoTask } from "@/types";
 import { AnimatePresence, motion } from "framer-motion";
 import { TodoItem } from "./TodoItem";
 import { AddTodoModal } from "./AddTodoModal";
-import { Plus, Filter, ChevronDown, CheckCircle2 } from "lucide-react";
+import { Plus, CheckCircle2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 import { notificationService } from "@/services/notification.service";
@@ -178,27 +178,33 @@ export function TodoList() {
           {language === "ar" ? "قائمة المهام" : "My Tasks"}
         </h1>
 
-        <div className="flex gap-2 w-full md:w-auto">
-          {/* Filter Dropdown */}
-          <div className="relative flex-1 md:flex-none" ref={filterRef}>
-            <motion.button
-              onClick={() => setShowFilter(!showFilter)}
-              whileTap={{ scale: 0.95 }}
-              className={cn(
-                "w-full md:w-48 px-4 py-2.5 rounded-xl border flex items-center justify-between transition-all duration-200",
-                showFilter
-                  ? "bg-primary/5 border-primary/20 text-primary shadow-sm ring-2 ring-primary/10"
-                  : "bg-background border-border hover:border-primary/30 hover:bg-muted/50"
-              )}
-            >
-              <div className="flex items-center gap-2">
-                <Filter size={16} />
-                <span className="text-sm font-medium">
-                  {filter === "all"
+        <div className="flex flex-col sm:flex-row gap-4 w-full md:w-auto items-center">
+          {/* Filter Tabs */}
+          <div className="flex bg-muted p-1 rounded-xl w-full sm:w-auto">
+            {(["all", "pending", "completed"] as const).map((f) => (
+              <button
+                key={f}
+                onClick={() => setFilter(f)}
+                className={cn(
+                  "flex-1 sm:flex-none px-4 py-2 rounded-lg text-sm font-medium transition-all relative",
+                  filter === f
+                    ? "text-primary-foreground"
+                    : "text-muted-foreground hover:text-foreground"
+                )}
+              >
+                {filter === f && (
+                  <motion.div
+                    layoutId="active-filter-tab"
+                    className="absolute inset-0 bg-primary rounded-lg shadow-sm"
+                    transition={{ type: "spring", bounce: 0.2, duration: 0.6 }}
+                  />
+                )}
+                <span className="relative z-10">
+                  {f === "all"
                     ? language === "ar"
                       ? "الكل"
-                      : "All Tasks"
-                    : filter === "pending"
+                      : "All"
+                    : f === "pending"
                       ? language === "ar"
                         ? "معلقة"
                         : "Pending"
@@ -206,61 +212,8 @@ export function TodoList() {
                         ? "مكتملة"
                         : "Completed"}
                 </span>
-              </div>
-              <ChevronDown
-                size={16}
-                className={cn("transition-transform duration-200", showFilter && "rotate-180")}
-              />
-            </motion.button>
-            <AnimatePresence>
-              {showFilter && (
-                <motion.div
-                  initial={{ opacity: 0, y: 8, scale: 0.95 }}
-                  animate={{ opacity: 1, y: 0, scale: 1 }}
-                  exit={{ opacity: 0, y: 8, scale: 0.95 }}
-                  transition={{ duration: 0.2, ease: [0.32, 0.72, 0, 1] }}
-                  className="absolute z-30 w-full mt-2 overflow-hidden glass-premium backdrop-blur-2xl rounded-2xl shadow-2xl max-h-60"
-                >
-                  <div className="p-1 overflow-auto max-h-[14rem] scrollbar-hide">
-                    {(["all", "pending", "completed"] as const).map((f) => (
-                      <button
-                        key={f}
-                        onClick={() => {
-                          setFilter(f);
-                          setShowFilter(false);
-                        }}
-                        className={cn(
-                          "w-full flex items-center justify-between px-3 py-2.5 rounded-xl text-sm transition-all duration-200",
-                          filter === f
-                            ? "bg-primary text-primary-foreground font-bold shadow-md"
-                            : "text-foreground hover:bg-black/5 dark:hover:bg-white/10"
-                        )}
-                      >
-                        <span className="truncate">
-                          {f === "all"
-                            ? language === "ar"
-                              ? "الجميع"
-                              : "All Tasks"
-                            : f === "pending"
-                              ? language === "ar"
-                                ? "قيد الانتظار"
-                                : "Pending"
-                              : language === "ar"
-                                ? "مكتملة"
-                                : "Completed"}
-                        </span>
-                        {filter === f && (
-                          <motion.div
-                            layoutId="active-filter-indicator"
-                            className="w-1.5 h-1.5 rounded-full bg-primary-foreground"
-                          />
-                        )}
-                      </button>
-                    ))}
-                  </div>
-                </motion.div>
-              )}
-            </AnimatePresence>
+              </button>
+            ))}
           </div>
 
           <motion.button
@@ -270,12 +223,10 @@ export function TodoList() {
             }}
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
-            className="flex-shrink-0 bg-primary text-primary-foreground px-4 py-2.5 rounded-xl font-bold shadow-lg shadow-primary/25 hover:bg-primary/90 hover:shadow-primary/30 transition-all flex items-center gap-2"
+            className="w-full sm:w-auto shrink-0 bg-primary text-primary-foreground px-4 py-2.5 rounded-xl font-bold shadow-lg shadow-primary/25 hover:bg-primary/90 hover:shadow-primary/30 transition-all flex items-center justify-center gap-2"
           >
             <Plus size={18} />
-            <span className="hidden sm:inline">
-              {language === "ar" ? "مهمة جديدة" : "New Task"}
-            </span>
+            <span>{language === "ar" ? "مهمة جديدة" : "New Task"}</span>
           </motion.button>
         </div>
       </div>

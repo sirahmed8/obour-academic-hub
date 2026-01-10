@@ -35,6 +35,7 @@ import { FadeIn, ScaleIn, StaggerChildren } from "@/components/ui/Animations";
 import { cn } from "@/lib/utils";
 import { ConfirmationModal } from "@/components/ui/ConfirmationModal";
 import { CustomSelect } from "@/components/ui/CustomSelect";
+import { AnimatePresence } from "framer-motion";
 
 interface Banner {
   id: string;
@@ -436,15 +437,17 @@ export default function AdminNotificationsPage() {
                 </div>
               ) : (
                 <StaggerChildren className="space-y-3">
-                  {activeBanners.map((banner) => (
-                    <ScaleIn key={banner.id}>
-                      <BannerCard
-                        banner={banner}
-                        toggleActive={toggleBannerActive}
-                        deleteBanner={deleteBanner}
-                      />
-                    </ScaleIn>
-                  ))}
+                  <AnimatePresence mode="popLayout">
+                    {activeBanners.map((banner) => (
+                      <ScaleIn key={banner.id} layout>
+                        <BannerCard
+                          banner={banner}
+                          toggleActive={toggleBannerActive}
+                          deleteBanner={deleteBanner}
+                        />
+                      </ScaleIn>
+                    ))}
+                  </AnimatePresence>
                 </StaggerChildren>
               )}
             </div>
@@ -462,15 +465,17 @@ export default function AdminNotificationsPage() {
                 </div>
               ) : (
                 <StaggerChildren className="space-y-3">
-                  {historyBanners.map((banner) => (
-                    <ScaleIn key={banner.id}>
-                      <BannerCard
-                        banner={banner}
-                        toggleActive={toggleBannerActive}
-                        deleteBanner={deleteBanner}
-                      />
-                    </ScaleIn>
-                  ))}
+                  <AnimatePresence mode="popLayout">
+                    {historyBanners.map((banner) => (
+                      <ScaleIn key={banner.id} layout>
+                        <BannerCard
+                          banner={banner}
+                          toggleActive={toggleBannerActive}
+                          deleteBanner={deleteBanner}
+                        />
+                      </ScaleIn>
+                    ))}
+                  </AnimatePresence>
                 </StaggerChildren>
               )}
             </div>
