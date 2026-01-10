@@ -11,6 +11,7 @@ import { StaggerChildren, ScaleIn, FadeIn } from "@/components/ui/Animations";
 import { BarChart3, Users, BookOpen, Activity, Loader2, RefreshCw } from "lucide-react";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
 import { cn } from "@/lib/utils";
+import { SystemStatus } from "@/components/admin/SystemStatus";
 
 interface AnalyticsData {
   subjectViews: { name: string; views: number }[];
@@ -132,6 +133,9 @@ export default function AdminAnalyticsPage() {
           </div>
         ) : (
           <StaggerChildren className="space-y-8">
+            {/* System Status Widget */}
+            <SystemStatus />
+
             {/* Stats Cards */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
               {stats.map((stat, idx) => {
