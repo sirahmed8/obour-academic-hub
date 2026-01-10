@@ -191,7 +191,7 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             onClick={onClose}
-            className="fixed inset-0 z-[60] bg-black/20 backdrop-blur-sm lg:hidden"
+            className="fixed inset-0 z-50 bg-black/20 backdrop-blur-sm lg:hidden"
           />
         )}
       </AnimatePresence>
@@ -199,7 +199,7 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
       {/* Sidebar */}
       <aside
         className={cn(
-          "fixed top-0 h-full w-[85vw] max-w-[280px] lg:max-w-none lg:w-72 z-[100] transition-transform duration-500 cubic-bezier(0.32, 0.72, 0, 1) ease-in-out lg:z-40 lg:shadow-none mr-0 overflow-hidden",
+          "fixed top-0 h-full w-[85vw] max-w-[280px] lg:max-w-none lg:w-72 z-50 transition-transform duration-500 cubic-bezier(0.32, 0.72, 0, 1) ease-in-out lg:z-40 lg:shadow-none mr-0 overflow-hidden",
           // Mobile: rounded on right edge
           "rounded-r-[2.5rem]",
           // Desktop: full height, acts as a layer behind navbar
@@ -213,7 +213,7 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
         {/* Visual Background Layer - Full Glass */}
         <div
           className={cn(
-            "absolute inset-0 glass-premium border-r border-white/10 dark:border-white/5 shadow-2xl transition-all rounded-tr-2xl rounded-br-2xl",
+            "absolute inset-0 bg-background/80 backdrop-blur-xl border-r border-white/10 dark:border-white/5 shadow-2xl transition-all rounded-tr-2xl rounded-br-2xl",
             "lg:shadow-none",
             language === "ar" &&
               "border-r-0 border-l rounded-tr-none rounded-br-none rounded-tl-2xl rounded-bl-2xl"
