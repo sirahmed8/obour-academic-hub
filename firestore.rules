@@ -118,14 +118,23 @@ service cloud.firestore {
     match /logs/{logId} {
       allow read: if isAdmin();
       allow write: if isAdmin();
-      allow create: if request.auth != null;
+      // Allow authenticated users to create logs with validation to prevent abuse
+      allow create: if request.auth != null &&
+                   request.resource.data.keys().hasAll(['action', 'details']) &&
+                   request.resource.data.keys().size() < 20 &&
+                   request.resource.data.action is string &&
+                   request.resource.data.details is string;
     }
     
     // System Errors (LEGACY - used by admin/errors page)
     match /system_errors/{errorId} {
       allow read: if isAdmin();
       allow write: if isAdmin();
-      allow create: if request.auth != null;
+      // Allow authenticated users to report errors with validation
+      allow create: if request.auth != null &&
+                   request.resource.data.keys().hasAll(['message']) &&
+                   request.resource.data.keys().size() < 20 &&
+                   request.resource.data.message is string;
     }
     
     // Default deny for anything else
