@@ -47,8 +47,8 @@ export default function PrivacyPage() {
               </li>
               <li>
                 {language === "ar"
-                  ? "بيانات الاستخدام الأكاديمي (المواد المفضلة، تفاعلات البوت)"
-                  : "Academic Usage Data (Preferred subjects, bot interactions)"}
+                  ? "بيانات الاستخدام الأكاديمي (المواد المفضلة)"
+                  : "Academic Usage Data (Preferred subjects)"}
               </li>
               <li>
                 {language === "ar"

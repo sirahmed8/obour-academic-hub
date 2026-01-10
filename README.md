@@ -19,10 +19,10 @@
 ## ✨ Highlights
 
 - 🌗 **Live Blur Glassmorphism** - Premium UI with GPU-optimized backdrop blur
-- 🤖 **AI Chatbot** - Bilingual (Arabic/English) with smart response engine
 - 📱 **Mobile-First** - Fully responsive with fluid animations
 - 🔐 **Role-Based Access** - Secure Owner, Admin, and Student portals
 - 🌐 **Full RTL Support** - Seamless Arabic language integration
+- 📊 **Smart Dashboard** - Real-time analytics and resource management
 
 ---
 
