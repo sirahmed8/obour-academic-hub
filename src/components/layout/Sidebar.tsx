@@ -191,7 +191,7 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             onClick={onClose}
-            className="fixed inset-0 z-60 bg-black/20 backdrop-blur-sm lg:hidden"
+            className="fixed inset-0 z-[60] bg-black/20 backdrop-blur-sm lg:hidden"
           />
         )}
       </AnimatePresence>
@@ -199,7 +199,7 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
       {/* Sidebar */}
       <aside
         className={cn(
-          "fixed top-0 h-full w-[85vw] max-w-[280px] lg:max-w-none lg:w-72 z-100 transition-transform duration-500 cubic-bezier(0.32, 0.72, 0, 1) ease-in-out lg:z-40 lg:shadow-none mr-0 overflow-hidden",
+          "fixed top-0 h-full w-[85vw] max-w-[280px] lg:max-w-none lg:w-72 z-[100] transition-transform duration-500 cubic-bezier(0.32, 0.72, 0, 1) ease-in-out lg:z-40 lg:shadow-none mr-0 overflow-hidden",
           // Mobile: rounded on right edge
           "rounded-r-[2.5rem]",
           // Desktop: full height, acts as a layer behind navbar
