@@ -67,7 +67,17 @@ export default function AdminLogsPage() {
     const csvContent = [
       headers.join(","),
       ...filteredLogs.map((log) => {
-        const date = new Date(log.timestamp.seconds * 1000).toISOString();
+        let dateVal = new Date();
+        const ts = log.timestamp as unknown;
+        // Handle Firestore Timestamp or String or Date
+        if (ts && typeof (ts as { toDate: () => Date }).toDate === "function") {
+          dateVal = (ts as { toDate: () => Date }).toDate();
+        } else if (ts && typeof (ts as { seconds: number }).seconds === "number") {
+          dateVal = new Date((ts as { seconds: number }).seconds * 1000);
+        } else if (typeof ts === "string") {
+          dateVal = new Date(ts);
+        }
+        const date = dateVal.toISOString();
         const details = `"${log.details.replace(/"/g, '""')}"`; // Escape quotes
         return [date, log.action, details, log.userEmail || "System", log.userId || ""].join(",");
       }),
