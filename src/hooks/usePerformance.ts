@@ -1,7 +1,8 @@
 import { useState, useEffect, useRef } from "react";
 
 export function usePerformance() {
-  const [fps, setFps] = useState(60);
+  // We only track lagging state which is what the UI actually reacts to.
+  // FPS tracking was removed to prevent unnecessary re-renders every second.
   const [isLagging, setIsLagging] = useState(false);
   const frameCount = useRef(0);
   const lastTime = useRef(0);
@@ -15,11 +16,14 @@ export function usePerformance() {
 
       if (now - lastTime.current >= 1000) {
         const currentFps = Math.round((frameCount.current * 1000) / (now - lastTime.current));
-        setFps(currentFps);
 
-        // Consider lagging if FPS drops consistently below 35
-        // We use a simple check here, but could smooth it over time if needed
-        setIsLagging(currentFps < 20);
+        // Only update state if the boolean value actually changes
+        // React handles the bailout automatically if value is same, but we avoid calling setFps(currentFps)
+        // which was changing almost every second.
+        setIsLagging((prev) => {
+           const isNowLagging = currentFps < 20;
+           return prev === isNowLagging ? prev : isNowLagging;
+        });
 
         frameCount.current = 0;
         lastTime.current = now;
@@ -33,5 +37,5 @@ export function usePerformance() {
     return () => cancelAnimationFrame(rafId.current);
   }, []);
 
-  return { fps, isLagging };
+  return { isLagging };
 }
