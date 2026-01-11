@@ -333,4 +333,4 @@ export const ChatMessageItem = memo(function ChatMessageItem({
   );
 });
 
-export default ChatMessage;
+export default ChatMessageItem;
