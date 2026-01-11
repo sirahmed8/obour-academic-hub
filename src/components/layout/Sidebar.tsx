@@ -191,7 +191,7 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             onClick={onClose}
-            className="fixed inset-0 z-[999] bg-black/20 backdrop-blur-sm lg:hidden"
+            className="fixed inset-0 z-[60] bg-black/20 backdrop-blur-sm lg:hidden"
           />
         )}
       </AnimatePresence>
@@ -199,7 +199,7 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
       {/* Sidebar */}
       <aside
         className={cn(
-          "fixed top-0 h-full w-[85vw] max-w-[280px] lg:max-w-none lg:w-72 z-[999] lg:z-40 transition-transform duration-500 cubic-bezier(0.32, 0.72, 0, 1) ease-in-out lg:translate-x-0 lg:shadow-none mr-0 overflow-hidden",
+          "fixed top-0 h-full w-[85vw] max-w-[280px] lg:max-w-none lg:w-72 z-[60] lg:z-30 transition-transform duration-500 cubic-bezier(0.32, 0.72, 0, 1) ease-in-out lg:translate-x-0 lg:shadow-none mr-0 overflow-hidden",
           // Mobile: rounded on right edge
           "rounded-r-[2.5rem]",
           // Desktop: full height, acts as a layer behind navbar
@@ -225,7 +225,7 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
           {/* Mobile Header - Fixed at top, outside scrollview */}
           <div className="shrink-0 z-20 h-16 flex items-center justify-between px-4 border-b border-white/10 lg:hidden relative">
             {/* Translucent background with blur to show content behind */}
-            <div className="absolute inset-0 bg-background/40 backdrop-blur-xl backdrop-saturate-150 -z-10" />
+            <div className="absolute inset-0 bg-background/20 backdrop-blur-xl backdrop-saturate-150 -z-10" />
 
             <div className="flex items-center gap-3">
               {/* Square Logo with Rounded Corners */}
