@@ -108,22 +108,26 @@ service cloud.firestore {
     match /error_logs/{errorId} {
       allow read: if isAdmin();
       allow delete: if isAdmin();
-      // Allow users to log errors with strict validation
+      // Allow users to log errors with strict validation and anti-spoofing
       allow create: if request.auth != null &&
                    request.resource.data.keys().hasAll(['message', 'timestamp']) &&
-                   request.resource.data.keys().size() < 10;
+                   request.resource.data.keys().size() < 10 &&
+                   (!request.resource.data.keys().has('userId') || request.resource.data.userId == request.auth.uid || request.resource.data.userId == 'guest');
     }
     
     // Activity Logs (LEGACY - used by admin/logs page)
     match /logs/{logId} {
       allow read: if isAdmin();
       allow write: if isAdmin();
-      // Allow authenticated users to create logs with validation to prevent abuse
+      // Allow authenticated users to create logs with validation to prevent abuse and spoofing
       allow create: if request.auth != null &&
                    request.resource.data.keys().hasAll(['action', 'details']) &&
                    request.resource.data.keys().size() < 20 &&
                    request.resource.data.action is string &&
-                   request.resource.data.details is string;
+                   request.resource.data.details is string &&
+                   // Anti-spoofing checks: users can only log their own ID/email
+                   (!request.resource.data.keys().has('userId') || request.resource.data.userId == request.auth.uid) &&
+                   (!request.resource.data.keys().has('userEmail') || request.resource.data.userEmail == request.auth.token.email);
     }
     
     // System Errors (LEGACY - used by admin/errors page)
@@ -134,7 +138,9 @@ service cloud.firestore {
       allow create: if request.auth != null &&
                    request.resource.data.keys().hasAll(['message']) &&
                    request.resource.data.keys().size() < 20 &&
-                   request.resource.data.message is string;
+                   request.resource.data.message is string &&
+                   // Anti-spoofing check
+                   (!request.resource.data.keys().has('userId') || request.resource.data.userId == request.auth.uid || request.resource.data.userId == 'anonymous');
     }
     
     // Default deny for anything else
