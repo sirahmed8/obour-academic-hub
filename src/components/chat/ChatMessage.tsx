@@ -104,7 +104,7 @@ export const ChatMessageItem = memo(function ChatMessageItem({
       </div>
 
       {/* Message Content */}
-      <div className={cn("flex flex-col", isUser ? "items-end" : "items-start")}>
+      <div className={cn("flex flex-col relative", isUser ? "items-end" : "items-start")}>
         {/* Reply Context */}
         {msg.replyTo && (
           <div
@@ -213,7 +213,7 @@ export const ChatMessageItem = memo(function ChatMessageItem({
         {/* Hover Actions (Reply, React) - Always visible for better UX */}
         <div
           className={cn(
-            "absolute top-2 opacity-100 flex gap-1 z-50 transition-opacity duration-200",
+            "absolute top-0 opacity-100 flex gap-1 z-50 transition-opacity duration-200",
             // Mobile: Always visible. Desktop: Can be hover if preferred, but user asked for "show up"
             "lg:opacity-0 lg:group-hover:opacity-100",
             "before:absolute before:top-0 before:bottom-0 before:w-6 before:z-[-1]",
@@ -311,23 +311,23 @@ export const ChatMessageItem = memo(function ChatMessageItem({
             </motion.div>
           )}
         </AnimatePresence>
-      </div>
 
-      {/* Mobile Timestamp & State */}
-      <div
-        className={cn(
-          "flex items-center gap-1 mt-1 px-1 opacity-70",
-          isUser ? "justify-end" : "justify-start"
-        )}
-      >
-        <span className="text-[10px] text-muted-foreground">
-          {msg.timestamp?.seconds
-            ? new Date(msg.timestamp.seconds * 1000).toLocaleTimeString([], {
-                hour: "2-digit",
-                minute: "2-digit",
-              })
-            : "Sending..."}
-        </span>
+        {/* Mobile Timestamp & State - Moved inside flex-col to sit BELOW message */}
+        <div
+          className={cn(
+            "flex items-center gap-1 mt-1 px-1 opacity-70",
+            isUser ? "self-end" : "self-start"
+          )}
+        >
+          <span className="text-[10px] text-muted-foreground">
+            {msg.timestamp?.seconds
+              ? new Date(msg.timestamp.seconds * 1000).toLocaleTimeString([], {
+                  hour: "2-digit",
+                  minute: "2-digit",
+                })
+              : "Sending..."}
+          </span>
+        </div>
       </div>
     </motion.div>
   );

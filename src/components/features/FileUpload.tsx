@@ -101,7 +101,7 @@ export function FileAttachmentDisplay({ attachment }: FileAttachmentDisplayProps
     <div className="bg-secondary/50 rounded-lg p-3 max-w-xs">
       {attachment.type === "image" ? (
         <div
-          className="relative w-64 h-48 rounded-lg overflow-hidden bg-background/50 cursor-zoom-in hover:opacity-90 transition-opacity"
+          className="relative w-52 h-40 rounded-lg overflow-hidden bg-background/50 cursor-zoom-in hover:opacity-90 transition-opacity"
           onClick={() => window.open(attachment.url, "_blank")}
         >
           <Image src={attachment.url} alt={attachment.name} fill className="object-cover" />
