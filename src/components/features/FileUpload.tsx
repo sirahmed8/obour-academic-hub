@@ -167,18 +167,16 @@ function ImageLightbox({ src, alt, onClose }: { src: string; alt: string; onClos
         <X className="w-6 h-6" />
       </button>
 
-      <motion.div
+      <motion.img
+        src={src}
+        alt={alt}
         initial={{ scale: 0.9, opacity: 0 }}
         animate={{ scale: 1, opacity: 1 }}
         exit={{ scale: 0.9, opacity: 0 }}
         transition={{ type: "spring", stiffness: 300, damping: 30 }}
-        className="relative w-full h-full flex items-center justify-center p-2"
+        className="relative max-w-[90vw] max-h-[85vh] w-auto h-auto object-contain rounded-2xl shadow-2xl border border-white/10"
         onClick={(e) => e.stopPropagation()}
-      >
-        <div className="relative w-full h-full max-w-7xl max-h-[85vh]">
-          <Image src={src} alt={alt} fill className="object-contain" quality={100} priority />
-        </div>
-      </motion.div>
+      />
     </motion.div>
   );
 }
