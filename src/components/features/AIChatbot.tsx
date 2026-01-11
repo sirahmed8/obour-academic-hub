@@ -19,7 +19,7 @@ import { ConfirmationModal } from "@/components/ui/ConfirmationModal";
 import { ChatMessages } from "./chatbot/ChatMessages";
 import { ChatInput } from "./chatbot/ChatInput";
 import { AnimatedIcon } from "@/components/ui/AnimatedIcon";
-import mailAnim from "react-useanimations/lib/mail/mail.json";
+import { Headphones } from "lucide-react";
 
 /**
  * LiveSupportChat - Live Support Chat Component
@@ -248,7 +248,7 @@ export function AIChatbot() {
               className="relative"
             >
               <div className="text-white">
-                <AnimatedIcon icon={mailAnim} size={28} useAnimation />
+                <AnimatedIcon icon={Headphones} iconName="Headphones" size={28} />
               </div>
               {unreadCount > 0 && (
                 <span className="absolute -top-1 -right-1 flex h-4 w-4 items-center justify-center rounded-full bg-red-500 text-[10px] font-bold text-white ring-2 ring-white">
@@ -273,7 +273,7 @@ export function AIChatbot() {
             <div className="p-4 border-b border-white/10 flex items-center justify-between">
               <div className="flex items-center gap-3">
                 <div className="w-10 h-10 rounded-xl bg-primary/20 flex items-center justify-center shadow-inner text-primary [&_path]:stroke-current [&_path]:fill-transparent">
-                  <AnimatedIcon icon={mailAnim} size={24} useAnimation />
+                  <AnimatedIcon icon={Headphones} iconName="Headphones" size={24} />
                 </div>
                 <div>
                   <h3 className="font-bold text-sm">
