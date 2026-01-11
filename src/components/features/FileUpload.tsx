@@ -1,7 +1,7 @@
 "use client";
 
-import { useState, useRef } from "react";
-import { Upload, FileText, Loader2 } from "lucide-react";
+import { useState, useRef, useEffect } from "react";
+import { Upload, FileText, Loader2, X } from "lucide-react";
 import Image from "next/image";
 
 interface FileAttachment {
@@ -91,6 +91,8 @@ interface FileAttachmentDisplayProps {
 }
 
 export function FileAttachmentDisplay({ attachment }: FileAttachmentDisplayProps) {
+  const [showLightbox, setShowLightbox] = useState(false);
+
   const formatSize = (bytes: number) => {
     if (bytes < 1024) return bytes + " B";
     if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + " KB";
@@ -98,28 +100,70 @@ export function FileAttachmentDisplay({ attachment }: FileAttachmentDisplayProps
   };
 
   return (
-    <div className="bg-secondary/50 rounded-lg p-3 max-w-xs">
-      {attachment.type === "image" ? (
-        <div
-          className="relative w-52 h-40 rounded-lg overflow-hidden bg-background/50 cursor-zoom-in hover:opacity-90 transition-opacity"
-          onClick={() => window.open(attachment.url, "_blank")}
-        >
-          <Image src={attachment.url} alt={attachment.name} fill className="object-cover" />
-        </div>
-      ) : (
-        <a
-          href={attachment.url}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="flex items-center gap-3 hover:bg-secondary/80 p-2 rounded transition-colors"
-        >
-          <FileText className="w-8 h-8 text-primary" />
-          <div className="flex-1 min-w-0">
-            <p className="text-sm font-medium truncate">{attachment.name}</p>
-            <p className="text-xs text-muted-foreground">{formatSize(attachment.size)}</p>
+    <>
+      <div className="bg-secondary/50 rounded-lg p-3 max-w-xs">
+        {attachment.type === "image" ? (
+          <div
+            className="relative w-52 h-40 rounded-lg overflow-hidden bg-background/50 cursor-zoom-in hover:opacity-90 transition-opacity"
+            onClick={() => setShowLightbox(true)}
+          >
+            <Image src={attachment.url} alt={attachment.name} fill className="object-cover" />
           </div>
-        </a>
+        ) : (
+          <a
+            href={attachment.url}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="flex items-center gap-3 hover:bg-secondary/80 p-2 rounded transition-colors"
+          >
+            <div className="bg-background/50 p-2 rounded">
+              <FileText className="w-5 h-5 text-primary" />
+            </div>
+            <div className="flex-1 min-w-0">
+              <p className="text-xs font-medium truncate">{attachment.name}</p>
+              <p className="text-[10px] text-muted-foreground">{formatSize(attachment.size)}</p>
+            </div>
+          </a>
+        )}
+      </div>
+
+      {showLightbox && (
+        <ImageLightbox
+          src={attachment.url}
+          alt={attachment.name}
+          onClose={() => setShowLightbox(false)}
+        />
       )}
+    </>
+  );
+}
+
+function ImageLightbox({ src, alt, onClose }: { src: string; alt: string; onClose: () => void }) {
+  // Prevent scrolling when open
+  useEffect(() => {
+    document.body.style.overflow = "hidden";
+    return () => {
+      document.body.style.overflow = "unset";
+    };
+  }, []);
+
+  return (
+    <div
+      className="fixed inset-0 z-[100] bg-black/90 backdrop-blur-sm flex items-center justify-center p-4 animate-in fade-in duration-200"
+      onClick={onClose}
+    >
+      <button
+        onClick={onClose}
+        className="absolute top-4 right-4 p-2 bg-black/50 hover:bg-white/20 rounded-full text-white transition-colors"
+      >
+        <X className="w-6 h-6" />
+      </button>
+      <div
+        className="relative w-full h-full max-w-5xl max-h-[90vh] flex items-center justify-center"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <Image src={src} alt={alt} fill className="object-contain" quality={100} />
+      </div>
     </div>
   );
 }

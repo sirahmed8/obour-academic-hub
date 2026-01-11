@@ -109,12 +109,28 @@ export const ChatMessageItem = memo(function ChatMessageItem({
         {msg.replyTo && (
           <div
             className={cn(
-              "text-[10px] bg-muted/50 px-3 py-1.5 rounded-t-xl mb-[-5px] border-b border-background/50 opacity-80 max-w-full truncate backdrop-blur-sm",
+              "text-[10px] bg-muted/50 px-3 py-1.5 rounded-t-xl mb-[-5px] border-b border-background/50 opacity-80 max-w-full truncate backdrop-blur-sm flex items-center gap-2",
               isUser ? "rounded-bl-xl origin-bottom-right" : "rounded-br-xl origin-bottom-left"
             )}
           >
-            <span className="font-bold">{msg.replyTo.senderName}</span>:{" "}
-            {msg.replyTo.text.substring(0, 25)}...
+            {msg.replyTo.attachmentUrl && msg.replyTo.attachmentType === "image" && (
+              <div className="relative w-6 h-6 rounded overflow-hidden shrink-0 border border-background/50">
+                <Image
+                  src={msg.replyTo.attachmentUrl}
+                  alt="Reply Image"
+                  fill
+                  className="object-cover"
+                />
+              </div>
+            )}
+            <div className="truncate">
+              <span className="font-bold">{msg.replyTo.senderName}</span>:{" "}
+              {msg.replyTo.text
+                ? msg.replyTo.text.substring(0, 25) + (msg.replyTo.text.length > 25 ? "..." : "")
+                : msg.replyTo.attachmentUrl
+                  ? "Image"
+                  : ""}
+            </div>
           </div>
         )}
 
