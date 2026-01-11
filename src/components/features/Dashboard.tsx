@@ -6,7 +6,6 @@ import { db } from "@/lib/firebase";
 import { collection, query, orderBy, onSnapshot } from "firebase/firestore";
 import { Subject } from "@/types";
 import { SubjectCard } from "@/components/features/SubjectCard";
-import { getGreeting } from "@/lib/utils";
 import { BookOpen, Sparkles } from "lucide-react";
 import { StaggerChildren, ScaleIn } from "@/components/ui/Animations";
 import { SkeletonCard } from "@/components/ui/Skeleton";
@@ -16,7 +15,6 @@ export function Dashboard() {
   const [loading, setLoading] = useState(true);
   const { user, isAdmin } = useAuth();
   const { language, t } = useLanguage();
-  const [greeting] = useState(() => getGreeting());
 
   useEffect(() => {
     const q = query(collection(db, "subjects"), orderBy("orderIndex"));
@@ -46,13 +44,13 @@ export function Dashboard() {
           <div className="flex items-center gap-2 text-white/90 mb-3">
             <Sparkles size={20} className="text-yellow-300" />
             <span className="text-sm font-bold tracking-wide uppercase opacity-90">
-              {language === "ar" ? "معاهد العبور" : "Obour Academic Hub"}
+              {t("dashboard.bannerTitle")}
             </span>
           </div>
 
           <h1 className="text-4xl lg:text-5xl font-black tracking-tight mb-2 drop-shadow-sm">
             {(() => {
-              const text = language === "ar" ? greeting.ar : greeting.en;
+              const text = t("dashboard.greeting");
               const hasPunctuation = /[!?.؟]$/.test(text);
               const separator = hasPunctuation ? "" : language === "ar" ? "،" : ",";
               return (
@@ -65,15 +63,13 @@ export function Dashboard() {
           </h1>
 
           <p className="text-white/80 text-lg font-medium max-w-2xl leading-relaxed">
-            {language === "ar"
-              ? "خليك متابع دروسك ومتفوتش أي حاجة جديدة!"
-              : "Stay on top of your studies and don't miss anything new!"}
+            {t("dashboard.bannerSubtitle")}
           </p>
 
           {isAdmin && (
             <div className="mt-6 inline-flex items-center gap-2 px-4 py-2 bg-white/20 text-white rounded-full text-sm font-bold border border-white/20 backdrop-blur-md shadow-lg hover:bg-white/30 transition-colors">
               <span className="w-2.5 h-2.5 bg-green-400 rounded-full shadow-sm" />
-              {language === "ar" ? "وضع المسؤول" : "Admin Mode"}
+              {t("dashboard.adminMode")}
             </div>
           )}
         </div>
