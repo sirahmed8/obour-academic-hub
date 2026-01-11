@@ -14,7 +14,7 @@ interface NavbarProps {
 export function Navbar({ onMenuClick }: NavbarProps) {
   const [showSettings, setShowSettings] = useState(false);
   const { user } = useAuth();
-  const { language } = useLanguage();
+  const { t } = useLanguage();
   const mobileMenuButtonRef = useRef<HTMLButtonElement>(null); // Renamed for clarity
   const profileMenuButtonRef = useRef<HTMLButtonElement>(null); // Added for clarity
 
@@ -47,9 +47,11 @@ export function Navbar({ onMenuClick }: NavbarProps) {
             />
           </div>
           <div className="flex flex-col">
-            <span className="font-harman text-base font-bold leading-none">Obour Hub</span>
+            <span className="font-harman text-base font-bold leading-none">
+              {t("navbar.title")}
+            </span>
             <span className="text-[9px] text-muted-foreground font-medium">
-              {language === "ar" ? "نظام إدارة التعلم الذكي" : "Smart Learning System"}
+              {t("navbar.subtitle")}
             </span>
           </div>
         </div>

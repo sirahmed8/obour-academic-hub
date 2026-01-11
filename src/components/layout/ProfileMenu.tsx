@@ -73,15 +73,11 @@ export function ProfileMenu({ onClose, triggerRef }: ProfileMenuProps) {
 
     // Validation
     if (!codeInput || codeInput.length !== 6 || !/^\d+$/.test(codeInput)) {
-      toast.error(
-        language === "ar" ? "كود الطالب يجب أن يكون 6 أرقام" : "Student code must be 6 digits"
-      );
+      toast.error(t("profile.codeValidation"));
       return;
     }
     if (!nameInput.trim() || !/^[\p{L}\s]+$/u.test(nameInput)) {
-      toast.error(
-        language === "ar" ? "الاسم يجب أن يحتوي على أحرف فقط" : "Name must contain letters only"
-      );
+      toast.error(t("profile.nameValidation"));
       return;
     }
 
@@ -91,9 +87,9 @@ export function ProfileMenu({ onClose, triggerRef }: ProfileMenuProps) {
         displayName: nameInput,
         studentCode: codeInput,
       });
-      toast.success(language === "ar" ? "تم تحديث الملف الشخصي" : "Profile updated");
+      toast.success(t("profile.updateSuccess"));
     } catch {
-      toast.error(language === "ar" ? "حدث خطأ" : "Error updating profile");
+      toast.error(t("profile.updateError"));
     }
     setIsSaving(false);
   };
@@ -127,7 +123,7 @@ export function ProfileMenu({ onClose, triggerRef }: ProfileMenuProps) {
                 </div>
                 <div className="p-2 bg-muted/50 rounded-lg border border-border">
                   <p className="text-[10px] text-muted-foreground uppercase tracking-wider font-semibold mb-0.5">
-                    {language === "ar" ? "كود الطالب" : "Student Code"}
+                    {t("profile.studentCode")}
                   </p>
                   <p className="font-mono text-sm font-bold tracking-widest">{user.studentCode}</p>
                 </div>
@@ -143,18 +139,14 @@ export function ProfileMenu({ onClose, triggerRef }: ProfileMenuProps) {
                   }}
                   className="text-[10px] text-primary hover:underline text-center w-full cursor-pointer hover:text-primary/80 transition-colors"
                 >
-                  {language === "ar"
-                    ? "تواصل مع الدعم لتغيير البيانات"
-                    : "Contact support to change details"}
+                  {t("profile.contactSupport")}
                 </button>
               </div>
             ) : (
               /* Edit Mode (Unlocked) */
               <div className="space-y-3">
                 <div>
-                  <label className="text-xs font-medium ml-1">
-                    {language === "ar" ? "الاسم الحقيقي" : "Real Name"}
-                  </label>
+                  <label className="text-xs font-medium ml-1">{t("profile.realName")}</label>
                   <input
                     value={nameInput}
                     onChange={(e) => setNameInput(e.target.value)}
@@ -163,9 +155,7 @@ export function ProfileMenu({ onClose, triggerRef }: ProfileMenuProps) {
                   />
                 </div>
                 <div>
-                  <label className="text-xs font-medium ml-1">
-                    {language === "ar" ? "كود الطالب (6 أرقام)" : "Student Code (6 digits)"}
-                  </label>
+                  <label className="text-xs font-medium ml-1">{t("profile.enterCode")}</label>
                   <input
                     value={codeInput}
                     onChange={(e) => {
@@ -180,7 +170,7 @@ export function ProfileMenu({ onClose, triggerRef }: ProfileMenuProps) {
                   disabled={isSaving}
                   className="w-full py-2 bg-primary text-primary-foreground rounded-lg text-xs font-bold hover:bg-primary/90 transition-colors disabled:opacity-50"
                 >
-                  {isSaving ? "Saving..." : language === "ar" ? "حفظ وتثبيت" : "Save & Lock"}
+                  {isSaving ? t("profile.saving") : t("profile.saveAndLock")}
                 </button>
               </div>
             )}
@@ -229,11 +219,9 @@ export function ProfileMenu({ onClose, triggerRef }: ProfileMenuProps) {
                   )}
                 />
                 <span className="flex flex-col items-start text-xs">
-                  <span className="font-bold">
-                    {language === "ar" ? "الوضع الصلب" : "Solid Mode"}
-                  </span>
+                  <span className="font-bold">{t("profile.solidMode")}</span>
                   <span className="text-[10px] text-muted-foreground font-normal">
-                    {language === "ar" ? "سريع للأجهزة الضعيفة" : "Faster for slow devices"}
+                    {t("profile.solidModeDesc")}
                   </span>
                 </span>
               </span>
@@ -262,19 +250,13 @@ export function ProfileMenu({ onClose, triggerRef }: ProfileMenuProps) {
             <button
               onClick={async () => {
                 if (notifPermission === "granted") {
-                  toast.info(
-                    language === "ar"
-                      ? "يجب إيقاف الإشعارات من إعدادات المتصفح"
-                      : "Please disable notifications from site settings"
-                  );
+                  toast.info(t("notifications.disableInstruction"));
                 } else {
                   const result = await Notification.requestPermission();
                   // Live update!
                   setNotifPermission(result);
                   if (result === "granted") {
-                    toast.success(
-                      language === "ar" ? "تم تفعيل الإشعارات" : "Notifications enabled"
-                    );
+                    toast.success(t("notifications.enabled"));
                   }
                 }
               }}
@@ -289,7 +271,7 @@ export function ProfileMenu({ onClose, triggerRef }: ProfileMenuProps) {
                       : "bg-red-500"
                   )}
                 />
-                {language === "ar" ? "الإشعارات" : "Notifications"}
+                {t("notifications.title")}
               </span>
               {/* iOS-style toggle */}
               <div
@@ -336,7 +318,7 @@ export function ProfileMenu({ onClose, triggerRef }: ProfileMenuProps) {
               <polyline points="16 17 21 12 16 7" />
               <line x1="21" y1="12" x2="9" y2="12" />
             </svg>
-            {language === "ar" ? "تسجيل خروج" : "Log out"}
+            {t("nav.logout")}
           </button>
         </div>
       </motion.div>

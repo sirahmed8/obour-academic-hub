@@ -115,7 +115,7 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
   const adminItems = [
     // 1. Team Management
     {
-      name: language === "ar" ? "إدارة الفريق" : "Team Management",
+      name: t("nav.teamManagement"),
       path: "/admin/team",
       icon: settingsAnim,
       useAnimation: true,
@@ -132,21 +132,21 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
     },
     // 4. Announcements
     {
-      name: language === "ar" ? "الإعلانات" : "Announcements",
+      name: t("nav.announcements"),
       path: "/admin/notifications",
       icon: notificationAnim,
       useAnimation: true,
     },
     // 5. Subject Management (formerly "Subjects")
     {
-      name: language === "ar" ? "إدارة المواد" : "Subject Management",
+      name: t("nav.subjectManagement"),
       path: "/admin/subjects",
       icon: folderAnim,
       useAnimation: true,
     },
     // 6. Sources
     {
-      name: language === "ar" ? "المصادر" : "Sources",
+      name: t("nav.sources"),
       path: "/admin/resources",
       icon: archiveAnim,
       useAnimation: true,
@@ -241,9 +241,11 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
                 />
               </div>
               <div className="flex flex-col">
-                <span className="font-harman text-lg font-bold leading-tight">Obour Hub</span>
+                <span className="font-harman text-lg font-bold leading-tight">
+                  {t("navbar.title")}
+                </span>
                 <span className="text-[10px] text-muted-foreground font-medium">
-                  Smart Learning System
+                  {t("navbar.subtitle")}
                 </span>
               </div>
             </div>
@@ -288,7 +290,7 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
                 {isOwner && (
                   <div className="space-y-2 pt-2">
                     <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider px-4 mb-2">
-                      Owner
+                      {t("nav.owner")}
                     </p>
                     {ownerItems.map((item) => (
                       <SidebarLink

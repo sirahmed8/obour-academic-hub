@@ -17,6 +17,11 @@ const translations: Record<Language, Record<string, string>> = {
     "nav.home": "Subjects",
     "nav.todo": "To-Do List",
     "nav.notifications": "Notifications",
+    "nav.teamManagement": "Team Management",
+    "nav.announcements": "Announcements",
+    "nav.subjectManagement": "Subject Management",
+    "nav.sources": "Sources",
+    "nav.owner": "Owner",
     "nav.admin": "Admin Dashboard",
 
     "nav.team": "Team",
@@ -26,6 +31,22 @@ const translations: Record<Language, Record<string, string>> = {
     "dashboard.greeting": "Welcome back",
     "dashboard.subjects": "Your Subjects",
     "dashboard.noSubjects": "No subjects available yet.",
+    "dashboard.adminMode": "Admin Mode",
+    "dashboard.bannerTitle": "Obour Academic Hub",
+    "dashboard.bannerSubtitle": "Stay on top of your studies and don't miss anything new!",
+
+    // Login
+    "login.title": "Obour Hub",
+    "login.subtitle": "Your gateway to smart learning",
+    "login.continueGoogle": "Continue with Google",
+    "login.secure": "Secure",
+    "login.private": "Private",
+    "login.encrypted": "Encrypted",
+    "login.footer": "© 2026 Obour Academic Hub",
+
+    // Navbar
+    "navbar.title": "Obour Hub",
+    "navbar.subtitle": "Smart Learning System",
 
     // Profile
     "profile.settings": "Settings",
@@ -76,12 +97,33 @@ const translations: Record<Language, Record<string, string>> = {
     "profile.codeLocked": "Code is locked. Contact support to change.",
     "profile.nameLocked": "Name is locked. Contact support to change.",
     "profile.contactSupport": "Contact Support",
+    "profile.realName": "Real Name",
+    "profile.saveAndLock": "Save & Lock",
+    "profile.saving": "Saving...",
+    "profile.updateSuccess": "Profile updated",
+    "profile.updateError": "Error updating profile",
+    "profile.nameValidation": "Name must contain letters only",
+    "profile.codeValidation": "Student code must be 6 digits",
+
+    // Solid Mode
+    "profile.solidMode": "Solid Mode",
+    "profile.solidModeDesc": "Faster for slow devices",
+
+    // Notification Settings
+    "notifications.enable": "Enable Notifications",
+    "notifications.enabled": "Notifications enabled",
+    "notifications.disableInstruction": "Please disable notifications from site settings",
   },
   ar: {
     // Navigation
     "nav.home": "المواضيع",
     "nav.todo": "قائمة المهام",
     "nav.notifications": "الإشعارات",
+    "nav.teamManagement": "إدارة الفريق",
+    "nav.announcements": "الإعلانات",
+    "nav.subjectManagement": "إدارة المواد",
+    "nav.sources": "المصادر",
+    "nav.owner": "المالك",
     "nav.admin": "لوحة التحكم",
 
     "nav.team": "الفريق",
@@ -91,6 +133,22 @@ const translations: Record<Language, Record<string, string>> = {
     "dashboard.greeting": "مرحباً بك",
     "dashboard.subjects": "المواد الدراسية",
     "dashboard.noSubjects": "لا توجد مواد متاحة حالياً.",
+    "dashboard.adminMode": "وضع المسؤول",
+    "dashboard.bannerTitle": "معاهد العبور",
+    "dashboard.bannerSubtitle": "خليك متابع دروسك ومتفوتش أي حاجة جديدة!",
+
+    // Login
+    "login.title": "معاهد العبور",
+    "login.subtitle": "بوابتك للتعلم الذكي والمستقبل المشرق",
+    "login.continueGoogle": "تسجيل الدخول بـ Google",
+    "login.secure": "آمن",
+    "login.private": "خاص",
+    "login.encrypted": "مشفر",
+    "login.footer": "© 2026 منصة العبور التعليمية",
+
+    // Navbar
+    "navbar.title": "منصة العبور",
+    "navbar.subtitle": "نظام إدارة التعلم الذكي",
 
     // Profile
     "profile.settings": "الإعدادات",
@@ -141,6 +199,22 @@ const translations: Record<Language, Record<string, string>> = {
     "profile.codeLocked": "الكود مقفل. تواصل مع الدعم للتغيير.",
     "profile.nameLocked": "الاسم مقفل. تواصل مع الدعم للتغيير.",
     "profile.contactSupport": "تواصل مع الدعم",
+    "profile.realName": "الاسم الحقيقي",
+    "profile.saveAndLock": "حفظ وتثبيت",
+    "profile.saving": "جاري الحفظ...",
+    "profile.updateSuccess": "تم تحديث الملف الشخصي",
+    "profile.updateError": "حدث خطأ",
+    "profile.nameValidation": "الاسم يجب أن يحتوي على أحرف فقط",
+    "profile.codeValidation": "كود الطالب يجب أن يكون 6 أرقام",
+
+    // Solid Mode
+    "profile.solidMode": "الوضع الصلب",
+    "profile.solidModeDesc": "سريع للأجهزة الضعيفة",
+
+    // Notification Settings
+    "notifications.enable": "تفعيل الإشعارات",
+    "notifications.enabled": "تم تفعيل الإشعارات",
+    "notifications.disableInstruction": "يجب إيقاف الإشعارات من إعدادات المتصفح",
   },
 };
 

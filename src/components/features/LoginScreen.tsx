@@ -8,7 +8,7 @@ import { ScaleIn, FadeIn } from "@/components/ui/Animations";
 
 export function LoginScreen() {
   const { login, loading } = useAuth();
-  const { language } = useLanguage();
+  const { language, t } = useLanguage();
 
   const handleLogin = async () => {
     try {
@@ -81,12 +81,10 @@ export function LoginScreen() {
 
               <div className="text-center space-y-3">
                 <h1 className="text-4xl font-black tracking-tight text-transparent bg-clip-text bg-linear-to-br from-white via-white/90 to-white/60 drop-shadow-sm font-harman">
-                  {language === "ar" ? "معاهد العبور" : "Obour Hub"}
+                  {language === "ar" ? t("login.title") : "Obour Hub"}
                 </h1>
                 <p className="text-muted-foreground text-sm font-medium tracking-wide">
-                  {language === "ar"
-                    ? "بوابتك للتعلم الذكي والمستقبل المشرق"
-                    : "Your gateway to smart learning"}
+                  {t("login.subtitle")}
                 </p>
               </div>
             </div>
@@ -129,15 +127,15 @@ export function LoginScreen() {
                     />
                   </svg>
                 )}
-                <span>{language === "ar" ? "تسجيل الدخول بـ Google" : "Continue with Google"}</span>
+                <span>{t("login.continueGoogle")}</span>
               </motion.button>
 
               <div className="flex items-center gap-4 text-[10px] text-muted-foreground/40 justify-center font-mono uppercase tracking-widest">
-                <span>Secure</span>
+                <span>{t("login.secure")}</span>
                 <span className="w-1 h-1 rounded-full bg-primary/40" />
-                <span>Private</span>
+                <span>{t("login.private")}</span>
                 <span className="w-1 h-1 rounded-full bg-primary/40" />
-                <span>Encrypted</span>
+                <span>{t("login.encrypted")}</span>
               </div>
             </motion.div>
           </div>
@@ -145,9 +143,7 @@ export function LoginScreen() {
 
         <div className="text-center mt-8">
           <FadeIn delay={0.4}>
-            <p className="text-[10px] text-muted-foreground/30 font-medium">
-              © 2026 Obour Academic Hub
-            </p>
+            <p className="text-[10px] text-muted-foreground/30 font-medium">{t("login.footer")}</p>
           </FadeIn>
         </div>
       </ScaleIn>
