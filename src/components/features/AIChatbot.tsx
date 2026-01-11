@@ -135,6 +135,8 @@ export function AIChatbot() {
               id: replyTo.id,
               text: replyTo.text,
               senderName: replyTo.senderName || "User",
+              attachmentUrl: replyTo.attachmentUrl,
+              attachmentType: replyTo.attachmentType,
             }
           : undefined,
         "live", // always live context

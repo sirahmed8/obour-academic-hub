@@ -166,6 +166,8 @@ export default function AdminInboxPage() {
               id: replyTo.id,
               text: replyTo.text,
               senderName: replyTo.senderName || "User",
+              attachmentUrl: replyTo.attachmentUrl,
+              attachmentType: replyTo.attachmentType,
             }
           : undefined,
         "live",
