@@ -2,7 +2,6 @@
 
 import { useState, useRef } from "react";
 import { Upload, FileText, Loader2 } from "lucide-react";
-import { motion } from "framer-motion";
 import Image from "next/image";
 
 interface FileAttachment {
