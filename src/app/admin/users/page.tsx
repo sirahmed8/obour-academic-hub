@@ -431,6 +431,7 @@ export default function AdminUsersPage() {
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             className="w-full px-4 py-3 rounded-xl border border-border bg-background focus:ring-2 focus:ring-primary/20 outline-none"
+            aria-label={language === "ar" ? "بحث عن المستخدمين" : "Search users"}
           />
 
           {/* Invite Admin Form - Hidden on mobile, shown on desktop */}
@@ -460,11 +461,13 @@ export default function AdminUsersPage() {
                 language === "ar" ? "إضافة بريد إلكتروني كأدمن..." : "Invite admin by email..."
               }
               className="px-4 py-2 rounded-xl border border-border bg-background focus:ring-2 focus:ring-primary/20 outline-none text-sm flex-1 md:w-64"
+              aria-label={language === "ar" ? "دعوة بريد إلكتروني كأدمن" : "Invite admin by email"}
             />
             <button
               type="submit"
               className="px-4 py-2 bg-primary text-primary-foreground rounded-xl text-sm font-medium hover:bg-primary/90 transition-colors"
               title={language === "ar" ? "دعوة" : "Invite"}
+              aria-label={language === "ar" ? "إرسال دعوة" : "Send invitation"}
             >
               +
             </button>
@@ -718,10 +721,15 @@ export default function AdminUsersPage() {
 
         {/* Edit User Modal */}
         {editModal.isOpen && (
-          <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+          <div
+            className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="edit-user-title"
+          >
             <div className="bg-card rounded-2xl p-6 w-full max-w-md shadow-2xl">
               <div className="flex items-center justify-between mb-4">
-                <h3 className="text-lg font-bold">
+                <h3 id="edit-user-title" className="text-lg font-bold">
                   {language === "ar" ? "تعديل بيانات المستخدم" : "Edit User"}
                 </h3>
                 <button
@@ -734,6 +742,7 @@ export default function AdminUsersPage() {
                     })
                   }
                   className="p-1 hover:bg-muted rounded-full"
+                  aria-label={language === "ar" ? "إغلاق" : "Close"}
                 >
                   <X size={20} />
                 </button>
@@ -741,10 +750,11 @@ export default function AdminUsersPage() {
 
               <div className="space-y-4">
                 <div>
-                  <label className="text-sm font-medium mb-1 block">
+                  <label htmlFor="edit-user-name" className="text-sm font-medium mb-1 block">
                     {language === "ar" ? "الاسم" : "Name"}
                   </label>
                   <input
+                    id="edit-user-name"
                     value={editModal.name}
                     onChange={(e) =>
                       setEditModal((prev) => ({
@@ -758,10 +768,11 @@ export default function AdminUsersPage() {
                 </div>
 
                 <div>
-                  <label className="text-sm font-medium mb-1 block">
+                  <label htmlFor="edit-user-code" className="text-sm font-medium mb-1 block">
                     {language === "ar" ? "كود الطالب" : "Student Code"}
                   </label>
                   <input
+                    id="edit-user-code"
                     value={editModal.code}
                     onChange={(e) => {
                       if (e.target.value.length <= 6) {
