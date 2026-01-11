@@ -29,7 +29,7 @@ interface ChatMessageProps {
   onTaskAction?: (action: "confirm" | "edit", taskData: Partial<TodoTask>) => void;
 }
 
-export const ChatMessageItem = memo(function ChatMessageItem({
+export const ChatMessageItem = memo<ChatMessageProps>(function ChatMessageItem({
   message: msg,
   user,
   isUser,
