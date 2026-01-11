@@ -5,6 +5,7 @@ import Image from "next/image";
 import { Loader2 } from "lucide-react";
 import { motion } from "framer-motion";
 import { ScaleIn, FadeIn } from "@/components/ui/Animations";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/Tooltip";
 
 export function LoginScreen() {
   const { login, loading } = useAuth();
@@ -131,11 +132,42 @@ export function LoginScreen() {
               </motion.button>
 
               <div className="flex items-center gap-4 text-[10px] text-muted-foreground/40 justify-center font-mono uppercase tracking-widest">
-                <span>{t("login.secure")}</span>
+                <TooltipProvider>
+                  <Tooltip>
+                    <TooltipTrigger className="cursor-help hover:text-primary transition-colors">
+                      {t("login.secure")}
+                    </TooltipTrigger>
+                    <TooltipContent className="bg-background/80 backdrop-blur-md border border-white/10 text-xs">
+                      <p>Built with industry-standard security practices.</p>
+                    </TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
+
                 <span className="w-1 h-1 rounded-full bg-primary/40" />
-                <span>{t("login.private")}</span>
+
+                <TooltipProvider>
+                  <Tooltip>
+                    <TooltipTrigger className="cursor-help hover:text-primary transition-colors">
+                      {t("login.private")}
+                    </TooltipTrigger>
+                    <TooltipContent className="bg-background/80 backdrop-blur-md border border-white/10 text-xs">
+                      <p>Your data is yours. We respect your privacy.</p>
+                    </TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
+
                 <span className="w-1 h-1 rounded-full bg-primary/40" />
-                <span>{t("login.encrypted")}</span>
+
+                <TooltipProvider>
+                  <Tooltip>
+                    <TooltipTrigger className="cursor-help hover:text-primary transition-colors">
+                      {t("login.encrypted")}
+                    </TooltipTrigger>
+                    <TooltipContent className="bg-background/80 backdrop-blur-md border border-white/10 text-xs">
+                      <p>End-to-end encryption for all sensitive data.</p>
+                    </TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
               </div>
             </motion.div>
           </div>
