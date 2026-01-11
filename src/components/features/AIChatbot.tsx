@@ -18,8 +18,8 @@ import { toast } from "sonner";
 import { ConfirmationModal } from "@/components/ui/ConfirmationModal";
 import { ChatMessages } from "./chatbot/ChatMessages";
 import { ChatInput } from "./chatbot/ChatInput";
-import { Headphones } from "lucide-react";
-import { motion as m } from "framer-motion";
+import { AnimatedIcon } from "@/components/ui/AnimatedIcon";
+import microphoneAnim from "react-useanimations/lib/microphone/microphone.json";
 
 /**
  * LiveSupportChat - Live Support Chat Component
@@ -247,13 +247,9 @@ export function AIChatbot() {
               transition={{ duration: 0.2 }}
               className="relative"
             >
-              <m.div
-                className="text-white"
-                whileHover={{ scale: 1.1, rotate: 5 }}
-                transition={{ type: "spring", stiffness: 300 }}
-              >
-                <Headphones className="w-7 h-7" />
-              </m.div>
+              <div className="text-white dark:brightness-0 dark:invert">
+                <AnimatedIcon icon={microphoneAnim} size={28} useAnimation />
+              </div>
               {unreadCount > 0 && (
                 <span className="absolute -top-1 -right-1 flex h-4 w-4 items-center justify-center rounded-full bg-red-500 text-[10px] font-bold text-white ring-2 ring-white">
                   {unreadCount}
@@ -276,8 +272,16 @@ export function AIChatbot() {
           >
             <div className="p-4 border-b border-white/10 flex items-center justify-between">
               <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-xl bg-primary/20 flex items-center justify-center shadow-inner text-primary">
-                  <Headphones className="w-6 h-6" />
+                <div className="w-10 h-10 rounded-xl bg-primary/20 flex items-center justify-center shadow-inner">
+                  <AnimatedIcon
+                    icon={microphoneAnim}
+                    size={24}
+                    useAnimation
+                    style={{
+                      filter:
+                        "invert(48%) sepia(79%) saturate(2476%) hue-rotate(200deg) brightness(118%) contrast(119%)",
+                    }}
+                  />
                 </div>
                 <div>
                   <h3 className="font-bold text-sm">
