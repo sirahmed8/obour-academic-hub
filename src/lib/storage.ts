@@ -1,8 +1,5 @@
 "use client";
 
-import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
-import { storage } from "./firebase";
-
 export interface UploadResult {
   url: string;
   name: string;
@@ -11,27 +8,33 @@ export interface UploadResult {
 }
 
 export async function uploadFileToFirebase(file: File): Promise<UploadResult> {
-  if (!storage) {
-    throw new Error("Firebase Storage is not initialized");
-  }
+  // NOTE: Function name kept as 'uploadFileToFirebase' to avoid breaking imports in other files,
+  // even though it now uploads to Cloudinary via our API.
 
-  // Create a unique path: chat-uploads/<timestamp>-<safe-filename>
-  const safeName = file.name.replace(/[^a-zA-Z0-9.-]/g, "_");
-  const path = `chat-uploads/${Date.now()}-${safeName}`;
-  const storageRef = ref(storage, path);
+  const formData = new FormData();
+  formData.append("file", file);
 
   try {
-    const snapshot = await uploadBytes(storageRef, file);
-    const downloadURL = await getDownloadURL(snapshot.ref);
+    const response = await fetch("/api/upload", {
+      method: "POST",
+      body: formData,
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({}));
+      throw new Error(errorData.error || "Upload failed");
+    }
+
+    const data = await response.json();
 
     return {
-      url: downloadURL,
-      name: file.name,
-      size: file.size,
-      type: file.type.startsWith("image/") ? "image" : "document",
+      url: data.url,
+      name: data.name,
+      size: data.size,
+      type: data.type,
     };
   } catch (error) {
-    console.error("Firebase Upload Error:", error);
-    throw new Error("Failed to upload file to Firebase Storage");
+    console.error("Cloudinary Upload Error:", error);
+    throw new Error("Failed to upload file");
   }
 }

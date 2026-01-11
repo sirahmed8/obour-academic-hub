@@ -29,6 +29,7 @@
     "@vercel/blob": "^2.0.0",
     "ai": "^6.0.26",
     "class-variance-authority": "^0.7.1",
+    "cloudinary": "^2.8.0",
     "clsx": "^2.1.1",
     "firebase": "^12.7.0",
     "framer-motion": "^12.25.0",
