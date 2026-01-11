@@ -225,7 +225,7 @@ export function AIChatbot() {
         initial={{ scale: 0, opacity: 0 }}
         animate={{ scale: 1, opacity: 1 }}
         transition={{ type: "spring", stiffness: 400, damping: 25 }}
-        className="fixed bottom-6 right-6 z-200 p-4 bg-primary text-primary-foreground rounded-full shadow-lg shadow-primary/25 hover:shadow-xl hover:shadow-primary/30 transition-all active:scale-95 duration-200 ease-out sm:w-16 sm:h-16 w-14 h-14 flex items-center justify-center"
+        className="fixed bottom-6 right-6 z-200 p-4 bg-primary text-primary-foreground rounded-2xl shadow-lg shadow-primary/25 hover:shadow-xl hover:shadow-primary/30 transition-all active:scale-95 duration-200 ease-out sm:w-16 sm:h-16 w-14 h-14 flex items-center justify-center"
       >
         <AnimatePresence mode="wait" initial={false}>
           {isOpen ? (
@@ -272,7 +272,7 @@ export function AIChatbot() {
           >
             <div className="p-4 border-b border-white/10 bg-linear-to-r from-primary/10 to-transparent flex items-center justify-between">
               <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-full bg-primary/20 flex items-center justify-center shadow-inner text-primary [&_path]:stroke-current [&_path]:fill-transparent">
+                <div className="w-10 h-10 rounded-xl bg-primary/20 flex items-center justify-center shadow-inner text-primary [&_path]:stroke-current [&_path]:fill-transparent">
                   <AnimatedIcon icon={helpAnim} size={24} useAnimation />
                 </div>
                 <div>

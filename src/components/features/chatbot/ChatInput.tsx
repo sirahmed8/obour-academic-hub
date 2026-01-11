@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Send, X, Upload, Loader2 } from "lucide-react";
+import Image from "next/image";
 import { useLanguage } from "@/contexts";
 import { FileUpload } from "@/components/features/FileUpload";
 import { ChatMessage } from "@/types";
@@ -144,13 +145,25 @@ export function ChatInput({
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: 10, scale: 0.95 }}
             transition={{ duration: 0.2, ease: "easeOut" }}
-            className="absolute bottom-full left-0 right-0 mb-2 mx-3 flex items-center justify-between text-xs bg-muted/80 backdrop-blur-md px-3 py-2 rounded-xl border border-primary/20 shadow-lg z-40"
+            className="absolute bottom-full left-0 right-0 mb-2 mx-3 flex items-center justify-between text-xs bg-muted/70 backdrop-blur-xl px-3 py-2 rounded-xl border border-primary/20 shadow-xl z-40"
           >
-            <div className="truncate">
-              <span className="font-bold mr-1">
-                {language === "ar" ? "الرد على" : "Replying to"}:
-              </span>
-              {replyTo.text}
+            <div className="flex items-center gap-2 truncate">
+              {replyTo.attachmentUrl && replyTo.attachmentType === "image" && (
+                <div className="relative w-8 h-8 rounded-lg overflow-hidden shrink-0 border border-white/10">
+                  <Image
+                    src={replyTo.attachmentUrl}
+                    alt="Reply Preview"
+                    fill
+                    className="object-cover"
+                  />
+                </div>
+              )}
+              <div className="truncate">
+                <span className="font-bold mr-1">
+                  {language === "ar" ? "الرد على" : "Replying to"}:
+                </span>
+                {replyTo.text || (language === "ar" ? "صورة" : "Image")}
+              </div>
             </div>
             <button
               onClick={() => setReplyTo(null)}

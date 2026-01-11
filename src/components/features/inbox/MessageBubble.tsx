@@ -4,6 +4,7 @@ import { ChatMessage } from "@/types";
 import { cn } from "@/lib/utils";
 import { Check, CheckCheck, Reply, Smile, Trash2 } from "lucide-react";
 import { motion } from "framer-motion";
+import Image from "next/image";
 import { FileAttachmentDisplay } from "@/components/features/FileUpload";
 
 interface MessageBubbleProps {
@@ -59,7 +60,16 @@ export function MessageBubble({ msg, onReply, onReact, onDelete }: MessageBubble
           )}
         >
           <span className="font-bold mr-1">{msg.replyTo.senderName}:</span>
-          {msg.replyTo.text.slice(0, 30)}...
+          <div className="flex items-center gap-2 truncate">
+            {msg.replyTo.attachmentUrl && msg.replyTo.attachmentType === "image" && (
+              <div className="relative w-6 h-6 rounded overflow-hidden shrink-0 border border-white/10">
+                <Image src={msg.replyTo.attachmentUrl} alt="Reply" fill className="object-cover" />
+              </div>
+            )}
+            <span className="truncate">
+              {msg.replyTo.text || (msg.replyTo.attachmentUrl ? "Image" : "")}
+            </span>
+          </div>
         </div>
       )}
 
@@ -133,33 +143,31 @@ export function MessageBubble({ msg, onReply, onReact, onDelete }: MessageBubble
       {!msg.isDeleted && (
         <div
           className={cn(
-            "absolute -bottom-9 flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-all duration-200 z-50",
-            // Mobile: Always visible if needed, but for admin desktop usually hover is fine.
-            // Using same layout logic as ChatMessage
-            isMe ? "right-0 flex-row-reverse" : "left-0"
+            "absolute top-0 bottom-0 flex flex-col items-center gap-1 opacity-0 group-hover:opacity-100 transition-all duration-200 z-50 py-1",
+            isMe ? "-left-10" : "-right-10"
           )}
         >
           <button
             onClick={() => onReply(msg)}
-            className="p-1.5 bg-background/80 backdrop-blur-md rounded-full border border-border shadow-sm hover:bg-primary/10 text-muted-foreground hover:text-primary transition-colors hover:scale-110"
+            className="p-1.5 bg-background/60 backdrop-blur-md rounded-lg border border-border shadow-sm hover:bg-primary/10 text-muted-foreground hover:text-primary transition-all hover:scale-110"
             title="Reply"
           >
-            <Reply size={12} />
+            <Reply size={14} />
           </button>
           <button
             onClick={(e) => onReact(msg.id, e.currentTarget)}
-            className="p-1.5 bg-background/80 backdrop-blur-md rounded-full border border-border shadow-sm hover:bg-primary/10 text-muted-foreground hover:text-primary transition-colors hover:scale-110"
+            className="p-1.5 bg-background/60 backdrop-blur-md rounded-lg border border-border shadow-sm hover:bg-primary/10 text-muted-foreground hover:text-primary transition-all hover:scale-110"
             title="React"
           >
-            <Smile size={12} />
+            <Smile size={14} />
           </button>
           {isMe && (
             <button
               onClick={() => onDelete(msg.id)}
-              className="p-1.5 bg-background/80 backdrop-blur-md rounded-full border border-border shadow-sm hover:bg-destructive/10 text-muted-foreground hover:text-destructive transition-colors hover:scale-110"
+              className="p-1.5 bg-background/60 backdrop-blur-md rounded-lg border border-border shadow-sm hover:bg-destructive/10 text-muted-foreground hover:text-destructive transition-all hover:scale-110"
               title="Delete for everyone"
             >
-              <Trash2 size={12} />
+              <Trash2 size={14} />
             </button>
           )}
         </div>

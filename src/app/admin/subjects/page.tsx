@@ -592,16 +592,20 @@ export default function AdminSubjectsPage() {
                 </div>
 
                 {/* Search Bar */}
-                <div className="relative w-full max-w-xs hidden sm:block">
+                <motion.div
+                  initial={false}
+                  animate={{ width: searchQuery ? "100%" : "280px" }}
+                  className="relative max-w-xs hidden sm:block"
+                >
                   <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
                   <input
                     type="text"
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
                     placeholder={language === "ar" ? "بحث..." : "Search..."}
-                    className="w-full h-9 pl-9 pr-4 rounded-full bg-muted/50 border border-transparent focus:border-primary/30 focus:bg-background transition-all outline-none text-sm"
+                    className="w-full h-10 pl-10 pr-4 rounded-xl bg-muted/40 border border-border/50 focus:border-primary focus:bg-background focus:ring-4 focus:ring-primary/10 transition-all outline-none text-sm shadow-sm"
                   />
-                </div>
+                </motion.div>
               </div>
 
               {loading ? (

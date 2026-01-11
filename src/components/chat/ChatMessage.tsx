@@ -95,11 +95,11 @@ export const ChatMessageItem = memo<ChatMessageProps>(function ChatMessageItem({
             />
           </div>
         ) : isBot ? (
-          <div className="w-8 h-8 rounded-full bg-linear-to-tr from-primary to-primary/60 flex items-center justify-center shadow-md ring-2 ring-background">
+          <div className="w-8 h-8 rounded-xl bg-linear-to-tr from-primary to-primary/60 flex items-center justify-center shadow-md ring-2 ring-background">
             <Bot className="w-4 h-4 text-white" />
           </div>
         ) : (
-          <div className="w-8 h-8 rounded-full bg-green-500 flex items-center justify-center shadow-md ring-2 ring-background">
+          <div className="w-8 h-8 rounded-xl bg-green-500 flex items-center justify-center shadow-md ring-2 ring-background">
             <Headphones className="w-4 h-4 text-white" />
           </div>
         )}
@@ -249,16 +249,16 @@ export const ChatMessageItem = memo<ChatMessageProps>(function ChatMessageItem({
         {!msg.isDeleted && (
           <div
             className={cn(
-              "absolute top-1/2 -translate-y-1/2 flex flex-col md:flex-row items-center gap-1 transition-all duration-200 z-10",
+              "absolute top-0 bottom-0 flex flex-col items-center gap-1 transition-all duration-200 z-10 py-1",
               // Mobile: Always visible but smaller. Desktop: Hover.
               "opacity-100 lg:opacity-0 lg:group-hover:opacity-100",
-              isUser ? "-left-12 flex-row-reverse" : "-right-12"
+              isUser ? "-left-10" : "-right-10"
             )}
           >
             {onReply && (
               <button
                 onClick={() => onReply(msg)}
-                className="p-1.5 bg-background shadow-sm border border-border rounded-full hover:bg-muted text-muted-foreground hover:text-primary transition-all hover:scale-110 active:scale-95"
+                className="p-1.5 shadow-sm border border-border rounded-lg hover:bg-muted text-muted-foreground hover:text-primary transition-all hover:scale-110 active:scale-95 bg-white/10 backdrop-blur-md"
                 title="Reply"
                 aria-label="Reply"
               >
@@ -282,7 +282,7 @@ export const ChatMessageItem = memo<ChatMessageProps>(function ChatMessageItem({
               <button
                 ref={reactButtonRef}
                 onClick={handleTogglePicker}
-                className="p-1.5 bg-background shadow-sm border border-border rounded-full hover:bg-muted text-muted-foreground hover:text-primary transition-all hover:scale-110 active:scale-95"
+                className="p-1.5 shadow-sm border border-border rounded-lg hover:bg-muted text-muted-foreground hover:text-primary transition-all hover:scale-110 active:scale-95 bg-white/10 backdrop-blur-md"
                 title="React"
                 aria-label="React"
               >
@@ -307,7 +307,7 @@ export const ChatMessageItem = memo<ChatMessageProps>(function ChatMessageItem({
             {onDelete && isUser && (
               <button
                 onClick={() => onDelete(msg.id)}
-                className="p-1.5 bg-background shadow-sm border border-border rounded-full hover:bg-red-50 text-muted-foreground hover:text-red-500 transition-all hover:scale-110 active:scale-95"
+                className="p-1.5 shadow-sm border border-border rounded-lg hover:bg-red-50 text-muted-foreground hover:text-red-500 transition-all hover:scale-110 active:scale-95 bg-white/10 backdrop-blur-md"
                 title="Delete for everyone"
                 aria-label="Delete"
               >
