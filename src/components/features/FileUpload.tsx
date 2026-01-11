@@ -142,16 +142,24 @@ export function FileAttachmentDisplay({ attachment }: FileAttachmentDisplayProps
   );
 }
 
+import { createPortal } from "react-dom";
+
+// ... inside ImageLightbox ...
+
 function ImageLightbox({ src, alt, onClose }: { src: string; alt: string; onClose: () => void }) {
-  // Prevent scrolling when open
+  const [mounted, setMounted] = useState(false);
+
   useEffect(() => {
+    setMounted(true);
     document.body.style.overflow = "hidden";
     return () => {
       document.body.style.overflow = "unset";
     };
   }, []);
 
-  return (
+  if (!mounted) return null;
+
+  return createPortal(
     <motion.div
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
@@ -177,6 +185,7 @@ function ImageLightbox({ src, alt, onClose }: { src: string; alt: string; onClos
         className="relative max-w-[90vw] max-h-[85vh] w-auto h-auto object-contain rounded-2xl shadow-2xl border border-white/10"
         onClick={(e) => e.stopPropagation()}
       />
-    </motion.div>
+    </motion.div>,
+    document.body
   );
 }
