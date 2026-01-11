@@ -164,7 +164,7 @@ export const ChatMessageItem = memo<ChatMessageProps>(function ChatMessageItem({
 
               {/* Only render text wrapper if there IS text to avoid empty bubble */}
               {msg.text && msg.text.trim() !== "" && (
-                <div className="leading-relaxed break-words whitespace-pre-wrap prose prose-sm max-w-none prose-p:my-0 prose-ul:my-1 prose-li:my-0 prose-pre:my-1 prose-code:bg-black/10 prose-code:rounded prose-code:px-1 prose-code:py-0.5">
+                <div className="leading-relaxed wrap-break-word whitespace-pre-wrap prose prose-sm max-w-none prose-p:my-0 prose-ul:my-1 prose-li:my-0 prose-pre:my-1 prose-code:bg-black/10 prose-code:rounded prose-code:px-1 prose-code:py-0.5">
                   {msg.senderId === "bot" ? <MarkdownContent content={msg.text} /> : msg.text}
                 </div>
               )}
@@ -223,10 +223,9 @@ export const ChatMessageItem = memo<ChatMessageProps>(function ChatMessageItem({
         {msg.reactions && Object.keys(msg.reactions).length > 0 && (
           <div
             className={cn(
-              "flex gap-1 mt-1 bg-background/80 backdrop-blur-sm shadow-sm border border-border rounded-full px-2 py-1 w-fit absolute -bottom-8 scale-90 z-20",
-              isUser ? "left-0" : "right-0" // Opposite side of actions if possible, or just default
+              "flex gap-1 mt-1 bg-background/80 backdrop-blur-sm shadow-sm border border-border rounded-full px-2 py-1 w-fit absolute -bottom-4 scale-90 z-20",
+              isUser ? "right-2" : "left-2"
             )}
-            style={{ bottom: -35 }} // Explicit positioning
             aria-label="Reactions"
           >
             {Object.entries(msg.reactions).map(([reactorId, emoji]) => (
@@ -246,20 +245,20 @@ export const ChatMessageItem = memo<ChatMessageProps>(function ChatMessageItem({
           </div>
         )}
 
-        {/* Actions (Reply, React, Delete) - MOVED TO BOTTOM */}
+        {/* Actions (Reply, React, Delete) - Repositioned to the side */}
         {!msg.isDeleted && (
           <div
             className={cn(
-              "absolute -bottom-9 flex items-center gap-1 transition-opacity duration-200 z-10",
-              // Mobile: Always visible. Desktop: Hover.
+              "absolute top-1/2 -translate-y-1/2 flex flex-col md:flex-row items-center gap-1 transition-all duration-200 z-10",
+              // Mobile: Always visible but smaller. Desktop: Hover.
               "opacity-100 lg:opacity-0 lg:group-hover:opacity-100",
-              isUser ? "right-0 flex-row-reverse" : "left-0"
+              isUser ? "-left-12 flex-row-reverse" : "-right-12"
             )}
           >
             {onReply && (
               <button
                 onClick={() => onReply(msg)}
-                className="p-1.5 bg-background shadow-sm border border-border rounded-full hover:bg-muted text-muted-foreground hover:text-primary transition-colors hover:scale-110"
+                className="p-1.5 bg-background shadow-sm border border-border rounded-full hover:bg-muted text-muted-foreground hover:text-primary transition-all hover:scale-110 active:scale-95"
                 title="Reply"
                 aria-label="Reply"
               >
@@ -283,7 +282,7 @@ export const ChatMessageItem = memo<ChatMessageProps>(function ChatMessageItem({
               <button
                 ref={reactButtonRef}
                 onClick={handleTogglePicker}
-                className="p-1.5 bg-background shadow-sm border border-border rounded-full hover:bg-muted text-muted-foreground hover:text-primary transition-colors hover:scale-110"
+                className="p-1.5 bg-background shadow-sm border border-border rounded-full hover:bg-muted text-muted-foreground hover:text-primary transition-all hover:scale-110 active:scale-95"
                 title="React"
                 aria-label="React"
               >
@@ -308,7 +307,7 @@ export const ChatMessageItem = memo<ChatMessageProps>(function ChatMessageItem({
             {onDelete && isUser && (
               <button
                 onClick={() => onDelete(msg.id)}
-                className="p-1.5 bg-background shadow-sm border border-border rounded-full hover:bg-red-50 text-muted-foreground hover:text-red-500 transition-colors hover:scale-110"
+                className="p-1.5 bg-background shadow-sm border border-border rounded-full hover:bg-red-50 text-muted-foreground hover:text-red-500 transition-all hover:scale-110 active:scale-95"
                 title="Delete for everyone"
                 aria-label="Delete"
               >
@@ -372,23 +371,6 @@ export const ChatMessageItem = memo<ChatMessageProps>(function ChatMessageItem({
             </motion.div>
           )}
         </AnimatePresence>
-
-        {/* Mobile Timestamp & State - Moved inside flex-col to sit BELOW message */}
-        <div
-          className={cn(
-            "flex items-center gap-1 mt-1 px-1 opacity-70",
-            isUser ? "self-end" : "self-start"
-          )}
-        >
-          <span className="text-[10px] text-muted-foreground">
-            {msg.timestamp?.seconds
-              ? new Date(msg.timestamp.seconds * 1000).toLocaleTimeString([], {
-                  hour: "2-digit",
-                  minute: "2-digit",
-                })
-              : "Sending..."}
-          </span>
-        </div>
       </div>
     </motion.div>
   );
