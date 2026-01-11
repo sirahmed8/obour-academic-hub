@@ -149,7 +149,7 @@ function ImageLightbox({ src, alt, onClose }: { src: string; alt: string; onClos
 
   return (
     <div
-      className="fixed inset-0 z-[100] bg-black/90 backdrop-blur-sm flex items-center justify-center p-4 animate-in fade-in duration-200"
+      className="fixed inset-0 z-100 bg-black/90 backdrop-blur-sm flex items-center justify-center p-4 animate-in fade-in duration-200"
       onClick={onClose}
     >
       <button
