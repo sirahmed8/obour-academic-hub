@@ -175,7 +175,47 @@ export function LoginScreen() {
 
         <div className="text-center mt-8">
           <FadeIn delay={0.4}>
-            <p className="text-[10px] text-muted-foreground/30 font-medium">{t("login.footer")}</p>
+            <div className="flex items-center justify-center gap-2 text-[10px] text-muted-foreground/30 font-medium">
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger className="hover:text-primary transition-colors cursor-help">
+                    {t("login.privacy")}
+                  </TooltipTrigger>
+                  <TooltipContent className="bg-background/80 backdrop-blur-md border border-white/10 text-xs">
+                    <p>Read about how we handle your data.</p>
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
+
+              <span>•</span>
+
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger className="hover:text-primary transition-colors cursor-help">
+                    {t("login.terms")}
+                  </TooltipTrigger>
+                  <TooltipContent className="bg-background/80 backdrop-blur-md border border-white/10 text-xs">
+                    <p>Understand the rules for using our platform.</p>
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
+
+              <span>•</span>
+
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger className="hover:text-primary transition-colors cursor-help">
+                    {t("login.cookies")}
+                  </TooltipTrigger>
+                  <TooltipContent className="bg-background/80 backdrop-blur-md border border-white/10 text-xs">
+                    <p>Learn how we use cookies to improve experience.</p>
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
+            </div>
+            <p className="text-[10px] text-muted-foreground/20 font-medium mt-2">
+              {t("login.footer")}
+            </p>
           </FadeIn>
         </div>
       </ScaleIn>

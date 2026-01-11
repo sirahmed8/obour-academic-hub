@@ -43,6 +43,9 @@ const translations: Record<Language, Record<string, string>> = {
     "login.private": "Private",
     "login.encrypted": "Encrypted",
     "login.footer": "© 2026 Obour Academic Hub",
+    "login.privacy": "Privacy Policy",
+    "login.terms": "Terms of Service",
+    "login.cookies": "Cookie Policy",
 
     // Navbar
     "navbar.title": "Obour Hub",
@@ -145,6 +148,9 @@ const translations: Record<Language, Record<string, string>> = {
     "login.private": "خاص",
     "login.encrypted": "مشفر",
     "login.footer": "© 2026 منصة العبور التعليمية",
+    "login.privacy": "سياسة الخصوصية",
+    "login.terms": "شروط الخدمة",
+    "login.cookies": "سياسة ملفات الارتباط",
 
     // Navbar
     "navbar.title": "منصة العبور",
