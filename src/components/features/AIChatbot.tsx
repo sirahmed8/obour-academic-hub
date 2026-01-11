@@ -190,6 +190,16 @@ export function AIChatbot() {
     [user]
   );
 
+  const handleDeleteMessage = async (msgId: string) => {
+    if (!user) return;
+    try {
+      await deleteMessage(user.uid, msgId);
+      toast.success(language === "ar" ? "تم حذف الرسالة" : "Message deleted");
+    } catch {
+      toast.error(language === "ar" ? "فشل حذف الرسالة" : "Failed to delete message");
+    }
+  };
+
   if (!user) return null;
 
   return (

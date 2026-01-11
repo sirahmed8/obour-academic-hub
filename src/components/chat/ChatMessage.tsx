@@ -164,7 +164,10 @@ export const ChatMessageItem = memo(function ChatMessageItem({
 
               {/* Only render text wrapper if there IS text to avoid empty bubble */}
               {msg.text && msg.text.trim() !== "" && (
-                <div className="leading-relaxed break-words whitespace-pre-wrap prose prose-sm max-w-none wrap-break-word prose-p:my-0 prose-ul:my-1 prose-li:my-0 prose-pre:my-1 prose-code:bg-black/10 prose-code:rounded prose-code:px-1 prose-code:py-0.5">
+                <div
+                  className="leading-relaxed whitespace-pre-wrap prose prose-sm max-w-none prose-p:my-0 prose-ul:my-1 prose-li:my-0 prose-pre:my-1 prose-code:bg-black/10 prose-code:rounded prose-code:px-1 prose-code:py-0.5"
+                  style={{ wordBreak: "break-word" }}
+                >
                   {msg.senderId === "bot" ? <MarkdownContent content={msg.text} /> : msg.text}
                 </div>
               )}
