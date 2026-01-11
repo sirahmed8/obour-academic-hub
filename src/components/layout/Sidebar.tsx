@@ -223,7 +223,9 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
         {/* Scrollable Content Container - Full Height with Padding for Navbar */}
         <div className="relative z-10 h-full flex flex-col lg:block lg:mr-1 rounded-tr-2xl rounded-br-2xl">
           {/* Mobile Header - Fixed at top, outside scrollview */}
-          <div className="shrink-0 z-20 h-16 flex items-center justify-between px-4 border-b border-white/10 lg:hidden relative">
+          {/* Mobile Header - Absolute for scroll-under blur */}
+          <div className="absolute top-0 left-0 right-0 z-20 h-16 flex items-center justify-between px-4 border-b border-white/10 lg:hidden pointer-events-none">
+            {/* Pointer events none on container, auto on interactive children if any */}
             {/* Translucent background with blur to show content behind */}
             <div className="absolute inset-0 bg-background/20 backdrop-blur-xl backdrop-saturate-150 -z-10" />
 
@@ -248,7 +250,8 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
           </div>
 
           {/* Navigation Content - Scrollable */}
-          <div className="flex-1 overflow-y-auto lg:h-full lg:pt-16">
+          {/* Navigation Content - Scrollable with padding for header */}
+          <div className="h-full overflow-y-auto pt-16 lg:pt-16 overscroll-contain">
             {/* Navigation Content */}
             <div className="py-4">
               <nav ref={navRef} onScroll={handleScroll} className="space-y-1 px-2">
