@@ -101,7 +101,7 @@ export function FileAttachmentDisplay({ attachment }: FileAttachmentDisplayProps
   return (
     <div className="bg-secondary/50 rounded-lg p-3 max-w-xs">
       {attachment.type === "image" ? (
-        <div className="relative w-full h-48 rounded-lg overflow-hidden">
+        <div className="relative w-64 h-48 rounded-lg overflow-hidden bg-background/50">
           <Image src={attachment.url} alt={attachment.name} fill className="object-cover" />
         </div>
       ) : (
