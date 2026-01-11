@@ -142,10 +142,10 @@ export function AIChatbot() {
         replyTo
           ? {
               id: replyTo.id,
-              text: replyTo.text || null,
+              text: replyTo.text || "",
               senderName: replyTo.senderName || "User",
-              attachmentUrl: replyTo.attachmentUrl || null,
-              attachmentType: replyTo.attachmentType || null,
+              attachmentUrl: replyTo.attachmentUrl || undefined,
+              attachmentType: replyTo.attachmentType || undefined,
             }
           : undefined,
         "live", // always live context

@@ -61,10 +61,10 @@ export const sendMessage = async (
     replyTo: replyTo
       ? {
           id: replyTo.id,
-          text: replyTo.text || null,
+          text: replyTo.text || "",
           senderName: replyTo.senderName || "User",
-          attachmentUrl: replyTo.attachmentUrl || null,
-          attachmentType: replyTo.attachmentType || null,
+          attachmentUrl: replyTo.attachmentUrl || undefined,
+          attachmentType: replyTo.attachmentType || undefined,
         }
       : null,
     reactions: {},
