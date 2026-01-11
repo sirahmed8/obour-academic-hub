@@ -157,12 +157,12 @@ function ImageLightbox({ src, alt, onClose }: { src: string; alt: string; onClos
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
       transition={{ duration: 0.2 }}
-      className="fixed inset-0 z-[500] bg-black/90 backdrop-blur-md flex items-center justify-center p-4 md:p-10"
+      className="fixed inset-0 z-500 bg-black/90 backdrop-blur-md flex items-center justify-center p-4 md:p-10"
       onClick={onClose}
     >
       <button
         onClick={onClose}
-        className="absolute top-6 right-6 p-3 bg-black/50 hover:bg-white/20 rounded-full text-white transition-all hover:scale-110 z-[510] border border-white/10"
+        className="absolute top-6 right-6 p-3 bg-black/50 hover:bg-white/20 rounded-full text-white transition-all hover:scale-110 z-510 border border-white/10"
       >
         <X className="w-6 h-6" />
       </button>
