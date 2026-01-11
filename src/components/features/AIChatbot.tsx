@@ -6,7 +6,13 @@ import { X, Trash2 } from "lucide-react";
 import { useAuth, useLanguage } from "@/contexts";
 import { db } from "@/lib/firebase";
 import { collection, query, orderBy, onSnapshot, doc } from "firebase/firestore";
-import { sendMessage, markMessagesAsSeen, clearChatHistory, toggleReaction } from "@/lib/chatUtils";
+import {
+  sendMessage,
+  markMessagesAsSeen,
+  clearChatHistory,
+  toggleReaction,
+  deleteMessage,
+} from "@/lib/chatUtils";
 import { ChatMessage } from "@/types";
 import { toast } from "sonner";
 import { ConfirmationModal } from "@/components/ui/ConfirmationModal";
@@ -295,6 +301,7 @@ export function AIChatbot() {
               user={user as any}
               onReply={setReplyTo}
               onReact={handleReaction}
+              onDelete={handleDeleteMessage}
             />
 
             <ChatInput

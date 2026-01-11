@@ -129,36 +129,41 @@ export function MessageBubble({ msg, onReply, onReact, onDelete }: MessageBubble
       </div>
 
       {/* Actions (Hover) */}
-      <div
-        className={cn(
-          "absolute top-0 opacity-0 group-hover:opacity-100 transition-all duration-200 flex items-center gap-1 bg-background/80 backdrop-blur-md rounded-full shadow-lg border border-border p-1 z-50",
-          isMe ? "-left-12" : "-right-12"
-        )}
-      >
-        <button
-          onClick={() => onReply(msg)}
-          className="p-1.5 hover:bg-primary/10 rounded-full text-muted-foreground hover:text-primary transition-colors"
-          title="Reply"
+      {/* Actions (Hover) - Moved to bottom */}
+      {!msg.isDeleted && (
+        <div
+          className={cn(
+            "absolute -bottom-9 flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-all duration-200 z-50",
+            // Mobile: Always visible if needed, but for admin desktop usually hover is fine.
+            // Using same layout logic as ChatMessage
+            isMe ? "right-0 flex-row-reverse" : "left-0"
+          )}
         >
-          <Reply size={12} />
-        </button>
-        <button
-          onClick={(e) => onReact(msg.id, e.currentTarget)}
-          className="p-1.5 hover:bg-primary/10 rounded-full text-muted-foreground hover:text-primary transition-colors"
-          title="React"
-        >
-          <Smile size={12} />
-        </button>
-        {isMe && !msg.isDeleted && (
           <button
-            onClick={() => onDelete(msg.id)}
-            className="p-1.5 hover:bg-destructive/10 rounded-full text-muted-foreground hover:text-destructive transition-colors"
-            title="Delete"
+            onClick={() => onReply(msg)}
+            className="p-1.5 bg-background/80 backdrop-blur-md rounded-full border border-border shadow-sm hover:bg-primary/10 text-muted-foreground hover:text-primary transition-colors hover:scale-110"
+            title="Reply"
           >
-            <Trash2 size={12} />
+            <Reply size={12} />
           </button>
-        )}
-      </div>
+          <button
+            onClick={(e) => onReact(msg.id, e.currentTarget)}
+            className="p-1.5 bg-background/80 backdrop-blur-md rounded-full border border-border shadow-sm hover:bg-primary/10 text-muted-foreground hover:text-primary transition-colors hover:scale-110"
+            title="React"
+          >
+            <Smile size={12} />
+          </button>
+          {isMe && (
+            <button
+              onClick={() => onDelete(msg.id)}
+              className="p-1.5 bg-background/80 backdrop-blur-md rounded-full border border-border shadow-sm hover:bg-destructive/10 text-muted-foreground hover:text-destructive transition-colors hover:scale-110"
+              title="Delete for everyone"
+            >
+              <Trash2 size={12} />
+            </button>
+          )}
+        </div>
+      )}
     </motion.div>
   );
 }

@@ -24,6 +24,7 @@ interface ChatMessageProps {
   isUser: boolean;
   onReply?: (msg: ChatMessage) => void;
   onReact?: (msg: ChatMessage, emoji: string) => void;
+  onDelete?: (msgId: string) => void;
   isAdminView?: boolean;
   onTaskAction?: (action: "confirm" | "edit", taskData: Partial<TodoTask>) => void;
 }
@@ -34,6 +35,7 @@ export const ChatMessageItem = memo(function ChatMessageItem({
   isUser,
   onReply,
   onReact,
+  onDelete,
   onTaskAction,
 }: ChatMessageProps) {
   const isBot = msg.senderId === "bot";
@@ -72,7 +74,7 @@ export const ChatMessageItem = memo(function ChatMessageItem({
       initial={{ opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
       className={cn(
-        "flex gap-3 max-w-[85%] group relative",
+        "flex gap-3 max-w-[85%] group relative mb-4", // Added mb-4 for action spacing
         isUser ? "ml-auto flex-row-reverse" : "mr-auto"
       )}
     >
@@ -103,18 +105,17 @@ export const ChatMessageItem = memo(function ChatMessageItem({
         )}
       </div>
 
-      {/* Message Content */}
-      <div className={cn("flex flex-col relative", isUser ? "items-end" : "items-start")}>
+      <div className="flex flex-col max-w-full relative">
         {/* Reply Context */}
         {msg.replyTo && (
           <div
             className={cn(
-              "text-[10px] bg-muted/50 px-3 py-1.5 rounded-t-xl mb-[-5px] border-b border-background/50 opacity-80 max-w-full truncate backdrop-blur-sm flex items-center gap-2",
-              isUser ? "rounded-bl-xl origin-bottom-right" : "rounded-br-xl origin-bottom-left"
+              "text-[10px] px-3 py-1.5 rounded-t-xl mb-[-4px] border-b border-transparent w-full opacity-80 backdrop-blur-sm shadow-sm flex items-center gap-2",
+              isUser ? "bg-primary/20 text-foreground" : "bg-muted/50 text-muted-foreground"
             )}
           >
-            {msg.replyTo.attachmentUrl && msg.replyTo.attachmentType === "image" && (
-              <div className="relative w-6 h-6 rounded overflow-hidden shrink-0 border border-background/50">
+            {msg.replyTo.attachmentUrl && msg.replyTo.attachmentType?.startsWith("image") && (
+              <div className="relative w-6 h-6 rounded overflow-hidden shrink-0">
                 <Image
                   src={msg.replyTo.attachmentUrl}
                   alt="Reply Image"
@@ -123,90 +124,109 @@ export const ChatMessageItem = memo(function ChatMessageItem({
                 />
               </div>
             )}
-            <div className="truncate">
-              <span className="font-bold">{msg.replyTo.senderName}</span>:{" "}
-              {msg.replyTo.text
-                ? msg.replyTo.text.substring(0, 25) + (msg.replyTo.text.length > 25 ? "..." : "")
-                : msg.replyTo.attachmentUrl
-                  ? "Image"
-                  : ""}
+            <div className="flex-1 min-w-0">
+              <span className="font-bold mr-1">{msg.replyTo.senderName}:</span>
+              {msg.replyTo.attachmentUrl && !msg.replyTo.text
+                ? "Image"
+                : msg.replyTo.text.slice(0, 30) + (msg.replyTo.text.length > 30 ? "..." : "")}
             </div>
           </div>
         )}
 
-        <div className="relative group/bubble">
-          {/* MARKDOWN RENDERING (Only if text exists) */}
-          {msg.text.trim() && (
-            <div
-              className={cn(
-                "px-4 py-3 rounded-2xl text-sm leading-relaxed shadow-sm relative z-10 prose prose-sm max-w-none wrap-break-word",
-                // Markdown styling overrides
-                "prose-p:my-0 prose-ul:my-1 prose-li:my-0 prose-pre:my-1 prose-code:bg-black/10 prose-code:rounded prose-code:px-1 prose-code:py-0.5",
-                isUser
-                  ? "bg-primary text-primary-foreground prose-invert rounded-tr-none"
-                  : "bg-background border border-border rounded-tl-none dark:prose-invert",
-                msg.replyTo && isUser && "rounded-tr-none rounded-br-none",
-                msg.replyTo && !isUser && "rounded-tl-none rounded-bl-none"
-              )}
-            >
-              <MarkdownContent content={msg.text} />
-            </div>
+        {/* Message Bubble */}
+        <div
+          className={cn(
+            "px-4 py-2.5 shadow-sm text-sm relative z-10",
+            // Shape styling based on sender
+            isUser
+              ? "bg-linear-to-br from-primary via-purple-600 to-indigo-600 text-white rounded-2xl rounded-tr-sm shadow-indigo-500/20"
+              : isBot
+                ? "bg-linear-to-br from-slate-800 to-slate-900 border border-white/10 text-white rounded-2xl rounded-tl-sm shadow-md"
+                : "bg-background border border-border text-foreground rounded-2xl rounded-tl-sm shadow-md"
           )}
-
-          {/* Task Confirmation Card */}
-          {isBot && msg.action === "confirm_task" && msg.taskData && onTaskAction && (
-            <div className="mt-4 bg-card/50 rounded-xl p-3 border border-border/50 shadow-sm">
-              <div className="flex flex-col gap-1 mb-3">
-                <span className="font-bold text-base">{msg.taskData.title}</span>
-                <div className="flex gap-2 text-xs opacity-80">
-                  {msg.taskData.priority && (
-                    <span className="capitalize">{msg.taskData.priority} Priority</span>
-                  )}
-                  {msg.taskData.repeat && msg.taskData.repeat !== "none" && (
-                    <span>• {msg.taskData.repeat}</span>
-                  )}
+        >
+          {msg.isDeleted ? (
+            <span className="italic opacity-70 text-xs flex items-center gap-1">🚫 {msg.text}</span>
+          ) : (
+            <>
+              {msg.attachmentUrl && (
+                <div className="mb-2 -mx-2">
+                  <FileAttachmentDisplay
+                    attachment={{
+                      url: msg.attachmentUrl,
+                      type: (msg.attachmentType as "image" | "document") || "document",
+                      name: msg.attachmentName || "Attachment",
+                      size: msg.attachmentSize || 0,
+                    }}
+                  />
                 </div>
-              </div>
+              )}
 
-              <div className="flex gap-2">
-                <button
-                  onClick={() => onTaskAction("confirm", msg.taskData!)}
-                  className="flex-1 bg-primary text-primary-foreground py-1.5 rounded-lg text-xs font-medium hover:bg-primary/90 transition-colors"
-                >
-                  Confirm
-                </button>
-                <button
-                  onClick={() => onTaskAction("edit", msg.taskData!)}
-                  className="flex-1 bg-muted hover:bg-muted/80 py-1.5 rounded-lg text-xs font-medium transition-colors"
-                >
-                  Edit
-                </button>
-              </div>
-            </div>
+              {/* Only render text wrapper if there IS text to avoid empty bubble */}
+              {msg.text && msg.text.trim() !== "" && (
+                <div className="leading-relaxed break-words whitespace-pre-wrap prose prose-sm max-w-none wrap-break-word prose-p:my-0 prose-ul:my-1 prose-li:my-0 prose-pre:my-1 prose-code:bg-black/10 prose-code:rounded prose-code:px-1 prose-code:py-0.5">
+                  {msg.senderId === "bot" ? <MarkdownContent content={msg.text} /> : msg.text}
+                </div>
+              )}
+            </>
           )}
+
+          {/* Timestamp moved inside bubble for cleaner look */}
+          <div
+            className={cn(
+              "flex items-center gap-1 mt-1 px-1 opacity-70 text-[9px] select-none",
+              isUser ? "justify-end text-white/80" : "justify-start text-muted-foreground"
+            )}
+          >
+            {msg.timestamp?.seconds
+              ? new Date(msg.timestamp.seconds * 1000).toLocaleTimeString([], {
+                  hour: "2-digit",
+                  minute: "2-digit",
+                })
+              : "Sending..."}
+          </div>
         </div>
 
-        {/* Attachments */}
-        {msg.attachmentUrl && (
-          <div className={cn("mt-2", isUser ? "flex justify-end" : "flex justify-start")}>
-            <FileAttachmentDisplay
-              attachment={{
-                url: msg.attachmentUrl,
-                type: msg.attachmentType === "image" ? "image" : "document",
-                name: msg.attachmentName || "Attachment",
-                size: msg.attachmentSize || 0,
-              }}
-            />
+        {/* Task Confirmation Card */}
+        {isBot && msg.action === "confirm_task" && msg.taskData && onTaskAction && (
+          <div className="mt-4 bg-card/50 rounded-xl p-3 border border-border/50 shadow-sm">
+            <div className="flex flex-col gap-1 mb-3">
+              <span className="font-bold text-base">{msg.taskData.title}</span>
+              <div className="flex gap-2 text-xs opacity-80">
+                {msg.taskData.priority && (
+                  <span className="capitalize">{msg.taskData.priority} Priority</span>
+                )}
+                {msg.taskData.repeat && msg.taskData.repeat !== "none" && (
+                  <span>• {msg.taskData.repeat}</span>
+                )}
+              </div>
+            </div>
+
+            <div className="flex gap-2">
+              <button
+                onClick={() => onTaskAction("confirm", msg.taskData!)}
+                className="flex-1 bg-primary text-primary-foreground py-1.5 rounded-lg text-xs font-medium hover:bg-primary/90 transition-colors"
+              >
+                Confirm
+              </button>
+              <button
+                onClick={() => onTaskAction("edit", msg.taskData!)}
+                className="flex-1 bg-muted hover:bg-muted/80 py-1.5 rounded-lg text-xs font-medium transition-colors"
+              >
+                Edit
+              </button>
+            </div>
           </div>
         )}
 
-        {/* Reactions Display - Show below timestamp to avoid overlapping */}
+        {/* Reactions Display */}
         {msg.reactions && Object.keys(msg.reactions).length > 0 && (
           <div
             className={cn(
-              "flex gap-1 mt-1 bg-background/80 backdrop-blur-sm shadow-sm border border-border rounded-full px-2 py-1 w-fit",
-              isUser ? "ml-auto" : "mr-auto"
+              "flex gap-1 mt-1 bg-background/80 backdrop-blur-sm shadow-sm border border-border rounded-full px-2 py-1 w-fit absolute -bottom-8 scale-90 z-20",
+              isUser ? "left-0" : "right-0" // Opposite side of actions if possible, or just default
             )}
+            style={{ bottom: -35 }} // Explicit positioning
             aria-label="Reactions"
           >
             {Object.entries(msg.reactions).map(([reactorId, emoji]) => (
@@ -226,67 +246,92 @@ export const ChatMessageItem = memo(function ChatMessageItem({
           </div>
         )}
 
-        {/* Hover Actions (Reply, React) - Always visible for better UX */}
-        <div
-          className={cn(
-            "absolute top-0 opacity-100 flex gap-1 z-50 transition-opacity duration-200",
-            // Mobile: Always visible. Desktop: Can be hover if preferred, but user asked for "show up"
-            "lg:opacity-0 lg:group-hover:opacity-100",
-            "before:absolute before:top-0 before:bottom-0 before:w-6 before:z-[-1]",
-            isUser
-              ? "right-full mr-2 flex-row-reverse before:-right-4"
-              : "left-full ml-2 before:-left-4"
-          )}
-        >
-          {onReply && (
-            <button
-              onClick={() => onReply(msg)}
-              className="p-1.5 bg-background shadow-sm border border-border rounded-full hover:bg-muted text-muted-foreground hover:text-primary transition-colors"
-              title="Reply"
-              aria-label="Reply to message"
-            >
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                className="w-3.5 h-3.5"
+        {/* Actions (Reply, React, Delete) - MOVED TO BOTTOM */}
+        {!msg.isDeleted && (
+          <div
+            className={cn(
+              "absolute -bottom-9 flex items-center gap-1 transition-opacity duration-200 z-10",
+              // Mobile: Always visible. Desktop: Hover.
+              "opacity-100 lg:opacity-0 lg:group-hover:opacity-100",
+              isUser ? "right-0 flex-row-reverse" : "left-0"
+            )}
+          >
+            {onReply && (
+              <button
+                onClick={() => onReply(msg)}
+                className="p-1.5 bg-background shadow-sm border border-border rounded-full hover:bg-muted text-muted-foreground hover:text-primary transition-colors hover:scale-110"
+                title="Reply"
+                aria-label="Reply"
               >
-                <polyline points="9 17 4 12 9 7" />
-                <path d="M20 18v-2a4 4 0 0 0-4-4H4" />
-              </svg>
-            </button>
-          )}
-          {onReact && (
-            <button
-              ref={reactButtonRef}
-              onClick={handleTogglePicker}
-              className="p-1.5 bg-background shadow-sm border border-border rounded-full hover:bg-muted text-muted-foreground hover:text-primary transition-colors"
-              title="React"
-              aria-label="React to message"
-              aria-expanded={showPicker}
-            >
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                className="w-3.5 h-3.5"
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  width="14"
+                  height="14"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                >
+                  <polyline points="9 17 4 12 9 7" />
+                  <path d="M20 18v-2a4 4 0 0 0-4-4H4" />
+                </svg>
+              </button>
+            )}
+            {onReact && (
+              <button
+                ref={reactButtonRef}
+                onClick={handleTogglePicker}
+                className="p-1.5 bg-background shadow-sm border border-border rounded-full hover:bg-muted text-muted-foreground hover:text-primary transition-colors hover:scale-110"
+                title="React"
+                aria-label="React"
               >
-                <circle cx="12" cy="12" r="10" />
-                <path d="M8 14s1.5 2 4 2 4-2 4-2" />
-                <line x1="9" y1="9" x2="9.01" y2="9" />
-                <line x1="15" y1="9" x2="15.01" y2="9" />
-              </svg>
-            </button>
-          )}
-        </div>
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  width="14"
+                  height="14"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                >
+                  <circle cx="12" cy="12" r="10" />
+                  <path d="M8 14s1.5 2 4 2 4-2 4-2" />
+                  <line x1="9" y1="9" x2="9.01" y2="9" />
+                  <line x1="15" y1="9" x2="15.01" y2="9" />
+                </svg>
+              </button>
+            )}
+            {onDelete && isUser && (
+              <button
+                onClick={() => onDelete(msg.id)}
+                className="p-1.5 bg-background shadow-sm border border-border rounded-full hover:bg-red-50 text-muted-foreground hover:text-red-500 transition-colors hover:scale-110"
+                title="Delete for everyone"
+                aria-label="Delete"
+              >
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  width="14"
+                  height="14"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                >
+                  <polyline points="3 6 5 6 21 6" />
+                  <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
+                  <line x1="10" y1="11" x2="10" y2="17" />
+                  <line x1="14" y1="11" x2="14" y2="17" />
+                </svg>
+              </button>
+            )}
+          </div>
+        )}
 
         {/* Emoji Picker Popup - Positioned above the action buttons */}
         <AnimatePresence>

@@ -12,9 +12,10 @@ interface ChatMessagesProps {
   user: User;
   onReply: (msg: ChatMessage) => void;
   onReact: (msg: ChatMessage, emoji: string) => void;
+  onDelete: (msgId: string) => void;
 }
 
-export function ChatMessages({ messages, user, onReply, onReact }: ChatMessagesProps) {
+export function ChatMessages({ messages, user, onReply, onReact, onDelete }: ChatMessagesProps) {
   const { language } = useLanguage();
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
@@ -43,6 +44,7 @@ export function ChatMessages({ messages, user, onReply, onReact }: ChatMessagesP
           isUser={msg.senderId === user.uid}
           onReply={onReply}
           onReact={onReact}
+          onDelete={onDelete}
         />
       ))}
 
