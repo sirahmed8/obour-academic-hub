@@ -202,8 +202,8 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
           "fixed top-0 h-full w-[85vw] max-w-[280px] lg:max-w-none lg:w-72 z-60 lg:z-30 transition-transform duration-500 cubic-bezier(0.32, 0.72, 0, 1) ease-in-out lg:translate-x-0 lg:shadow-none mr-0 overflow-hidden",
           // Mobile: rounded on right edge
           "rounded-r-[2.5rem]",
-          // Desktop: full height, acts as a layer behind navbar
-          "lg:h-full lg:rounded-tr-[2.5rem] lg:rounded-br-[2.5rem]",
+          // Desktop: starts below navbar, so rounded corner is visible
+          "lg:top-16 lg:h-[calc(100vh-4rem)] lg:rounded-tr-[2.5rem] lg:rounded-br-[2.5rem]",
           language === "ar"
             ? "right-0 lg:right-0 rounded-r-none rounded-l-[2.5rem] lg:rounded-l-none lg:rounded-tl-[2.5rem] lg:rounded-bl-[2.5rem] lg:rounded-tr-none lg:rounded-br-none"
             : "left-0 lg:left-0",
