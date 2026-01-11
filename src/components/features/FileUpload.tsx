@@ -4,6 +4,8 @@ import { useState, useRef, useEffect } from "react";
 import { Upload, FileText, Loader2, X } from "lucide-react";
 import Image from "next/image";
 
+import { motion, AnimatePresence } from "framer-motion";
+
 interface FileAttachment {
   url: string;
   type: "image" | "document";
@@ -127,13 +129,15 @@ export function FileAttachmentDisplay({ attachment }: FileAttachmentDisplayProps
         )}
       </div>
 
-      {showLightbox && (
-        <ImageLightbox
-          src={attachment.url}
-          alt={attachment.name}
-          onClose={() => setShowLightbox(false)}
-        />
-      )}
+      <AnimatePresence>
+        {showLightbox && (
+          <ImageLightbox
+            src={attachment.url}
+            alt={attachment.name}
+            onClose={() => setShowLightbox(false)}
+          />
+        )}
+      </AnimatePresence>
     </>
   );
 }
@@ -148,22 +152,33 @@ function ImageLightbox({ src, alt, onClose }: { src: string; alt: string; onClos
   }, []);
 
   return (
-    <div
-      className="fixed inset-0 z-100 bg-black/90 backdrop-blur-sm flex items-center justify-center p-4 animate-in fade-in duration-200"
+    <motion.div
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+      transition={{ duration: 0.2 }}
+      className="fixed inset-0 z-[500] bg-black/90 backdrop-blur-md flex items-center justify-center p-4 md:p-10"
       onClick={onClose}
     >
       <button
         onClick={onClose}
-        className="absolute top-4 right-4 p-2 bg-black/50 hover:bg-white/20 rounded-full text-white transition-colors"
+        className="absolute top-6 right-6 p-3 bg-black/50 hover:bg-white/20 rounded-full text-white transition-all hover:scale-110 z-[510] border border-white/10"
       >
         <X className="w-6 h-6" />
       </button>
-      <div
-        className="relative w-full h-full max-w-5xl max-h-[90vh] flex items-center justify-center"
+
+      <motion.div
+        initial={{ scale: 0.9, opacity: 0 }}
+        animate={{ scale: 1, opacity: 1 }}
+        exit={{ scale: 0.9, opacity: 0 }}
+        transition={{ type: "spring", stiffness: 300, damping: 30 }}
+        className="relative w-full h-full flex items-center justify-center p-2"
         onClick={(e) => e.stopPropagation()}
       >
-        <Image src={src} alt={alt} fill className="object-contain" quality={100} />
-      </div>
-    </div>
+        <div className="relative w-full h-full max-w-7xl max-h-[85vh]">
+          <Image src={src} alt={alt} fill className="object-contain" quality={100} priority />
+        </div>
+      </motion.div>
+    </motion.div>
   );
 }
