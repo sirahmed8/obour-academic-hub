@@ -97,6 +97,7 @@ export interface ChatMessage {
   role?: "user" | "assistant" | "system";
   action?: "confirm_task" | "live_chat";
   taskData?: Partial<TodoTask>;
+  seenBy?: string[];
 }
 
 export interface InboxMessage {
@@ -143,6 +144,7 @@ export interface SiteSettings {
 }
 
 export interface ChatSession {
+  id: string;
   userId: string;
   userName: string;
   userEmail: string;
