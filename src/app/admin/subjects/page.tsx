@@ -603,7 +603,7 @@ export default function AdminSubjectsPage() {
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
                     placeholder={language === "ar" ? "بحث..." : "Search..."}
-                    className="w-full h-10 pl-10 pr-4 rounded-xl bg-muted/40 border border-border/50 focus:border-primary focus:bg-background focus:ring-4 focus:ring-primary/10 transition-all outline-none text-sm shadow-sm"
+                    className="w-full h-10 pl-10 pr-4 rounded-full bg-muted/40 border border-border/50 focus:border-primary focus:bg-background focus:ring-4 focus:ring-primary/10 transition-all outline-none text-sm shadow-sm"
                   />
                 </motion.div>
               </div>
