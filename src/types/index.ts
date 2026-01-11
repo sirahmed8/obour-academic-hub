@@ -83,6 +83,8 @@ export interface ChatMessage {
     id: string;
     text: string;
     senderName: string;
+    attachmentUrl?: string;
+    attachmentType?: string;
   };
   reactions?: Record<string, string>;
   isDeleted?: boolean;
