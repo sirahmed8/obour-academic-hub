@@ -264,8 +264,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       if (err?.code === "auth/unauthorized-domain") {
         toast.error(
           language === "ar"
-            ? "هذا الموقع غير مصرح به في Firebase. أضف النطاق في Firebase Console."
-            : "This domain is not authorized in Firebase. Add it in Firebase Console > Authentication > Settings > Authorized Domains."
+            ? "هذا الموقع غير مصرح به. أضف النطاق في Firebase Console."
+            : "Domain not authorized. Add to Firebase Console > Auth > Settings."
+        );
+        return;
+      }
+      if (err?.code === "auth/network-request-failed") {
+        toast.error(
+          language === "ar"
+            ? "فشل في الشبكة. تحقق من 'Authorized Domains' في Firebase أو قيود API Key."
+            : "Network Error. Check 'Authorized Domains' in Firebase Console & API Key Referrer restrictions."
         );
         return;
       }
