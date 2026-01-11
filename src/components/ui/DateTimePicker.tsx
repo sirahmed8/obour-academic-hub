@@ -78,6 +78,8 @@ export function DateTimePicker({ value, onChange, onClose, language }: DateTimeP
 
   // Ref for time picker section
   const timePickerRef = useRef<HTMLDivElement>(null);
+  const hourInputRef = useRef<HTMLInputElement>(null);
+  const minuteInputRef = useRef<HTMLInputElement>(null);
 
   // Focus the container for keyboard events
   useEffect(() => {
@@ -161,7 +163,17 @@ export function DateTimePicker({ value, onChange, onClose, language }: DateTimeP
         hours,
         selectedMinute
       );
-      const formatted = finalDate.toISOString().slice(0, 16);
+
+      // Manual ISO string construction to preserve local time
+      const pad = (n: number) => n.toString().padStart(2, "0");
+      const year = finalDate.getFullYear();
+      const month = pad(finalDate.getMonth() + 1);
+      const day = pad(finalDate.getDate());
+      const h = pad(finalDate.getHours());
+      const m = pad(finalDate.getMinutes());
+
+      const formatted = `${year}-${month}-${day}T${h}:${m}`;
+
       onChange(formatted);
     }
     onClose();
@@ -374,11 +386,18 @@ export function DateTimePicker({ value, onChange, onClose, language }: DateTimeP
                   <ChevronLeft className="rotate-90" size={14} />
                 </motion.button>
                 <input
+                  ref={hourInputRef}
                   type="text"
                   inputMode="numeric"
                   value={hourInput}
                   onChange={handleHourChange}
                   onBlur={handleHourBlur}
+                  onKeyDown={(e) => {
+                    if (e.key === "ArrowRight") {
+                      e.preventDefault();
+                      minuteInputRef.current?.focus();
+                    }
+                  }}
                   className="bg-primary/10 text-primary rounded-lg px-2 py-2 text-lg font-bold w-[44px] text-center outline-none focus:ring-2 focus:ring-primary/30"
                   aria-label={language === "ar" ? "الساعة" : "Hour"}
                 />
@@ -407,11 +426,18 @@ export function DateTimePicker({ value, onChange, onClose, language }: DateTimeP
                   <ChevronLeft className="rotate-90" size={14} />
                 </motion.button>
                 <input
+                  ref={minuteInputRef}
                   type="text"
                   inputMode="numeric"
                   value={minuteInput}
                   onChange={handleMinuteChange}
                   onBlur={handleMinuteBlur}
+                  onKeyDown={(e) => {
+                    if (e.key === "ArrowLeft") {
+                      e.preventDefault();
+                      hourInputRef.current?.focus();
+                    }
+                  }}
                   className="bg-primary/10 text-primary rounded-lg px-2 py-2 text-lg font-bold w-[44px] text-center outline-none focus:ring-2 focus:ring-primary/30"
                   aria-label={language === "ar" ? "الدقائق" : "Minutes"}
                 />
@@ -490,13 +516,6 @@ export function DateTimePicker({ value, onChange, onClose, language }: DateTimeP
         >
           {language === "ar" ? "تأكيد" : "Confirm"}
         </motion.button>
-      </div>
-
-      {/* Keyboard hint */}
-      <div className="px-3 pb-2 text-[10px] text-muted-foreground/60 text-center">
-        {language === "ar"
-          ? "اضغط Enter للتأكيد • Esc للإلغاء"
-          : "Press Enter to confirm • Esc to cancel"}
       </div>
     </motion.div>
   );

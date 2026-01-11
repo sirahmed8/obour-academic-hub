@@ -12,8 +12,9 @@ import {
 import { toast } from "sonner";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { User, UserPermission } from "@/types";
-import { auth, googleProvider } from "@/lib/firebase";
+import { auth, googleProvider, db } from "@/lib/firebase";
 import { signInWithPopup, signOut, onAuthStateChanged } from "firebase/auth";
+import { doc, getDoc, updateDoc } from "firebase/firestore";
 import { authService } from "@/services/auth.service";
 
 interface AuthContextType {
@@ -65,6 +66,27 @@ export function AuthProvider({ children }: { children: ReactNode }) {
               // A. Existing User
               if (docSnap.exists()) {
                 const userData = docSnap.data();
+
+                // Sync photoURL from Google if changed or missing
+                if (firebaseUser.photoURL && userData?.photoURL !== firebaseUser.photoURL) {
+                  authService
+                    .updateUserProfile(firebaseUser.uid, {
+                      photoURL: firebaseUser.photoURL,
+                    })
+                    .catch((e) => console.error("Failed to sync photoURL:", e));
+                }
+
+                // Sync photoURL to chats collection if exists
+                if (firebaseUser.photoURL) {
+                  const chatRef = doc(db, "chats", firebaseUser.uid);
+                  getDoc(chatRef).then((chatSnap) => {
+                    if (chatSnap.exists() && chatSnap.data().userImage !== firebaseUser.photoURL) {
+                      updateDoc(chatRef, { userImage: firebaseUser.photoURL }).catch((e) =>
+                        console.error("Failed to sync chat userImage:", e)
+                      );
+                    }
+                  });
+                }
 
                 // Owner Promotion Check
                 const isOwnerEmail = firebaseUser.email === process.env.NEXT_PUBLIC_OWNER_EMAIL;
@@ -214,6 +236,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       );
       return;
     }
+
     try {
       console.log("Starting Google Sign-In...");
       const result = await signInWithPopup(auth, googleProvider);
@@ -229,8 +252,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     } catch (error: unknown) {
       const err = error as { code?: string; message?: string };
 
-      if (err?.code === "auth/popup-closed-by-user") {
-        console.warn("Login popup closed by user");
+      if (
+        err?.code === "auth/popup-closed-by-user" ||
+        err?.code === "auth/cancelled-popup-request"
+      ) {
+        console.warn("Login popup closed or cancelled:", err?.code);
         return;
       }
 

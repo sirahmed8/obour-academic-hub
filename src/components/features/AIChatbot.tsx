@@ -4,6 +4,7 @@ import { useState, useEffect, useCallback, useRef } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { X, Trash2 } from "lucide-react";
 import { useAuth, useLanguage } from "@/contexts";
+import { cn } from "@/lib/utils";
 import { db } from "@/lib/firebase";
 import { collection, query, orderBy, onSnapshot, doc } from "firebase/firestore";
 import {
@@ -19,7 +20,7 @@ import { ConfirmationModal } from "@/components/ui/ConfirmationModal";
 import { ChatMessages } from "./chatbot/ChatMessages";
 import { ChatInput } from "./chatbot/ChatInput";
 import { AnimatedIcon } from "@/components/ui/AnimatedIcon";
-import microphoneAnim from "react-useanimations/lib/microphone/microphone.json";
+import infoAnim from "react-useanimations/lib/info/info.json";
 
 /**
  * LiveSupportChat - Live Support Chat Component
@@ -30,6 +31,8 @@ export function AIChatbot() {
   const [input, setInput] = useState("");
   const [showClearConfirm, setShowClearConfirm] = useState(false);
   const [unreadCount, setUnreadCount] = useState(0);
+  const [isBtnHovered, setIsBtnHovered] = useState(false);
+  const [isHeaderHovered, setIsHeaderHovered] = useState(false);
 
   // Interaction State
   const [replyTo, setReplyTo] = useState<ChatMessage | null>(null);
@@ -139,14 +142,16 @@ export function AIChatbot() {
         replyTo
           ? {
               id: replyTo.id,
-              text: replyTo.text,
+              text: replyTo.text || null,
               senderName: replyTo.senderName || "User",
-              attachmentUrl: replyTo.attachmentUrl,
-              attachmentType: replyTo.attachmentType,
+              attachmentUrl: replyTo.attachmentUrl || null,
+              attachmentType: replyTo.attachmentType || null,
             }
           : undefined,
         "live", // always live context
-        attachment ? { ...attachment, type: attachment.type } : undefined
+        attachment ? { ...attachment, type: attachment.type } : undefined,
+        undefined, // additionalData
+        user.photoURL // Pass user photo URL here
       );
 
       // Reset Input
@@ -220,12 +225,20 @@ export function AIChatbot() {
       {/* Floating Button */}
       <motion.button
         onClick={toggleChat}
-        whileHover={{ scale: 1.1, rotate: 5 }}
-        whileTap={{ scale: 0.9 }}
+        onMouseEnter={() => setIsBtnHovered(true)}
+        onMouseLeave={() => setIsBtnHovered(false)}
         initial={{ scale: 0, opacity: 0 }}
         animate={{ scale: 1, opacity: 1 }}
         transition={{ type: "spring", stiffness: 400, damping: 25 }}
-        className="fixed bottom-6 right-6 z-200 p-4 bg-primary text-primary-foreground rounded-2xl shadow-lg shadow-primary/25 hover:shadow-xl hover:shadow-primary/30 transition-all active:scale-95 duration-200 ease-out sm:w-16 sm:h-16 w-14 h-14 flex items-center justify-center"
+        className={cn(
+          "fixed bottom-6 z-200 p-4 bg-primary text-primary-foreground rounded-2xl shadow-lg shadow-primary/25 hover:shadow-2xl hover:bg-primary/95 transition-all duration-300 sm:w-16 sm:h-16 w-14 h-14 flex items-center justify-center",
+          language === "ar" ? "left-6" : "right-6"
+        )}
+        style={{
+          isolation: "isolate",
+          WebkitFontSmoothing: "subpixel-antialiased",
+          textRendering: "geometricPrecision",
+        }}
       >
         <AnimatePresence mode="wait" initial={false}>
           {isOpen ? (
@@ -247,8 +260,14 @@ export function AIChatbot() {
               transition={{ duration: 0.2 }}
               className="relative"
             >
-              <div className="text-white dark:brightness-0 dark:invert">
-                <AnimatedIcon icon={microphoneAnim} size={28} useAnimation />
+              <div className="flex items-center justify-center">
+                <AnimatedIcon
+                  icon={infoAnim}
+                  size={40}
+                  useAnimation
+                  active={isBtnHovered}
+                  style={{ filter: "brightness(0)" }}
+                />
               </div>
               {unreadCount > 0 && (
                 <span className="absolute -top-1 -right-1 flex h-4 w-4 items-center justify-center rounded-full bg-red-500 text-[10px] font-bold text-white ring-2 ring-white">
@@ -268,19 +287,24 @@ export function AIChatbot() {
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: 20 }}
             transition={{ type: "spring", stiffness: 400, damping: 25 }}
-            className="fixed bottom-24 right-6 z-200 w-[380px] max-w-[calc(100vw-3rem)] h-[500px] max-h-[calc(100vh-8rem)] rounded-2xl flex flex-col overflow-hidden origin-bottom-right shadow-2xl glass-premium"
+            className={cn(
+              "fixed bottom-24 z-200 w-[380px] max-w-[calc(100vw-3rem)] h-[500px] max-h-[calc(100vh-8rem)] rounded-2xl flex flex-col overflow-hidden origin-bottom-right shadow-2xl bg-background/60 dark:bg-background/60 backdrop-blur-xl backdrop-saturate-150 border border-white/20 dark:border-white/10",
+              language === "ar" ? "left-6" : "right-6"
+            )}
           >
             <div className="p-4 border-b border-white/10 flex items-center justify-between">
               <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-xl bg-primary/20 flex items-center justify-center shadow-inner">
+                <div
+                  className="w-10 h-10 rounded-xl bg-primary/20 flex items-center justify-center shadow-inner"
+                  onMouseEnter={() => setIsHeaderHovered(true)}
+                  onMouseLeave={() => setIsHeaderHovered(false)}
+                >
                   <AnimatedIcon
-                    icon={microphoneAnim}
+                    icon={infoAnim}
                     size={24}
                     useAnimation
-                    style={{
-                      filter:
-                        "invert(48%) sepia(79%) saturate(2476%) hue-rotate(200deg) brightness(118%) contrast(119%)",
-                    }}
+                    active={isHeaderHovered}
+                    style={{ filter: "brightness(0)" }}
                   />
                 </div>
                 <div>

@@ -74,7 +74,7 @@ export const ChatMessageItem = memo<ChatMessageProps>(function ChatMessageItem({
       initial={{ opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
       className={cn(
-        "flex gap-3 max-w-[85%] group relative mb-4", // Added mb-4 for action spacing
+        "flex gap-3 max-w-[85%] group relative mb-6", // Increased margin for horizontal actions
         isUser ? "ml-auto flex-row-reverse" : "mr-auto"
       )}
     >
@@ -110,12 +110,16 @@ export const ChatMessageItem = memo<ChatMessageProps>(function ChatMessageItem({
         {msg.replyTo && (
           <div
             className={cn(
-              "text-[10px] px-3 py-1.5 rounded-t-xl mb-[-4px] border-b border-transparent w-full opacity-80 backdrop-blur-sm shadow-sm flex items-center gap-2",
-              isUser ? "bg-primary/20 text-foreground" : "bg-muted/50 text-muted-foreground"
+              "text-[10px] px-3 py-1.5 rounded-t-xl mb-[-4px] border-b border-white/20 dark:border-white/10 w-full shadow-sm flex items-center gap-2 backdrop-blur-xl backdrop-saturate-150",
+              isUser
+                ? "bg-primary/30 text-white"
+                : "bg-background/60 dark:bg-background/60 text-muted-foreground"
             )}
           >
+            <span className="font-bold shrink-0">{msg.replyTo.senderName}:</span>
+
             {msg.replyTo.attachmentUrl && msg.replyTo.attachmentType?.startsWith("image") && (
-              <div className="relative w-6 h-6 rounded overflow-hidden shrink-0">
+              <div className="relative w-5 h-5 rounded overflow-hidden shrink-0">
                 <Image
                   src={msg.replyTo.attachmentUrl}
                   alt="Reply Image"
@@ -124,11 +128,12 @@ export const ChatMessageItem = memo<ChatMessageProps>(function ChatMessageItem({
                 />
               </div>
             )}
-            <div className="flex-1 min-w-0">
-              <span className="font-bold mr-1">{msg.replyTo.senderName}:</span>
-              {msg.replyTo.attachmentUrl && !msg.replyTo.text
-                ? "Image"
-                : msg.replyTo.text.slice(0, 30) + (msg.replyTo.text.length > 30 ? "..." : "")}
+
+            <div className="truncate min-w-0 opacity-80">
+              {msg.replyTo.text ||
+                (msg.replyTo.attachmentUrl && !msg.replyTo.attachmentType?.startsWith("image")
+                  ? "File"
+                  : "")}
             </div>
           </div>
         )}
@@ -245,90 +250,90 @@ export const ChatMessageItem = memo<ChatMessageProps>(function ChatMessageItem({
           </div>
         )}
 
-        {/* Actions (Reply, React, Delete) - Repositioned to the side */}
+        {/* Actions (Reply, React, Delete) - Repositioned with fixed sleek background */}
         {!msg.isDeleted && (
           <div
             className={cn(
-              "absolute top-0 bottom-0 flex flex-col items-center gap-1 transition-all duration-200 z-10 py-1",
+              "absolute -top-4 flex items-center gap-1 transition-all duration-300 z-50",
               // Mobile: Always visible but smaller. Desktop: Hover.
-              "opacity-100 lg:opacity-0 lg:group-hover:opacity-100",
-              isUser ? "-left-10" : "-right-10"
+              "opacity-100 lg:opacity-0 lg:group-hover:opacity-100 lg:group-hover:-top-6",
+              isUser ? "right-0" : "left-0"
             )}
           >
-            {onReply && (
-              <button
-                onClick={() => onReply(msg)}
-                className="p-1.5 shadow-sm border border-border rounded-lg hover:bg-muted text-muted-foreground hover:text-primary transition-all hover:scale-110 active:scale-95 bg-white/10 backdrop-blur-md"
-                title="Reply"
-                aria-label="Reply"
-              >
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  width="14"
-                  height="14"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
+            <div className="flex items-center gap-1 bg-white/95 dark:bg-zinc-900/95 backdrop-blur-md border border-white/10 dark:border-white/5 rounded-full p-1 shadow-lg transform hover:scale-105 transition-transform">
+              {onReply && (
+                <button
+                  onClick={() => onReply(msg)}
+                  className="p-1.5 rounded-full hover:bg-white/50 dark:hover:bg-white/10 text-muted-foreground hover:text-primary transition-all active:scale-95"
+                  title="Reply"
+                  aria-label="Reply"
                 >
-                  <polyline points="9 17 4 12 9 7" />
-                  <path d="M20 18v-2a4 4 0 0 0-4-4H4" />
-                </svg>
-              </button>
-            )}
-            {onReact && (
-              <button
-                ref={reactButtonRef}
-                onClick={handleTogglePicker}
-                className="p-1.5 shadow-sm border border-border rounded-lg hover:bg-muted text-muted-foreground hover:text-primary transition-all hover:scale-110 active:scale-95 bg-white/10 backdrop-blur-md"
-                title="React"
-                aria-label="React"
-              >
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  width="14"
-                  height="14"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    width="14"
+                    height="14"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2.5"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  >
+                    <polyline points="9 17 4 12 9 7" />
+                    <path d="M20 18v-2a4 4 0 0 0-4-4H4" />
+                  </svg>
+                </button>
+              )}
+              {onReact && (
+                <button
+                  ref={reactButtonRef}
+                  onClick={handleTogglePicker}
+                  className="p-1.5 rounded-full hover:bg-white/50 dark:hover:bg-white/10 text-muted-foreground hover:text-primary transition-all active:scale-95"
+                  title="React"
+                  aria-label="React"
                 >
-                  <circle cx="12" cy="12" r="10" />
-                  <path d="M8 14s1.5 2 4 2 4-2 4-2" />
-                  <line x1="9" y1="9" x2="9.01" y2="9" />
-                  <line x1="15" y1="9" x2="15.01" y2="9" />
-                </svg>
-              </button>
-            )}
-            {onDelete && isUser && (
-              <button
-                onClick={() => onDelete(msg.id)}
-                className="p-1.5 shadow-sm border border-border rounded-lg hover:bg-red-50 text-muted-foreground hover:text-red-500 transition-all hover:scale-110 active:scale-95 bg-white/10 backdrop-blur-md"
-                title="Delete for everyone"
-                aria-label="Delete"
-              >
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  width="14"
-                  height="14"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    width="14"
+                    height="14"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2.5"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  >
+                    <circle cx="12" cy="12" r="10" />
+                    <path d="M8 14s1.5 2 4 2 4-2 4-2" />
+                    <line x1="9" y1="9" x2="9.01" y2="9" />
+                    <line x1="15" y1="9" x2="15.01" y2="9" />
+                  </svg>
+                </button>
+              )}
+              {onDelete && isUser && (
+                <button
+                  onClick={() => onDelete(msg.id)}
+                  className="p-1.5 rounded-full hover:bg-white/50 dark:hover:bg-white/10 text-muted-foreground hover:text-destructive transition-all active:scale-95"
+                  title="Delete"
+                  aria-label="Delete"
                 >
-                  <polyline points="3 6 5 6 21 6" />
-                  <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
-                  <line x1="10" y1="11" x2="10" y2="17" />
-                  <line x1="14" y1="11" x2="14" y2="17" />
-                </svg>
-              </button>
-            )}
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    width="14"
+                    height="14"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2.5"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  >
+                    <polyline points="3 6 5 6 21 6" />
+                    <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
+                  </svg>
+                </button>
+              )}
+            </div>
           </div>
         )}
 
@@ -340,9 +345,9 @@ export const ChatMessageItem = memo<ChatMessageProps>(function ChatMessageItem({
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.9 }}
               className={cn(
-                "absolute z-50 flex gap-1 bg-background p-2 rounded-2xl shadow-xl border border-border",
+                "absolute z-50 flex gap-1 bg-zinc-100/90 dark:bg-zinc-800/90 backdrop-blur-xl p-2 rounded-2xl shadow-2xl border border-white/10",
                 isUser ? "right-0" : "left-0",
-                pickerPlacement === "above" ? "bottom-full mb-2" : "top-full mt-2"
+                pickerPlacement === "above" ? "bottom-full mb-3" : "top-full mt-3"
               )}
             >
               {QUICK_EMOJIS.map((emoji) => {

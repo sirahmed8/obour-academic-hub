@@ -219,6 +219,23 @@
   box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
 }
 
+.glass-premium {
+  background: rgba(255, 255, 255, 0.4) !important;
+  backdrop-filter: blur(25px) saturate(200%) !important;
+  -webkit-backdrop-filter: blur(25px) saturate(200%) !important;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12);
+}
+
+.dark .glass-premium {
+  /* Forced transparency and blur */
+  background: rgba(15, 15, 25, 0.2) !important;
+  backdrop-filter: blur(25px) saturate(200%) !important;
+  -webkit-backdrop-filter: blur(25px) saturate(200%) !important;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+}
+
 /* ============================================
    ANIMATIONS & UTILITIES
    ============================================ */
@@ -275,9 +292,22 @@
   @apply bg-white/10 dark:bg-black/10 backdrop-blur-xl backdrop-saturate-150 border border-white/20 dark:border-white/10 shadow-lg;
 }
 
-/* Ultra-Premium "Pure" Glass - For Navbar, Sidebar, Menus */
-.glass-premium {
-  @apply bg-white/40 dark:bg-black/30 backdrop-blur-xl backdrop-saturate-150 border-b border-white/20 dark:border-white/10 shadow-sm;
+/* Refined Glass Card for Hard Accuracy (Zero Blur on Text) */
+.glass-card-refined {
+  @apply bg-white/40 dark:bg-black/30 backdrop-blur-xl backdrop-saturate-150 border border-white/20 dark:border-white/10 shadow-sm;
+  isolation: isolate;
+  backface-visibility: hidden;
+  -webkit-font-smoothing: subpixel-antialiased;
+  text-rendering: geometricPrecision;
+}
+
+.glass-card-refined::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  border-radius: inherit;
+  pointer-events: none;
 }
 
 /* New Safe Glass Utility with Layout Isolation */

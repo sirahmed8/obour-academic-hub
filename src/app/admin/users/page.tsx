@@ -44,6 +44,8 @@ interface UserRowData {
   }) => void;
   togglePermission: (uid: string, perms: UserPermission[], p: UserPermission) => void;
   canEditUser: (u: UserType) => boolean;
+  imageError: Record<string, boolean>;
+  setImageError: React.Dispatch<React.SetStateAction<Record<string, boolean>>>;
 }
 
 // --- Extracted Row Component using React.memo to prevent re-renders ---
@@ -66,6 +68,8 @@ const TableRow = ({
     setEditModal,
     togglePermission,
     canEditUser,
+    imageError,
+    setImageError,
   } = rowProps;
 
   return (
@@ -89,12 +93,14 @@ const TableRow = ({
         )}
         <Image
           src={
-            user.photoURL ||
-            `https://ui-avatars.com/api/?name=${user.displayName}&background=6366f1&color=fff`
+            user.photoURL && !imageError[user.uid]
+              ? user.photoURL
+              : `https://ui-avatars.com/api/?name=${user.displayName}&background=6366f1&color=fff`
           }
           alt={user.displayName}
           width={40}
           height={40}
+          onError={() => setImageError((prev) => ({ ...prev, [user.uid]: true }))}
           className="rounded-full shrink-0"
         />
         <div className="truncate">
@@ -206,6 +212,7 @@ export default function AdminUsersPage() {
   const [limitCount, setLimitCount] = useState(50);
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedUsers, setSelectedUsers] = useState<Set<string>>(new Set());
+  const [imageError, setImageError] = useState<Record<string, boolean>>({});
 
   // Custom Resize Logic Replaces AutoSizer
   const [containerSize, setContainerSize] = useState({ width: 0, height: 0 });
@@ -534,12 +541,14 @@ export default function AdminUsersPage() {
                           )}
                           <Image
                             src={
-                              user.photoURL ||
-                              `https://ui-avatars.com/api/?name=${user.displayName}&background=6366f1&color=fff`
+                              user.photoURL && !imageError[user.uid]
+                                ? user.photoURL
+                                : `https://ui-avatars.com/api/?name=${user.displayName}&background=6366f1&color=fff`
                             }
                             alt={user.displayName}
                             width={44}
                             height={44}
+                            onError={() => setImageError((prev) => ({ ...prev, [user.uid]: true }))}
                             className="rounded-full shrink-0"
                           />
                           <div className="flex-1 min-w-0">
@@ -673,6 +682,8 @@ export default function AdminUsersPage() {
                       setEditModal,
                       togglePermission,
                       canEditUser,
+                      imageError,
+                      setImageError,
                     }}
                     style={{ height: containerSize.height, width: containerSize.width }}
                   />

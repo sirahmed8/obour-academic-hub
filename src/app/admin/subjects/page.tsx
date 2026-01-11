@@ -425,7 +425,7 @@ export default function AdminSubjectsPage() {
                                       color.value,
                                       isSelected
                                         ? "ring-2 ring-primary ring-offset-2 scale-110 shadow-md"
-                                        : "opacity-60 hover:opacity-100 hover:scale-105"
+                                        : "opacity-60 hover:opacity-100"
                                     )}
                                     title={color.label}
                                   >

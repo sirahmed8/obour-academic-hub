@@ -47,27 +47,32 @@ export function MessageBubble({ msg, onReply, onReact, onDelete }: MessageBubble
       initial={{ opacity: 0, y: 10, scale: 0.95 }}
       animate={{ opacity: 1, y: 0, scale: 1 }}
       className={cn(
-        "flex flex-col group relative max-w-[75%] w-fit",
+        "flex flex-col group relative max-w-[75%] w-fit mb-6", // Added mb-6 for horizontal actions
         isMe || isBot ? "ml-auto items-end" : "mr-auto items-start"
       )}
     >
-      {/* Reply Preview */}
+      {/* Reply Preview (Message Header) */}
       {msg.replyTo && (
         <div
           className={cn(
-            "text-[10px] px-3 py-1.5 rounded-t-xl mb-[-4px] border-b border-transparent w-full opacity-80 backdrop-blur-sm",
-            isMe ? "bg-primary/20 text-foreground" : "bg-muted/50 text-muted-foreground"
+            "text-[10px] px-3 py-1.5 rounded-t-xl mb-[-4px] border-b border-white/20 dark:border-white/10 w-full shadow-sm flex items-center gap-2 backdrop-blur-xl backdrop-saturate-150",
+            isMe
+              ? "bg-primary/30 text-white"
+              : "bg-background/60 dark:bg-background/60 text-muted-foreground"
           )}
         >
-          <span className="font-bold mr-1">{msg.replyTo.senderName}:</span>
-          <div className="flex items-center gap-2 truncate">
+          <div className="flex-1 min-w-0 flex items-center gap-2">
+            <span className="font-bold shrink-0">{msg.replyTo.senderName}:</span>
+
             {msg.replyTo.attachmentUrl && msg.replyTo.attachmentType === "image" && (
-              <div className="relative w-6 h-6 rounded overflow-hidden shrink-0 border border-white/10">
+              <div className="relative w-5 h-5 rounded overflow-hidden shrink-0 border border-white/10">
                 <Image src={msg.replyTo.attachmentUrl} alt="Reply" fill className="object-cover" />
               </div>
             )}
-            <span className="truncate">
-              {msg.replyTo.text || (msg.replyTo.attachmentUrl ? "Image" : "")}
+
+            <span className="truncate opacity-80">
+              {msg.replyTo.text ||
+                (msg.replyTo.attachmentUrl && msg.replyTo.attachmentType !== "image" ? "File" : "")}
             </span>
           </div>
         </div>
@@ -138,38 +143,39 @@ export function MessageBubble({ msg, onReply, onReact, onDelete }: MessageBubble
         )}
       </div>
 
-      {/* Actions (Hover) */}
-      {/* Actions (Hover) - Moved to bottom */}
+      {/* Actions (Hover) - Repositioned with fixed sleek background */}
       {!msg.isDeleted && (
         <div
           className={cn(
-            "absolute top-0 bottom-0 flex flex-col items-center gap-1 opacity-0 group-hover:opacity-100 transition-all duration-200 z-50 py-1",
-            isMe ? "-left-10" : "-right-10"
+            "absolute -top-4 flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-all duration-300 z-50",
+            isMe ? "right-0 group-hover:-top-6" : "left-0 group-hover:-top-6"
           )}
         >
-          <button
-            onClick={() => onReply(msg)}
-            className="p-1.5 bg-background/60 backdrop-blur-md rounded-lg border border-border shadow-sm hover:bg-primary/10 text-muted-foreground hover:text-primary transition-all hover:scale-110"
-            title="Reply"
-          >
-            <Reply size={14} />
-          </button>
-          <button
-            onClick={(e) => onReact(msg.id, e.currentTarget)}
-            className="p-1.5 bg-background/60 backdrop-blur-md rounded-lg border border-border shadow-sm hover:bg-primary/10 text-muted-foreground hover:text-primary transition-all hover:scale-110"
-            title="React"
-          >
-            <Smile size={14} />
-          </button>
-          {isMe && (
+          <div className="flex items-center gap-1 bg-white/95 dark:bg-zinc-900/95 backdrop-blur-md border border-white/10 dark:border-white/5 rounded-full p-1 shadow-lg transform hover:scale-105 transition-transform">
             <button
-              onClick={() => onDelete(msg.id)}
-              className="p-1.5 bg-background/60 backdrop-blur-md rounded-lg border border-border shadow-sm hover:bg-destructive/10 text-muted-foreground hover:text-destructive transition-all hover:scale-110"
-              title="Delete for everyone"
+              onClick={() => onReply(msg)}
+              className="p-1.5 rounded-full hover:bg-white/50 dark:hover:bg-white/10 text-muted-foreground hover:text-primary transition-all active:scale-95"
+              title="Reply"
             >
-              <Trash2 size={14} />
+              <Reply size={14} />
             </button>
-          )}
+            <button
+              onClick={(e) => onReact(msg.id, e.currentTarget)}
+              className="p-1.5 rounded-full hover:bg-white/50 dark:hover:bg-white/10 text-muted-foreground hover:text-primary transition-all active:scale-95"
+              title="React"
+            >
+              <Smile size={14} />
+            </button>
+            {isMe && (
+              <button
+                onClick={() => onDelete(msg.id)}
+                className="p-1.5 rounded-full hover:bg-white/50 dark:hover:bg-white/10 text-muted-foreground hover:text-destructive transition-all active:scale-95"
+                title="Delete for everyone"
+              >
+                <Trash2 size={14} />
+              </button>
+            )}
+          </div>
         </div>
       )}
     </motion.div>

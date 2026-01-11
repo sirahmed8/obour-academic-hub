@@ -36,8 +36,6 @@ export function SubjectCard({ subject, resourceCount = 0 }: SubjectCardProps) {
   return (
     <Link href={`/subject?id=${subject.id}`}>
       <motion.div
-        whileHover={{ y: -5, scale: 1.02 }}
-        whileTap={{ scale: 0.98 }}
         onMouseEnter={() => setIsHovered(true)}
         onMouseLeave={() => setIsHovered(false)}
         className="group bg-card rounded-2xl p-6 border border-border card-hover cursor-pointer relative overflow-hidden transition-all duration-300 shadow-sm hover:shadow-xl"
@@ -54,7 +52,7 @@ export function SubjectCard({ subject, resourceCount = 0 }: SubjectCardProps) {
           {/* Icon - Fixed to use the full subject color */}
           <div
             className={cn(
-              "relative w-14 h-14 rounded-2xl flex items-center justify-center flex-shrink-0 animate-in fade-in zoom-in duration-500",
+              "relative w-14 h-14 rounded-2xl flex items-center justify-center shrink-0 animate-in fade-in zoom-in duration-500",
               bgColorClass
             )}
           >

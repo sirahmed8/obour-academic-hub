@@ -29,7 +29,8 @@ export const sendMessage = async (
   replyTo: ChatMessage["replyTo"] = undefined,
   context: "bot" | "live" = "live",
   attachment?: { url: string; name: string; size: number; type: string },
-  additionalData?: { action?: "confirm_task" | "live_chat"; taskData?: Partial<TodoTask> }
+  additionalData?: { action?: "confirm_task" | "live_chat"; taskData?: Partial<TodoTask> },
+  userImage?: string
 ) => {
   if (!text.trim() && !attachment && !additionalData?.taskData) return;
 
@@ -57,7 +58,15 @@ export const sendMessage = async (
     senderName,
     timestamp,
     status: isAdmin ? "seen" : "sent", // Admin msgs are seen by definition (by admin)
-    replyTo: replyTo || null, // Ensure explicit null if undefined
+    replyTo: replyTo
+      ? {
+          id: replyTo.id,
+          text: replyTo.text || null,
+          senderName: replyTo.senderName || "User",
+          attachmentUrl: replyTo.attachmentUrl || null,
+          attachmentType: replyTo.attachmentType || null,
+        }
+      : null,
     reactions: {},
     isDeleted: false,
     type: attachment ? (attachment.type.startsWith("image") ? "image" : "file") : "text",
@@ -91,6 +100,9 @@ export const sendMessage = async (
     // Ensure basic info is set if it's the first message from user
     updateData.userId = chatId;
     updateData.userName = senderName; // Only update user name if it's the user sending
+    if (userImage) {
+      updateData.userImage = userImage;
+    }
     // We might want to track separate unread counts for bot?
     // updateData.botUnreadCount = increment(1);
   } else {

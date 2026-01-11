@@ -47,6 +47,7 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
     const unsubNotif = onSnapshot(
       notifQuery,
       (snapshot) => {
+        // 1. Process all docs for the Badge Count
         const all = snapshot.docs.map((d) => ({ id: d.id, ...d.data() }) as AppNotification);
         const relevant = all.filter((n) => {
           if (n.target === "all" || !n.target) return true;
@@ -57,6 +58,58 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
 
         const unread = relevant.filter((n) => !n.readBy?.includes(user.uid)).length;
         setUnreadCount(unread);
+
+        // 2. Handle Browser Notifications for NEW items only
+        // We skip the initial load (snapshot.metadata.fromCache might be true, or just ignore first run)
+        // But a cleaner way for 'added' events in realtime:
+        snapshot.docChanges().forEach((change) => {
+          if (change.type === "added") {
+            const n = { id: change.doc.id, ...change.doc.data() } as AppNotification;
+
+            // Check relevance
+            let isRelevant = false;
+            if (n.target === "all" || !n.target) isRelevant = true;
+            else if (n.target === "admins" && isAdmin) isRelevant = true;
+            else if (n.target === user.uid) isRelevant = true;
+
+            // Only notify if:
+            // - It is relevant
+            // - It was created recently (within last 10 seconds) -> prevents old notifications from blasting on reload
+            // - We are NOT in the very first render cycle (Snapshot usually fires immediately)
+            // A simple timestamp check is robust:
+            let createdAtDate: Date;
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            const rawCreatedAt = n.createdAt as any;
+
+            if (rawCreatedAt?.toDate) {
+              createdAtDate = rawCreatedAt.toDate();
+            } else if (typeof rawCreatedAt === "string" || typeof rawCreatedAt === "number") {
+              createdAtDate = new Date(rawCreatedAt);
+            } else {
+              createdAtDate = new Date(); // Fallback
+            }
+
+            const now = new Date();
+            const isRecent = now.getTime() - createdAtDate.getTime() < 10000; // 10 seconds
+
+            if (isRelevant && isRecent) {
+              // Use the service
+              import("@/services/notification.service").then(({ notificationService }) => {
+                const title =
+                  language === "ar"
+                    ? n.titleAr || n.title || "إشعار جديد"
+                    : n.titleEn || n.title || "New Notification";
+                const body =
+                  language === "ar" ? n.messageAr || n.message : n.messageEn || n.message;
+
+                notificationService.sendBrowserNotification(title, {
+                  body,
+                  tag: n.id, // Prevent duplicates
+                });
+              });
+            }
+          }
+        });
       },
       (error) => {
         console.error("Sidebar: Notification listener error", error);
@@ -90,7 +143,7 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
       unsubNotif();
       unsubChats();
     };
-  }, [user, isAdmin]);
+  }, [user, isAdmin, language]);
 
   // Helper function to check if path is active
   const isActivePath = (itemPath: string) => {
@@ -200,37 +253,48 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
       <aside
         className={cn(
           "fixed top-0 h-full w-[85vw] max-w-[280px] lg:max-w-none lg:w-72 z-60 lg:z-30 transition-transform duration-500 cubic-bezier(0.32, 0.72, 0, 1) ease-in-out lg:translate-x-0 lg:shadow-none mr-0 overflow-hidden",
-          // Mobile: rounded on right edge
+          // Mobile: rounded
           "rounded-r-[2.5rem]",
-          // Desktop: starts below navbar, so rounded corner is visible
-          "lg:top-16 lg:h-[calc(100vh-4rem)] lg:rounded-tr-[2.5rem] lg:rounded-br-[2.5rem]",
+          // Desktop: Top-0 for blur, NO top-right round (covered by curtain/navbar)
+          "lg:rounded-tr-none lg:rounded-br-[2.5rem]",
           language === "ar"
             ? "right-0 lg:right-0 rounded-r-none rounded-l-[2.5rem] lg:rounded-l-none lg:rounded-tl-[2.5rem] lg:rounded-bl-[2.5rem] lg:rounded-tr-none lg:rounded-br-none"
             : "left-0 lg:left-0",
           isOpen ? "translate-x-0" : language === "ar" ? "translate-x-full" : "-translate-x-full"
         )}
       >
-        {/* Visual Background Layer - Full Glass */}
-        <div
-          className={cn(
-            "absolute inset-0 bg-background/80 backdrop-blur-xl border-r border-white/10 dark:border-white/5 shadow-2xl transition-all rounded-tr-2xl rounded-br-2xl",
-            "lg:shadow-none",
-            language === "ar" &&
-              "border-r-0 border-l rounded-tr-none rounded-br-none rounded-tl-2xl rounded-bl-2xl"
-          )}
-        />
+        {/* Visual Background Layer */}
+        <div className="absolute inset-0 z-0 pointer-events-none overflow-hidden">
+          {/* 1. Full Height Blur Track (No Borders) */}
+          <div className="absolute inset-0 backdrop-blur-xl" />
 
-        {/* Scrollable Content Container - Full Height with Padding for Navbar */}
-        <div className="relative z-10 h-full flex flex-col lg:block lg:mr-1 rounded-tr-2xl rounded-br-2xl">
-          {/* Mobile Header - Fixed at top, outside scrollview */}
-          {/* Mobile Header - Absolute for scroll-under blur */}
+          {/* 2. Top Border Segment: Only for the area behind Navbar (Logo area) */}
+          <div
+            className={cn(
+              "absolute top-0 h-16 w-full transition-all border-white/10 dark:border-white/5",
+              language === "ar" ? "border-l" : "border-r"
+            )}
+          />
+
+          {/* 3. Main Body: Color Fill + Corner Highlight + Borders */}
+          {/* We start at top-16 and use a slightly more opaque background for better definition */}
+          <div
+            className={cn(
+              "absolute top-16 bottom-0 inset-x-0 bg-background/95 transition-all border-white/10 dark:border-white/5",
+              // Borders and Corners based on language
+              language === "ar"
+                ? "border-l border-b rounded-bl-[2.5rem]"
+                : "border-r border-b rounded-br-[2.5rem]"
+            )}
+          />
+        </div>
+
+        {/* Scrollable Content Container - Starts from top-0 to allow content under Navbar (blur) */}
+        <div className="relative z-10 h-full flex flex-col lg:mr-1">
+          {/* Mobile Header - Visible only on Mobile */}
           <div className="absolute top-0 left-0 right-0 z-20 h-16 flex items-center justify-between px-4 border-b border-white/10 lg:hidden pointer-events-none">
-            {/* Pointer events none on container, auto on interactive children if any */}
-            {/* Translucent background with blur to show content behind */}
             <div className="absolute inset-0 bg-background/20 backdrop-blur-xl backdrop-saturate-150 -z-10" />
-
             <div className="flex items-center gap-3">
-              {/* Square Logo with Rounded Corners */}
               <div className="relative w-10 h-10 shrink-0 rounded-xl overflow-hidden ring-2 ring-white/20 shadow-lg bg-white">
                 <Image
                   src="/obour-logo.png"
@@ -251,11 +315,18 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
             </div>
           </div>
 
-          {/* Navigation Content - Scrollable */}
-          {/* Navigation Content - Scrollable with padding for header */}
-          <div className="h-full overflow-y-auto pt-16 lg:pt-16 overscroll-contain">
-            {/* Navigation Content */}
-            <div className="py-4">
+          {/* 
+            Navigation Content - Scrollable: h-full allows scrolling behind Navbar.
+            We use a custom style for the scrollbar track to force it to start below the Navbar (64px).
+          */}
+          <div
+            className={cn(
+              "flex-1 overflow-y-auto overscroll-contain h-full pt-17 lg:pt-[68px]",
+              "[&::-webkit-scrollbar-track]:mt-[64px]"
+            )}
+          >
+            {/* Custom Scrollbar applied via CSS or class if needed, or default browser scrollbar inside clipped area */}
+            <div className="pb-4">
               <nav ref={navRef} onScroll={handleScroll} className="space-y-1 px-2">
                 {/* Main Nav */}
                 <div className="space-y-2">

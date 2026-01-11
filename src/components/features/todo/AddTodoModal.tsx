@@ -219,7 +219,7 @@ export function AddTodoModal({
           exit="exit"
           variants={modalBackdrop}
           className={cn(
-            "fixed inset-0 z-[999] flex items-start justify-center p-4 pt-8 pb-8 overflow-y-auto bg-black/60 backdrop-blur-md backdrop-saturate-150"
+            "fixed inset-0 z-999 flex items-start justify-center p-4 pt-8 pb-8 overflow-y-auto bg-black/60 backdrop-blur-md backdrop-saturate-150"
           )}
         >
           <motion.div
@@ -415,16 +415,17 @@ export function AddTodoModal({
                   <AnimatePresence mode="popLayout">
                     {subtasks.map((st) => (
                       <motion.div
+                        layout
                         key={st.id}
-                        initial={{ opacity: 0, x: -20, height: 0 }}
-                        animate={{ opacity: 1, x: 0, height: "auto" }}
-                        exit={{ opacity: 0, x: 20, height: 0 }}
-                        transition={{ type: "spring", damping: 25, stiffness: 300 }}
+                        initial={{ opacity: 0, scale: 0.95, y: -10 }}
+                        animate={{ opacity: 1, scale: 1, y: 0 }}
+                        exit={{ opacity: 0, scale: 0.95, y: -10 }}
+                        transition={{ duration: 0.2 }}
                         className="flex items-center gap-3 group p-2 rounded-lg hover:bg-background/50 transition-colors"
                       >
                         <div
                           className={cn(
-                            "w-2.5 h-2.5 rounded-full ring-2 ring-offset-2 ring-offset-background",
+                            "w-2.5 h-2.5 rounded-full ring-2 ring-offset-2 ring-offset-background shrink-0",
                             st.completed
                               ? "bg-green-500 ring-green-500/20"
                               : "bg-muted-foreground/30 ring-muted-foreground/10"

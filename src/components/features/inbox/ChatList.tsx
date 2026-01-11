@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import { useLanguage } from "@/contexts";
 import { ChatSession } from "@/types";
 import { cn } from "@/lib/utils";
@@ -28,6 +29,7 @@ export function ChatList({
   onDeleteSession,
 }: ChatListProps) {
   const { language, t } = useLanguage();
+  const [imageError, setImageError] = useState<Record<string, boolean>>({});
 
   const formatTime = (
     timestamp: { toDate?: () => Date; seconds?: number } | Date | number | null | undefined
@@ -74,8 +76,6 @@ export function ChatList({
         </div>
       </div>
 
-      {/* Tabs */}
-
       {/* List */}
       <div className="flex-1 overflow-y-auto px-4 py-2 space-y-2 scrollbar-hide">
         {isLoading ? (
@@ -100,8 +100,6 @@ export function ChatList({
                     : "hover:bg-white/5 hover:border-white/5"
                 )}
               >
-                {/* Active Indicator */}
-                {/* Active Indicator */}
                 {selectedSessionId === session.userId && (
                   <motion.div
                     initial={{ opacity: 0, height: 0 }}
@@ -114,77 +112,81 @@ export function ChatList({
                   <div className="relative shrink-0">
                     <Image
                       src={
-                        session.userImage ||
-                        `https://ui-avatars.com/api/?name=${session.userName || "User"}&background=6366f1&color=fff`
+                        session.userImage && !imageError[session.userId]
+                          ? session.userImage
+                          : `https://ui-avatars.com/api/?name=${session.userName || "User"}&background=6366f1&color=fff`
                       }
                       alt={session.userName}
-                      width={64}
-                      height={64}
+                      width={48}
+                      height={48}
                       quality={100}
+                      onError={() => setImageError((prev) => ({ ...prev, [session.userId]: true }))}
                       className="rounded-xl shadow-sm group-hover:scale-105 transition-transform object-cover h-12 w-12 bg-muted/20"
                     />
-                    {/* Online Dot (Simulation) */}
                     <div className="absolute -bottom-1 -right-1 w-3 h-3 bg-green-500 rounded-full border-2 border-card" />
                   </div>
 
                   <div className="flex-1 min-w-0 flex flex-col justify-center">
-                    <div className="flex justify-between items-center mb-1 w-full">
+                    <div className="flex justify-between items-start mb-2 w-full relative">
                       <h3
                         className={cn(
-                          "font-bold text-sm truncate max-w-[65%] transition-colors",
-                          (session.adminUnreadCount || 0) > 0 ? "text-primary" : "text-foreground"
+                          "font-bold text-sm truncate max-w-[65%] transition-colors mt-0.5",
+                          (session.adminUnreadCount || 0) > 0
+                            ? "text-primary/95"
+                            : "text-foreground"
                         )}
                       >
                         {session.userName}
                       </h3>
 
-                      {/* Time & Badges Container - Fades out on hover */}
-                      <div className="flex items-center gap-1.5 shrink-0 transition-opacity duration-200 group-hover:opacity-0">
-                        {/* Pin Icon (Visible if pinned) */}
-                        {session.isPinned && (
-                          <Pin size={12} className="text-primary fill-current" />
-                        )}
-
-                        <span className="text-[10px] text-muted-foreground opacity-70 whitespace-nowrap">
-                          {formatTime(session.lastMessageTime)}
-                        </span>
-                      </div>
-
-                      {/* Actions (Hover) - Fades in on hover (Takes place of timestamp) */}
-                      <div className="absolute right-0 top-0 bottom-0 flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none group-hover:pointer-events-auto">
-                        <button
-                          onClick={(e) => onTogglePin(e, session)}
-                          className={cn(
-                            "p-1 rounded-md hover:bg-primary/10 transition-colors",
-                            session.isPinned ? "text-primary" : "text-muted-foreground"
+                      {/* Info & Actions Swapper */}
+                      <div className="relative h-5 flex items-center justify-end shrink-0 min-w-[60px]">
+                        {/* Time - Fades out on hover */}
+                        <div className="flex items-center gap-1.5 transition-opacity duration-200 group-hover:opacity-0 absolute right-0">
+                          {session.isPinned && (
+                            <Pin size={12} className="text-primary fill-current" />
                           )}
-                          title={session.isPinned ? "Unpin" : "Pin"}
-                        >
-                          <Pin size={14} className={cn(session.isPinned && "fill-current")} />
-                        </button>
-                        <button
-                          onClick={(e) => onToggleRead(e, session)}
-                          className="p-1 rounded-md hover:bg-primary/10 text-muted-foreground hover:text-primary transition-colors"
-                          title={
-                            (session.adminUnreadCount || 0) > 0 ? "Mark as Read" : "Mark as Unread"
-                          }
-                        >
-                          {(session.adminUnreadCount || 0) > 0 ? (
-                            <CheckCheck size={14} />
-                          ) : (
-                            <MessageSquare size={14} />
-                          )}
-                        </button>
-                        <button
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            onDeleteSession?.(session.userId);
-                          }}
-                          className="p-1 rounded-md hover:bg-destructive/10 text-muted-foreground hover:text-destructive transition-colors"
-                          title="Delete Chat"
-                        >
-                          <Trash2 size={14} />
-                        </button>
+                          <span className="text-[10px] text-muted-foreground opacity-70 whitespace-nowrap">
+                            {formatTime(session.lastMessageTime)}
+                          </span>
+                        </div>
+
+                        {/* Actions - Fades in on hover & Shifted Up */}
+                        <div className="flex items-center gap-0.5 opacity-0 group-hover:opacity-100 transition-all duration-200 pointer-events-none group-hover:pointer-events-auto absolute right-0 -top-1.5">
+                          <button
+                            onClick={(e) => onTogglePin(e, session)}
+                            className={cn(
+                              "p-1 rounded-md hover:bg-primary/10 transition-colors",
+                              session.isPinned ? "text-primary" : "text-muted-foreground/60"
+                            )}
+                            title={session.isPinned ? "Unpin" : "Pin"}
+                          >
+                            <Pin size={14} className={cn(session.isPinned && "fill-current")} />
+                          </button>
+                          <button
+                            onClick={(e) => onToggleRead(e, session)}
+                            className="p-1 rounded-md hover:bg-primary/10 text-muted-foreground/60 hover:text-primary transition-colors"
+                            title={
+                              (session.adminUnreadCount || 0) > 0 ? "Mark Read" : "Mark Unread"
+                            }
+                          >
+                            {(session.adminUnreadCount || 0) > 0 ? (
+                              <CheckCheck size={14} />
+                            ) : (
+                              <MessageSquare size={14} />
+                            )}
+                          </button>
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              onDeleteSession?.(session.userId);
+                            }}
+                            className="p-1 rounded-md hover:bg-destructive/10 text-muted-foreground/60 hover:text-destructive transition-colors"
+                            title="Delete Chat"
+                          >
+                            <Trash2 size={14} />
+                          </button>
+                        </div>
                       </div>
                     </div>
 
@@ -200,7 +202,7 @@ export function ChatList({
                         {session.lastMessage || "No messages"}
                       </p>
 
-                      {/* Unread Badge (Right aligned) */}
+                      {/* Unread Badge */}
                       {(session.adminUnreadCount || 0) > 0 && (
                         <div className="min-w-5 h-5 bg-linear-to-r from-primary to-purple-600 text-white text-[10px] font-bold rounded-full flex items-center justify-center px-1 shadow-md shadow-primary/20 animate-in zoom-in">
                           {session.adminUnreadCount}

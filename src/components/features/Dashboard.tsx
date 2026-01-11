@@ -35,14 +35,12 @@ export function Dashboard() {
 
   return (
     <div className="p-6 lg:p-10 space-y-8 w-full page-transition">
-      {/* Greeting Banner */}
-      {/* Greeting Banner */}
-      {/* Greeting Banner (Refined: Plain Solid Color - Darker) */}
-      <div className="relative rounded-3xl overflow-hidden shadow-none bg-[#1a1b3a] border border-white/5">
+      {/* Greeting Banner (Dynamic: Primary in Light, Dark in Dark) */}
+      <div className="relative rounded-3xl overflow-hidden shadow-none bg-primary dark:bg-[#1a1b3a] border border-white/5 transition-colors duration-300">
         {/* Content */}
-        <div className="relative z-10 p-8 lg:p-10 text-white">
-          <div className="flex items-center gap-2 text-white/90 mb-3">
-            <Sparkles size={20} className="text-yellow-300" />
+        <div className="relative z-10 p-8 lg:p-10 text-primary-foreground dark:text-white">
+          <div className="flex items-center gap-2 text-primary-foreground/90 dark:text-white/90 mb-3">
+            <Sparkles size={20} className="text-yellow-300 dark:text-yellow-300" />
             <span className="text-sm font-bold tracking-wide uppercase opacity-90">
               {t("dashboard.bannerTitle")}
             </span>
@@ -62,12 +60,12 @@ export function Dashboard() {
             })()}
           </h1>
 
-          <p className="text-white/80 text-lg font-medium max-w-2xl leading-relaxed">
+          <p className="text-primary-foreground/80 dark:text-white/80 text-lg font-medium max-w-2xl leading-relaxed">
             {t("dashboard.bannerSubtitle")}
           </p>
 
           {isAdmin && (
-            <div className="mt-6 inline-flex items-center gap-2 px-4 py-2 bg-white/20 text-white rounded-full text-sm font-bold border border-white/20 backdrop-blur-md shadow-lg hover:bg-white/30 transition-colors">
+            <div className="mt-6 inline-flex items-center gap-2 px-4 py-2 bg-primary-foreground/20 dark:bg-white/20 text-primary-foreground dark:text-white rounded-full text-sm font-bold border border-primary-foreground/20 dark:border-white/20 backdrop-blur-md shadow-lg hover:bg-primary-foreground/30 dark:hover:bg-white/30 transition-colors">
               <span className="w-2.5 h-2.5 bg-green-400 rounded-full shadow-sm" />
               {t("dashboard.adminMode")}
             </div>

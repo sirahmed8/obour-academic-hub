@@ -3,6 +3,7 @@
 import { useState, useRef } from "react";
 import { Menu } from "lucide-react"; // Only imported what is used
 import { useAuth, useLanguage } from "@/contexts";
+import { cn } from "@/lib/utils";
 import Image from "next/image";
 import { ProfileMenu } from "./ProfileMenu";
 import { AnimatePresence } from "framer-motion";
@@ -14,12 +15,19 @@ interface NavbarProps {
 export function Navbar({ onMenuClick }: NavbarProps) {
   const [showSettings, setShowSettings] = useState(false);
   const { user } = useAuth();
-  const { t } = useLanguage();
+  const { t, language, dir } = useLanguage();
   const mobileMenuButtonRef = useRef<HTMLButtonElement>(null); // Renamed for clarity
   const profileMenuButtonRef = useRef<HTMLButtonElement>(null); // Added for clarity
 
   return (
-    <header className="fixed top-0 left-0 right-0 h-16 z-50 transition-all duration-300 overflow-visible bg-background/60 dark:bg-background/60 backdrop-blur-xl backdrop-saturate-150 border-b border-white/10 shadow-sm rounded-b-[2rem]">
+    <header className="fixed top-0 left-0 right-0 h-16 z-50 transition-all duration-300 overflow-visible">
+      {/* Visual Background Layer - Offset on Desktop to avoid Sidebar overlap */}
+      <div
+        className={cn(
+          "absolute inset-0 bg-background/60 dark:bg-background/60 backdrop-blur-xl backdrop-saturate-150 rounded-b-4xl"
+        )}
+      />
+
       {/* Inner Glow Removed */}
 
       {/* VIVID Spotlight Removed */}
@@ -37,7 +45,7 @@ export function Navbar({ onMenuClick }: NavbarProps) {
 
         {/* Logo - Visible on Desktop Only */}
         <div className="hidden lg:flex items-center gap-2">
-          <div className="relative w-10 h-10 flex-shrink-0 rounded-xl overflow-hidden ring-2 ring-white/20 shadow-lg bg-white">
+          <div className="relative w-10 h-10 shrink-0 rounded-xl overflow-hidden ring-2 ring-white/20 shadow-lg bg-white">
             <Image
               src="/obour-logo.png"
               alt="Obour Logo"
@@ -105,6 +113,8 @@ export function Navbar({ onMenuClick }: NavbarProps) {
           <AnimatePresence>
             {showSettings && (
               <ProfileMenu
+                key={language}
+                direction={dir || "ltr"}
                 onClose={() => setShowSettings(false)}
                 triggerRef={profileMenuButtonRef as React.RefObject<HTMLElement>}
               />

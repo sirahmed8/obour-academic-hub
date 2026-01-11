@@ -33,6 +33,7 @@ import { motion } from "framer-motion";
 import { useGlobalKeyboard } from "@/hooks/useGlobalKeyboard";
 import { usePerformance } from "@/hooks/usePerformance";
 import { PageTransition } from "@/components/ui/Animations";
+import { LanguageTransition } from "@/components/ui/LanguageTransition";
 
 export function AppShell({ children }: { children: React.ReactNode }) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -149,62 +150,64 @@ export function AppShell({ children }: { children: React.ReactNode }) {
       {/* Top Navigation Bar (Full Width) */}
       <Navbar onMenuClick={() => setSidebarOpen((prev) => !prev)} />
       {/* Main Layout Area */}
-      <div className="flex w-full h-full">
-        {/* Sidebar handles its own top padding on desktop */}
-        <Sidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
-        <div className="flex-1 flex flex-col h-full overflow-hidden relative transition-all duration-300">
-          <LiveBanner />
-          <main
-            id="main-content"
-            className="flex-1 w-full h-full overflow-y-auto pb-24 lg:pb-10 pt-16 scrollbar-offset-navbar"
-            style={{ scrollbarGutter: "stable" }}
-          >
-            {/* Page content with smooth transition */}
-            <motion.div
-              className={cn(
-                "min-h-full flex flex-col w-full",
-                language === "ar" ? "lg:pr-72" : "lg:pl-72" // Push content for Fixed Sidebar
-              )}
+      <LanguageTransition>
+        <div className="flex w-full h-full">
+          {/* Sidebar handles its own top padding on desktop */}
+          <Sidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
+          <div className="flex-1 flex flex-col h-full overflow-hidden relative transition-all duration-300">
+            <LiveBanner />
+            <main
+              id="main-content"
+              className="flex-1 w-full h-full overflow-y-auto pb-24 lg:pb-10 pt-16 scrollbar-offset-navbar"
+              style={{ scrollbarGutter: "stable" }}
             >
-              <PageTransition>{children}</PageTransition>
-            </motion.div>
-
-            <footer
-              className={cn(
-                "py-8 mt-auto text-center space-y-4",
-                language === "ar" ? "lg:pr-72" : "lg:pl-72"
-              )}
-            >
-              <a
-                href="https://linktr.ee/sir.ahmed"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="inline-flex items-center gap-2 px-6 py-3 bg-linear-to-r from-primary to-purple-600 text-primary-foreground rounded-full font-medium hover:opacity-90 transition-all shadow-lg"
+              {/* Page content with smooth transition */}
+              <motion.div
+                className={cn(
+                  "min-h-full flex flex-col w-full",
+                  language === "ar" ? "lg:pr-72" : "lg:pl-72" // Push content for Fixed Sidebar
+                )}
               >
-                <ExternalLink className="w-4 h-4" />
-                {language === "ar" ? "تواصل مع المطور" : "Connect with Developer"}
-              </a>
-              <div className="flex flex-wrap justify-center gap-4 text-xs text-muted-foreground/60">
-                <Link href="/legal/privacy" className="hover:text-primary transition-colors">
-                  {language === "ar" ? "سياسة الخصوصية" : "Privacy Policy"}
-                </Link>
-                <span>•</span>
-                <Link href="/legal/terms" className="hover:text-primary transition-colors">
-                  {language === "ar" ? "شروط الاستخدام" : "Terms of Service"}
-                </Link>
-                <span>•</span>
-                <Link href="/legal/cookies" className="hover:text-primary transition-colors">
-                  {language === "ar" ? "ملفات الارتباط" : "Cookie Policy"}
-                </Link>
-              </div>
+                <PageTransition>{children}</PageTransition>
+              </motion.div>
 
-              <p className="text-[10px] text-muted-foreground/40">
-                &copy; 2026 Obour Academic Hub. All rights reserved.
-              </p>
-            </footer>
-          </main>
+              <footer
+                className={cn(
+                  "py-8 mt-auto text-center space-y-4",
+                  language === "ar" ? "lg:pr-72" : "lg:pl-72"
+                )}
+              >
+                <a
+                  href="https://linktr.ee/sir.ahmed"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-2 px-6 py-3 bg-linear-to-r from-primary to-purple-600 text-primary-foreground rounded-full font-medium hover:opacity-90 transition-all shadow-lg"
+                >
+                  <ExternalLink className="w-4 h-4" />
+                  {language === "ar" ? "تواصل مع المطور" : "Connect with Developer"}
+                </a>
+                <div className="flex flex-wrap justify-center gap-4 text-xs text-muted-foreground/60">
+                  <Link href="/legal/privacy" className="hover:text-primary transition-colors">
+                    {language === "ar" ? "سياسة الخصوصية" : "Privacy Policy"}
+                  </Link>
+                  <span>•</span>
+                  <Link href="/legal/terms" className="hover:text-primary transition-colors">
+                    {language === "ar" ? "شروط الاستخدام" : "Terms of Service"}
+                  </Link>
+                  <span>•</span>
+                  <Link href="/legal/cookies" className="hover:text-primary transition-colors">
+                    {language === "ar" ? "ملفات الارتباط" : "Cookie Policy"}
+                  </Link>
+                </div>
+
+                <p className="text-[10px] text-muted-foreground/40">
+                  &copy; 2026 Obour Academic Hub. All rights reserved.
+                </p>
+              </footer>
+            </main>
+          </div>
         </div>
-      </div>{" "}
+      </LanguageTransition>
       {/* Close Main Layout Area */}
       <AIChatbot />
       {/* Profile Setup Modal */}

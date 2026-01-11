@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { X, Megaphone, AlertCircle, CheckCircle2, XCircle } from "lucide-react";
 import { collection, query, where, onSnapshot } from "firebase/firestore";
@@ -19,6 +19,12 @@ export function LiveBanner() {
   const [banners, setBanners] = useState<Banner[]>([]);
   const { language } = useLanguage();
   const [sessionClosedBanners, setSessionClosedBanners] = useState<string[]>([]);
+
+  // Keep latest language in ref to avoid re-subscribing
+  const languageRef = useRef(language);
+  useEffect(() => {
+    languageRef.current = language;
+  }, [language]);
 
   // Load permanently closed banners from localStorage (lazy initializer)
   const [permanentlyClosedBanners, setPermanentlyClosedBanners] = useState<string[]>(() => {
@@ -40,6 +46,40 @@ export function LiveBanner() {
 
     const unsubscribe = onSnapshot(q, (snapshot) => {
       setBanners(snapshot.docs.map((d) => ({ id: d.id, ...d.data() }) as Banner));
+
+      // Browser Notification for NEW Banners
+      snapshot.docChanges().forEach((change) => {
+        if (change.type === "added") {
+          const banner = { id: change.doc.id, ...change.doc.data() } as Banner;
+
+          // Check recency (optional but good for reload spam prevention)
+          // Banners might not have createdAt, but they are "Active".
+          // If we assume real-time adding, we can just notify.
+          // But on reload, all active banners are "added".
+          // We can use a simple session-start timestamp check if banner has timestamp.
+          // If not detailed, we might skip notification on first load?
+          // For now, let's assume we want to notify if it's genuinely new.
+          // Since I can't easily check timestamp if it's not in the type, I will import notificationService and use "Live Banner" as title.
+
+          // Actually, let's just use the fact that this runs on client.
+          // If we want to be safe, we can check if document has metadata.fromCache?
+          // NotificationService has logic. Let's just import and fire, but maybe wrap in a check.
+
+          if (!snapshot.metadata.fromCache) {
+            const currentLang = languageRef.current;
+            import("@/services/notification.service").then(({ notificationService }) => {
+              const title = currentLang === "ar" ? "تنبيه هام 📢" : "Important Announcement 📢";
+              const body = currentLang === "ar" ? banner.textAr : banner.textEn;
+
+              notificationService.sendBrowserNotification(title, {
+                body,
+                tag: `banner-${banner.id}`, // Prevent duplicates
+                requireInteraction: banner.type === "urgent",
+              });
+            });
+          }
+        }
+      });
     });
 
     return () => unsubscribe();

@@ -38,7 +38,9 @@ export function ThemeToggle() {
               className={cn(
                 "flex-1 p-1.5 rounded-md flex items-center justify-center transition-all relative z-10",
                 "focus-visible:ring-2 focus-visible:ring-primary focus-visible:outline-none",
-                isActive ? "text-primary" : "text-muted-foreground hover:text-foreground"
+                isActive
+                  ? "text-primary"
+                  : "text-muted-foreground hover:text-foreground hover:bg-muted/80"
               )}
               title={t.label}
             >

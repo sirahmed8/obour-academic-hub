@@ -13,28 +13,27 @@ import { motion, Variants } from "framer-motion";
 interface ProfileMenuProps {
   onClose: () => void;
   triggerRef?: React.RefObject<HTMLElement>;
+  direction: "ltr" | "rtl";
 }
 
 // Check if we're on client side (for SSR-safe portal)
 const isClient = typeof window !== "undefined";
 
 const menuVariants: Variants = {
-  hidden: { opacity: 0, scale: 0.9, y: -20 },
+  hidden: { opacity: 0, scale: 0.95 },
   visible: {
     opacity: 1,
     scale: 1,
-    y: 0,
-    transition: { type: "spring", duration: 0.3, bounce: 0.2 },
+    transition: { duration: 0.2, ease: "easeOut" },
   },
   exit: {
     opacity: 0,
-    scale: 0.9,
-    y: -20,
-    transition: { duration: 0.2 },
+    scale: 0.95,
+    transition: { duration: 0.15, ease: "easeIn" },
   },
 };
 
-export function ProfileMenu({ onClose, triggerRef }: ProfileMenuProps) {
+export function ProfileMenu({ onClose, triggerRef, direction }: ProfileMenuProps) {
   const { user, logout } = useAuth();
   const { language, setLanguage, t } = useLanguage();
   const { toggleSolidMode, isSolid } = useSolidMode();
@@ -106,8 +105,8 @@ export function ProfileMenu({ onClose, triggerRef }: ProfileMenuProps) {
         animate="visible"
         exit="exit"
         className={cn(
-          "fixed top-20 w-72 glass-premium rounded-2xl z-[70] p-4 space-y-4 shadow-2xl overflow-y-auto max-h-[calc(100vh-6rem)] scrollbar-hide",
-          language === "ar" ? "left-4 origin-top-left" : "right-4 origin-top-right"
+          "fixed top-20 w-72 bg-background/60 dark:bg-background/60 backdrop-blur-xl backdrop-saturate-150 border border-white/20 dark:border-white/10 shadow-2xl rounded-2xl z-300 p-4 space-y-4 overflow-y-auto max-h-[calc(100vh-6rem)] scrollbar-hide",
+          direction === "rtl" ? "left-4 origin-top-left" : "right-4 origin-top-right"
         )}
       >
         <div className="pt-2 border-t border-border">

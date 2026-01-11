@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Send, X, Upload, Loader2 } from "lucide-react";
 import Image from "next/image";
@@ -32,12 +32,25 @@ export function ChatInput({
   children,
 }: ChatInputProps) {
   const { language } = useLanguage();
+  const inputRef = useRef<HTMLInputElement>(null);
 
   const [isDragging, setIsDragging] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
+  const [stagedAttachment, setStagedAttachment] = useState<{
+    url: string;
+    name: string;
+    size: number;
+    type: "image" | "document";
+  } | null>(null);
+
+  // Auto-focus when replyTo changes
+  useEffect(() => {
+    if (replyTo) {
+      inputRef.current?.focus();
+    }
+  }, [replyTo]);
 
   const onUpload = async (file: File) => {
-    // Validate size (10MB)
     if (file.size > 10 * 1024 * 1024) {
       toast.error(
         language === "ar" ? "الملف كبير جداً (حد أقصى 10 ميجا)" : "File too large (max 10MB)"
@@ -48,14 +61,14 @@ export function ChatInput({
     setIsUploading(true);
     try {
       const result = await uploadFileToFirebase(file);
-
-      // Send immediately
-      handleSend(undefined, {
+      setStagedAttachment({
         url: result.url,
         name: result.name,
         size: result.size,
         type: result.type as "image" | "document",
       });
+      // Don't send immediately, allow user to add text
+      inputRef.current?.focus();
     } catch (error) {
       console.error(error);
       toast.error(language === "ar" ? "فشل رفع الملف" : "Upload failed");
@@ -72,12 +85,12 @@ export function ChatInput({
   };
 
   const triggerSend = () => {
-    if (!input.trim() || isUploading) return;
-    handleSend(input);
-    setInput(""); // Clear input after sending
+    if ((!input.trim() && !stagedAttachment) || isUploading) return;
+    handleSend(input, stagedAttachment || undefined);
+    setInput("");
+    setStagedAttachment(null);
   };
 
-  // Paste Handler
   const handlePaste = (e: React.ClipboardEvent) => {
     const items = e.clipboardData.items;
     for (const item of items) {
@@ -85,13 +98,12 @@ export function ChatInput({
         const file = item.getAsFile();
         if (file) {
           onUpload(file);
-          e.preventDefault(); // Prevent double paste if it's text+image? acts mostly for image
+          e.preventDefault();
         }
       }
     }
   };
 
-  // Drag & Drop Handlers
   const handleDragOver = (e: React.DragEvent) => {
     e.preventDefault();
     setIsDragging(true);
@@ -122,10 +134,8 @@ export function ChatInput({
       onDragLeave={handleDragLeave}
       onDrop={handleDrop}
     >
-      {/* Optional children */}
       {children}
 
-      {/* Drag Overlay */}
       {isDragging && (
         <div className="absolute inset-0 z-50 flex items-center justify-center bg-primary/20 backdrop-blur-sm rounded-t-2xl pointer-events-none">
           <div className="bg-background/80 p-4 rounded-xl shadow-xl flex flex-col items-center animate-bounce">
@@ -145,9 +155,13 @@ export function ChatInput({
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: 10, scale: 0.95 }}
             transition={{ duration: 0.2, ease: "easeOut" }}
-            className="absolute bottom-full left-0 right-0 mb-2 mx-3 flex items-center justify-between text-xs bg-muted/70 backdrop-blur-xl px-3 py-2 rounded-xl border border-primary/20 shadow-xl z-40"
+            className="absolute bottom-full left-0 right-0 mb-2 mx-3 flex items-center justify-between text-xs bg-secondary text-secondary-foreground px-3 py-2 rounded-2xl border border-white/20 dark:border-white/10 shadow-2xl z-40"
           >
-            <div className="flex items-center gap-2 truncate">
+            <div className="flex items-center gap-2 truncate flex-1">
+              <span className="font-bold text-primary shrink-0 opacity-80">
+                {language === "ar" ? "الرد على:" : "Replying to:"}
+              </span>
+
               {replyTo.attachmentUrl && replyTo.attachmentType === "image" && (
                 <div className="relative w-8 h-8 rounded-lg overflow-hidden shrink-0 border border-white/10">
                   <Image
@@ -158,32 +172,71 @@ export function ChatInput({
                   />
                 </div>
               )}
-              <div className="truncate">
-                <span className="font-bold mr-1">
-                  {language === "ar" ? "الرد على" : "Replying to"}:
-                </span>
-                {replyTo.text || (language === "ar" ? "صورة" : "Image")}
-              </div>
+
+              <span className="truncate opacity-80">
+                {/* Only show text if it exists. If it's just an image, show nothing here (thumbnail handles it) */}
+                {replyTo.text ||
+                  (replyTo.attachmentUrl && replyTo.attachmentType !== "image"
+                    ? language === "ar"
+                      ? "ملف"
+                      : "File"
+                    : "")}
+              </span>
             </div>
+
             <button
               onClick={() => setReplyTo(null)}
-              className="p-1 hover:bg-background rounded-full"
+              className="p-1.5 hover:bg-destructive hover:text-white rounded-full transition-all duration-200"
               aria-label={language === "ar" ? "إلغاء الرد" : "Cancel reply"}
             >
-              <X className="w-3 h-3" />
+              <X className="w-4 h-4" />
             </button>
           </motion.div>
         )}
       </AnimatePresence>
 
+      {/* Staged Attachment Preview */}
+      <AnimatePresence>
+        {stagedAttachment && (
+          <motion.div
+            initial={{ opacity: 0, scale: 0.9 }}
+            animate={{ opacity: 1, scale: 1 }}
+            exit={{ opacity: 0, scale: 0.9 }}
+            className="absolute bottom-full left-0 mb-2 ml-3 p-2 bg-background/80 backdrop-blur-md rounded-xl border border-white/10 shadow-lg z-40 group"
+          >
+            <div className="relative w-24 h-24 rounded-lg overflow-hidden">
+              {stagedAttachment.type === "image" ? (
+                <Image src={stagedAttachment.url} alt="Staged" fill className="object-cover" />
+              ) : (
+                <div className="flex flex-col items-center justify-center w-full h-full bg-secondary/50">
+                  <Upload className="w-8 h-8 text-primary opacity-50" />
+                  <span className="text-[8px] truncate mt-1 px-1 w-full text-center">
+                    {stagedAttachment.name}
+                  </span>
+                </div>
+              )}
+              <button
+                onClick={() => setStagedAttachment(null)}
+                className="absolute top-1 right-1 p-1 bg-black/50 hover:bg-destructive text-white rounded-full opacity-0 group-hover:opacity-100 transition-all"
+              >
+                <X className="w-3 h-3" />
+              </button>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
       <div className="flex gap-2 items-end">
-        {/* Input Container */}
         <div className="flex-1 flex items-center gap-2 bg-muted/50 border border-transparent focus-within:ring-2 focus-within:ring-primary/20 focus-within:border-primary/50 rounded-xl px-2 py-1 transition-all h-full min-h-[44px]">
           <FileUpload
-            onFileUploaded={(attachment) => handleSend(undefined, attachment)}
+            onFileUploaded={(attachment) => {
+              setStagedAttachment(attachment);
+              inputRef.current?.focus();
+            }}
             language={language as "en" | "ar"}
           />
           <input
+            ref={inputRef}
             value={input}
             onChange={(e) => setInput(e.target.value)}
             onKeyDown={handleKeyPress}
@@ -194,7 +247,7 @@ export function ChatInput({
 
         <button
           onClick={triggerSend}
-          disabled={!input.trim() || isUploading}
+          disabled={(!input.trim() && !stagedAttachment) || isUploading}
           className="p-3 bg-primary text-primary-foreground rounded-xl hover:opacity-90 transition-opacity disabled:opacity-50 shadow-md h-[44px] flex items-center justify-center shrink-0"
           aria-label={language === "ar" ? "إرسال" : "Send"}
         >

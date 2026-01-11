@@ -191,7 +191,7 @@ export default function NotificationsPage() {
                   )}
                 >
                   <div className="flex items-start gap-4">
-                    <div className={cn("p-3 rounded-xl flex-shrink-0", getColors(notif.type))}>
+                    <div className={cn("p-3 rounded-xl shrink-0", getColors(notif.type))}>
                       <Icon size={24} />
                     </div>
                     <div className="flex-1">

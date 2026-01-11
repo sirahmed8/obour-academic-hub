@@ -196,7 +196,7 @@ export default function AdminLogsPage() {
               {filteredLogs.map((log) => (
                 <ScaleIn key={log.id}>
                   <div className="group bg-card p-4 rounded-2xl border border-border hover:shadow-xl hover:shadow-primary/5 hover:border-primary/20 transition-all duration-300 flex items-start gap-4">
-                    <div className="p-3 bg-muted rounded-xl transition-transform group-hover:scale-110 duration-300">
+                    <div className="p-3 bg-muted rounded-xl duration-300">
                       {getLogIcon(log.action)}
                     </div>
 
