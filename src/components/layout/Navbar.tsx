@@ -43,6 +43,7 @@ export function Navbar({ onMenuClick }: NavbarProps) {
           onClick={onMenuClick}
           className="p-2 -ml-2 hover:bg-white/10 rounded-full lg:hidden transition-colors active:scale-95"
           ref={mobileMenuButtonRef}
+          aria-label={t("navbar.toggleMenu")}
         >
           <Menu className="w-6 h-6 text-foreground" />
         </button>
@@ -76,6 +77,9 @@ export function Navbar({ onMenuClick }: NavbarProps) {
             ref={profileMenuButtonRef}
             onClick={() => setShowSettings(!showSettings)}
             className="flex items-center gap-2 p-2 hover:bg-muted/20 rounded-xl transition-colors relative"
+            aria-label={t("navbar.profileMenu")}
+            aria-haspopup="true"
+            aria-expanded={showSettings}
           >
             {user && (
               <>

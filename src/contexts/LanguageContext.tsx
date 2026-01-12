@@ -50,6 +50,8 @@ const translations: Record<Language, Record<string, string>> = {
     // Navbar
     "navbar.title": "Obour Hub",
     "navbar.subtitle": "Smart Learning System",
+    "navbar.toggleMenu": "Toggle menu",
+    "navbar.profileMenu": "User settings",
 
     // Profile
     "profile.settings": "Settings",
@@ -155,6 +157,8 @@ const translations: Record<Language, Record<string, string>> = {
     // Navbar
     "navbar.title": "منصة العبور",
     "navbar.subtitle": "نظام إدارة التعلم الذكي",
+    "navbar.toggleMenu": "القائمة الرئيسية",
+    "navbar.profileMenu": "إعدادات المستخدم",
 
     // Profile
     "profile.settings": "الإعدادات",
