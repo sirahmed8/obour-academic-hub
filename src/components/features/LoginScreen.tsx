@@ -53,14 +53,14 @@ export function LoginScreen() {
 
       {/* Grid Pattern Overlay */}
       <div
-        className="absolute inset-0 bg-[linear-gradient(to_right,#80808012_1px,transparent_1px),linear-gradient(to_bottom,#80808012_1px,transparent_1px)] bg-[size:24px_24px] pointer-events-none mask-fade-out"
+        className="absolute inset-0 bg-[linear-gradient(to_right,#80808012_1px,transparent_1px),linear-gradient(to_bottom,#80808012_1px,transparent_1px)] bg-size-[24px_24px] pointer-events-none mask-fade-out"
         style={{ maskImage: "radial-gradient(ellipse at center, black, transparent 80%)" }}
       />
 
       <ScaleIn className="w-full max-w-md relative z-10 p-6">
         <div className="relative group">
           {/* Glow Effect behind card */}
-          <div className="absolute -inset-1 bg-linear-to-r from-primary/30 to-purple-600/30 rounded-[2rem] blur-xl opacity-75 group-hover:opacity-100 transition duration-1000 group-hover:duration-200" />
+          <div className="absolute -inset-1 bg-linear-to-r from-primary/30 to-purple-600/30 rounded-4xl blur-xl opacity-75 group-hover:opacity-100 transition duration-1000 group-hover:duration-200" />
 
           <div className="relative bg-black/40 backdrop-blur-2xl backdrop-saturate-150 border border-white/10 rounded-[1.75rem] p-8 md:p-12 shadow-2xl ring-1 ring-white/5">
             <div className="flex flex-col items-center justify-center gap-8 mb-10">
@@ -104,7 +104,7 @@ export function LoginScreen() {
                 className="relative w-full py-4 bg-white text-black font-bold text-base rounded-xl hover:bg-white/90 transition-all shadow-lg hover:shadow-xl hover:shadow-white/10 flex items-center justify-center gap-3 disabled:opacity-70 disabled:cursor-not-allowed overflow-hidden group/btn"
               >
                 {/* Shimmer Effect */}
-                <div className="absolute inset-0 -translate-x-full group-hover/btn:translate-x-full hover:duration-1000 duration-[1500ms] bg-linear-to-r from-transparent via-black/5 to-transparent z-10 transition-transform ease-in-out" />
+                <div className="absolute inset-0 -translate-x-full group-hover/btn:translate-x-full hover:duration-1000 duration-1500 bg-linear-to-r from-transparent via-black/5 to-transparent z-10 transition-transform ease-in-out" />
 
                 {loading ? (
                   <Loader2 className="animate-spin" size={20} />
