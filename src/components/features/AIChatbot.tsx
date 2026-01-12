@@ -3,7 +3,7 @@
 import { useState, useEffect, useCallback, useRef } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { X, Trash2 } from "lucide-react";
-import { useAuth, useLanguage } from "@/contexts";
+import { useAuth, useLanguage, useSolidMode } from "@/contexts";
 import { cn } from "@/lib/utils";
 import { db } from "@/lib/firebase";
 import { collection, query, orderBy, onSnapshot, doc } from "firebase/firestore";
@@ -42,6 +42,7 @@ export function AIChatbot() {
 
   const { user } = useAuth();
   const { language } = useLanguage();
+  const { isSolid } = useSolidMode();
 
   // Refs to track state inside effect without triggering re-subscription
   const isOpenRef = useRef(isOpen);
@@ -288,7 +289,10 @@ export function AIChatbot() {
             exit={{ opacity: 0, y: 20 }}
             transition={{ type: "spring", stiffness: 400, damping: 25 }}
             className={cn(
-              "fixed bottom-24 z-200 w-[380px] max-w-[calc(100vw-3rem)] h-[500px] max-h-[calc(100vh-8rem)] rounded-2xl flex flex-col overflow-hidden origin-bottom-right shadow-2xl bg-background/60 dark:bg-background/60 backdrop-blur-xl backdrop-saturate-150 border border-white/20 dark:border-white/10",
+              "fixed bottom-24 z-200 w-[380px] max-w-[calc(100vw-3rem)] h-[500px] max-h-[calc(100vh-8rem)] rounded-2xl flex flex-col overflow-hidden origin-bottom-right shadow-2xl border border-white/20 dark:border-white/10 transition-all duration-300",
+              isSolid
+                ? "bg-background shadow-xl"
+                : "bg-background/60 dark:bg-background/60 backdrop-blur-xl backdrop-saturate-150",
               language === "ar" ? "left-6" : "right-6"
             )}
           >

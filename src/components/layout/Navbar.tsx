@@ -2,7 +2,7 @@
 
 import { useState, useRef } from "react";
 import { Menu } from "lucide-react"; // Only imported what is used
-import { useAuth, useLanguage } from "@/contexts";
+import { useAuth, useLanguage, useSolidMode } from "@/contexts";
 import { cn } from "@/lib/utils";
 import Image from "next/image";
 import { ProfileMenu } from "./ProfileMenu";
@@ -16,6 +16,7 @@ export function Navbar({ onMenuClick }: NavbarProps) {
   const [showSettings, setShowSettings] = useState(false);
   const { user } = useAuth();
   const { t, language, dir } = useLanguage();
+  const { isSolid } = useSolidMode();
   const mobileMenuButtonRef = useRef<HTMLButtonElement>(null); // Renamed for clarity
   const profileMenuButtonRef = useRef<HTMLButtonElement>(null); // Added for clarity
 
@@ -24,7 +25,10 @@ export function Navbar({ onMenuClick }: NavbarProps) {
       {/* Visual Background Layer - Offset on Desktop to avoid Sidebar overlap */}
       <div
         className={cn(
-          "absolute inset-0 bg-background/60 dark:bg-background/60 backdrop-blur-xl backdrop-saturate-150 rounded-b-4xl"
+          "absolute inset-0 transition-all duration-300 rounded-b-4xl",
+          isSolid
+            ? "bg-background shadow-md"
+            : "bg-background/60 dark:bg-background/60 backdrop-blur-xl backdrop-saturate-150"
         )}
       />
 

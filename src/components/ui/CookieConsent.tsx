@@ -3,11 +3,13 @@
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Cookie } from "lucide-react";
-import { useLanguage } from "@/contexts";
+import { useLanguage, useSolidMode } from "@/contexts";
+import { cn } from "@/lib/utils";
 
 export function CookieConsent() {
   const [isVisible, setIsVisible] = useState(false);
   const { language } = useLanguage();
+  const { isSolid } = useSolidMode();
 
   useEffect(() => {
     const consent = localStorage.getItem("cookie_consent");
@@ -35,7 +37,14 @@ export function CookieConsent() {
           exit={{ y: 100, opacity: 0 }}
           className="fixed bottom-0 inset-x-0 z-50 p-4 md:p-6"
         >
-          <div className="max-w-4xl mx-auto bg-background/60 dark:bg-background/60 backdrop-blur-xl backdrop-saturate-150 border border-white/20 dark:border-white/10 shadow-2xl rounded-2xl p-4 md:p-6 flex flex-col md:flex-row items-center gap-4 md:gap-8">
+          <div
+            className={cn(
+              "max-w-4xl mx-auto border border-white/20 dark:border-white/10 shadow-2xl rounded-2xl p-4 md:p-6 flex flex-col md:flex-row items-center gap-4 md:gap-8 transition-all duration-300",
+              isSolid
+                ? "bg-background shadow-xl"
+                : "bg-background/60 dark:bg-background/60 backdrop-blur-xl backdrop-saturate-150"
+            )}
+          >
             <div className="p-3 bg-primary/10 rounded-full text-primary shrink-0">
               <Cookie size={24} />
             </div>

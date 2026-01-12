@@ -105,7 +105,10 @@ export function ProfileMenu({ onClose, triggerRef, direction }: ProfileMenuProps
         animate="visible"
         exit="exit"
         className={cn(
-          "fixed top-20 w-72 bg-background/60 dark:bg-background/60 backdrop-blur-xl backdrop-saturate-150 border border-white/20 dark:border-white/10 shadow-2xl rounded-2xl z-300 p-4 space-y-4 overflow-y-auto max-h-[calc(100vh-6rem)] scrollbar-hide",
+          "fixed top-20 w-72 border border-white/20 dark:border-white/10 shadow-2xl rounded-2xl z-300 p-4 space-y-4 overflow-y-auto max-h-[calc(100vh-6rem)] scrollbar-hide transition-all duration-300",
+          isSolid
+            ? "bg-background shadow-xl"
+            : "bg-background/60 dark:bg-background/60 backdrop-blur-xl backdrop-saturate-150",
           direction === "rtl" ? "left-4 origin-top-left" : "right-4 origin-top-right"
         )}
       >

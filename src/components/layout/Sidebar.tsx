@@ -4,7 +4,7 @@ import { useEffect, useState, useRef } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import Image from "next/image";
-import { useAuth, useLanguage } from "@/contexts";
+import { useAuth, useLanguage, useSolidMode } from "@/contexts";
 import { Notification as AppNotification } from "@/types";
 import { cn } from "@/lib/utils";
 import { db } from "@/lib/firebase";
@@ -34,6 +34,7 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
   const pathname = usePathname();
   const { user, isAdmin, isOwner } = useAuth();
   const { t, language } = useLanguage();
+  const { isSolid } = useSolidMode();
   const [unreadCount, setUnreadCount] = useState(0);
   const [inboxUnreadCount, setInboxUnreadCount] = useState(0);
 
@@ -266,7 +267,12 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
         {/* Visual Background Layer */}
         <div className="absolute inset-0 z-0 pointer-events-none overflow-hidden">
           {/* 1. Full Height Blur Track (No Borders) */}
-          <div className="absolute inset-0 backdrop-blur-xl" />
+          <div
+            className={cn(
+              "absolute inset-0 transition-all duration-300",
+              !isSolid && "backdrop-blur-xl"
+            )}
+          />
 
           {/* 2. Top Border Segment: Only for the area behind Navbar (Logo area) */}
           <div
@@ -280,7 +286,8 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
           {/* We start at top-16 and use a slightly more opaque background for better definition */}
           <div
             className={cn(
-              "absolute top-16 bottom-0 inset-x-0 bg-background/95 transition-all border-white/10 dark:border-white/5",
+              "absolute top-16 bottom-0 inset-x-0 transition-all duration-300 border-white/10 dark:border-white/5",
+              isSolid ? "bg-background shadow-lg" : "bg-background/95",
               // Borders and Corners based on language
               language === "ar"
                 ? "border-l border-b rounded-bl-[2.5rem]"
@@ -293,7 +300,14 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
         <div className="relative z-10 h-full flex flex-col lg:mr-1">
           {/* Mobile Header - Visible only on Mobile */}
           <div className="absolute top-0 left-0 right-0 z-20 h-16 flex items-center justify-between px-4 border-b border-white/10 lg:hidden pointer-events-none">
-            <div className="absolute inset-0 bg-background/20 backdrop-blur-xl backdrop-saturate-150 -z-10" />
+            <div
+              className={cn(
+                "absolute inset-0 transition-all duration-300 -z-10",
+                isSolid
+                  ? "bg-background"
+                  : "bg-background/20 backdrop-blur-xl backdrop-saturate-150"
+              )}
+            />
             <div className="flex items-center gap-3">
               <div className="relative w-10 h-10 shrink-0 rounded-xl overflow-hidden ring-2 ring-white/20 shadow-lg bg-white">
                 <Image
