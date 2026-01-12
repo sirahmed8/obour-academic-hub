@@ -362,7 +362,7 @@ export default function AdminUsersPage() {
     <>
       <div className="p-4 lg:p-10 w-full min-h-0 flex flex-col overflow-x-hidden">
         {/* Header Section */}
-        <FadeIn className="flex flex-col gap-4 mb-6 shrink-0">
+        <div className="flex flex-col gap-4 mb-6 shrink-0">
           <h1 className="text-2xl font-bold bg-clip-text text-transparent bg-linear-to-r from-primary to-purple-600 flex items-center gap-3">
             <Users className="text-primary" />
             {language === "ar" ? "المستخدمين" : "Users"}
@@ -414,7 +414,7 @@ export default function AdminUsersPage() {
               +
             </button>
           </form>
-        </FadeIn>
+        </div>
 
         {/* User List - Mobile: Cards, Desktop: Standard Table */}
         <div className="bg-card rounded-2xl border border-border overflow-hidden flex flex-col shadow-sm">
@@ -447,13 +447,13 @@ export default function AdminUsersPage() {
           {/* List Content */}
           <div className="w-full max-h-[365px] overflow-y-auto bg-background/30 custom-scrollbar">
             {loading ? (
-              <FadeIn className="flex items-center justify-center p-12">
+              <div className="flex items-center justify-center p-12">
                 <Loader2 className="animate-spin text-primary" size={40} />
-              </FadeIn>
+              </div>
             ) : filteredUsers.length === 0 ? (
-              <FadeIn className="flex items-center justify-center p-12 text-muted-foreground">
+              <div className="flex items-center justify-center p-12 text-muted-foreground">
                 {language === "ar" ? "لا يوجد مستخدمين" : "No users found"}
-              </FadeIn>
+              </div>
             ) : (
               <>
                 {/* Mobile Cards View */}
@@ -567,7 +567,7 @@ export default function AdminUsersPage() {
                 </StaggerChildren>
 
                 {/* Desktop Table View */}
-                <FadeIn className="hidden lg:block">
+                <div className="hidden lg:block">
                   <div className="min-h-[200px]">
                     {filteredUsers.map((user) => (
                       <TableRow
@@ -586,7 +586,7 @@ export default function AdminUsersPage() {
                       />
                     ))}
                   </div>
-                </FadeIn>
+                </div>
               </>
             )}
           </div>

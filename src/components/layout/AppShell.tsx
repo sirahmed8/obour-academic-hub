@@ -30,7 +30,6 @@ import { LiveBanner } from "@/components/features/LiveBanner";
 import { AdminApprovalModal } from "@/components/admin/AdminApprovalModal";
 import { CookieConsent } from "@/components/ui/CookieConsent";
 import { Loader2, ExternalLink } from "lucide-react";
-import { motion } from "framer-motion";
 import { useGlobalKeyboard } from "@/hooks/useGlobalKeyboard";
 import { usePerformance } from "@/hooks/usePerformance";
 import { PageTransition } from "@/components/ui/Animations";
@@ -164,15 +163,14 @@ export function AppShell({ children }: { children: React.ReactNode }) {
               className="flex-1 w-full h-full overflow-y-auto pb-24 lg:pb-10 pt-16 scrollbar-offset-navbar"
               style={{ scrollbarGutter: "stable" }}
             >
-              {/* Page content with smooth transition */}
-              <motion.div
+              <div
                 className={cn(
                   "min-h-screen flex flex-col w-full", // Force scroll for footer
                   language === "ar" ? "lg:pr-72" : "lg:pl-72" // Push content for Fixed Sidebar
                 )}
               >
                 <PageTransition>{children}</PageTransition>
-              </motion.div>
+              </div>
 
               <footer
                 className={cn(

@@ -429,7 +429,7 @@ export default function AdminSubjectsPage() {
     <>
       <div className="max-w-[1600px] mx-auto p-6 lg:p-8 space-y-8 min-h-screen">
         {/* Header */}
-        <FadeIn className="flex flex-col md:flex-row md:items-end justify-between gap-6">
+        <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
           <div className="space-y-2">
             <h1 className="text-3xl font-bold font-harman flex items-center gap-3">
               <span className="w-12 h-12 rounded-2xl bg-primary/10 flex items-center justify-center text-primary">
@@ -480,7 +480,7 @@ export default function AdminSubjectsPage() {
               {language === "ar" ? "إضافة مادة" : "Add Subject"}
             </button>
           </div>
-        </FadeIn>
+        </div>
 
         {/* Subjects Grid */}
         {loading ? (
@@ -488,10 +488,7 @@ export default function AdminSubjectsPage() {
             <Loader2 className="animate-spin text-primary w-10 h-10" />
           </div>
         ) : filteredSubjects.length === 0 ? (
-          <FadeIn
-            delay={0.2}
-            className="flex flex-col items-center justify-center py-20 border-2 border-dashed border-border/50 rounded-3xl bg-muted/5"
-          >
+          <div className="flex flex-col items-center justify-center py-20 border-2 border-dashed border-border/50 rounded-3xl bg-muted/5">
             <div className="w-20 h-20 bg-muted/30 rounded-full flex items-center justify-center mb-4">
               <Search className="w-10 h-10 text-muted-foreground/50" />
             </div>
@@ -511,7 +508,7 @@ export default function AdminSubjectsPage() {
                 {language === "ar" ? "إضافة أول مادة" : "Add your first subject"}
               </button>
             )}
-          </FadeIn>
+          </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 pb-20">
             <AnimatePresence mode="popLayout">
