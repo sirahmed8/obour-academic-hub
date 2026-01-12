@@ -35,7 +35,7 @@ export function CookieConsent() {
           exit={{ y: 100, opacity: 0 }}
           className="fixed bottom-0 inset-x-0 z-50 p-4 md:p-6"
         >
-          <div className="max-w-4xl mx-auto bg-card/95 backdrop-blur-md border border-border shadow-2xl rounded-2xl p-4 md:p-6 flex flex-col md:flex-row items-center gap-4 md:gap-8">
+          <div className="max-w-4xl mx-auto bg-background/60 dark:bg-background/60 backdrop-blur-xl backdrop-saturate-150 border border-white/20 dark:border-white/10 shadow-2xl rounded-2xl p-4 md:p-6 flex flex-col md:flex-row items-center gap-4 md:gap-8">
             <div className="p-3 bg-primary/10 rounded-full text-primary shrink-0">
               <Cookie size={24} />
             </div>
