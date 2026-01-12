@@ -1,7 +1,7 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  output: "export", // Static export for Firebase Hosting
+  // output: "export", // Disabled to allow API Routes (Email/AI)
   trailingSlash: false,
   images: {
     unoptimized: true,

@@ -7,7 +7,10 @@ export type UserPermission =
   | "manage_resources"
   | "send_notifications"
   | "delete_chats"
-  | "manage_users";
+  | "manage_users"
+  | "access_inbox"
+  | "manage_announcements"
+  | "view_analytics";
 
 export interface User {
   uid: string;
@@ -50,6 +53,7 @@ export interface Subject {
   profName: string;
   profNameAr?: string;
   description?: string;
+  descriptionAr?: string;
   icon: string;
   color: string;
   orderIndex: number;
@@ -141,6 +145,7 @@ export interface SiteSettings {
   announcement?: string;
   announcementType?: "info" | "warning" | "success";
   maintenanceMode?: boolean;
+  aiEnabled?: boolean;
 }
 
 export interface ChatSession {

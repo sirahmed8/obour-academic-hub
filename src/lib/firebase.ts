@@ -24,12 +24,7 @@ function initFirebaseApp(): FirebaseApp | null {
   if (!firebaseConfig.apiKey) {
     // Log which values are missing for debugging
     if (typeof window !== "undefined") {
-      console.error("Firebase config missing. Check environment variables:", {
-        apiKey: !!firebaseConfig.apiKey,
-        authDomain: !!firebaseConfig.authDomain,
-        projectId: !!firebaseConfig.projectId,
-        appId: !!firebaseConfig.appId,
-      });
+      // console.error("Firebase config missing...");
     }
     return null;
   }
@@ -39,7 +34,7 @@ function initFirebaseApp(): FirebaseApp | null {
     if (existingApps.length > 0) {
       return getApp();
     }
-    console.log("Initializing Firebase with project:", firebaseConfig.projectId);
+
     return initializeApp(firebaseConfig);
   } catch (error) {
     console.error("Firebase initialization error:", error);

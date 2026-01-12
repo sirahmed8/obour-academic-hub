@@ -24,28 +24,7 @@ import { subjectService } from "@/services/subject.service";
 import { analyticsService } from "@/services/analytics.service";
 import { useAuth, useLanguage } from "@/contexts";
 
-// Animation imports
-import activityAnim from "react-useanimations/lib/activity/activity.json";
-import folderAnim from "react-useanimations/lib/folder/folder.json";
-import editAnim from "react-useanimations/lib/edit/edit.json";
-import archiveAnim from "react-useanimations/lib/archive/archive.json";
-import settingsAnim from "react-useanimations/lib/settings/settings.json";
-
-// Map icons/names to Lottie animations
-const ICON_MAP: Record<string, object> = {
-  activity: activityAnim,
-  folder: folderAnim,
-  edit: editAnim,
-  archive: archiveAnim,
-  settings: settingsAnim,
-  // Fallbacks based on subject names if specific icon not found
-  physics: activityAnim,
-  math: editAnim,
-  chemistry: activityAnim,
-  biology: activityAnim,
-  history: archiveAnim,
-  default: folderAnim,
-};
+import { getSubjectAnimation } from "@/lib/subjectIcons";
 
 interface SubjectClientProps {
   subjectName?: string;
@@ -87,6 +66,7 @@ export function SubjectClient({ subjectName }: SubjectClientProps) {
   const [fetchError, setFetchError] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
   const [sortBy, setSortBy] = useState<"default" | "name" | "type">("default");
+  const [isHovered, setIsHovered] = useState(false);
 
   // Highlight from notification
   const highlightId = searchParams.get("highlight");
@@ -220,21 +200,7 @@ export function SubjectClient({ subjectName }: SubjectClientProps) {
   }
 
   // Resolve Lottie animation
-  // 1. Try subject.icon (if it matches a key in ICON_MAP)
-  // 2. Try subject.name (lowercase)
-  // 3. Fallback to default
-  const iconKey = subject.icon?.toLowerCase() || subject.name?.toLowerCase() || "default";
-
-  // Find a matching key in ICON_MAP (partial match for subject names like "Physics 1" -> "physics")
-  let selectedAnim = ICON_MAP["default"];
-
-  if (ICON_MAP[iconKey]) {
-    selectedAnim = ICON_MAP[iconKey];
-  } else {
-    // fuzzy match
-    const foundKey = Object.keys(ICON_MAP).find((k) => iconKey.includes(k));
-    if (foundKey) selectedAnim = ICON_MAP[foundKey];
-  }
+  const IconComp = getSubjectAnimation(subject.icon || "BookOpen");
 
   // Check if subject.icon is a URL (image)
   const isImageIcon = subject.icon?.startsWith("http");
@@ -268,7 +234,11 @@ export function SubjectClient({ subjectName }: SubjectClientProps) {
           <div className="absolute top-0 right-0 w-64 h-64 bg-white/10 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2" />
 
           <div className="relative z-10 flex items-start gap-6">
-            <div className="p-4 bg-white/20 rounded-2xl backdrop-blur-sm shadow-inner text-white">
+            <div
+              onMouseEnter={() => setIsHovered(true)}
+              onMouseLeave={() => setIsHovered(false)}
+              className="p-4 bg-white/20 rounded-2xl shadow-inner text-white cursor-pointer transition-transform hover:scale-105 duration-300"
+            >
               {isImageIcon ? (
                 /* eslint-disable-next-line @next/next/no-img-element */
                 <img
@@ -277,7 +247,13 @@ export function SubjectClient({ subjectName }: SubjectClientProps) {
                   className="w-10 h-10 object-contain drop-shadow-md"
                 />
               ) : (
-                <AnimatedIcon icon={selectedAnim} size={40} active={true} useAnimation={true} />
+                <AnimatedIcon
+                  icon={IconComp}
+                  iconName={subject.icon}
+                  size={40}
+                  active={isHovered}
+                  useAnimation={true}
+                />
               )}
             </div>
             <div>
@@ -407,7 +383,9 @@ export function SubjectClient({ subjectName }: SubjectClientProps) {
                           "p-3 rounded-xl",
                           resource.type === "pdf"
                             ? "bg-red-100 text-red-600"
-                            : "bg-blue-100 text-blue-600"
+                            : resource.type === "link" || resource.type === "video"
+                              ? "bg-blue-100 text-blue-600"
+                              : "bg-purple-100 text-purple-600"
                         )}
                       >
                         {resource.type === "pdf" ? <FileText size={24} /> : <LinkIcon size={24} />}

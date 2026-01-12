@@ -20,16 +20,16 @@ interface ProfileMenuProps {
 const isClient = typeof window !== "undefined";
 
 const menuVariants: Variants = {
-  hidden: { opacity: 0, scale: 0.95 },
+  hidden: { opacity: 0, filter: "blur(10px)" },
   visible: {
     opacity: 1,
-    scale: 1,
-    transition: { duration: 0.2, ease: "easeOut" },
+    filter: "blur(0px)",
+    transition: { duration: 0.25, ease: [0.22, 1, 0.36, 1] },
   },
   exit: {
     opacity: 0,
-    scale: 0.95,
-    transition: { duration: 0.15, ease: "easeIn" },
+    filter: "blur(10px)",
+    transition: { duration: 0.2, ease: "easeIn" },
   },
 };
 
@@ -135,13 +135,15 @@ export function ProfileMenu({ onClose, triggerRef, direction }: ProfileMenuProps
                     // Dispatch custom event to open chatbot
                     window.dispatchEvent(
                       new CustomEvent("openChatbot", {
-                        detail: { mode: "live" },
+                        detail: { mode: "fill", message: "I want to change my info" },
                       })
                     );
                   }}
                   className="text-[10px] text-primary hover:underline text-center w-full cursor-pointer hover:text-primary/80 transition-colors"
                 >
-                  {t("profile.contactSupport")}
+                  {language === "ar"
+                    ? "تريد تغيير بياناتك؟ تواصل معنا"
+                    : "Want to change your info? Contact us"}
                 </button>
               </div>
             ) : (
@@ -269,30 +271,85 @@ export function ProfileMenu({ onClose, triggerRef, direction }: ProfileMenuProps
                   className={cn(
                     "w-2.5 h-2.5 rounded-full transition-all",
                     notifPermission === "granted"
-                      ? "bg-green-500 shadow-[0_0_8px_rgba(34,197,94,0.5)]"
-                      : "bg-red-500"
+                      ? "bg-purple-500 shadow-[0_0_8px_rgba(168,85,247,0.5)]"
+                      : "bg-gray-400"
                   )}
                 />
                 {t("notifications.title")}
               </span>
-              {/* iOS-style toggle */}
+              {/* iOS-style toggle (Updated to match Solid Mode) */}
               <div
                 className={cn(
-                  "w-11 h-6 rounded-full p-0.5 transition-colors duration-200 relative",
-                  notifPermission === "granted" ? "bg-green-500" : "bg-gray-300 dark:bg-gray-600"
+                  "w-12 h-7 rounded-full p-1 transition-colors duration-300 flex items-center",
+                  notifPermission === "granted"
+                    ? "bg-purple-500 justify-end"
+                    : "bg-gray-300 dark:bg-gray-600 justify-start"
                 )}
               >
-                <div
-                  className={cn(
-                    "w-5 h-5 bg-white rounded-full shadow-sm transition-all duration-200 absolute top-0.5",
-                    notifPermission === "granted"
+                <motion.div
+                  layout
+                  transition={{ type: "spring", stiffness: 700, damping: 30 }}
+                  className="w-5 h-5 bg-white rounded-full shadow-md"
+                />
+              </div>
+            </button>
+
+            {/* Email Notifications Toggle */}
+            <button
+              onClick={async () => {
+                if (!user) return;
+                try {
+                  const currentSettings = user.notificationSettings || {
+                    push: false,
+                    email: false,
+                  };
+                  const newState = !currentSettings.email;
+                  await updateDoc(doc(db, "users", user.uid), {
+                    "notificationSettings.email": newState,
+                    // Ensure object exists if it didn't before
+                    ...(!user.notificationSettings
+                      ? { notificationSettings: { push: false, email: newState } }
+                      : {}),
+                  });
+                  toast.success(
+                    newState
                       ? language === "ar"
-                        ? "left-0.5"
-                        : "right-0.5"
+                        ? "تم تفعيل إشعارات البريد"
+                        : "Email notifications enabled"
                       : language === "ar"
-                        ? "right-0.5"
-                        : "left-0.5"
+                        ? "تم تعطيل إشعارات البريد"
+                        : "Email notifications disabled"
+                  );
+                } catch {
+                  toast.error("Failed to update preference");
+                }
+              }}
+              className="w-full flex items-center justify-between p-3 rounded-xl bg-muted/50 hover:bg-muted transition-all duration-200 active:scale-[0.98] mt-2"
+            >
+              <span className="flex items-center gap-3 text-sm font-medium">
+                <span
+                  className={cn(
+                    "w-2.5 h-2.5 rounded-full transition-all",
+                    user.notificationSettings?.email
+                      ? "bg-purple-500 shadow-[0_0_8px_rgba(168,85,247,0.5)]"
+                      : "bg-gray-400"
                   )}
+                />
+                {language === "ar" ? "إشعارات البريد" : "Email Notifications"}
+              </span>
+              {/* Updated Toggle Animation */}
+              <div
+                className={cn(
+                  "w-12 h-7 rounded-full p-1 transition-colors duration-300 flex items-center",
+                  user.notificationSettings?.email
+                    ? "bg-purple-500 justify-end"
+                    : "bg-gray-300 dark:bg-gray-600 justify-start"
+                )}
+              >
+                <motion.div
+                  layout
+                  transition={{ type: "spring", stiffness: 700, damping: 30 }}
+                  className="w-5 h-5 bg-white rounded-full shadow-md"
                 />
               </div>
             </button>

@@ -1,14 +1,16 @@
 "use client";
 
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useState, useRef, memo, useMemo } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import Image from "next/image";
 import { useAuth, useLanguage, useSolidMode } from "@/contexts";
-import { Notification as AppNotification } from "@/types";
+import { UserPermission } from "@/types";
+
 import { cn } from "@/lib/utils";
 import { db } from "@/lib/firebase";
-import { collection, query, orderBy, onSnapshot } from "firebase/firestore";
+import { collection, query, onSnapshot } from "firebase/firestore";
+import { notificationService } from "@/services/notification.service";
 import { motion, AnimatePresence } from "framer-motion";
 import { AnimatedIcon } from "@/components/ui/AnimatedIcon";
 
@@ -38,19 +40,29 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
   const [unreadCount, setUnreadCount] = useState(0);
   const [inboxUnreadCount, setInboxUnreadCount] = useState(0);
 
+  const [persistentAdmin, setPersistentAdmin] = useState(isAdmin);
+  const [persistentOwner, setPersistentOwner] = useState(isOwner);
+
+  // Sync persistent roles to prevent flickering during navigation
+  useEffect(() => {
+    if (!user) {
+      setPersistentAdmin(false);
+      setPersistentOwner(false);
+      return;
+    }
+    if (isAdmin) setPersistentAdmin(true);
+    if (isOwner) setPersistentOwner(true);
+  }, [user, isAdmin, isOwner]);
+
   // Listen for unread chats (Admin only) and Notifications
   useEffect(() => {
     if (!user) return;
 
-    // 1. Notifications Listener
-    const notifQuery = query(collection(db, "notifications"), orderBy("createdAt", "desc"));
-
-    const unsubNotif = onSnapshot(
-      notifQuery,
-      (snapshot) => {
-        // 1. Process all docs for the Badge Count
-        const all = snapshot.docs.map((d) => ({ id: d.id, ...d.data() }) as AppNotification);
-        const relevant = all.filter((n) => {
+    // 1. Notifications Listener (Secure Component-Level Subscription)
+    const unsubNotif = notificationService.subscribeToUser(
+      user.uid,
+      (notifications) => {
+        const relevant = notifications.filter((n) => {
           if (n.target === "all" || !n.target) return true;
           if (n.target === "admins" && isAdmin) return true;
           if (n.target === user.uid) return true;
@@ -59,58 +71,6 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
 
         const unread = relevant.filter((n) => !n.readBy?.includes(user.uid)).length;
         setUnreadCount(unread);
-
-        // 2. Handle Browser Notifications for NEW items only
-        // We skip the initial load (snapshot.metadata.fromCache might be true, or just ignore first run)
-        // But a cleaner way for 'added' events in realtime:
-        snapshot.docChanges().forEach((change) => {
-          if (change.type === "added") {
-            const n = { id: change.doc.id, ...change.doc.data() } as AppNotification;
-
-            // Check relevance
-            let isRelevant = false;
-            if (n.target === "all" || !n.target) isRelevant = true;
-            else if (n.target === "admins" && isAdmin) isRelevant = true;
-            else if (n.target === user.uid) isRelevant = true;
-
-            // Only notify if:
-            // - It is relevant
-            // - It was created recently (within last 10 seconds) -> prevents old notifications from blasting on reload
-            // - We are NOT in the very first render cycle (Snapshot usually fires immediately)
-            // A simple timestamp check is robust:
-            let createdAtDate: Date;
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            const rawCreatedAt = n.createdAt as any;
-
-            if (rawCreatedAt?.toDate) {
-              createdAtDate = rawCreatedAt.toDate();
-            } else if (typeof rawCreatedAt === "string" || typeof rawCreatedAt === "number") {
-              createdAtDate = new Date(rawCreatedAt);
-            } else {
-              createdAtDate = new Date(); // Fallback
-            }
-
-            const now = new Date();
-            const isRecent = now.getTime() - createdAtDate.getTime() < 10000; // 10 seconds
-
-            if (isRelevant && isRecent) {
-              // Use the service
-              import("@/services/notification.service").then(({ notificationService }) => {
-                const title =
-                  language === "ar"
-                    ? n.titleAr || n.title || "إشعار جديد"
-                    : n.titleEn || n.title || "New Notification";
-                const body =
-                  language === "ar" ? n.messageAr || n.message : n.messageEn || n.message;
-
-                notificationService.sendBrowserNotification(title, {
-                  body,
-                  tag: n.id, // Prevent duplicates
-                });
-              });
-            }
-          }
-        });
       },
       (error) => {
         console.error("Sidebar: Notification listener error", error);
@@ -124,7 +84,6 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
       unsubChats = onSnapshot(
         chatQuery,
         (snapshot) => {
-          // Sum all adminUnreadCount from all chat sessions
           let count = 0;
           snapshot.docs.forEach((doc) => {
             const data = doc.data();
@@ -134,7 +93,6 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
         },
         (error) => {
           console.error("Sidebar: Chat listener error (likely permissions)", error);
-          // If permission denied, just ignore (user might be student despite isAdmin check on client)
           setInboxUnreadCount(0);
         }
       );
@@ -144,7 +102,7 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
       unsubNotif();
       unsubChats();
     };
-  }, [user, isAdmin, language]);
+  }, [user, isAdmin]);
 
   // Helper function to check if path is active
   const isActivePath = (itemPath: string) => {
@@ -154,70 +112,92 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
     return pathname === itemPath;
   };
 
-  const navItems = [
-    { name: t("nav.home"), path: "/main", icon: homeAnim, useAnimation: true },
-    { name: t("nav.todo"), path: "/todo", icon: checkBoxAnim, useAnimation: true },
-    {
-      name: t("nav.notifications"),
-      path: "/notifications",
-      icon: notificationAnim,
-      useAnimation: true,
-      badge: unreadCount > 0 ? unreadCount : undefined,
-    },
-  ];
+  const navItems = useMemo<SidebarItem[]>(
+    () => [
+      { name: t("nav.home"), path: "/main", icon: homeAnim, useAnimation: true },
+      { name: t("nav.todo"), path: "/todo", icon: checkBoxAnim, useAnimation: true },
+      {
+        name: t("nav.notifications"),
+        path: "/notifications",
+        icon: notificationAnim,
+        useAnimation: true,
+        badge: unreadCount > 0 ? unreadCount : undefined,
+      },
+    ],
+    [t, unreadCount]
+  );
 
-  const adminItems = [
-    // 1. Team Management
-    {
-      name: t("nav.teamManagement"),
-      path: "/admin/team",
-      icon: settingsAnim,
-      useAnimation: true,
-    },
-    // 2. Users
-    { name: t("admin.users"), path: "/admin/users", icon: userPlusAnim, useAnimation: true },
-    // 3. Inbox
-    {
-      name: t("admin.inbox"),
-      path: "/admin/inbox",
-      icon: mailAnim,
-      useAnimation: true,
-      badge: inboxUnreadCount > 0 ? inboxUnreadCount : undefined,
-    },
-    // 4. Announcements
-    {
-      name: t("nav.announcements"),
-      path: "/admin/notifications",
-      icon: notificationAnim,
-      useAnimation: true,
-    },
-    // 5. Subject Management (formerly "Subjects")
-    {
-      name: t("nav.subjectManagement"),
-      path: "/admin/subjects",
-      icon: folderAnim,
-      useAnimation: true,
-    },
-    // 6. Sources
-    {
-      name: t("nav.sources"),
-      path: "/admin/resources",
-      icon: archiveAnim,
-      useAnimation: true,
-    },
-    // 7. Analytics
-    {
-      name: t("admin.analytics"),
-      path: "/admin/analytics",
-      icon: activityAnim,
-      useAnimation: true,
-    },
-  ];
+  const adminItems = useMemo<SidebarItem[]>(
+    () => [
+      // 1. Team Management
+      {
+        name: t("nav.teamManagement"),
+        path: "/admin/team",
+        icon: settingsAnim,
+        useAnimation: true,
+        requiredPermission: "manage_users" as UserPermission,
+      },
+      // 2. Users
+      {
+        name: t("admin.users"),
+        path: "/admin/users",
+        icon: userPlusAnim,
+        useAnimation: true,
+        requiredPermission: "manage_users" as UserPermission,
+      },
+      // 3. Inbox
+      {
+        name: t("admin.inbox"),
+        path: "/admin/inbox",
+        icon: mailAnim,
+        useAnimation: true,
+        badge: inboxUnreadCount > 0 ? inboxUnreadCount : undefined,
+        requiredPermission: "access_inbox" as UserPermission,
+      },
+      // 4. Announcements
+      {
+        name: t("nav.announcements"),
+        path: "/admin/notifications",
+        icon: notificationAnim,
+        useAnimation: true,
+        requiredPermission: "manage_announcements" as UserPermission,
+      },
+      // 5. Subject Management (formerly "Subjects")
+      {
+        name: t("nav.subjectManagement"),
+        path: "/admin/subjects",
+        icon: folderAnim,
+        useAnimation: true,
+        requiredPermission: "manage_subjects" as UserPermission,
+      },
+      // 6. Sources
+      {
+        name: t("nav.sources"),
+        path: "/admin/resources",
+        icon: archiveAnim,
+        useAnimation: true,
+        requiredPermission: "manage_resources" as UserPermission,
+      },
+      // 7. Analytics
+      {
+        name: t("admin.analytics"),
+        path: "/admin/analytics",
+        icon: activityAnim,
+        useAnimation: true,
+        requiredPermission: "view_analytics" as UserPermission,
+      },
+    ],
+    [t, inboxUnreadCount]
+  );
 
-  const ownerItems = [
-    { name: t("admin.logs"), path: "/admin/logs", icon: editAnim, useAnimation: true },
-    { name: t("admin.errors"), path: "/admin/errors", icon: alertCircleAnim, useAnimation: true },
-  ];
+  const ownerItems = useMemo<SidebarItem[]>(
+    () => [
+      { name: t("nav.settings"), path: "/admin/settings", icon: settingsAnim, useAnimation: true },
+      { name: t("admin.logs"), path: "/admin/logs", icon: editAnim, useAnimation: true },
+      { name: t("admin.errors"), path: "/admin/errors", icon: alertCircleAnim, useAnimation: true },
+    ],
+    [t]
+  );
 
   const navRef = useRef<HTMLElement>(null);
 
@@ -277,7 +257,7 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
           {/* 2. Top Border Segment: Only for the area behind Navbar (Logo area) */}
           <div
             className={cn(
-              "absolute top-0 h-16 w-full transition-all border-white/10 dark:border-white/5",
+              "absolute top-0 h-16 w-full transition-all border-black/5 dark:border-white/5",
               language === "ar" ? "border-l" : "border-r"
             )}
           />
@@ -286,7 +266,7 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
           {/* We start at top-16 and use a slightly more opaque background for better definition */}
           <div
             className={cn(
-              "absolute top-16 bottom-0 inset-x-0 transition-all duration-300 border-white/10 dark:border-white/5",
+              "absolute top-16 bottom-0 inset-x-0 transition-all duration-300 border-black/5 dark:border-white/5",
               isSolid ? "bg-background shadow-lg" : "bg-background/95",
               // Borders and Corners based on language
               language === "ar"
@@ -347,7 +327,12 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
                   {navItems.map((item) => (
                     <SidebarLink
                       key={item.path}
-                      item={item}
+                      name={item.name}
+                      path={item.path}
+                      icon={item.icon}
+                      useAnimation={item.useAnimation}
+                      badge={item.badge}
+                      iconName={item.iconName}
                       isActive={isActivePath(item.path)}
                       onClose={onClose}
                     />
@@ -355,38 +340,52 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
                 </div>
 
                 {/* Admin Section */}
-                {isAdmin && (
-                  <div className="space-y-2 pt-2">
-                    <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider px-4 mb-2">
-                      {t("nav.admin")}
-                    </p>
-                    {adminItems.map((item) => (
-                      <SidebarLink
-                        key={item.path}
-                        item={item}
-                        isActive={isActivePath(item.path)}
-                        onClose={onClose}
-                      />
-                    ))}
+                <div className={cn("space-y-2 pt-2", !persistentAdmin && "hidden")}>
+                  <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider px-4 mb-2">
+                    {t("nav.admin")}
+                  </p>
+                  <div className="space-y-1">
+                    {adminItems
+                      .filter((item) => {
+                        if (isOwner) return true;
+                        if (!item.requiredPermission) return true;
+                        return user?.permissions?.includes(item.requiredPermission);
+                      })
+                      .map((item) => (
+                        <SidebarLink
+                          key={item.path}
+                          name={item.name}
+                          path={item.path}
+                          icon={item.icon}
+                          useAnimation={item.useAnimation}
+                          badge={item.badge}
+                          iconName={item.iconName}
+                          isActive={isActivePath(item.path)}
+                          onClose={onClose}
+                        />
+                      ))}
                   </div>
-                )}
+                </div>
 
                 {/* Owner Section */}
-                {isOwner && (
-                  <div className="space-y-2 pt-2">
-                    <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider px-4 mb-2">
-                      {t("nav.owner")}
-                    </p>
-                    {ownerItems.map((item) => (
-                      <SidebarLink
-                        key={item.path}
-                        item={item}
-                        isActive={isActivePath(item.path)}
-                        onClose={onClose}
-                      />
-                    ))}
-                  </div>
-                )}
+                <div className={cn("space-y-2 pt-2", !persistentOwner && "hidden")}>
+                  <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider px-4 mb-2">
+                    {t("nav.owner")}
+                  </p>
+                  {ownerItems.map((item) => (
+                    <SidebarLink
+                      key={item.path}
+                      name={item.name}
+                      path={item.path}
+                      icon={item.icon}
+                      useAnimation={item.useAnimation}
+                      badge={item.badge}
+                      iconName={item.iconName}
+                      isActive={isActivePath(item.path)}
+                      onClose={onClose}
+                    />
+                  ))}
+                </div>
               </nav>
             </div>
           </div>
@@ -396,7 +395,7 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
   );
 }
 
-// Extracted Component to prevent re-renders on parent state change
+// Navigation item data structure
 interface SidebarItem {
   name: string;
   path: string;
@@ -405,75 +404,85 @@ interface SidebarItem {
   useAnimation: boolean;
   badge?: number;
   iconName?: string;
+  requiredPermission?: UserPermission;
 }
 
-const SidebarLink = ({
-  item,
-  isActive,
-  onClose,
-}: {
-  item: SidebarItem;
+// Extracted Component to prevent re-renders on parent state change
+interface SidebarLinkProps {
+  name: string;
+  path: string;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  icon: any;
+  useAnimation: boolean;
+  badge?: number;
+  iconName?: string;
   isActive: boolean;
   onClose: () => void;
-}) => {
-  const [isHovered, setIsHovered] = useState(false);
+}
 
-  return (
-    <Link
-      href={item.path}
-      onClick={onClose}
-      prefetch={false}
-      onMouseEnter={() => setIsHovered(true)}
-      onMouseLeave={() => setIsHovered(false)}
-      className={cn(
-        "flex items-center gap-3 px-3 py-2.5 lg:px-4 lg:py-3 rounded-xl transition-all duration-300 font-medium select-none group relative overflow-hidden",
-        isActive
-          ? "bg-primary/10 text-primary font-bold border-l-4 border-primary shadow-sm dark:bg-primary/20"
-          : "text-foreground/80 hover:bg-slate-200/80 dark:hover:bg-white/5 hover:text-foreground hover:translate-x-1"
-      )}
-    >
-      {/* Active Background Glow for Dark Mode */}
-      {isActive && <div className="absolute inset-0 bg-primary/5 blur-sm -z-10" />}
+const SidebarLink = memo(
+  ({ name, path, icon, useAnimation, badge, iconName, isActive, onClose }: SidebarLinkProps) => {
+    const [isHovered, setIsHovered] = useState(false);
 
-      <div className="relative">
-        <AnimatedIcon
-          icon={item.icon}
-          iconName={item.iconName}
-          size={24}
-          className={cn(
-            "lg:w-6 lg:h-6 transition-all duration-200",
-            // LUCIDE ICONS: Use text color classes
-            !item.useAnimation && isActive && "text-primary",
-            !item.useAnimation && !isActive && "text-foreground/70 group-hover:text-foreground",
-
-            // LOTTIE ICONS (Black by default): Use filters
-            // Inactive: White in Dark Mode
-            item.useAnimation &&
-              !isActive &&
-              "dark:brightness-0 dark:invert opacity-70 group-hover:opacity-100",
-            // Active: Blue Filter (Approximate #3B82F6) -> Handled via style prop below or class if possible
-            // We use a specific class or style for active lottie
-            item.useAnimation && isActive && "lottie-active-filter"
-          )}
-          style={{
-            // FOR LOTTIE: Filter to turn Black -> Blue
-            filter:
-              item.useAnimation && isActive
-                ? "invert(48%) sepia(79%) saturate(2476%) hue-rotate(200deg) brightness(118%) contrast(119%)"
-                : undefined,
-            // FOR LUCIDE: Explicit Color to ensure Blue (#3B82F6 matches standard primary)
-            color: !item.useAnimation && isActive ? "#3B82F6" : undefined,
-          }}
-          active={isActive || isHovered}
-          useAnimation={item.useAnimation}
-        />
-        {item.badge && (
-          <span className="absolute -top-2 -right-2 bg-red-500 text-white text-[10px] min-w-[16px] h-4 px-1 rounded-full flex items-center justify-center z-10 shadow-sm">
-            {item.badge > 9 ? "9+" : item.badge}
-          </span>
+    return (
+      <Link
+        href={path}
+        onClick={onClose}
+        prefetch={false}
+        onMouseEnter={() => setIsHovered(true)}
+        onMouseLeave={() => setIsHovered(false)}
+        className={cn(
+          "flex items-center gap-3 px-3 py-2.5 lg:px-4 lg:py-3 rounded-xl transition-all duration-300 font-medium select-none group relative overflow-hidden",
+          isActive
+            ? "bg-primary/10 text-primary font-bold border-l-4 border-primary shadow-sm dark:bg-primary/20"
+            : "text-foreground/80 hover:bg-slate-200/80 dark:hover:bg-white/5 hover:text-foreground hover:translate-x-1"
         )}
-      </div>
-      <span className="text-sm lg:text-base relative z-10">{item.name}</span>
-    </Link>
-  );
-};
+      >
+        {/* Active Background Glow for Dark Mode */}
+        {isActive && <div className="absolute inset-0 bg-primary/5 blur-sm -z-10" />}
+
+        <div className="relative">
+          <AnimatedIcon
+            icon={icon}
+            iconName={iconName}
+            size={24}
+            className={cn(
+              "lg:w-6 lg:h-6 transition-all duration-200",
+              // LUCIDE ICONS: Use text color classes
+              !useAnimation && isActive && "text-primary",
+              !useAnimation && !isActive && "text-foreground/70 group-hover:text-foreground",
+
+              // LOTTIE ICONS (Black by default): Use filters
+              // Inactive: White in Dark Mode
+              useAnimation &&
+                !isActive &&
+                "dark:brightness-0 dark:invert opacity-70 group-hover:opacity-100",
+              // Active: Blue Filter (Approximate #3B82F6) -> Handled via style prop below or class if possible
+              // We use a specific class or style for active lottie
+              useAnimation && isActive && "lottie-active-filter"
+            )}
+            style={{
+              // FOR LOTTIE: Filter to turn Black -> Blue
+              filter:
+                useAnimation && isActive
+                  ? "invert(48%) sepia(79%) saturate(2476%) hue-rotate(200deg) brightness(118%) contrast(119%)"
+                  : undefined,
+              // FOR LUCIDE: Explicit Color to ensure Blue (#3B82F6 matches standard primary)
+              color: !useAnimation && isActive ? "#3B82F6" : undefined,
+            }}
+            active={isActive || isHovered}
+            useAnimation={useAnimation}
+          />
+          {badge && (
+            <span className="absolute -top-2 -right-2 bg-red-500 text-white text-[10px] min-w-[16px] h-4 px-1 rounded-full flex items-center justify-center z-10 shadow-sm">
+              {badge > 9 ? "9+" : badge}
+            </span>
+          )}
+        </div>
+        <span className="text-sm lg:text-base relative z-10">{name}</span>
+      </Link>
+    );
+  }
+);
+
+SidebarLink.displayName = "SidebarLink";

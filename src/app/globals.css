@@ -221,20 +221,11 @@
 }
 
 .glass-premium {
-  background: rgba(255, 255, 255, 0.4) !important;
-  backdrop-filter: blur(25px) saturate(200%) !important;
-  -webkit-backdrop-filter: blur(25px) saturate(200%) !important;
-  border: 1px solid rgba(255, 255, 255, 0.3);
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12);
+  @apply bg-white/40! backdrop-blur-3xl! backdrop-saturate-200! border-white/30! shadow-2xl!;
 }
 
 .dark .glass-premium {
-  /* Forced transparency and blur */
-  background: rgba(15, 15, 25, 0.2) !important;
-  backdrop-filter: blur(25px) saturate(200%) !important;
-  -webkit-backdrop-filter: blur(25px) saturate(200%) !important;
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+  @apply bg-white/10! backdrop-blur-3xl! backdrop-saturate-200! border-white/10! shadow-2xl!;
 }
 
 /* ============================================

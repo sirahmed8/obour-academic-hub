@@ -22,25 +22,30 @@ export class ErrorBoundary extends Component<Props, State> {
 
   componentDidCatch(error: Error, errorInfo: React.ErrorInfo) {
     // Use centralized error logger
-    import("@/lib/errorLogger").then(({ errorLogger }) => {
-      errorLogger.log(error, "critical", {
-        componentStack: errorInfo.componentStack,
-      });
-    });
-
-    // Log to Firestore (System Errors) - Kept as fallback/redundancy for critical UI crashes
-    import("@/lib/firebase").then(({ db }) => {
-      import("firebase/firestore").then(({ collection, addDoc, serverTimestamp }) => {
-        addDoc(collection(db, "system_errors"), {
-          message: error.message,
-          stack: error.stack,
+    Promise.all([import("@/lib/errorLogger"), import("@/lib/firebase")]).then(
+      ([{ errorLogger }, { auth, db }]) => {
+        const user = auth.currentUser;
+        const context = {
           componentStack: errorInfo.componentStack,
-          userAgent: navigator.userAgent,
-          timestamp: serverTimestamp(),
-          url: window.location.href,
-        }).catch(() => {}); // Silent fail on log error
-      });
-    });
+          userId: user?.uid,
+          email: user?.email || undefined,
+        };
+
+        errorLogger.log(error, "critical", context);
+
+        // Log to Firestore (System Errors)
+        import("firebase/firestore").then(({ collection, addDoc, serverTimestamp }) => {
+          addDoc(collection(db, "system_errors"), {
+            message: error.message,
+            stack: error.stack,
+            ...context,
+            userAgent: navigator.userAgent,
+            timestamp: serverTimestamp(),
+            url: window.location.href,
+          }).catch(() => {});
+        });
+      }
+    );
   }
 
   render() {

@@ -29,7 +29,11 @@ export const sendMessage = async (
   replyTo: ChatMessage["replyTo"] = undefined,
   context: "bot" | "live" = "live",
   attachment?: { url: string; name: string; size: number; type: string },
-  additionalData?: { action?: "confirm_task" | "live_chat"; taskData?: Partial<TodoTask> },
+  additionalData?: {
+    action?: "confirm_task" | "live_chat";
+    taskData?: Partial<TodoTask>;
+    isAI?: boolean;
+  },
   userImage?: string
 ) => {
   if (!text.trim() && !attachment && !additionalData?.taskData) return;
@@ -49,6 +53,9 @@ export const sendMessage = async (
     if (additionalData.taskData !== undefined) {
       cleanAdditionalData.taskData = additionalData.taskData;
     }
+    if (additionalData.isAI !== undefined) {
+      cleanAdditionalData.isAI = additionalData.isAI;
+    }
   }
 
   // 1. Add Message
@@ -63,8 +70,8 @@ export const sendMessage = async (
           id: replyTo.id,
           text: replyTo.text || "",
           senderName: replyTo.senderName || "User",
-          attachmentUrl: replyTo.attachmentUrl || undefined,
-          attachmentType: replyTo.attachmentType || undefined,
+          attachmentUrl: replyTo.attachmentUrl || null,
+          attachmentType: replyTo.attachmentType || null,
         }
       : null,
     reactions: {},

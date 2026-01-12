@@ -14,7 +14,7 @@ import {
   writeBatch,
 } from "firebase/firestore";
 import { useLanguage } from "@/contexts";
-import { AppShell } from "@/components/layout/AppShell";
+
 import { AlertTriangle, CheckCircle, Loader2, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import { cn, formatDate, formatDateArabic } from "@/lib/utils";
@@ -28,6 +28,22 @@ export default function AdminErrorsPage() {
   const [showClearModal, setShowClearModal] = useState(false);
   const [clearing, setClearing] = useState(false);
   const { language, t } = useLanguage();
+
+  // Persist Scroll
+  useEffect(() => {
+    const handleScroll = () => {
+      sessionStorage.setItem("adminErrorsScroll", window.scrollY.toString());
+    };
+    window.addEventListener("scroll", handleScroll);
+
+    // Restore scroll
+    const savedScroll = sessionStorage.getItem("adminErrorsScroll");
+    if (savedScroll) {
+      window.scrollTo(0, parseFloat(savedScroll));
+    }
+
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
 
   useEffect(() => {
     const q = query(collection(db, "system_errors"), orderBy("timestamp", "desc"), limit(100));
@@ -75,7 +91,7 @@ export default function AdminErrorsPage() {
   const unresolvedCount = errors.filter((e) => !e.resolved).length;
 
   return (
-    <AppShell>
+    <>
       <ConfirmationModal
         isOpen={showClearModal}
         onClose={() => setShowClearModal(false)}
@@ -182,6 +198,6 @@ export default function AdminErrorsPage() {
           )}
         </div>
       </div>
-    </AppShell>
+    </>
   );
 }

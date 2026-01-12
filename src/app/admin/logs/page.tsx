@@ -12,7 +12,7 @@ import {
   getDocs,
 } from "firebase/firestore";
 import { useLanguage } from "@/contexts";
-import { AppShell } from "@/components/layout/AppShell";
+
 import { ConfirmationModal } from "@/components/ui/ConfirmationModal";
 import {
   FileText,
@@ -36,8 +36,33 @@ export default function AdminLogsPage() {
   const [loading, setLoading] = useState(true);
   const [showClearModal, setShowClearModal] = useState(false);
   const [isClearing, setIsClearing] = useState(false);
-  const [searchTerm, setSearchTerm] = useState("");
+  const [searchTerm, setSearchTerm] = useState(() => {
+    if (typeof window !== "undefined") {
+      return sessionStorage.getItem("adminLogsSearch") || "";
+    }
+    return "";
+  });
   const { language, t } = useLanguage();
+
+  // Persist State & Scroll
+  useEffect(() => {
+    const handleScroll = () => {
+      sessionStorage.setItem("adminLogsScroll", window.scrollY.toString());
+    };
+    window.addEventListener("scroll", handleScroll);
+
+    // Restore scroll
+    const savedScroll = sessionStorage.getItem("adminLogsScroll");
+    if (savedScroll) {
+      window.scrollTo(0, parseFloat(savedScroll));
+    }
+
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
+
+  useEffect(() => {
+    sessionStorage.setItem("adminLogsSearch", searchTerm);
+  }, [searchTerm]);
 
   useEffect(() => {
     const q = query(collection(db, "logs"), orderBy("timestamp", "desc"), limit(100));
@@ -130,7 +155,7 @@ export default function AdminLogsPage() {
   };
 
   return (
-    <AppShell>
+    <>
       <div className="p-6 lg:p-10 w-full page-transition">
         <FadeIn className="flex items-center justify-between mb-8">
           <h1 className="text-2xl font-bold text-foreground flex items-center gap-3">
@@ -139,13 +164,13 @@ export default function AdminLogsPage() {
           </h1>
           <div className="flex flex-col sm:flex-row gap-4 items-center w-full sm:w-auto">
             <div className="relative w-full sm:w-64">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground w-4 h-4 rtl:right-3 rtl:left-auto" />
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground w-4 h-4 rtl:right-3 rtl:left-auto pointer-events-none z-10" />
               <input
                 type="text"
                 placeholder={language === "ar" ? "بحث في السجلات..." : "Search logs..."}
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="w-full bg-muted/50 border border-transparent focus:border-primary/50 focus:bg-background rounded-xl py-2 px-10 text-sm outline-none transition-all"
+                className="w-full h-11 pl-10 pr-10 rounded-2xl bg-white/5 dark:bg-white/2 backdrop-blur-xl border border-white/10 focus:border-primary/50 focus:ring-4 focus:ring-primary/10 transition-all duration-300 outline-none text-sm shadow-sm placeholder:text-muted-foreground/50"
               />
             </div>
 
@@ -267,6 +292,6 @@ export default function AdminLogsPage() {
         cancelText={language === "ar" ? "إلغاء" : "Cancel"}
         type="danger"
       />
-    </AppShell>
+    </>
   );
 }

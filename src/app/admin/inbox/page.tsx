@@ -2,19 +2,17 @@
 
 import { useState, useEffect } from "react";
 import { db } from "@/lib/firebase";
-import {
-  collection,
-  onSnapshot,
-  query,
-  orderBy,
-  doc,
-  updateDoc,
-  deleteDoc,
-} from "firebase/firestore";
+import { collection, onSnapshot, query, orderBy, doc, updateDoc } from "firebase/firestore";
 import { useLanguage, useAuth } from "@/contexts";
-import { AppShell } from "@/components/layout/AppShell";
+
 import { toast } from "sonner";
-import { sendMessage, markMessagesAsSeen, toggleReaction, deleteMessage } from "@/lib/chatUtils";
+import {
+  sendMessage,
+  markMessagesAsSeen,
+  toggleReaction,
+  deleteMessage,
+  clearChatHistory,
+} from "@/lib/chatUtils";
 import { ChatSession, ChatMessage } from "@/types";
 import { ConfirmationModal } from "@/components/ui/ConfirmationModal";
 import { InboxLayout } from "@/components/features/inbox/InboxLayout";
@@ -34,14 +32,16 @@ export default function AdminInboxPage() {
   });
 
   const { language } = useLanguage();
-  const { user } = useAuth();
+  const { user, hasPermission } = useAuth();
   const [replyTo, setReplyTo] = useState<ChatMessage | null>(null);
+
+  const canDelete = hasPermission("delete_chats");
 
   const handleDeleteSession = async () => {
     if (!deleteConfirm.sessionId) return;
 
     try {
-      await deleteDoc(doc(db, "chats", deleteConfirm.sessionId));
+      await clearChatHistory(deleteConfirm.sessionId);
       toast.success(language === "ar" ? "تم حذف المحادثة" : "Chat deleted successfully");
       if (selectedSessionId === deleteConfirm.sessionId) {
         setSelectedSessionId(null);
@@ -129,6 +129,10 @@ export default function AdminInboxPage() {
         const allMsgs = snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }) as ChatMessage);
         setMessages(allMsgs);
         setLoadingMessages(false);
+        // Mark as seen immediately when new messages arrive
+        if (allMsgs.length > 0) {
+          markMessagesAsSeen(selectedSessionId, true);
+        }
       },
       (error) => {
         console.error("Error fetching messages:", error);
@@ -160,7 +164,7 @@ export default function AdminInboxPage() {
         textToSend,
         "admin",
         "Admin Support",
-        false,
+        true, // isAdmin = true
         replyTo
           ? {
               id: replyTo.id,
@@ -181,7 +185,7 @@ export default function AdminInboxPage() {
   };
 
   return (
-    <AppShell>
+    <>
       <InboxLayout
         isChatSelected={!!selectedSessionId}
         sidebar={
@@ -189,8 +193,10 @@ export default function AdminInboxPage() {
             sessions={sortedSessions}
             selectedSessionId={selectedSessionId}
             onSelectSession={(id) => {
-              setLoadingMessages(true);
-              setSelectedSessionId(id);
+              if (id !== selectedSessionId) {
+                setLoadingMessages(true);
+                setSelectedSessionId(id);
+              }
             }}
             isLoading={loadingSessions}
             onTogglePin={togglePin}
@@ -209,13 +215,31 @@ export default function AdminInboxPage() {
             setReplyTo={setReplyTo}
             onSendMessage={handleSend}
             onBack={() => setSelectedSessionId(null)}
-            onDeleteChat={() =>
-              selectedSessionId && setDeleteConfirm({ open: true, sessionId: selectedSessionId })
-            }
-            onDeleteMessage={(id) => selectedSessionId && deleteMessage(selectedSessionId, id)}
-            onReaction={(msgId, emoji) =>
-              selectedSessionId && toggleReaction(selectedSessionId, msgId, "admin", emoji)
-            }
+            onDeleteChat={() => {
+              if (!canDelete) {
+                toast.error(
+                  language === "ar"
+                    ? "ليس لديك صلاحية حذف المحادثات"
+                    : "You don't have permission to delete chats"
+                );
+                return;
+              }
+              if (selectedSessionId) {
+                setDeleteConfirm({ open: true, sessionId: selectedSessionId });
+              }
+            }}
+            onDeleteMessage={(id) => {
+              if (!canDelete) return;
+              if (selectedSessionId) {
+                deleteMessage(selectedSessionId, id);
+              }
+            }}
+            onReaction={(msgId, emoji) => {
+              if (selectedSessionId) {
+                toggleReaction(selectedSessionId, msgId, "admin", emoji);
+              }
+            }}
+            canDelete={canDelete}
           />
         }
       />
@@ -234,6 +258,6 @@ export default function AdminInboxPage() {
         cancelText={language === "ar" ? "إلغاء" : "Cancel"}
         type="danger"
       />
-    </AppShell>
+    </>
   );
 }

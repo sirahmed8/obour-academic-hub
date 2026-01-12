@@ -4,6 +4,8 @@ type ErrorSeverity = "info" | "warning" | "error" | "critical";
 
 interface ErrorContext {
   userId?: string;
+  email?: string;
+  role?: string;
   [key: string]: unknown;
 }
 

@@ -11,7 +11,7 @@ interface MessageBubbleProps {
   msg: ChatMessage;
   onReply: (msg: ChatMessage) => void;
   onReact: (id: string, trigger: HTMLElement) => void;
-  onDelete: (id: string) => void;
+  onDelete?: (id: string) => void;
   isAdmin: boolean;
 }
 
@@ -51,37 +51,10 @@ export function MessageBubble({ msg, onReply, onReact, onDelete }: MessageBubble
         isMe || isBot ? "ml-auto items-end" : "mr-auto items-start"
       )}
     >
-      {/* Reply Preview (Message Header) */}
-      {msg.replyTo && (
-        <div
-          className={cn(
-            "text-[10px] px-3 py-1.5 rounded-t-xl mb-[-4px] border-b border-white/20 dark:border-white/10 w-full shadow-sm flex items-center gap-2 backdrop-blur-xl backdrop-saturate-150",
-            isMe
-              ? "bg-primary/30 text-white"
-              : "bg-background/60 dark:bg-background/60 text-muted-foreground"
-          )}
-        >
-          <div className="flex-1 min-w-0 flex items-center gap-2">
-            <span className="font-bold shrink-0">{msg.replyTo.senderName}:</span>
-
-            {msg.replyTo.attachmentUrl && msg.replyTo.attachmentType === "image" && (
-              <div className="relative w-5 h-5 rounded overflow-hidden shrink-0 border border-white/10">
-                <Image src={msg.replyTo.attachmentUrl} alt="Reply" fill className="object-cover" />
-              </div>
-            )}
-
-            <span className="truncate opacity-80">
-              {msg.replyTo.text ||
-                (msg.replyTo.attachmentUrl && msg.replyTo.attachmentType !== "image" ? "File" : "")}
-            </span>
-          </div>
-        </div>
-      )}
-
       {/* Bubble */}
       <div
         className={cn(
-          "px-4 py-3 shadow-sm text-sm whitespace-pre-wrap leading-relaxed relative z-10",
+          "px-4 py-3 shadow-sm text-sm whitespace-pre-wrap leading-relaxed relative z-10 overflow-hidden",
           // Shape styling
           isMe
             ? "bg-linear-to-br from-primary via-purple-600 to-indigo-600 text-white rounded-2xl rounded-tr-sm"
@@ -90,6 +63,39 @@ export function MessageBubble({ msg, onReply, onReact, onDelete }: MessageBubble
               : "bg-white dark:bg-card border border-border text-foreground rounded-2xl rounded-tl-sm shadow-md"
         )}
       >
+        {/* Internal Reply Preview */}
+        {msg.replyTo && (
+          <div
+            className={cn(
+              "text-[10px] px-3 py-2 rounded-lg mb-2 w-full flex items-center gap-2 border-l-2",
+              isMe
+                ? "bg-black/20 text-white/90 border-white/50"
+                : "bg-muted/50 text-muted-foreground border-primary/50"
+            )}
+          >
+            <div className="flex-1 min-w-0 flex items-center gap-2">
+              <span className="font-bold shrink-0 opacity-90">{msg.replyTo.senderName}</span>
+
+              {msg.replyTo.attachmentUrl && msg.replyTo.attachmentType === "image" && (
+                <div className="relative w-4 h-4 rounded overflow-hidden shrink-0 border border-white/10">
+                  <Image
+                    src={msg.replyTo.attachmentUrl}
+                    alt="Reply"
+                    fill
+                    className="object-cover"
+                  />
+                </div>
+              )}
+
+              <span className="truncate opacity-75">
+                {msg.replyTo.text ||
+                  (msg.replyTo.attachmentUrl && msg.replyTo.attachmentType !== "image"
+                    ? "File"
+                    : "")}
+              </span>
+            </div>
+          </div>
+        )}
         {/* Attachment Display */}
         {msg.attachmentUrl && (
           <div className="mb-2 -mx-2">
@@ -147,8 +153,10 @@ export function MessageBubble({ msg, onReply, onReact, onDelete }: MessageBubble
       {!msg.isDeleted && (
         <div
           className={cn(
-            "absolute -top-4 flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-all duration-300 z-50",
-            isMe ? "right-0 group-hover:-top-6" : "left-0 group-hover:-top-6"
+            "absolute top-1/2 -translate-y-1/2 flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-all duration-300 z-50 px-2",
+            isMe || isBot
+              ? "right-full mr-1 translate-x-2 group-hover:translate-x-0"
+              : "left-full ml-1 -translate-x-2 group-hover:translate-x-0"
           )}
         >
           <div className="flex items-center gap-1 bg-white/95 dark:bg-zinc-900/95 backdrop-blur-md border border-white/10 dark:border-white/5 rounded-full p-1 shadow-lg transform hover:scale-105 transition-transform">
@@ -166,7 +174,7 @@ export function MessageBubble({ msg, onReply, onReact, onDelete }: MessageBubble
             >
               <Smile size={14} />
             </button>
-            {isMe && (
+            {isMe && onDelete && (
               <button
                 onClick={() => onDelete(msg.id)}
                 className="p-1.5 rounded-full hover:bg-white/50 dark:hover:bg-white/10 text-muted-foreground hover:text-destructive transition-all active:scale-95"

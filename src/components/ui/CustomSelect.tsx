@@ -48,13 +48,15 @@ export function CustomSelect({
         type="button"
         onClick={() => setIsOpen(!isOpen)}
         className={cn(
-          "w-full flex items-center justify-between px-4 py-3 rounded-2xl border transition-all duration-200",
+          "w-full flex items-center justify-between px-4 py-3 rounded-2xl border transition-all duration-300",
           isOpen
-            ? "border-primary bg-background shadow-[0_0_15px_-3px_hsl(var(--primary))]"
-            : "border-border bg-card hover:bg-muted/50"
+            ? "border-primary/50 bg-background/80 backdrop-blur-xl shadow-lg ring-2 ring-primary/10"
+            : "border-border/40 bg-background/60 backdrop-blur-xl hover:bg-background/80"
         )}
       >
-        <span className={cn("block truncate", !selectedOption && "text-muted-foreground")}>
+        <span
+          className={cn("block truncate font-medium", !selectedOption && "text-muted-foreground")}
+        >
           {selectedOption
             ? selectedOption.label
             : placeholder || (language === "ar" ? "اختر..." : "Select...")}
@@ -67,38 +69,35 @@ export function CustomSelect({
       <AnimatePresence>
         {isOpen && (
           <motion.div
-            initial={{ opacity: 0, y: -8 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -8 }}
-            transition={{ duration: 0.2, ease: [0.32, 0.72, 0, 1] }} // iOS ease
-            className="absolute z-50 w-full mt-2 overflow-hidden glass-premium rounded-2xl shadow-2xl max-h-60"
+            initial={{ opacity: 0, y: -8, scale: 0.98 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: -8, scale: 0.98 }}
+            transition={{ duration: 0.2, ease: [0.32, 0.72, 0, 1] }}
+            className="absolute z-50 w-full mt-2 bg-background/80 backdrop-blur-2xl border border-white/10 shadow-2xl rounded-2xl max-h-60 overflow-hidden"
           >
-            <div className="p-1 overflow-auto max-h-[14rem] scrollbar-hide">
+            <div className="p-1.5 overflow-auto max-h-56 scrollbar-hide">
               {options.length === 0 ? (
                 <div className="p-3 text-center text-sm text-muted-foreground">
                   {language === "ar" ? "لا توجد خيارات" : "No options"}
                 </div>
               ) : (
-                options.map((option, index) => (
+                options.map((option) => (
                   <motion.button
                     key={option.value}
                     type="button"
-                    initial={{ opacity: 0, y: -5 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: index * 0.03 + 0.05 }}
                     onClick={() => {
                       onChange(option.value);
                       setIsOpen(false);
                     }}
                     className={cn(
-                      "w-full flex items-center justify-between px-3 py-2.5 rounded-xl text-sm transition-all duration-200",
+                      "w-full flex items-center justify-between px-3 py-2.5 rounded-xl text-sm transition-all duration-200 mb-0.5 last:mb-0 relative z-10",
                       option.value === value
-                        ? "bg-primary text-primary-foreground font-bold shadow-md"
-                        : "text-foreground hover:bg-black/5 dark:hover:bg-white/10"
+                        ? "bg-primary/10 text-primary font-bold"
+                        : "text-foreground hover:bg-white/5 active:scale-[0.98]"
                     )}
                   >
                     <span className="truncate">{option.label}</span>
-                    {option.value === value && <Check className="w-4 h-4" />}
+                    {option.value === value && <Check className="w-4 h-4 text-primary" />}
                   </motion.button>
                 ))
               )}

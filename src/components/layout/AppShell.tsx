@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, useCallback } from "react";
 import { usePathname, useRouter } from "next/navigation";
 import Link from "next/link";
 import { useAuth, useLanguage, useSolidMode } from "@/contexts";
@@ -27,6 +27,7 @@ const StudentProfileSetup = dynamic(
 );
 
 import { LiveBanner } from "@/components/features/LiveBanner";
+import { AdminApprovalModal } from "@/components/admin/AdminApprovalModal";
 import { CookieConsent } from "@/components/ui/CookieConsent";
 import { Loader2, ExternalLink } from "lucide-react";
 import { motion } from "framer-motion";
@@ -45,10 +46,13 @@ export function AppShell({ children }: { children: React.ReactNode }) {
     return false;
   });
   const { user, loading } = useAuth();
-  const { dir, language } = useLanguage();
+  const { language } = useLanguage();
 
   const router = useRouter();
   const pathname = usePathname();
+
+  const handleMenuClick = useCallback(() => setSidebarOpen((prev) => !prev), []);
+  const handleSidebarClose = useCallback(() => setSidebarOpen(false), []);
 
   // Enable global keyboard shortcuts
   useGlobalKeyboard();
@@ -141,19 +145,18 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   }
 
   return (
-    <div className="flex h-screen bg-background overflow-hidden relative" dir={dir}>
-      {/* Global Ambient Background for Seamless Blur */}
+    <div className="flex h-screen bg-background overflow-hidden relative">
       {/* Global Ambient Background for Seamless Blur */}
       {/* Global Ambient Background Removed for Solid Look */}
       <div className="fixed inset-0 z-0 pointer-events-none overflow-hidden bg-background" />
       <SkipLink />
       {/* Top Navigation Bar (Full Width) */}
-      <Navbar onMenuClick={() => setSidebarOpen((prev) => !prev)} />
+      <Navbar onMenuClick={handleMenuClick} />
       {/* Main Layout Area */}
       <LanguageTransition>
         <div className="flex w-full h-full">
           {/* Sidebar handles its own top padding on desktop */}
-          <Sidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
+          <Sidebar isOpen={sidebarOpen} onClose={handleSidebarClose} />
           <div className="flex-1 flex flex-col h-full overflow-hidden relative transition-all duration-300">
             <LiveBanner />
             <main
@@ -164,7 +167,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
               {/* Page content with smooth transition */}
               <motion.div
                 className={cn(
-                  "min-h-full flex flex-col w-full",
+                  "min-h-screen flex flex-col w-full", // Force scroll for footer
                   language === "ar" ? "lg:pr-72" : "lg:pl-72" // Push content for Fixed Sidebar
                 )}
               >
@@ -221,6 +224,8 @@ export function AppShell({ children }: { children: React.ReactNode }) {
           }}
         />
       )}
+      {/* Admin Live Approval Modal */}
+      <AdminApprovalModal />
       {/* Cookie Consent Banner */}
       <CookieConsent />
     </div>

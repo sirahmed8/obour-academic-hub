@@ -58,103 +58,83 @@ export const ANIMATED_ICON_MAP: Record<
 export const ICON_ANIMATION_VARIANTS = {
   // Smooth rotation (for globes, atoms, settings)
   rotate: {
-    rest: { rotate: 0, scale: 1, filter: "drop-shadow(0px 0px 0px rgba(0,0,0,0))" },
+    rest: { rotate: 0, scale: 1, opacity: 0.8 },
     hover: {
-      rotate: 180,
-      scale: 1.2,
-      filter: "drop-shadow(0px 4px 8px rgba(0,0,0,0.15))",
-      transition: {
-        type: "spring" as const,
-        stiffness: 260,
-        damping: 20,
-      },
+      rotate: 0, // Removed movement
+      scale: 1, // Stay centered
+      opacity: 1,
+      filter: "brightness(1.2) drop-shadow(0px 0px 8px rgba(255,255,255,0.2))",
+      transition: { duration: 0.3 },
     },
   },
 
-  // Heartbeat/Pulse (Single strong pulse)
+  // Heartbeat/Pulse (Simplified to just brightness)
   pulse: {
-    rest: { scale: 1, filter: "drop-shadow(0px 0px 0px rgba(0,0,0,0))" },
+    rest: { scale: 1, opacity: 0.8 },
     hover: {
-      scale: 1.25,
-      filter: "drop-shadow(0px 4px 8px rgba(0,0,0,0.15))",
-      transition: {
-        type: "spring" as const,
-        stiffness: 300,
-        damping: 15,
-      },
+      scale: 1,
+      opacity: 1,
+      filter: "brightness(1.2)",
+      transition: { duration: 0.3 },
     },
   },
 
-  // Elegant lift with shadow (Books, Briefcase)
+  // Elegant lift (Simplified)
   lift: {
-    rest: { y: 0, scale: 1, filter: "drop-shadow(0px 0px 0px rgba(0,0,0,0))" },
+    rest: { y: 0, scale: 1, opacity: 0.8 },
     hover: {
-      y: -6,
-      scale: 1.15,
-      filter: "drop-shadow(0px 10px 15px rgba(0,0,0,0.2))",
-      transition: {
-        type: "spring" as const,
-        stiffness: 300,
-        damping: 20,
-      },
+      y: 0,
+      scale: 1,
+      opacity: 1,
+      filter: "brightness(1.2)",
+      transition: { duration: 0.3 },
     },
   },
 
-  // Tilt/Wiggle (Science)
+  // Tilt/Wiggle (Simplified)
   tilt: {
-    rest: { rotate: 0, scale: 1, filter: "drop-shadow(0px 0px 0px rgba(0,0,0,0))" },
+    rest: { rotate: 0, scale: 1, opacity: 0.8 },
     hover: {
-      rotate: 15,
-      scale: 1.15,
-      filter: "drop-shadow(0px 4px 8px rgba(0,0,0,0.15))",
-      transition: {
-        type: "spring" as const,
-        stiffness: 300,
-        damping: 15,
-      },
+      rotate: 0,
+      scale: 1,
+      opacity: 1,
+      filter: "brightness(1.2)",
+      transition: { duration: 0.3 },
     },
   },
 
-  // Float (Arts) - Deterministic Up
+  // Float (Simplified)
   float: {
-    rest: { y: 0, rotate: 0, scale: 1 },
+    rest: { y: 0, rotate: 0, scale: 1, opacity: 0.8 },
     hover: {
-      y: -5,
-      rotate: -5,
-      scale: 1.15,
-      transition: {
-        type: "spring" as const,
-        stiffness: 200,
-        damping: 15,
-      },
+      y: 0,
+      rotate: 0,
+      scale: 1,
+      opacity: 1,
+      filter: "brightness(1.2)",
+      transition: { duration: 0.3 },
     },
   },
 
   // Glow (Ideas)
   glow: {
-    rest: { scale: 1, filter: "brightness(1) drop-shadow(0px 0px 0px rgba(0,0,0,0))" },
+    rest: { scale: 1, filter: "brightness(1)", opacity: 0.8 },
     hover: {
-      scale: 1.2,
-      filter: "brightness(1.2) drop-shadow(0px 0px 15px rgba(255,255,0,0.4))",
-      transition: {
-        type: "spring" as const,
-        stiffness: 300,
-        damping: 20,
-      },
+      scale: 1,
+      opacity: 1,
+      filter: "brightness(1.3) drop-shadow(0px 0px 10px rgba(255,251,0,0.3))",
+      transition: { duration: 0.3 },
     },
   },
 
   // Standard Scale (Default)
   scale: {
-    rest: { scale: 1, filter: "drop-shadow(0px 0px 0px rgba(0,0,0,0))" },
+    rest: { scale: 1, opacity: 0.8 },
     hover: {
-      scale: 1.2,
-      filter: "drop-shadow(0px 4px 6px rgba(0,0,0,0.1))",
-      transition: {
-        type: "spring" as const,
-        stiffness: 400,
-        damping: 15,
-      },
+      scale: 1,
+      opacity: 1,
+      filter: "brightness(1.2)",
+      transition: { duration: 0.3 },
     },
   },
 };

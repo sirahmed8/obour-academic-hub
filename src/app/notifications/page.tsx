@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useLanguage, useAuth } from "@/contexts";
 import { notificationService } from "@/services/notification.service";
-import { AppShell } from "@/components/layout/AppShell";
+
 import { Bell, Info, AlertTriangle, CheckCircle, Loader2, Trash2, CheckCheck } from "lucide-react";
 import { ConfirmationModal } from "@/components/ui/ConfirmationModal";
 import { toast } from "sonner";
@@ -25,17 +25,12 @@ export default function NotificationsPage() {
   useEffect(() => {
     if (!user) return;
 
-    const unsubscribe = notificationService.subscribeToAll(
+    const unsubscribe = notificationService.subscribeToUser(
+      user.uid,
       (allNotifs) => {
-        // Filter notifications relevant to the user
-        const relevantNotifs = allNotifs.filter((n) => {
-          if (n.target === "all" || !n.target) return true;
-          if (n.target === "admins" && isAdmin) return true;
-          if (n.target === user.uid) return true;
-          return false;
-        });
-
-        setNotifications(relevantNotifs);
+        // No need to filter deeply here as the query is already filtered
+        // But we can double check or just set state
+        setNotifications(allNotifs);
         setLoading(false);
       },
       (error) => {
@@ -114,7 +109,7 @@ export default function NotificationsPage() {
   const unreadCount = notifications.filter((n) => !n.readBy?.includes(user?.uid || "")).length;
 
   return (
-    <AppShell>
+    <>
       <div className="p-6 lg:p-10 w-full space-y-8 page-transition">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
@@ -251,6 +246,6 @@ export default function NotificationsPage() {
         cancelText={language === "ar" ? "إلغاء" : "Cancel"}
         type="danger"
       />
-    </AppShell>
+    </>
   );
 }

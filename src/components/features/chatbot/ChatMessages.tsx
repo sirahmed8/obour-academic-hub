@@ -24,7 +24,7 @@ export function ChatMessages({ messages, user, onReply, onReact, onDelete }: Cha
   }, [messages]);
 
   return (
-    <div className="flex-1 overflow-y-auto p-4 space-y-4 bg-muted/5 scrollbar-thin scrollbar-thumb-border">
+    <div className="flex-1 overflow-y-auto p-4 space-y-4 bg-muted/5 scrollbar-hide">
       {messages.length === 0 && (
         <div className="h-full flex flex-col items-center justify-center text-center text-muted-foreground p-6 opacity-60">
           <Headphones className="w-12 h-12 mb-3" />

@@ -12,8 +12,9 @@ import {
   updateDoc,
 } from "firebase/firestore";
 import { db } from "@/lib/firebase";
-import { AppShell } from "@/components/layout/AppShell";
+
 import { useAuth, useLanguage } from "@/contexts";
+import { userService } from "@/services/user.service";
 import {
   Send,
   Loader2,
@@ -29,6 +30,7 @@ import {
   CheckCircle2,
   History,
   Clock,
+  Mail,
 } from "lucide-react";
 import { toast } from "sonner";
 import { FadeIn, ScaleIn, StaggerChildren } from "@/components/ui/Animations";
@@ -49,7 +51,7 @@ interface Banner {
 export default function AdminNotificationsPage() {
   const { user, isAdmin } = useAuth();
   const { language } = useLanguage();
-  const [activeTab, setActiveTab] = useState<"send" | "banners">("send");
+  const [activeTab, setActiveTab] = useState<"send" | "banners" | "email">("send");
 
   // --- Notifications State ---
   const [title, setTitle] = useState("");
@@ -57,6 +59,12 @@ export default function AdminNotificationsPage() {
   const [type, setType] = useState<"info" | "warning" | "success">("info");
   const [target, setTarget] = useState<"all" | "admins">("all");
   const [sending, setSending] = useState(false);
+
+  // --- Email State ---
+  const [emailSubject, setEmailSubject] = useState("");
+  const [emailMessage, setEmailMessage] = useState("");
+  const [emailTarget, setEmailTarget] = useState<"all" | "admins">("all");
+  const [sendingEmail, setSendingEmail] = useState(false);
 
   // --- Banners State ---
   const [banners, setBanners] = useState<Banner[]>([]);
@@ -100,7 +108,6 @@ export default function AdminNotificationsPage() {
         return dateB - dateA;
       });
       setBanners(data);
-      // setLoadingBanners(false);
     });
 
     return () => unsubscribe();
@@ -111,26 +118,97 @@ export default function AdminNotificationsPage() {
     e.preventDefault();
     if (!title.trim() || !message.trim()) return;
 
+    const form = e.target as HTMLFormElement;
+    const titleEnInput = form.elements.namedItem("titleEn") as HTMLInputElement;
+    const messageEnInput = form.elements.namedItem("messageEn") as HTMLTextAreaElement;
+
+    const titleEn = titleEnInput?.value || title;
+    const messageEn = messageEnInput?.value || message;
+
     setSending(true);
     try {
       await addDoc(collection(db, "notifications"), {
-        title,
-        message,
+        titleAr: title,
+        titleEn: titleEn,
+        messageAr: message,
+        messageEn: messageEn,
+        title: title,
+        message: message,
         type,
         target,
         readBy: [],
         createdAt: new Date().toISOString(),
         createdBy: user?.uid,
       });
-      toast.success("Notification sent successfully");
+      toast.success(
+        language === "ar" ? "تم إرسال الإشعار بنجاح" : "Notification sent successfully"
+      );
       setTitle("");
       setMessage("");
+      if (titleEnInput) titleEnInput.value = "";
+      if (messageEnInput) messageEnInput.value = "";
       setType("info");
     } catch (error) {
       console.error("Error sending notification:", error);
-      toast.error("Failed to send notification");
+      toast.error(language === "ar" ? "فشل إرسال الإشعار" : "Failed to send notification");
     } finally {
       setSending(false);
+    }
+  };
+
+  // --- Email Handler ---
+  const handleSendEmail = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!emailSubject.trim() || !emailMessage.trim()) return;
+
+    setSendingEmail(true);
+    try {
+      // 1. Fetch Recipients
+      const users = await userService.getAll({
+        role: emailTarget === "admins" ? "admin" : undefined,
+      });
+
+      // For "all", we might want to filter or just take all emails
+      // Note: userService.getAll implementation might typically return all users if no role specified, which fits "all"
+      // If "admins" was selected, we passed role="admin".
+
+      // Filter out users without email
+      const emails = users.map((u) => u.email).filter((email) => email && email.includes("@"));
+
+      if (emailTarget === "admins") {
+        // Also include owner if not in list
+        const ownerEmail = process.env.NEXT_PUBLIC_OWNER_EMAIL;
+        if (ownerEmail && !emails.includes(ownerEmail)) {
+          emails.push(ownerEmail);
+        }
+      }
+
+      if (emails.length === 0) {
+        toast.error(language === "ar" ? "لا يوجد مستلمين" : "No recipients found");
+        return;
+      }
+
+      // 2. Send API Request
+      const response = await fetch("/api/send-email", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          to: emails, // sending as array
+          subject: emailSubject,
+          html: `<div dir="auto">${emailMessage.replace(/\n/g, "<br/>")}</div>`,
+        }),
+      });
+
+      if (!response.ok) throw new Error("Failed to send");
+
+      toast.success(language === "ar" ? "تم إرسال البريد الإلكتروني" : "Email sent successfully");
+      setEmailSubject("");
+      setEmailMessage("");
+    } catch (error) {
+      console.error("Error sending email:", error);
+      toast.error(language === "ar" ? "فشل إرسال البريد" : "Failed to send email");
+    } finally {
+      setSendingEmail(false);
     }
   };
 
@@ -202,7 +280,7 @@ export default function AdminNotificationsPage() {
   const historyBanners = banners.filter((b) => !b.isActive);
 
   return (
-    <AppShell>
+    <>
       <div className="w-full p-6 space-y-8 page-transition">
         {/* Header */}
         <FadeIn className="flex items-center justify-between flex-wrap gap-4">
@@ -223,7 +301,7 @@ export default function AdminNotificationsPage() {
           </div>
 
           {/* Tabs */}
-          <div className="flex bg-muted p-1 rounded-xl">
+          <div className="flex bg-muted p-1 rounded-xl flex-wrap gap-1">
             <button
               onClick={() => setActiveTab("send")}
               className={cn(
@@ -236,6 +314,18 @@ export default function AdminNotificationsPage() {
               {language === "ar" ? "إرسال إشعار" : "Send Notification"}
             </button>
             <button
+              onClick={() => setActiveTab("email")}
+              className={cn(
+                "px-4 py-2 rounded-lg text-sm font-medium transition-all flex items-center gap-2",
+                activeTab === "email"
+                  ? "bg-background shadow text-foreground"
+                  : "text-muted-foreground hover:text-foreground"
+              )}
+            >
+              <Mail size={14} />
+              {language === "ar" ? "إرسال بريد" : "Send Email"}
+            </button>
+            <button
               onClick={() => setActiveTab("banners")}
               className={cn(
                 "px-4 py-2 rounded-lg text-sm font-medium transition-all flex items-center gap-2",
@@ -245,7 +335,7 @@ export default function AdminNotificationsPage() {
               )}
             >
               <Megaphone size={14} />
-              {language === "ar" ? "إدارة الإعلانات" : "Manage Banners"}
+              {language === "ar" ? "إرسال البنرات" : "Send Banners"}
             </button>
           </div>
         </FadeIn>
@@ -254,46 +344,74 @@ export default function AdminNotificationsPage() {
         {activeTab === "send" && (
           <ScaleIn delay={0.1} className="bg-card border border-border rounded-xl p-6 shadow-sm">
             <form onSubmit={handleSendNotification} className="space-y-6">
-              <div className="space-y-2">
-                <label className="text-sm font-medium">Title</label>
-                <input
-                  type="text"
-                  value={title}
-                  onChange={(e) => setTitle(e.target.value)}
-                  placeholder="Notification Title"
-                  className="w-full p-3 rounded-lg border border-input bg-background focus:ring-2 focus:ring-primary/20 transition-all"
-                  required
-                />
-              </div>
-
-              <div className="space-y-2">
-                <label className="text-sm font-medium">Message</label>
-                <textarea
-                  value={message}
-                  onChange={(e) => setMessage(e.target.value)}
-                  placeholder="Notification Message"
-                  rows={4}
-                  className="w-full p-3 rounded-lg border border-input bg-background focus:ring-2 focus:ring-primary/20 transition-all resize-none"
-                  required
-                />
-              </div>
-
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                {/* Arabic Fields */}
+                <div className="space-y-4">
+                  <h3 className="text-sm font-semibold text-muted-foreground flex items-center gap-2">
+                    <span className="w-4 h-4 rounded-full bg-green-100 text-green-700 flex items-center justify-center text-[10px]">
+                      ع
+                    </span>
+                    Arabic
+                  </h3>
+                  <div className="space-y-2">
+                    <input
+                      type="text"
+                      value={title}
+                      onChange={(e) => setTitle(e.target.value)}
+                      placeholder="اسم الموضوع..."
+                      className="w-full p-3 rounded-xl bg-white/5 dark:bg-white/2 backdrop-blur-xl border border-white/10 focus:border-primary/50 focus:ring-4 focus:ring-primary/10 transition-all duration-300 outline-none shadow-sm placeholder:text-muted-foreground/50 text-right"
+                      dir="rtl"
+                      required
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <textarea
+                      value={message}
+                      onChange={(e) => setMessage(e.target.value)}
+                      placeholder="وصف الموضوع..."
+                      rows={4}
+                      className="w-full p-3 rounded-xl bg-white/5 dark:bg-white/2 backdrop-blur-xl border border-white/10 focus:border-primary/50 focus:ring-4 focus:ring-primary/10 transition-all duration-300 outline-none shadow-sm placeholder:text-muted-foreground/50 resize-none text-right"
+                      dir="rtl"
+                      required
+                    />
+                  </div>
+                </div>
+
+                {/* English Fields */}
+                <div className="space-y-4">
+                  <h3 className="text-sm font-semibold text-muted-foreground flex items-center gap-2">
+                    <span className="w-4 h-4 rounded-full bg-blue-100 text-blue-700 flex items-center justify-center text-[10px]">
+                      En
+                    </span>
+                    English
+                  </h3>
+                  <div className="space-y-2">
+                    <input
+                      type="text"
+                      name="titleEn"
+                      placeholder="Name of the subject..."
+                      className="w-full p-3 rounded-xl bg-white/5 dark:bg-white/2 backdrop-blur-xl border border-white/10 focus:border-primary/50 focus:ring-4 focus:ring-primary/10 transition-all duration-300 outline-none shadow-sm placeholder:text-muted-foreground/50"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <textarea
+                      name="messageEn"
+                      placeholder="Describe the subject..."
+                      rows={4}
+                      className="w-full p-3 rounded-xl bg-white/5 dark:bg-white/2 backdrop-blur-xl border border-white/10 focus:border-primary/50 focus:ring-4 focus:ring-primary/10 transition-all duration-300 outline-none shadow-sm placeholder:text-muted-foreground/50 resize-none"
+                    />
+                  </div>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-4 border-t">
                 <div className="space-y-2">
                   <label className="text-sm font-medium">Type</label>
                   <div className="flex gap-2">
                     {[
                       { val: "info", icon: Info, color: "text-blue-500" },
-                      {
-                        val: "warning",
-                        icon: AlertTriangle,
-                        color: "text-yellow-500",
-                      },
-                      {
-                        val: "success",
-                        icon: CheckCircle,
-                        color: "text-green-500",
-                      },
+                      { val: "warning", icon: AlertTriangle, color: "text-yellow-500" },
+                      { val: "success", icon: CheckCircle, color: "text-green-500" },
                     ].map((option) => (
                       <button
                         key={option.val}
@@ -314,7 +432,7 @@ export default function AdminNotificationsPage() {
                 </div>
 
                 <div className="space-y-2">
-                  <label className="text-sm font-medium">Target Audience</label>
+                  <label className="text-sm font-medium text-foreground">Target Audience</label>
                   <CustomSelect
                     value={target}
                     onChange={(val) => setTarget(val as "all" | "admins")}
@@ -340,6 +458,78 @@ export default function AdminNotificationsPage() {
                   <>
                     <Send className="w-5 h-5" />
                     Send Notification
+                  </>
+                )}
+              </button>
+            </form>
+          </ScaleIn>
+        )}
+
+        {/* --- SEND EMAIL TAB --- */}
+        {activeTab === "email" && (
+          <ScaleIn delay={0.1} className="bg-card border border-border rounded-xl p-6 shadow-sm">
+            <form onSubmit={handleSendEmail} className="space-y-6">
+              <div className="space-y-4">
+                <div className="space-y-2">
+                  <label className="text-sm font-medium">
+                    {language === "ar" ? "الموضوع" : "Subject"}
+                  </label>
+                  <input
+                    type="text"
+                    value={emailSubject}
+                    onChange={(e) => setEmailSubject(e.target.value)}
+                    placeholder={language === "ar" ? "موضوع الإيميل..." : "Email Subject..."}
+                    className="w-full p-3 rounded-xl bg-white/5 dark:bg-white/2 backdrop-blur-xl border border-white/10 focus:border-primary/50 focus:ring-4 focus:ring-primary/10 transition-all duration-300 outline-none shadow-sm placeholder:text-muted-foreground/50"
+                    dir="auto"
+                    required
+                  />
+                </div>
+                <div className="space-y-2">
+                  <label className="text-sm font-medium">
+                    {language === "ar" ? "الرسالة" : "Message"}
+                  </label>
+                  <textarea
+                    value={emailMessage}
+                    onChange={(e) => setEmailMessage(e.target.value)}
+                    placeholder={language === "ar" ? "نص الرسالة..." : "Email Message..."}
+                    rows={6}
+                    className="w-full p-3 rounded-xl bg-white/5 dark:bg-white/2 backdrop-blur-xl border border-white/10 focus:border-primary/50 focus:ring-4 focus:ring-primary/10 transition-all duration-300 outline-none shadow-sm placeholder:text-muted-foreground/50 resize-none"
+                    dir="auto"
+                    required
+                  />
+                </div>
+                <div className="space-y-2">
+                  <label className="text-sm font-medium">
+                    {language === "ar" ? "الجمهور المستهدف" : "Target Audience"}
+                  </label>
+                  <CustomSelect
+                    value={emailTarget}
+                    onChange={(val) => setEmailTarget(val as "all" | "admins")}
+                    options={[
+                      { value: "all", label: language === "ar" ? "كل المستخدمين" : "All Users" },
+                      {
+                        value: "admins",
+                        label: language === "ar" ? "المشرفين فقط" : "Admins Only",
+                      },
+                    ]}
+                  />
+                </div>
+              </div>
+
+              <button
+                type="submit"
+                disabled={sendingEmail}
+                className="w-full py-3 bg-blue-600 text-white rounded-xl font-medium hover:bg-blue-700 transition-colors flex items-center justify-center gap-2 disabled:opacity-50 shadow-md hover:shadow-lg active:scale-[0.99]"
+              >
+                {sendingEmail ? (
+                  <>
+                    <Loader2 className="w-5 h-5 animate-spin" />
+                    Sending...
+                  </>
+                ) : (
+                  <>
+                    <Mail className="w-5 h-5" />
+                    {language === "ar" ? "إرسال بريد إلكتروني" : "Send Email"}
                   </>
                 )}
               </button>
@@ -375,7 +565,7 @@ export default function AdminNotificationsPage() {
                       value={bannerForm.textAr}
                       onChange={(e) => setBannerForm({ ...bannerForm, textAr: e.target.value })}
                       placeholder="نص الإعلان..."
-                      className="w-full bg-background border border-border rounded-lg px-3 py-2 outline-none focus:ring-2 ring-primary/20 text-right"
+                      className="w-full p-3 rounded-xl bg-white/5 dark:bg-white/2 backdrop-blur-xl border border-white/10 focus:border-primary/50 focus:ring-4 focus:ring-primary/10 transition-all duration-300 outline-none shadow-sm placeholder:text-muted-foreground/50 text-right"
                       dir="rtl"
                     />
                   </div>
@@ -385,7 +575,7 @@ export default function AdminNotificationsPage() {
                       value={bannerForm.textEn}
                       onChange={(e) => setBannerForm({ ...bannerForm, textEn: e.target.value })}
                       placeholder="Announcement text..."
-                      className="w-full bg-background border border-border rounded-lg px-3 py-2 outline-none focus:ring-2 ring-primary/20"
+                      className="w-full p-3 rounded-xl bg-white/5 dark:bg-white/2 backdrop-blur-xl border border-white/10 focus:border-primary/50 focus:ring-4 focus:ring-primary/10 transition-all duration-300 outline-none shadow-sm placeholder:text-muted-foreground/50"
                     />
                   </div>
                 </div>
@@ -494,7 +684,7 @@ export default function AdminNotificationsPage() {
             : "Are you sure you want to delete this banner?"
         }
       />
-    </AppShell>
+    </>
   );
 }
 
@@ -512,7 +702,7 @@ function BannerCard({
       className={cn(
         "group flex items-center justify-between p-4 rounded-xl border transition-all",
         banner.isActive
-          ? "bg-card border-l-4 border-l-primary shadow-sm hover:shadow-md"
+          ? "bg-card/50 backdrop-blur-md border-primary/20 shadow-sm hover:shadow-md"
           : "bg-muted/30 border-dashed opacity-70 hover:opacity-100"
       )}
     >
@@ -521,12 +711,12 @@ function BannerCard({
           className={cn(
             "p-2 rounded-full mt-1 shrink-0",
             banner.type === "urgent"
-              ? "bg-red-100 text-red-600"
+              ? "bg-red-500/10 text-red-600"
               : banner.type === "success"
-                ? "bg-green-100 text-green-600"
+                ? "bg-green-500/10 text-green-600"
                 : banner.type === "warning"
-                  ? "bg-amber-100 text-amber-600"
-                  : "bg-blue-100 text-blue-600"
+                  ? "bg-amber-500/10 text-amber-600"
+                  : "bg-blue-500/10 text-blue-600"
           )}
         >
           {banner.type === "urgent" ? (
@@ -542,12 +732,12 @@ function BannerCard({
             <span
               className={cn(
                 "text-xs px-2 py-0.5 rounded-full font-medium uppercase tracking-wider",
-                banner.isActive ? "bg-green-100 text-green-700" : "bg-gray-100 text-gray-600"
+                banner.isActive ? "bg-green-500/10 text-green-700" : "bg-gray-500/10 text-gray-600"
               )}
             >
               {banner.isActive ? "Active" : "Inactive"}
             </span>
-            <span className="text-xs text-muted-foreground uppercase">{banner.type}</span>
+            <span className="text-xs text-muted-foreground capitalize">{banner.type}</span>
             <span className="text-[10px] text-muted-foreground flex items-center gap-1">
               <Clock size={10} />
               {banner.createdAt &&
@@ -573,7 +763,7 @@ function BannerCard({
         </button>
         <button
           onClick={() => deleteBanner(banner.id)}
-          className="p-2 hover:bg-red-50 text-red-400 hover:text-red-600 rounded-lg transition-colors"
+          className="p-2 hover:bg-red-500/10 text-red-400 hover:text-red-600 rounded-lg transition-colors"
         >
           <Trash2 size={18} />
         </button>

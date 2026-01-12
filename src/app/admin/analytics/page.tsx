@@ -2,16 +2,17 @@
 
 import { useState, useEffect } from "react";
 import { db, rtdb } from "@/lib/firebase";
-import { collection, onSnapshot } from "firebase/firestore";
+import { collection, onSnapshot, writeBatch, getDocs } from "firebase/firestore";
 import { ref, onValue } from "firebase/database";
 import { useLanguage } from "@/contexts";
-import { AppShell } from "@/components/layout/AppShell";
+
 import { Subject } from "@/types";
 import { StaggerChildren, ScaleIn, FadeIn } from "@/components/ui/Animations";
-import { BarChart3, Users, BookOpen, Activity, Loader2, RefreshCw } from "lucide-react";
+import { BarChart3, Users, BookOpen, Activity, Loader2, RefreshCw, Trash2 } from "lucide-react";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
 import { cn } from "@/lib/utils";
 import { SystemStatus } from "@/components/admin/SystemStatus";
+import { toast } from "sonner";
 
 interface AnalyticsData {
   subjectViews: { name: string; views: number }[];
@@ -109,22 +110,63 @@ export default function AdminAnalyticsPage() {
     setTimeout(() => setRefreshing(false), 1000);
   };
 
+  const handleDeleteStats = async () => {
+    if (
+      !confirm(
+        language === "ar"
+          ? "هل أنت متأكد من حذف جميع الإحصائيات؟ لا يمكن التراجع عن هذا الإجراء."
+          : "Are you sure you want to delete all stats? This action cannot be undone."
+      )
+    )
+      return;
+
+    setLoading(true);
+    try {
+      const batch = writeBatch(db);
+
+      // Reset Subject Views
+      const subjectsSnapshot = await getDocs(collection(db, "subjects"));
+      subjectsSnapshot.forEach((doc) => {
+        batch.update(doc.ref, { views: 0 });
+      });
+
+      // Add other resets here if needed (e.g., clearing some logs)
+
+      await batch.commit();
+      toast.success(language === "ar" ? "تم حذف الإحصائيات" : "Stats deleted successfully");
+    } catch (error) {
+      console.error("Error resetting stats:", error);
+      toast.error(language === "ar" ? "فشل حذف الإحصائيات" : "Failed to delete stats");
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
-    <AppShell>
+    <>
       <div className="p-6 lg:p-10 w-full space-y-8 page-transition">
         <FadeIn className="flex items-center justify-between">
           <h1 className="text-2xl font-bold bg-clip-text text-transparent bg-linear-to-r from-primary to-purple-600 flex items-center gap-3">
             <BarChart3 className="text-primary" />
             {t("admin.analytics")}
           </h1>
-          <button
-            onClick={handleRefresh}
-            disabled={refreshing}
-            className="p-2 rounded-xl bg-muted hover:bg-muted/80 transition-all active:scale-95 disabled:opacity-50"
-            title={language === "ar" ? "تحديث" : "Refresh"}
-          >
-            <RefreshCw className={cn("w-5 h-5", refreshing && "animate-spin")} />
-          </button>
+          <div className="flex items-center gap-2">
+            <button
+              onClick={handleDeleteStats}
+              className="p-2 rounded-xl bg-destructive/10 text-destructive hover:bg-destructive/20 transition-all active:scale-95"
+              title={language === "ar" ? "حذف الإحصائيات" : "Delete Stats"}
+            >
+              <Trash2 className="w-5 h-5" />
+            </button>
+            <button
+              onClick={handleRefresh}
+              disabled={refreshing}
+              className="p-2 rounded-xl bg-muted hover:bg-muted/80 transition-all active:scale-95 disabled:opacity-50"
+              title={language === "ar" ? "تحديث" : "Refresh"}
+            >
+              <RefreshCw className={cn("w-5 h-5", refreshing && "animate-spin")} />
+            </button>
+          </div>
         </FadeIn>
 
         {loading ? (
@@ -234,6 +276,6 @@ export default function AdminAnalyticsPage() {
           </StaggerChildren>
         )}
       </div>
-    </AppShell>
+    </>
   );
 }

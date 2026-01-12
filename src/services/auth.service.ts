@@ -64,7 +64,6 @@ export const authService = {
   async createUserProfile(uid: string, data: Record<string, unknown>): Promise<void> {
     try {
       await setDoc(doc(db, "users", uid), data);
-      console.log(`[AuthService] User profile created for UID: ${uid}`);
     } catch (error) {
       console.error(`[AuthService] Failed to create user profile for UID: ${uid}`, error);
       throw error;

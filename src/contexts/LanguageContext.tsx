@@ -23,6 +23,7 @@ const translations: Record<Language, Record<string, string>> = {
     "nav.sources": "Sources",
     "nav.owner": "Owner",
     "nav.admin": "Admin Dashboard",
+    "nav.settings": "Settings UI",
 
     "nav.team": "Team",
     "nav.logout": "Logout",
@@ -116,6 +117,14 @@ const translations: Record<Language, Record<string, string>> = {
     "notifications.enable": "Enable Notifications",
     "notifications.enabled": "Notifications enabled",
     "notifications.disableInstruction": "Please disable notifications from site settings",
+
+    // Admin Settings
+    "settings.title": "Owner Settings",
+    "settings.aiToggle": "Enable AI Mode",
+    "settings.aiDescription":
+      "When disabled, chatbot will default to Live Support for all students.",
+    "settings.saveSuccess": "Settings updated successfully",
+    "settings.saveError": "Failed to update settings",
   },
   ar: {
     // Navigation
@@ -128,6 +137,7 @@ const translations: Record<Language, Record<string, string>> = {
     "nav.sources": "المصادر",
     "nav.owner": "المالك",
     "nav.admin": "لوحة التحكم",
+    "nav.settings": "الإعدادات العامة",
 
     "nav.team": "الفريق",
     "nav.logout": "تسجيل الخروج",
@@ -221,6 +231,13 @@ const translations: Record<Language, Record<string, string>> = {
     "notifications.enable": "تفعيل الإشعارات",
     "notifications.enabled": "تم تفعيل الإشعارات",
     "notifications.disableInstruction": "يجب إيقاف الإشعارات من إعدادات المتصفح",
+
+    // Admin Settings
+    "settings.title": "إعدادات المالك",
+    "settings.aiToggle": "تفعيل وضع الذكاء الاصطناعي",
+    "settings.aiDescription": "عند الإيقاف، سيتم تحويل الطلاب تلقائياً للدعم المباشر.",
+    "settings.saveSuccess": "تم تحديث الإعدادات بنجاح",
+    "settings.saveError": "فشل تحديث الإعدادات",
   },
 };
 

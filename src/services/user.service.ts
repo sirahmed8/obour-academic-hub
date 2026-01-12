@@ -97,6 +97,20 @@ export const userService = {
   },
 
   /**
+   * Promote user to admin and send notification
+   */
+  async promoteToAdmin(uid: string, email: string): Promise<void> {
+    await updateDoc(doc(db, "users", uid), {
+      role: "admin",
+      permissions: ["manage_users", "manage_subjects"], // Default perms
+    });
+
+    // Mock Email Notification
+    console.log(`[Email Service] Sending 'You are now an Admin' email to ${email}`);
+    // In real app: call cloud function or API route
+  },
+
+  /**
    * Delete user
    */
   async delete(uid: string): Promise<void> {

@@ -3,7 +3,9 @@
 import { useLanguage } from "@/contexts";
 import { ChatSession, ChatMessage } from "@/types";
 import { MessageBubble } from "./MessageBubble";
-import { Trash2, ArrowLeft, Loader2 } from "lucide-react";
+import { Trash2, ArrowLeft, Loader2, X } from "lucide-react";
+import { AnimatePresence, motion, HTMLMotionProps } from "framer-motion";
+
 import Image from "next/image";
 import { useRef, useEffect, useState } from "react";
 
@@ -25,6 +27,7 @@ interface ChatWindowProps {
   setInput: (val: string) => void;
   replyTo: ChatMessage | null;
   setReplyTo: (msg: ChatMessage | null) => void;
+  canDelete?: boolean;
 }
 
 export function ChatWindow({
@@ -40,6 +43,7 @@ export function ChatWindow({
   setInput,
   replyTo,
   setReplyTo,
+  canDelete = false,
 }: ChatWindowProps) {
   // ... (existing code for state and effects)
   const { language } = useLanguage();
@@ -49,193 +53,216 @@ export function ChatWindow({
     position: { top?: number; bottom?: number; left: number };
   } | null>(null);
 
-  // Auto-scroll
+  // Scroll to bottom when new messages arrive - with session guard
+  const hasSession = !!session;
   useEffect(() => {
-    bottomRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, [messages, session?.userId]);
+    if (session && messages.length > 0) {
+      bottomRef.current?.scrollIntoView({ behavior: "smooth" });
+    }
+  }, [messages.length, hasSession, session]);
 
-  if (!session) {
-    return (
-      <div className="flex-1 flex flex-col items-center justify-center p-8 text-center space-y-4">
-        <div className="w-32 h-32 bg-primary/10 rounded-full flex items-center justify-center">
-          <span className="text-6xl">💬</span>
-        </div>
-        <h2 className="text-2xl font-bold text-foreground">
-          {language === "ar" ? "مرحباً بك في المحادثات" : "Welcome to Inbox"}
-        </h2>
-        <p className="text-muted-foreground max-w-md">
-          {language === "ar"
-            ? "قم باختيار محادثة من القائمة لبدء التواصل مع الطلاب، أو تصفح الأرشيف."
-            : "Select a conversation from the list to start chatting with students, or browse the archive."}
-        </p>
-      </div>
-    );
-  }
+  const animProps: HTMLMotionProps<"div"> = {
+    initial: { opacity: 0, x: 20 },
+    animate: { opacity: 1, x: 0 },
+    exit: { opacity: 0, x: 20 },
+    transition: { duration: 0.3, ease: "easeOut" },
+  };
 
   const QUICK_EMOJIS = ["❤️", "👍", "😂", "😮", "😢", "🙏"];
 
-  const handleReact = (id: string, trigger: HTMLElement) => {
-    if (emojiPickerState?.id === id) {
+  const handleReact = (messageId: string, trigger: HTMLElement) => {
+    if (emojiPickerState?.id === messageId) {
       setEmojiPickerState(null);
       return;
     }
 
     const rect = trigger.getBoundingClientRect();
-    const pickerHeight = 60; // Approximate
-    // const spaceAbove = rect.top; // Unused
-
-    // Force placement "above" by default, or clamp if needed
-    // Simple logic: Place above the button (rect.top - pickerHeight)
-    // If we are too close to top, place below
-    const preferredTop = rect.top - pickerHeight - 8;
-    const preferredLeft = rect.left;
-
-    // Boundary checks
+    // Default position relative to viewport
     const position = {
-      top: preferredTop < 100 ? rect.bottom + 8 : preferredTop,
-      left: preferredLeft,
+      top: rect.top - 60,
+      left: rect.left,
     };
 
-    if (position.left + 250 > window.innerWidth) {
-      position.left = window.innerWidth - 260;
-    }
-
-    setEmojiPickerState({ id, position });
+    setEmojiPickerState({ id: messageId, position });
   };
 
   return (
-    <>
-      {/* Header */}
-      <div className="h-20 border-b border-white/10 shrink-0 flex items-center justify-between px-6 bg-card/10 backdrop-blur-md">
-        <div className="flex items-center gap-4">
-          <button
-            onClick={onBack}
-            className="lg:hidden p-2 -ml-2 hover:bg-white/10 rounded-full transition-colors"
+    <div className="h-full w-full chat-window-container relative overflow-hidden">
+      <AnimatePresence mode="popLayout" initial={false}>
+        {!session ? (
+          <motion.div
+            key="empty"
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            exit={{ opacity: 0, scale: 0.95 }}
+            transition={{ duration: 0.2 }}
+            className="flex-1 flex flex-col items-center justify-center p-8 text-center space-y-4 h-full w-full"
           >
-            <ArrowLeft />
-          </button>
-
-          <div className="relative">
-            <Image
-              src={
-                session.userImage ||
-                `https://ui-avatars.com/api/?name=${session.userName || "User"}&background=6366f1&color=fff`
-              }
-              alt={session.userName}
-              width={48}
-              height={48}
-              className="rounded-xl shadow-md"
-            />
-            <div className="absolute -bottom-1 -right-1 w-3.5 h-3.5 bg-green-500 rounded-full border-2 border-card" />
-          </div>
-
-          <div>
-            <h2 className="font-bold text-base flex items-center gap-2">
-              {session.userName}
-              <span className="text-[10px] px-2 py-0.5 bg-primary/10 text-primary rounded-full font-medium">
-                Student
-              </span>
+            <div className="w-32 h-32 bg-primary/10 rounded-full flex items-center justify-center">
+              <span className="text-6xl">💬</span>
+            </div>
+            <h2 className="text-2xl font-bold text-foreground">
+              {language === "ar" ? "مرحباً بك في المحادثات" : "Welcome to Inbox"}
             </h2>
-            <div className="flex items-center gap-2 text-xs text-muted-foreground">
-              <span>{session.userEmail}</span>
-              <span className="w-1 h-1 rounded-full bg-border" />
-              <span className="text-green-500 font-medium">Online</span>
-            </div>
-          </div>
-        </div>
-
-        <div className="flex items-center gap-2">
-          {/* Removed Call Buttons */}
-          <div className="w-px h-6 bg-border/50 mx-1" />
-          <button
-            onClick={onDeleteChat}
-            className="p-2 text-destructive hover:bg-destructive/10 rounded-xl transition-all"
-            title="Delete Chat"
-          >
-            <Trash2 size={20} />
-          </button>
-        </div>
-      </div>
-
-      {/* Messages Area */}
-      <div className="flex-1 overflow-y-auto p-4 lg:p-8 space-y-6 relative scrollbar-track-transparent scrollbar-thumb-muted/10 hover:scrollbar-thumb-muted/20">
-        {/* Background Pattern */}
-        <div
-          className="absolute inset-0 opacity-[0.02] pointer-events-none"
-          style={{
-            backgroundImage: `url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%239C92AC' fill-opacity='1'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")`,
-          }}
-        />
-
-        {loadingMessages ? (
-          <div className="flex flex-col items-center justify-center h-full gap-3 opacity-50">
-            <Loader2 className="animate-spin" />
-            <span className="text-sm">Loading history...</span>
-          </div>
-        ) : messages.length === 0 ? (
-          <div className="flex flex-col items-center justify-center h-full gap-4 text-center opacity-40">
-            <div className="w-16 h-16 bg-muted rounded-2xl flex items-center justify-center">
-              <span className="text-3xl">👋</span>
-            </div>
-            <p>
-              {language === "ar" ? "ابدأ المحادثة الآن" : "Say hello to start the conversation!"}
+            <p className="text-muted-foreground max-w-md">
+              {language === "ar"
+                ? "قم باختيار محادثة من القائمة لبدء التواصل مع الطلاب، أو تصفح الأرشيف."
+                : "Select a conversation from the list to start chatting with students, or browse the archive."}
             </p>
-          </div>
+          </motion.div>
         ) : (
-          messages.map((msg) => (
-            <MessageBubble
-              key={msg.id}
-              msg={msg}
-              isAdmin={true}
-              onReply={(m) => setReplyTo(m)}
-              onReact={(id, trigger) => handleReact(id, trigger)}
-              onDelete={onDeleteMessage}
-            />
-          ))
-        )}
-
-        {/* Emoji Picker - Fixed Position Portal-like */}
-        {emojiPickerState && (
-          <>
-            <div
-              className="fixed inset-0 z-[100] bg-transparent"
-              onClick={() => setEmojiPickerState(null)}
-            />
-            <div
-              className="fixed z-[101] bg-card/90 backdrop-blur-xl border border-white/20 p-2 rounded-2xl shadow-2xl flex gap-1 animate-in fade-in zoom-in-95 duration-200"
-              style={{
-                top: emojiPickerState.position.top,
-                left: emojiPickerState.position.left,
-              }}
-            >
-              {QUICK_EMOJIS.map((emoji) => (
+          <motion.div
+            key="chat"
+            {...animProps}
+            className="flex flex-col h-full w-full bg-background/50"
+          >
+            {/* Header */}
+            <div className="h-20 border-b border-white/10 shrink-0 flex items-center justify-between px-6 bg-card/10 backdrop-blur-md">
+              <div className="flex items-center gap-4">
                 <button
-                  key={emoji}
-                  className="text-xl hover:scale-125 transition-transform p-2 hover:bg-white/10 rounded-xl"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    onReaction(emojiPickerState.id, emoji);
-                    setEmojiPickerState(null);
-                  }}
+                  onClick={onBack}
+                  className="lg:hidden p-2 -ml-2 hover:bg-white/10 rounded-full transition-colors"
                 >
-                  {emoji}
+                  <ArrowLeft />
                 </button>
-              ))}
+
+                <div className="relative">
+                  <Image
+                    src={
+                      session.userImage ||
+                      `https://ui-avatars.com/api/?name=${session.userName || "User"}&background=6366f1&color=fff`
+                    }
+                    alt={session.userName}
+                    width={48}
+                    height={48}
+                    className="rounded-xl shadow-md"
+                  />
+                  <div className="absolute -bottom-1 -right-1 w-3.5 h-3.5 bg-green-500 rounded-full border-2 border-card" />
+                </div>
+
+                <div>
+                  <h2 className="font-bold text-base flex items-center gap-2">
+                    {session.userName}
+                    <span className="text-[10px] px-2 py-0.5 bg-primary/10 text-primary rounded-full font-medium">
+                      Student
+                    </span>
+                  </h2>
+                  <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                    <span>{session.userEmail}</span>
+                    <span className="w-1 h-1 rounded-full bg-border" />
+                    <span className="text-green-500 font-medium">Online</span>
+                  </div>
+                </div>
+              </div>
+
+              <div className="flex items-center gap-2">
+                {/* Removed Call Buttons */}
+                <div className="w-px h-6 bg-border/50 mx-1" />
+                {canDelete && (
+                  <button
+                    onClick={onDeleteChat}
+                    className="p-2 text-destructive hover:bg-destructive/10 rounded-xl transition-all"
+                    title="Delete Chat"
+                  >
+                    <Trash2 size={20} />
+                  </button>
+                )}
+
+                {/* Close Chat Button */}
+                <button
+                  onClick={onBack}
+                  className="p-2 text-muted-foreground hover:bg-white/10 rounded-xl transition-all"
+                  title="Close Chat"
+                >
+                  <X size={20} />
+                </button>
+              </div>
             </div>
-          </>
+
+            {/* Messages Area */}
+            <div className="flex-1 overflow-y-auto p-4 lg:p-8 space-y-6 relative scrollbar-track-transparent scrollbar-thumb-muted/10 hover:scrollbar-thumb-muted/20">
+              {/* Background Pattern */}
+              <div
+                className="absolute inset-0 opacity-[0.02] pointer-events-none"
+                style={{
+                  backgroundImage: `url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%239C92AC' fill-opacity='1'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")`,
+                }}
+              />
+
+              {loadingMessages ? (
+                <div className="flex flex-col items-center justify-center h-full gap-3 opacity-50">
+                  <Loader2 className="animate-spin" />
+                  <span className="text-sm">Loading history...</span>
+                </div>
+              ) : messages.length === 0 ? (
+                <div className="flex flex-col items-center justify-center h-full gap-4 text-center opacity-40">
+                  <div className="w-16 h-16 bg-muted rounded-2xl flex items-center justify-center">
+                    <span className="text-3xl">👋</span>
+                  </div>
+                  <p>
+                    {language === "ar"
+                      ? "ابدأ المحادثة الآن"
+                      : "Say hello to start the conversation!"}
+                  </p>
+                </div>
+              ) : (
+                messages.map((msg) => (
+                  <MessageBubble
+                    key={msg.id}
+                    msg={msg}
+                    isAdmin={true}
+                    onReply={(m) => setReplyTo(m)}
+                    onReact={(id, trigger) => handleReact(id, trigger)}
+                    onDelete={canDelete ? onDeleteMessage : undefined}
+                  />
+                ))
+              )}
+
+              {/* Emoji Picker - Fixed Position Portal-like */}
+              {emojiPickerState && (
+                <>
+                  <div
+                    className="fixed inset-0 z-100 bg-transparent"
+                    onClick={() => setEmojiPickerState(null)}
+                  />
+                  <div
+                    className="fixed z-101 bg-card/90 backdrop-blur-xl border border-black/5 dark:border-white/20 p-2 rounded-2xl shadow-[0_10px_40px_rgba(0,0,0,0.1)] dark:shadow-2xl flex gap-1 animate-in fade-in zoom-in-95 duration-200"
+                    style={{
+                      top: emojiPickerState.position.top,
+                      left: emojiPickerState.position.left,
+                    }}
+                  >
+                    {QUICK_EMOJIS.map((emoji) => (
+                      <button
+                        key={emoji}
+                        className="text-xl hover:scale-125 transition-transform p-2 hover:bg-white/10 rounded-xl"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          onReaction(emojiPickerState.id, emoji);
+                          setEmojiPickerState(null);
+                        }}
+                      >
+                        {emoji}
+                      </button>
+                    ))}
+                  </div>
+                </>
+              )}
+
+              <div ref={bottomRef} />
+            </div>
+
+            {/* Input Area */}
+            <ChatInput
+              input={input}
+              setInput={setInput}
+              handleSend={onSendMessage}
+              replyTo={replyTo}
+              setReplyTo={setReplyTo}
+            />
+          </motion.div>
         )}
-
-        <div ref={bottomRef} />
-      </div>
-
-      {/* Input Area */}
-      <ChatInput
-        input={input}
-        setInput={setInput}
-        handleSend={onSendMessage}
-        replyTo={replyTo}
-        setReplyTo={setReplyTo}
-      />
-    </>
+      </AnimatePresence>
+    </div>
   );
 }

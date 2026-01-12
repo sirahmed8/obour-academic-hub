@@ -6,14 +6,18 @@ service cloud.firestore {
     // Helper to check for Admin
     function isAdmin() {
       return request.auth != null && (
-        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role in ['admin', 'owner']
+        request.auth.token.email == 'a7medorabe7@gmail.com' ||
+        (exists(/databases/$(database)/documents/users/$(request.auth.uid)) && 
+         get(/databases/$(database)/documents/users/$(request.auth.uid)).data.get('role', 'student') in ['admin', 'owner'])
       );
     }
     
     // Helper to check for Owner
     function isOwner() {
       return request.auth != null && (
-        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'owner'
+        request.auth.token.email == 'a7medorabe7@gmail.com' ||
+        (exists(/databases/$(database)/documents/users/$(request.auth.uid)) && 
+         get(/databases/$(database)/documents/users/$(request.auth.uid)).data.get('role', 'student') == 'owner')
       );
     }
 
@@ -23,34 +27,31 @@ service cloud.firestore {
         exists(/databases/$(database)/documents/whitelisted_admins/$(request.auth.token.email));
     }
 
+    // Helper for granular permissions
+    function hasPermission(permission) {
+      return request.auth != null && (
+        isOwner() ||
+        (exists(/databases/$(database)/documents/users/$(request.auth.uid)) && 
+         permission in get(/databases/$(database)/documents/users/$(request.auth.uid)).data.get('permissions', []))
+      );
+    }
+
     // User Profiles
     match /users/{userId} {
       allow read: if request.auth != null;
-      // Write rules with proper owner bypass:
-      // 1. Hardcoded owner email - BYPASSES ALL CHECKS (highest priority)
-      // 2. Owner role can write anyone
-      // 3. Users can write own profile with restrictions
-      // 4. Admin can write student profiles
       allow write: if request.auth != null && (
-        // SAFETY NET #1: Owner role can write anyone
         isOwner() ||
-        // User writing own profile
         (request.auth.uid == userId && (
-          // Whitelisted users can write everything
           isWhitelisted() ||
-          // For new documents (create), strictly enforce role='student' for non-whitelisted users
           (resource == null && (
             request.resource.data.role == 'student' &&
             !request.resource.data.keys().hasAny(['permissions', 'isWhitelisted'])
           )) ||
-          // For updates, block sensitive field changes for normal users
           (resource != null && !request.resource.data.diff(resource.data).affectedKeys().hasAny(['role', 'permissions', 'isWhitelisted']))
         )) ||
-        // Admin can write student profiles only (existing users)
-        (isAdmin() && resource != null && resource.data.role == 'student')
+        (hasPermission('manage_users') && resource != null && resource.data.role == 'student')
       );
       
-      // User Tasks
       match /tasks/{taskId} {
         allow read, write: if request.auth != null && request.auth.uid == userId;
       }
@@ -58,67 +59,84 @@ service cloud.firestore {
 
     // Chat System (Support)
     match /chats/{chatId} {
-      allow read, write: if request.auth != null && (request.auth.uid == chatId || isAdmin());
+      allow read: if request.auth != null && (request.auth.uid == chatId || hasPermission('access_inbox'));
+      allow create: if request.auth != null && (request.auth.uid == chatId || hasPermission('access_inbox'));
+      allow update: if request.auth != null && (request.auth.uid == chatId || hasPermission('access_inbox'));
+      allow delete: if hasPermission('delete_chats');
+
       match /messages/{messageId} {
-        allow read, write: if request.auth != null && (request.auth.uid == chatId || isAdmin());
+        allow read: if request.auth != null && (request.auth.uid == chatId || hasPermission('access_inbox'));
+        allow create: if request.auth != null && (request.auth.uid == chatId || hasPermission('access_inbox'));
+        allow update: if request.auth != null && (request.auth.uid == chatId || hasPermission('access_inbox'));
+        allow delete: if hasPermission('delete_chats');
       }
     }
 
     // Public Content (Subjects)
     match /subjects/{subjectId} {
       allow read: if request.auth != null;
-      allow write: if isAdmin();
+      allow write: if hasPermission('manage_subjects');
       match /resources/{resourceId} {
         allow read: if request.auth != null;
-        allow write: if isAdmin();
+        allow write: if hasPermission('manage_resources');
       }
     }
     
-    // Notifications: Read all authenticated, Admin Write
     match /notifications/{notificationId} {
-      allow read: if request.auth != null;
-      allow write: if isAdmin();
+      allow read: if request.auth != null && (
+        hasPermission('manage_announcements') || 
+        resource.data.target == request.auth.uid || 
+        resource.data.target == 'all'
+      );
+      allow create: if request.auth != null && (
+        hasPermission('manage_announcements') || 
+        request.resource.data.target == request.auth.uid
+      );
+      allow update, delete: if request.auth != null && (
+        hasPermission('manage_announcements') ||
+        resource.data.target == request.auth.uid
+      );
     }
     
-    // Admin Whitelist - needed for AuthContext to check and auto-promote
     match /whitelisted_admins/{email} {
-      // Only allow reading if the document ID matches the user's email or is admin
-      allow read: if request.auth != null && (request.auth.token.email == email || isAdmin());
-      allow write: if isAdmin();
+      allow read: if request.auth != null && (request.auth.token.email == email || hasPermission('manage_users'));
+      allow write: if hasPermission('manage_users');
+    }
+
+    match /admin_approvals/{requestId} {
+      allow read, write: if hasPermission('manage_subjects') || hasPermission('manage_users');
     }
     
-    // Banners - Public read for announcements
     match /banners/{bannerId} {
       allow read: if true;
-      allow write: if isAdmin();
+      allow write: if hasPermission('manage_announcements');
+    }
+
+    match /settings/{settingId} {
+      allow read: if true;
+      allow write: if isOwner() || hasPermission('manage_users');
     }
     
-    // Analytics Logs (NEW with validation)
     match /analytics_logs/{logId} {
-      allow read: if isAdmin();
-      allow delete: if isAdmin();
-      // Allow users to log views with strict validation to prevent abuse
+      allow read: if hasPermission('view_analytics');
+      allow delete: if hasPermission('view_analytics');
       allow create: if request.auth != null &&
                    request.resource.data.keys().hasAll(['userId', 'path', 'timestamp']) &&
                    request.resource.data.keys().size() < 10 &&
                    (request.resource.data.userId == request.auth.uid || request.resource.data.userId == 'guest');
     }
     
-    // System Errors (NEW with validation)
     match /error_logs/{errorId} {
-      allow read: if isAdmin();
-      allow delete: if isAdmin();
-      // Allow users to log errors with strict validation
+      allow read: if hasPermission('view_analytics');
+      allow delete: if hasPermission('view_analytics');
       allow create: if request.auth != null &&
                    request.resource.data.keys().hasAll(['message', 'timestamp']) &&
                    request.resource.data.keys().size() < 10;
     }
     
-    // Activity Logs (LEGACY - used by admin/logs page)
     match /logs/{logId} {
-      allow read: if isAdmin();
-      allow write: if isAdmin();
-      // Allow authenticated users to create logs with validation to prevent abuse
+      allow read: if hasPermission('view_analytics');
+      allow write: if hasPermission('view_analytics');
       allow create: if request.auth != null &&
                    request.resource.data.keys().hasAll(['action', 'details']) &&
                    request.resource.data.keys().size() < 20 &&
@@ -126,18 +144,15 @@ service cloud.firestore {
                    request.resource.data.details is string;
     }
     
-    // System Errors (LEGACY - used by admin/errors page)
     match /system_errors/{errorId} {
-      allow read: if isAdmin();
-      allow write: if isAdmin();
-      // Allow authenticated users to report errors with validation
+      allow read: if hasPermission('view_analytics');
+      allow write: if hasPermission('view_analytics');
       allow create: if request.auth != null &&
                    request.resource.data.keys().hasAll(['message']) &&
                    request.resource.data.keys().size() < 20 &&
                    request.resource.data.message is string;
     }
     
-    // Default deny for anything else
     match /{document=**} {
       allow read, write: if false;
     }

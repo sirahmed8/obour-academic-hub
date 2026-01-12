@@ -51,6 +51,7 @@ export function AddTodoModal({
   // Refs for auto-scroll
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   const datePickerContainerRef = useRef<HTMLDivElement>(null);
+  const descriptionRef = useRef<HTMLTextAreaElement>(null);
 
   // Set mounted after hydration to avoid SSR mismatch
   useEffect(() => {
@@ -71,6 +72,14 @@ export function AddTodoModal({
     document.addEventListener("keydown", handleKeyDown);
     return () => document.removeEventListener("keydown", handleKeyDown);
   }, [isOpen, showDatePicker, onClose]);
+
+  // Handle ArrowDown in title
+  const handleTitleKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === "ArrowDown") {
+      e.preventDefault();
+      descriptionRef.current?.focus();
+    }
+  };
 
   // Auto-scroll when DateTimePicker opens
   useEffect(() => {
@@ -289,7 +298,8 @@ export function AddTodoModal({
                   type="text"
                   value={title}
                   onChange={(e) => setTitle(e.target.value)}
-                  className="w-full bg-background/50 border border-border rounded-xl px-4 py-3 outline-none focus:border-primary/50 focus:shadow-[0_0_15px_-3px_rgba(var(--primary),0.3)] transition-all font-medium placeholder:text-muted-foreground/50"
+                  onKeyDown={handleTitleKeyDown}
+                  className="w-full bg-white/5 dark:bg-white/2 backdrop-blur-xl border border-white/10 rounded-2xl px-4 py-3 outline-none focus:border-primary/50 focus:ring-4 focus:ring-primary/10 transition-all duration-300 font-medium placeholder:text-muted-foreground/50 shadow-sm"
                   placeholder={
                     language === "ar" ? "ماذا تريد أن تنجز؟" : "What do you want to get done?"
                   }
@@ -302,9 +312,10 @@ export function AddTodoModal({
                   {language === "ar" ? "الوصـف" : "Description"}
                 </label>
                 <textarea
+                  ref={descriptionRef}
                   value={description}
                   onChange={(e) => setDescription(e.target.value)}
-                  className="w-full bg-background/50 border border-border rounded-xl px-4 py-3 outline-none focus:border-primary/50 focus:shadow-[0_0_15px_-3px_rgba(var(--primary),0.3)] transition-all min-h-[100px] resize-none placeholder:text-muted-foreground/50"
+                  className="w-full bg-white/5 dark:bg-white/2 backdrop-blur-xl border border-white/10 rounded-2xl px-4 py-3 outline-none focus:border-primary/50 focus:ring-4 focus:ring-primary/10 transition-all duration-300 min-h-[100px] resize-none placeholder:text-muted-foreground/50 shadow-sm"
                   placeholder={language === "ar" ? "أضف تفاصيل..." : "Add details..."}
                 />
               </div>
@@ -447,7 +458,7 @@ export function AddTodoModal({
                       value={newSubtask}
                       onChange={(e) => setNewSubtask(e.target.value)}
                       onKeyDown={(e) => e.key === "Enter" && handleAddSubtask()}
-                      className="flex-1 bg-background/50 border border-border rounded-xl px-4 py-2 text-sm outline-none focus:border-primary/50 focus:shadow-[0_0_15px_-3px_rgba(var(--primary),0.3)] placeholder:text-muted-foreground/50 transition-all"
+                      className="flex-1 bg-white/5 dark:bg-white/2 backdrop-blur-xl border border-white/10 rounded-2xl px-4 py-2 text-sm outline-none focus:border-primary/50 focus:ring-4 focus:ring-primary/10 transition-all duration-300 placeholder:text-muted-foreground/50 shadow-sm"
                       placeholder={language === "ar" ? "أضف مهمة فرعية..." : "Add a sub-task..."}
                     />
                     <motion.button

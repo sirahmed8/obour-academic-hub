@@ -27,8 +27,8 @@ export function Navbar({ onMenuClick }: NavbarProps) {
         className={cn(
           "absolute inset-0 transition-all duration-300 rounded-b-4xl",
           isSolid
-            ? "bg-background shadow-md"
-            : "bg-background/60 dark:bg-background/60 backdrop-blur-xl backdrop-saturate-150"
+            ? "bg-background shadow-md border-b border-black/5 dark:border-white/5"
+            : "bg-background/60 dark:bg-background/60 backdrop-blur-xl backdrop-saturate-150 border-b border-black/5 dark:border-white/5"
         )}
       />
 

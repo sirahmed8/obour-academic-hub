@@ -5,6 +5,7 @@ import { Toaster } from "sonner";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
 import "./globals.css";
 import { ThemeProvider, AuthProvider, LanguageProvider, SolidModeProvider } from "@/contexts";
+import { AuthenticatedLayout } from "@/components/layout/AuthenticatedLayout";
 
 const inter = Inter({ subsets: ["latin"], variable: "--font-inter" });
 
@@ -41,7 +42,7 @@ export default function RootLayout({
             <LanguageProvider>
               <AuthProvider>
                 <SolidModeProvider>
-                  {children}
+                  <AuthenticatedLayout>{children}</AuthenticatedLayout>
                   <Toaster
                     position="top-center"
                     toastOptions={{

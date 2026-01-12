@@ -21,6 +21,7 @@ interface ChatInputProps {
   replyTo: ChatMessage | null;
   setReplyTo: (msg: ChatMessage | null) => void;
   children?: React.ReactNode;
+  disabled?: boolean;
 }
 
 export function ChatInput({
@@ -30,11 +31,13 @@ export function ChatInput({
   replyTo,
   setReplyTo,
   children,
+  disabled,
 }: ChatInputProps) {
   const { language } = useLanguage();
   const inputRef = useRef<HTMLInputElement>(null);
 
   const [isDragging, setIsDragging] = useState(false);
+
   const [isUploading, setIsUploading] = useState(false);
   const [stagedAttachment, setStagedAttachment] = useState<{
     url: string;
@@ -89,6 +92,7 @@ export function ChatInput({
     handleSend(input, stagedAttachment || undefined);
     setInput("");
     setStagedAttachment(null);
+    setReplyTo(null);
   };
 
   const handlePaste = (e: React.ClipboardEvent) => {
@@ -155,7 +159,7 @@ export function ChatInput({
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: 10, scale: 0.95 }}
             transition={{ duration: 0.2, ease: "easeOut" }}
-            className="absolute bottom-full left-0 right-0 mb-2 mx-3 flex items-center justify-between text-xs bg-secondary text-secondary-foreground px-3 py-2 rounded-2xl border border-white/20 dark:border-white/10 shadow-2xl z-40"
+            className="absolute bottom-full left-0 right-0 mb-2 mx-3 flex items-center justify-between text-xs bg-secondary text-secondary-foreground px-3 py-2 rounded-2xl border border-black/5 dark:border-white/10 shadow-[0_8px_30px_rgb(0,0,0,0.08)] dark:shadow-2xl z-40"
           >
             <div className="flex items-center gap-2 truncate flex-1">
               <span className="font-bold text-primary shrink-0 opacity-80">
@@ -202,7 +206,7 @@ export function ChatInput({
             initial={{ opacity: 0, scale: 0.9 }}
             animate={{ opacity: 1, scale: 1 }}
             exit={{ opacity: 0, scale: 0.9 }}
-            className="absolute bottom-full left-0 mb-2 ml-3 p-2 bg-background/80 backdrop-blur-md rounded-xl border border-white/10 shadow-lg z-40 group"
+            className="absolute bottom-full left-0 mb-2 ml-3 p-2 bg-background/80 backdrop-blur-md rounded-xl border border-black/5 dark:border-white/10 shadow-[0_8px_30px_rgb(0,0,0,0.06)] dark:shadow-lg z-40 group"
           >
             <div className="relative w-24 h-24 rounded-lg overflow-hidden">
               {stagedAttachment.type === "image" ? (
@@ -227,7 +231,7 @@ export function ChatInput({
       </AnimatePresence>
 
       <div className="flex gap-2 items-end">
-        <div className="flex-1 flex items-center gap-2 bg-muted/50 border border-transparent focus-within:ring-2 focus-within:ring-primary/20 focus-within:border-primary/50 rounded-xl px-2 py-1 transition-all h-full min-h-[44px]">
+        <div className="flex-1 flex items-center gap-2 bg-white/5 dark:bg-white/2 backdrop-blur-xl border border-white/10 focus-within:ring-4 focus-within:ring-primary/10 focus-within:border-primary/50 rounded-2xl px-2 py-1 transition-all duration-300 h-full min-h-[44px] shadow-sm">
           <FileUpload
             onFileUploaded={(attachment) => {
               setStagedAttachment(attachment);
@@ -241,13 +245,14 @@ export function ChatInput({
             onChange={(e) => setInput(e.target.value)}
             onKeyDown={handleKeyPress}
             placeholder={language === "ar" ? "اكتب رسالتك..." : "Type a message..."}
-            className="flex-1 bg-transparent border-none text-sm placeholder:text-muted-foreground/50 max-h-24 py-2 outline-none focus:ring-0 shadow-none ring-0"
+            disabled={disabled}
+            className="flex-1 bg-transparent border-none text-sm placeholder:text-muted-foreground/50 max-h-24 py-2 outline-none focus:ring-0 shadow-none ring-0 disabled:opacity-50 disabled:cursor-not-allowed"
           />
         </div>
 
         <button
           onClick={triggerSend}
-          disabled={(!input.trim() && !stagedAttachment) || isUploading}
+          disabled={disabled || (!input.trim() && !stagedAttachment) || isUploading}
           className="p-3 bg-primary text-primary-foreground rounded-xl hover:opacity-90 transition-opacity disabled:opacity-50 shadow-md h-[44px] flex items-center justify-center shrink-0"
           aria-label={language === "ar" ? "إرسال" : "Send"}
         >

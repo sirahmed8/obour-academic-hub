@@ -65,12 +65,12 @@ export function ChatList({
           {t("admin.inbox")}
         </h1>
         <div className="mt-6 relative group">
-          <div className="absolute inset-0 bg-primary/20 blur-xl opacity-0 group-hover:opacity-50 transition-opacity rounded-xl" />
-          <div className="relative bg-white/5 backdrop-blur-sm border border-white/10 rounded-xl flex items-center overflow-hidden transition-all focus-within:ring-2 focus-within:ring-primary/20 focus-within:bg-white/10 pointer-events-auto">
-            <Search className="w-4 h-4 text-muted-foreground ml-3" />
+          <div className="relative bg-white/5 dark:bg-white/2 backdrop-blur-xl border border-white/10 rounded-2xl flex items-center transition-all focus-within:ring-4 focus-within:ring-primary/10 focus-within:border-primary/50">
+            <Search className="w-4 h-4 text-muted-foreground ml-3 shrink-0" />
             <input
+              type="text"
               placeholder={language === "ar" ? "بحث عن محادثة..." : "Search conversations..."}
-              className="flex-1 bg-transparent border-none p-3 text-sm focus:outline-none placeholder:text-muted-foreground/50"
+              className="flex-1 bg-transparent border-none p-3 pl-2 text-sm focus:outline-none placeholder:text-muted-foreground/50 h-11"
             />
           </div>
         </div>
@@ -128,16 +128,27 @@ export function ChatList({
 
                   <div className="flex-1 min-w-0 flex flex-col justify-center">
                     <div className="flex justify-between items-start mb-2 w-full relative">
-                      <h3
-                        className={cn(
-                          "font-bold text-sm truncate max-w-[65%] transition-colors mt-0.5",
-                          (session.adminUnreadCount || 0) > 0
-                            ? "text-primary/95"
-                            : "text-foreground"
+                      <div className="flex flex-col">
+                        <h3
+                          className={cn(
+                            "font-bold text-sm truncate max-w-full transition-colors mt-0.5",
+                            (session.adminUnreadCount || 0) > 0
+                              ? "text-primary/95"
+                              : "text-foreground"
+                          )}
+                        >
+                          {session.userName}
+                        </h3>
+                        {session.userId.endsWith("_support") ? (
+                          <span className="text-[10px] bg-green-500/10 text-green-400 px-2 py-0.5 rounded-full border border-green-500/20 shrink-0 w-fit mt-1">
+                            🎧 Live Support
+                          </span>
+                        ) : (
+                          <span className="text-[10px] bg-purple-500/10 text-purple-400 px-2 py-0.5 rounded-full border border-purple-500/20 shrink-0 w-fit mt-1">
+                            🧠 AI Chat
+                          </span>
                         )}
-                      >
-                        {session.userName}
-                      </h3>
+                      </div>
 
                       {/* Info & Actions Swapper */}
                       <div className="relative h-5 flex items-center justify-end shrink-0 min-w-[60px]">
@@ -190,10 +201,11 @@ export function ChatList({
                       </div>
                     </div>
 
-                    <div className="flex justify-between items-center w-full">
+                    <div className="flex justify-between items-center w-full gap-3">
                       <p
+                        dir="auto"
                         className={cn(
-                          "text-xs truncate max-w-[85%] leading-relaxed",
+                          "text-xs line-clamp-1 leading-relaxed text-start flex-1",
                           (session.adminUnreadCount || 0) > 0
                             ? "text-foreground font-medium"
                             : "text-muted-foreground"

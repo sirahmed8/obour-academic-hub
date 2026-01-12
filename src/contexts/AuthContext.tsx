@@ -25,6 +25,7 @@ interface AuthContextType {
   login: () => Promise<void>;
   logout: () => Promise<void>;
   updateProfile: (data: Partial<User>) => Promise<void>;
+  hasPermission: (permission: UserPermission) => boolean;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -98,12 +99,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
                   finalRole = "owner";
                   // Sync to DB if not already owner
                   if (userData?.role !== "owner") {
-                    console.log("Promoting to owner:", firebaseUser.email);
                     // Fire and retry on failure
                     const updateOwner = async (retryCount = 0) => {
                       try {
                         await authService.updateUserProfile(firebaseUser.uid, { role: "owner" });
-                        console.log("Owner role synced to DB successfully");
                       } catch (e) {
                         console.error("Owner update attempt failed", e);
                         if (retryCount < 2) {
@@ -115,11 +114,49 @@ export function AuthProvider({ children }: { children: ReactNode }) {
                   }
                 }
 
-                setUser({
+                const newUser = {
                   uid: docSnap.id,
                   ...userData,
                   role: finalRole,
-                } as User);
+                } as User;
+
+                // --- LIVE PERMISSION NOTIFICATION ---
+                if (user && user.uid === newUser.uid) {
+                  const oldPerms = user.permissions || [];
+                  const newPerms = newUser.permissions || [];
+
+                  // Find added permissions
+                  const added = newPerms.filter((p) => !oldPerms.includes(p));
+                  if (added.length > 0) {
+                    toast.success(
+                      language === "ar"
+                        ? "تم منحك صلاحيات جديدة!"
+                        : "You've been granted new permissions!",
+                      {
+                        description: added.join(", "),
+                        icon: "🛡️",
+                        duration: 5000,
+                      }
+                    );
+                  }
+
+                  // Find removed permissions
+                  const removed = oldPerms.filter((p) => !newPerms.includes(p));
+                  if (removed.length > 0) {
+                    toast.info(
+                      language === "ar" ? "تم تعديل صلاحياتك" : "Your permissions were updated",
+                      {
+                        description:
+                          language === "ar"
+                            ? "تم إزالة بعض الصلاحيات"
+                            : "Some permissions were removed",
+                        duration: 5000,
+                      }
+                    );
+                  }
+                }
+
+                setUser(newUser);
 
                 // Log login removed from here to prevent duplicate logs on reload
               }
@@ -238,9 +275,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
 
     try {
-      console.log("Starting Google Sign-In...");
       const result = await signInWithPopup(auth, googleProvider);
-      console.log("Sign-in successful");
 
       // Log explicit login action
       if (result.user) {
@@ -315,6 +350,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     [] // Fixed: Removed user dependency
   );
 
+  const hasPermission = useCallback(
+    (permission: UserPermission) => {
+      if (isOwner) return true;
+      return user?.permissions?.includes(permission) || false;
+    },
+    [user, isOwner]
+  );
+
   const value = useMemo(
     () => ({
       user,
@@ -324,8 +367,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       login,
       logout,
       updateProfile,
+      hasPermission,
     }),
-    [user, loading, isAdmin, isOwner, login, logout, updateProfile]
+    [user, loading, isAdmin, isOwner, login, logout, updateProfile, hasPermission]
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

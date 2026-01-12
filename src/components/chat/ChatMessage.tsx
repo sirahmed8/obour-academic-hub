@@ -74,7 +74,7 @@ export const ChatMessageItem = memo<ChatMessageProps>(function ChatMessageItem({
       initial={{ opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
       className={cn(
-        "flex gap-3 max-w-[85%] group relative mb-6", // Increased margin for horizontal actions
+        "flex gap-3 max-w-[70%] group relative mb-6", // Reduced max-width for actions space
         isUser ? "ml-auto flex-row-reverse" : "mr-auto"
       )}
     >
@@ -254,10 +254,12 @@ export const ChatMessageItem = memo<ChatMessageProps>(function ChatMessageItem({
         {!msg.isDeleted && (
           <div
             className={cn(
-              "absolute -top-4 flex items-center gap-1 transition-all duration-300 z-50",
+              "absolute top-1/2 -translate-y-1/2 flex items-center gap-1 transition-all duration-300 z-50 px-2",
               // Mobile: Always visible but smaller. Desktop: Hover.
-              "opacity-100 lg:opacity-0 lg:group-hover:opacity-100 lg:group-hover:-top-6",
-              isUser ? "right-0" : "left-0"
+              "opacity-100 lg:opacity-0 lg:group-hover:opacity-100",
+              isUser
+                ? "right-full mr-1 translate-x-2 lg:group-hover:translate-x-0"
+                : "left-full ml-1 -translate-x-2 lg:group-hover:translate-x-0"
             )}
           >
             <div className="flex items-center gap-1 bg-white/95 dark:bg-zinc-900/95 backdrop-blur-md border border-white/10 dark:border-white/5 rounded-full p-1 shadow-lg transform hover:scale-105 transition-transform">

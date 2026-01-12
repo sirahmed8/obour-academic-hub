@@ -12,7 +12,7 @@ import {
 } from "firebase/firestore";
 import { uploadToCloudinary } from "@/lib/cloudinary";
 import { useLanguage } from "@/contexts";
-import { AppShell } from "@/components/layout/AppShell";
+
 import { CustomSelect } from "@/components/ui/CustomSelect";
 import {
   FileText,
@@ -69,6 +69,7 @@ export default function AdminResourcesPage() {
   }, []);
 
   // Auto-detect type from URL
+  // Auto-detect type from URL
   useEffect(() => {
     if (form.linkUrl) {
       const lower = form.linkUrl.toLowerCase();
@@ -77,8 +78,12 @@ export default function AdminResourcesPage() {
         setForm((prev) => ({ ...prev, type: "image" }));
       else if (lower.includes("youtube") || lower.endsWith(".mp4"))
         setForm((prev) => ({ ...prev, type: "video" }));
+      // If it looks like a URL but type is still PDF (and not ending in .pdf), switch to Link
+      else if (form.type === "pdf" && !lower.endsWith(".pdf")) {
+        setForm((prev) => ({ ...prev, type: "link" }));
+      }
     }
-  }, [form.linkUrl]);
+  }, [form.linkUrl, form.type]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -238,7 +243,7 @@ export default function AdminResourcesPage() {
   };
 
   return (
-    <AppShell>
+    <>
       <div
         className="p-6 lg:p-10 w-full page-transition relative min-h-screen"
         onPaste={handlePaste}
@@ -318,7 +323,7 @@ export default function AdminResourcesPage() {
                         "p-3 rounded-xl border flex flex-col items-center gap-2 transition-all duration-200",
                         form.type === type.value
                           ? "border-primary bg-primary/10 text-primary scale-105 shadow-md"
-                          : "border-border hover:bg-muted/50 hover:border-muted-foreground/50"
+                          : "border-border bg-card/60 backdrop-blur-sm hover:bg-card/80 hover:border-primary/20"
                       )}
                     >
                       <type.icon className="w-5 h-5" />
@@ -341,8 +346,8 @@ export default function AdminResourcesPage() {
                     type="text"
                     value={form.title}
                     onChange={(e) => setForm({ ...form, title: e.target.value })}
-                    className="w-full rounded-xl border border-border px-4 py-2.5 bg-background/50 backdrop-blur-sm focus:border-primary/50 focus:shadow-[0_0_30px_-5px_hsl(var(--primary))] outline-none transition-all duration-300"
                     placeholder="e.g. Chapter 1 Notes"
+                    className="w-full p-3 rounded-xl bg-white/5 dark:bg-white/2 backdrop-blur-xl border border-white/10 focus:border-primary/50 focus:ring-4 focus:ring-primary/10 transition-all duration-300 outline-none shadow-sm placeholder:text-muted-foreground/50"
                   />
                 </div>
                 <div>
@@ -353,8 +358,8 @@ export default function AdminResourcesPage() {
                     type="text"
                     value={form.titleAr}
                     onChange={(e) => setForm({ ...form, titleAr: e.target.value })}
-                    className="w-full rounded-xl border border-border px-4 py-2.5 bg-background/50 backdrop-blur-sm focus:border-primary/50 focus:shadow-[0_0_30px_-5px_hsl(var(--primary))] outline-none transition-all duration-300"
                     placeholder="مثال: مذكرات الفصل الأول"
+                    className="w-full p-3 rounded-xl bg-white/5 dark:bg-white/2 backdrop-blur-xl border border-white/10 focus:border-primary/50 focus:ring-4 focus:ring-primary/10 transition-all duration-300 outline-none shadow-sm placeholder:text-muted-foreground/50"
                     dir="rtl"
                   />
                 </div>
@@ -371,8 +376,8 @@ export default function AdminResourcesPage() {
                   <textarea
                     value={form.description}
                     onChange={(e) => setForm({ ...form, description: e.target.value })}
-                    className="w-full rounded-xl border border-border px-4 py-2.5 bg-background/50 backdrop-blur-sm h-24 resize-none focus:border-primary/50 focus:shadow-[0_0_30px_-5px_hsl(var(--primary))] outline-none transition-all duration-300"
                     placeholder="Brief description..."
+                    className="w-full p-3 rounded-xl bg-white/5 dark:bg-white/2 backdrop-blur-xl border border-white/10 focus:border-primary/50 focus:ring-4 focus:ring-primary/10 transition-all duration-300 outline-none shadow-sm placeholder:text-muted-foreground/50 h-24 resize-none"
                   />
                 </div>
                 <div>
@@ -384,8 +389,8 @@ export default function AdminResourcesPage() {
                   <textarea
                     value={form.descriptionAr}
                     onChange={(e) => setForm({ ...form, descriptionAr: e.target.value })}
-                    className="w-full rounded-xl border border-border px-4 py-2.5 bg-background/50 backdrop-blur-sm h-24 resize-none focus:border-primary/50 focus:shadow-[0_0_30px_-5px_hsl(var(--primary))] outline-none transition-all duration-300"
                     placeholder="وصف مختصر..."
+                    className="w-full p-3 rounded-xl bg-white/5 dark:bg-white/2 backdrop-blur-xl border border-white/10 focus:border-primary/50 focus:ring-4 focus:ring-primary/10 transition-all duration-300 outline-none shadow-sm placeholder:text-muted-foreground/50 h-24 resize-none"
                     dir="rtl"
                   />
                 </div>
@@ -407,7 +412,7 @@ export default function AdminResourcesPage() {
                       type="url"
                       value={form.linkUrl}
                       onChange={(e) => setForm({ ...form, linkUrl: e.target.value })}
-                      className="w-full rounded-xl border border-border pl-10 pr-4 py-2.5 bg-background/50 backdrop-blur-sm focus:border-primary/50 focus:shadow-[0_0_30px_-5px_hsl(var(--primary))] outline-none transition-all duration-300"
+                      className="w-full rounded-xl border border-border pl-10 pr-4 py-2.5 bg-background/50 focus:border-primary/50 focus:shadow-[0_0_30px_-5px_hsl(var(--primary))] outline-none transition-all duration-300"
                       placeholder={
                         language === "ar" ? "رابط (Drive, YouTube...)" : "URL (Drive, YouTube...)"
                       }
@@ -497,6 +502,6 @@ export default function AdminResourcesPage() {
           </div>
         </FadeIn>
       </div>
-    </AppShell>
+    </>
   );
 }
