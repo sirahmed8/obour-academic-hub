@@ -169,7 +169,9 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                   language === "ar" ? "lg:pr-72" : "lg:pl-72" // Push content for Fixed Sidebar
                 )}
               >
-                <PageTransition>{children}</PageTransition>
+                <div className="relative w-full h-full">
+                  <PageTransition>{children}</PageTransition>
+                </div>
               </div>
 
               <footer

@@ -10,21 +10,21 @@ interface LanguageTransitionProps {
 
 /**
  * LanguageTransition
- * Provides a high-quality global animation when changing the site direction/language.
+ * Provides animation when changing the site direction/language.
+ * Uses initial={false} to prevent animation on first render.
  */
 export function LanguageTransition({ children }: LanguageTransitionProps) {
   const { language } = useLanguage();
 
   return (
-    <AnimatePresence mode="wait" initial={false}>
+    <AnimatePresence initial={false}>
       <motion.div
         key={language}
-        initial={{ opacity: 0, scale: 0.98 }}
-        animate={{ opacity: 1, scale: 1 }}
-        exit={{ opacity: 0, scale: 1.02 }}
+        initial={{ opacity: 0.8 }}
+        animate={{ opacity: 1 }}
         transition={{
-          duration: 0.4,
-          ease: [0.22, 1, 0.36, 1], // Custom professional ease
+          duration: 0.3,
+          ease: "easeOut",
         }}
         className="w-full h-full"
       >

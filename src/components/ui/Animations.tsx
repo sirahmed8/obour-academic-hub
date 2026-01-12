@@ -1,7 +1,6 @@
 "use client";
 
-import { motion, AnimatePresence, Variants, HTMLMotionProps } from "framer-motion";
-import { usePathname } from "next/navigation";
+import { motion, Variants, HTMLMotionProps } from "framer-motion";
 import { ReactNode } from "react";
 
 // --- Configuration ---
@@ -36,26 +35,10 @@ interface SlideInProps extends AnimationProps {
 
 /**
  * PageTransition
- * Wraps page content with a seamless fade/slide transition.
- * Uses `mode="wait"` to ensure the old page leaves before the new one enters.
+ * Simple wrapper for page content without animation.
  */
 export function PageTransition({ children }: { children: ReactNode }) {
-  const pathname = usePathname();
-
-  return (
-    <AnimatePresence mode="wait">
-      <motion.div
-        key={pathname}
-        initial={{ opacity: 0, y: 10 }}
-        animate={{ opacity: 1, y: 0 }}
-        exit={{ opacity: 0, y: -10 }}
-        transition={{ duration: 0.3, ease: "easeOut" }}
-        className="w-full h-full flex flex-col"
-      >
-        {children}
-      </motion.div>
-    </AnimatePresence>
-  );
+  return <div className="w-full h-full flex flex-col">{children}</div>;
 }
 
 /**
