@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, memo } from "react";
 import { Headphones } from "lucide-react";
 import { useLanguage } from "@/contexts";
 import { ChatMessageItem } from "@/components/chat/ChatMessage";
@@ -15,7 +15,13 @@ interface ChatMessagesProps {
   onDelete: (msgId: string) => void;
 }
 
-export function ChatMessages({ messages, user, onReply, onReact, onDelete }: ChatMessagesProps) {
+export const ChatMessages = memo(function ChatMessages({
+  messages,
+  user,
+  onReply,
+  onReact,
+  onDelete,
+}: ChatMessagesProps) {
   const { language } = useLanguage();
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
@@ -51,4 +57,4 @@ export function ChatMessages({ messages, user, onReply, onReact, onDelete }: Cha
       <div ref={messagesEndRef} />
     </div>
   );
-}
+});
