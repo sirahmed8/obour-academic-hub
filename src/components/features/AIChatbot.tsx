@@ -7,7 +7,7 @@ import { useAuth, useLanguage, useSolidMode } from "@/contexts";
 import { SiteSettings } from "@/types";
 import { cn } from "@/lib/utils";
 import { db } from "@/lib/firebase";
-import { collection, query, orderBy, onSnapshot, doc } from "firebase/firestore";
+import { collection, query, orderBy, onSnapshot, doc, limit } from "firebase/firestore";
 import { sendMessage, clearChatHistory, toggleReaction, deleteMessage } from "@/lib/chatUtils";
 import { ChatMessage } from "@/types";
 import { toast } from "sonner";
@@ -146,7 +146,13 @@ export function AIChatbot() {
   useEffect(() => {
     if (!user || mode === "live") return;
 
-    const q = query(collection(db, `chats/${user.uid}/messages`), orderBy("timestamp", "asc"));
+    // OPTIMIZATION: Use limit(1) and desc to only fetch the LATEST message from the SUPPORT chat.
+    // Previously this fetched the entire history of the wrong chat (bot chat).
+    const q = query(
+      collection(db, `chats/${user.uid}_support/messages`),
+      orderBy("timestamp", "desc"),
+      limit(1)
+    );
 
     // Initial load flag to prevent notification on first mount
     let isInitialLoad = true;
@@ -155,7 +161,8 @@ export function AIChatbot() {
       const msgs = snapshot.docs.map((d) => d.data() as ChatMessage);
 
       if (!isInitialLoad && msgs.length > 0) {
-        const lastMsg = msgs[msgs.length - 1];
+        // With limit(1), the first message is the latest one
+        const lastMsg = msgs[0];
         if (lastMsg?.senderId === "admin") {
           const currentLang = languageRef.current;
           toast.info(
