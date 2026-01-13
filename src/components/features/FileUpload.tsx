@@ -5,6 +5,7 @@ import { Upload, FileText, Loader2, X } from "lucide-react";
 import Image from "next/image";
 
 import { motion, AnimatePresence } from "framer-motion";
+import { useLanguage } from "@/contexts";
 
 interface FileAttachment {
   url: string;
@@ -94,6 +95,7 @@ interface FileAttachmentDisplayProps {
 
 export function FileAttachmentDisplay({ attachment }: FileAttachmentDisplayProps) {
   const [showLightbox, setShowLightbox] = useState(false);
+  const { language } = useLanguage();
 
   const formatSize = (bytes: number) => {
     if (bytes < 1024) return bytes + " B";
@@ -105,12 +107,14 @@ export function FileAttachmentDisplay({ attachment }: FileAttachmentDisplayProps
     <>
       <div className="bg-secondary/50 rounded-lg p-3 max-w-xs">
         {attachment.type === "image" ? (
-          <div
-            className="relative w-52 h-40 rounded-lg overflow-hidden bg-background/50 cursor-zoom-in hover:opacity-90 transition-opacity"
+          <button
+            type="button"
+            className="relative w-52 h-40 rounded-lg overflow-hidden bg-background/50 cursor-zoom-in hover:opacity-90 transition-opacity block text-left"
             onClick={() => setShowLightbox(true)}
+            aria-label={language === "ar" ? "تكبير الصورة" : "Zoom image"}
           >
             <Image src={attachment.url} alt={attachment.name} fill className="object-cover" />
-          </div>
+          </button>
         ) : (
           <a
             href={attachment.url}
@@ -148,6 +152,7 @@ import { createPortal } from "react-dom";
 
 function ImageLightbox({ src, alt, onClose }: { src: string; alt: string; onClose: () => void }) {
   const [mounted, setMounted] = useState(false);
+  const { language } = useLanguage();
 
   useEffect(() => {
     setMounted(true);
@@ -167,10 +172,14 @@ function ImageLightbox({ src, alt, onClose }: { src: string; alt: string; onClos
       transition={{ duration: 0.2 }}
       className="fixed inset-0 z-500 bg-black/90 backdrop-blur-md flex items-center justify-center p-4 md:p-10"
       onClick={onClose}
+      role="dialog"
+      aria-modal="true"
+      aria-label={language === "ar" ? "معاينة الصورة" : "Image preview"}
     >
       <button
         onClick={onClose}
         className="absolute top-6 right-6 p-3 bg-black/50 hover:bg-white/20 rounded-full text-white transition-all hover:scale-110 z-510 border border-white/10"
+        aria-label={language === "ar" ? "إغلاق المعاينة" : "Close preview"}
       >
         <X className="w-6 h-6" />
       </button>
