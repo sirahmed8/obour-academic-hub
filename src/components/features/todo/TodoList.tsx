@@ -315,15 +315,15 @@ export function TodoList() {
                   : "All Priorities"
                 : p === "high"
                   ? language === "ar"
-                    ? "🔥 عالية"
-                    : "🔥 High"
+                    ? "عالية"
+                    : "High"
                   : p === "medium"
                     ? language === "ar"
-                      ? "⚡ متوسطة"
-                      : "⚡ Medium"
+                      ? "متوسطة"
+                      : "Medium"
                     : language === "ar"
-                      ? "☕ عادية"
-                      : "☕ Low"}
+                      ? "عادية"
+                      : "Low"}
             </button>
           ))}
         </div>

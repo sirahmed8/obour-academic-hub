@@ -95,9 +95,11 @@ export default function AdminSettingsPage() {
                           <Sparkles size={16} className="text-yellow-500 animate-pulse" />
                         )}
                       </h3>
-                      <p className="text-sm text-muted-foreground mt-1 max-w-md">
-                        {t("settings.aiDescription")}
-                      </p>
+                      {t("settings.aiDescription") && (
+                        <p className="text-sm text-muted-foreground mt-1 max-w-md">
+                          {t("settings.aiDescription")}
+                        </p>
+                      )}
                     </div>
                   </div>
 

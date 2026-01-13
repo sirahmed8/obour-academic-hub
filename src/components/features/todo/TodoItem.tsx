@@ -229,6 +229,11 @@ export function TodoItem({ task, onToggle, onDelete, onEdit, onSubtaskToggle }: 
                   <span>{formatDate(task.dueDate)}</span>
                 </div>
               )}
+              {task.repeat && task.repeat !== "none" && (
+                <div className="flex items-center gap-1.5 text-[10px] px-2 py-0.5 rounded-full border bg-blue-500/5 text-blue-500 border-blue-500/10 font-medium">
+                  <span className="capitalize">{task.repeat}</span>
+                </div>
+              )}
             </div>
           </div>
         </div>

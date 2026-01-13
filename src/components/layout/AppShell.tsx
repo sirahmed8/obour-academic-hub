@@ -212,7 +212,8 @@ export function AppShell({ children }: { children: React.ReactNode }) {
         </div>
       </LanguageTransition>
       {/* Close Main Layout Area */}
-      <AIChatbot />
+      {/* Chatbot - Visible for Students and Owner only */}
+      {(!user?.role || user.role === "student" || user.role === "owner") && <AIChatbot />}
       {/* Profile Setup Modal */}
       {showProfileSetup && (
         <StudentProfileSetup

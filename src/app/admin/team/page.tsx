@@ -332,11 +332,6 @@ export default function AdminTeamPage() {
                     {language === "ar" ? "إضافة" : "Add"}
                   </button>
                 </div>
-                <p className="text-xs text-muted-foreground mt-3">
-                  {language === "ar"
-                    ? "سيحصل المستخدم على صلاحيات المسؤول عند تسجيل الدخول التالي"
-                    : "User will get admin privileges on their next login"}
-                </p>
               </FadeIn>
 
               <FadeIn
@@ -443,18 +438,6 @@ export default function AdminTeamPage() {
                     </AnimatePresence>
                   </StaggerChildren>
                 )}
-              </FadeIn>
-
-              <FadeIn
-                delay={0.3}
-                className="bg-blue-50 dark:bg-blue-950/30 border border-blue-200 dark:border-blue-900 rounded-xl p-4 text-sm"
-              >
-                <p className="text-blue-800 dark:text-blue-200">
-                  <strong>{language === "ar" ? "ملاحظة:" : "Note:"}</strong>{" "}
-                  {language === "ar"
-                    ? "عند إضافة بريد إلكتروني هنا، سيحصل المستخدم تلقائياً على صلاحيات المسؤول عند تسجيل الدخول (أو إنشاء حساب جديد) باستخدام هذا البريد."
-                    : "When you add an email here, the user will automatically get admin privileges when they log in (or create an account) with that email."}
-                </p>
               </FadeIn>
             </div>
           )}

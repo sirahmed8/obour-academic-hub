@@ -533,10 +533,10 @@ export function AIChatbot() {
                           ? "المساعد الذكي"
                           : "AI Assistant"}
                     </h3>
-                    <p className="text-[10px] text-muted-foreground flex items-center gap-1">
+                    <p className="text-[10px] text-muted-foreground flex items-center gap-1.5 mt-0.5">
                       <span
                         className={cn(
-                          "w-2 h-2 rounded-full animate-pulse",
+                          "w-1.5 h-1.5 rounded-full animate-pulse",
                           mode === "live" ? "bg-green-500" : "bg-purple-500"
                         )}
                       />
@@ -601,14 +601,17 @@ export function AIChatbot() {
               </div>
             )}
 
-            <ChatInput
-              input={input}
-              setInput={setInput}
-              handleSend={handleSend}
-              replyTo={replyTo}
-              setReplyTo={setReplyTo}
-              disabled={isGenerating}
-            />
+            {/* Input - Safe Area for Mobile */}
+            <div className="pb-[env(safe-area-inset-bottom)]">
+              <ChatInput
+                input={input}
+                setInput={setInput}
+                handleSend={handleSend}
+                replyTo={replyTo}
+                setReplyTo={setReplyTo}
+                disabled={isGenerating}
+              />
+            </div>
           </motion.div>
         )}
       </AnimatePresence>

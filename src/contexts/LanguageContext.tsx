@@ -121,8 +121,7 @@ const translations: Record<Language, Record<string, string>> = {
     // Admin Settings
     "settings.title": "Owner Settings",
     "settings.aiToggle": "Enable AI Mode",
-    "settings.aiDescription":
-      "When disabled, chatbot will default to Live Support for all students.",
+    "settings.aiDescription": "",
     "settings.saveSuccess": "Settings updated successfully",
     "settings.saveError": "Failed to update settings",
   },
@@ -235,7 +234,7 @@ const translations: Record<Language, Record<string, string>> = {
     // Admin Settings
     "settings.title": "إعدادات المالك",
     "settings.aiToggle": "تفعيل وضع الذكاء الاصطناعي",
-    "settings.aiDescription": "عند الإيقاف، سيتم تحويل الطلاب تلقائياً للدعم المباشر.",
+    "settings.aiDescription": "",
     "settings.saveSuccess": "تم تحديث الإعدادات بنجاح",
     "settings.saveError": "فشل تحديث الإعدادات",
   },

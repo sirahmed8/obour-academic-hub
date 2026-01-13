@@ -157,7 +157,7 @@ export default function AdminLogsPage() {
   return (
     <>
       <div className="p-6 lg:p-10 w-full page-transition">
-        <FadeIn className="flex items-center justify-between mb-8">
+        <FadeIn className="flex flex-col md:flex-row items-start md:items-center justify-between mb-8 gap-4">
           <h1 className="text-2xl font-bold text-foreground flex items-center gap-3">
             <FileText className="text-primary" />
             {t("admin.logs")}

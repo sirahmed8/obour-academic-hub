@@ -228,7 +228,7 @@ export function AddTodoModal({
           exit="exit"
           variants={modalBackdrop}
           className={cn(
-            "fixed inset-0 z-999 flex items-start justify-center p-4 pt-8 pb-8 overflow-y-auto bg-black/60 backdrop-blur-md backdrop-saturate-150"
+            "fixed inset-0 z-999 flex items-start justify-center p-4 pt-8 pb-8 overflow-y-auto bg-black/60 backdrop-blur-md"
           )}
         >
           <motion.div
@@ -243,7 +243,7 @@ export function AddTodoModal({
               if (showDatePicker) setShowDatePicker(false);
             }}
             className={cn(
-              "w-full max-w-lg rounded-3xl shadow-2xl my-auto transition-colors duration-300 bg-card/90 dark:bg-black/40 backdrop-blur-xl backdrop-saturate-150 border border-white/20 dark:border-white/10 overflow-hidden"
+              "w-full max-w-lg rounded-3xl shadow-2xl my-auto transition-colors duration-300 bg-card/90 dark:bg-black/80 border border-white/20 dark:border-white/10 overflow-hidden"
             )}
             dir={isRtl ? "rtl" : "ltr"}
           >
@@ -375,7 +375,25 @@ export function AddTodoModal({
                     <Calendar size={14} className="text-muted-foreground" />
                   </motion.button>
 
-                  <div ref={datePickerContainerRef}>
+                  <div ref={datePickerContainerRef} className="relative z-50">
+                    <style jsx global>{`
+                      .rdp {
+                        --rdp-cell-size: 40px !important;
+                        margin: 0 !important;
+                      }
+                      .rdp-month {
+                        width: 100% !important;
+                      }
+                      .rdp-table {
+                        width: 100% !important;
+                        max-width: none !important;
+                      }
+                      @media (max-width: 640px) {
+                        .rdp {
+                          --rdp-cell-size: 45px !important;
+                        }
+                      }
+                    `}</style>
                     <AnimatePresence>
                       {showDatePicker && (
                         <DateTimePicker
@@ -489,7 +507,7 @@ export function AddTodoModal({
                 disabled={isSubmitting}
                 whileHover={{ scale: 1.02 }}
                 whileTap={{ scale: 0.98 }}
-                className="px-8 py-2.5 text-sm font-bold bg-primary text-primary-foreground rounded-xl shadow-lg shadow-primary/25 hover:shadow-xl hover:shadow-primary/30 transition-all disabled:opacity-50 disabled:pointer-events-none"
+                className="px-8 py-2.5 text-sm font-bold bg-primary text-primary-foreground rounded-xl shadow-lg shadow-primary/25 hover:shadow-xl hover:shadow-primary/30 transition-all disabled:opacity-50 disabled:pointer-events-none relative z-50"
               >
                 {isSubmitting
                   ? language === "ar"

@@ -5,13 +5,12 @@ import { useState, useEffect } from "react";
 import { useLanguage, useAuth } from "@/contexts";
 import { User as UserType, UserPermission } from "@/types";
 import { userService } from "@/services/user.service";
-import { authService } from "@/services/auth.service";
 import { Loader2, Shield, User, Pencil, X, Users, Search } from "lucide-react";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { ConfirmationModal } from "@/components/ui/ConfirmationModal";
 import { AnimatedCheckbox } from "@/components/ui/AnimatedCheckbox";
-import { FadeIn, StaggerChildren, ScaleIn } from "@/components/ui/Animations";
+import { StaggerChildren, ScaleIn } from "@/components/ui/Animations";
 import { AnimatePresence, motion } from "framer-motion";
 import Image from "next/image";
 
@@ -379,41 +378,6 @@ export default function AdminUsersPage() {
               className="w-full px-4 py-3 pl-10 rtl:pr-10 rounded-2xl bg-white/5 dark:bg-white/2 backdrop-blur-xl border border-white/10 focus:border-primary/50 focus:ring-4 focus:ring-primary/10 transition-all duration-300 outline-none text-sm shadow-sm placeholder:text-muted-foreground/50"
             />
           </div>
-
-          <form
-            onSubmit={async (e) => {
-              e.preventDefault();
-              const form = e.currentTarget;
-              const emailInput = form.elements.namedItem("invite-email") as HTMLInputElement;
-              const email = emailInput.value;
-              if (!email || !email.includes("@")) return toast.error("Invalid email");
-              try {
-                await authService.addToWhitelist(email, "admin");
-                toast.success("Admin invited successfully");
-                form.reset();
-              } catch (err) {
-                console.error(err);
-                toast.error("Failed to invite");
-              }
-            }}
-            className="flex gap-2 flex-col sm:flex-row"
-          >
-            <input
-              name="invite-email"
-              type="email"
-              placeholder={
-                language === "ar" ? "إضافة بريد إلكتروني كأدمن..." : "Invite admin by email..."
-              }
-              className="px-4 py-2 rounded-xl bg-white/5 dark:bg-white/2 backdrop-blur-xl border border-white/10 focus:border-primary/50 focus:ring-4 focus:ring-primary/10 transition-all duration-300 outline-none text-sm shadow-sm placeholder:text-muted-foreground/50 flex-1 md:w-64"
-            />
-            <button
-              type="submit"
-              className="px-4 py-2 bg-primary text-primary-foreground rounded-xl text-sm font-medium hover:bg-primary/90 transition-colors"
-              title={language === "ar" ? "دعوة" : "Invite"}
-            >
-              +
-            </button>
-          </form>
         </div>
 
         {/* User List - Mobile: Cards, Desktop: Standard Table */}

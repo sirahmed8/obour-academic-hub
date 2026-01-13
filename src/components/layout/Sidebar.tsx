@@ -250,7 +250,7 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
           <div
             className={cn(
               "absolute inset-0 transition-all duration-300",
-              !isSolid && "backdrop-blur-xl"
+              !isSolid && "backdrop-blur-xl backdrop-saturate-150"
             )}
           />
 
@@ -267,7 +267,7 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
           <div
             className={cn(
               "absolute top-16 bottom-0 inset-x-0 transition-all duration-300 border-black/5 dark:border-white/5",
-              isSolid ? "bg-background shadow-lg" : "bg-background/95",
+              isSolid ? "bg-background shadow-lg" : "bg-background/60",
               // Borders and Corners based on language
               language === "ar"
                 ? "border-l border-b rounded-bl-[2.5rem]"
@@ -285,7 +285,7 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
                 "absolute inset-0 transition-all duration-300 -z-10",
                 isSolid
                   ? "bg-background"
-                  : "bg-background/20 backdrop-blur-xl backdrop-saturate-150"
+                  : "bg-background/60 backdrop-blur-xl backdrop-saturate-150"
               )}
             />
             <div className="flex items-center gap-3">

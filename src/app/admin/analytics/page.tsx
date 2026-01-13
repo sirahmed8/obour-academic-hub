@@ -175,8 +175,7 @@ export default function AdminAnalyticsPage() {
           </div>
         ) : (
           <StaggerChildren className="space-y-8">
-            {/* System Status Widget */}
-            <SystemStatus />
+            {/* Stats Cards */}
 
             {/* Stats Cards */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">

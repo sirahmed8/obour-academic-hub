@@ -51,14 +51,86 @@ export function Dashboard() {
               const text = t("dashboard.greeting");
               const hasPunctuation = /[!?.؟]$/.test(text);
               const separator = hasPunctuation ? "" : language === "ar" ? "،" : ",";
+              const time = new Date().getHours();
+              const timeGreeting =
+                language === "ar"
+                  ? time < 12
+                    ? "صباح الخير"
+                    : "مساء الخير"
+                  : time < 12
+                    ? "Good Morning"
+                    : "Good Evening";
+
+              const welcomeMessages = [
+                "Welcome back, Star! 🌟",
+                "Ready to crush it? 🚀",
+                "Let's learn something new! 📚",
+                "Your future is bright! ✨",
+                "Keep pushing forward! 💪",
+                "Focus and achieve! 🎯",
+                "Success is loading... ⏳",
+                "Dream big, work hard! 💭",
+                "You got this! 🔥",
+                "Stay curious! 🧐",
+                "Knowledge is power! 💡",
+                "Make today count! ✅",
+                "Believe in yourself! 🌈",
+                "Study smart, not just hard! 🧠",
+                "Challenge accepted? ⚔️",
+                "Consistency is key! 🔑",
+                "Turn coffee into code! ☕",
+                "Debug your life! 🐞",
+                "Level up today! 🎮",
+                "Create your own path! 🛤️",
+                "The sky is the limit! ☁️",
+                "Step by step! 👣",
+                "Don't stop now! 🛑",
+                "Unlock your potential! 🔓",
+                "Be the best version of you! 💎",
+                "Learning never exhausts the mind. 📖",
+                "Strive for progress, not perfection. 📈",
+                "Small steps, big results. 🐘",
+                "Every day is a fresh start. 🌅",
+                "Your potential is endless. ♾️",
+                "Do it for your future self. 🔮",
+                "Stay positive, work hard, make it happen. 🌸",
+                "Action is the foundational key to all success. 🗝️",
+                "It always seems impossible until it's done. 🏆",
+                "Don't watch the clock; do what it does. Keep going. ⏰",
+                "The secret of getting ahead is getting started. 🏁",
+                "Quality means doing it right when no one is looking. 👌",
+                "Aim for the moon. If you miss, you may hit a star. 🌙",
+                "Everything you can imagine is real. 🎨",
+                "Simplicity is the ultimate sophistication. 🍃",
+                "May your code compile and your tests pass. ✅",
+                "Eat, Sleep, Code, Repeat. 🔄",
+                "Hoping for 0 errors and 0 warnings today. 🤞",
+                "Time to be productive! ⚡",
+                "Let's get some work done. 🔨",
+                "Good vibes only. ✌️",
+                "Smiling increases productivity. 😊",
+                "Welcome to your academic hub. 🏫",
+                "Let's achieve greatness together. 🤝",
+                "Hello there! 👋",
+              ];
+              const randomMessage =
+                welcomeMessages[Math.floor(Math.random() * welcomeMessages.length)];
+              const languageMessage = language === "ar" ? "أهلاً بك يا بطل! 💪" : randomMessage;
+
               return (
                 <>
-                  {text}
+                  {timeGreeting}
                   {separator} {user?.displayName?.split(" ")[0]} 👋
+                  <span className="block text-2xl lg:text-3xl text-muted-foreground font-medium mt-2">
+                    {languageMessage}
+                  </span>
                 </>
               );
             })()}
           </h1>
+          <p className="text-xl font-bold text-white/90 mt-2">
+            {language === "ar" ? "أهلاً بك في منصة العبور" : "Welcome to Obour Hub"}
+          </p>
 
           <p className="text-primary-foreground/80 dark:text-white/80 text-lg font-medium max-w-2xl leading-relaxed">
             {t("dashboard.bannerSubtitle")}

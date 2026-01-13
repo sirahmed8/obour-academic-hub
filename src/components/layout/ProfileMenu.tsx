@@ -141,9 +141,7 @@ export function ProfileMenu({ onClose, triggerRef, direction }: ProfileMenuProps
                   }}
                   className="text-[10px] text-primary hover:underline text-center w-full cursor-pointer hover:text-primary/80 transition-colors"
                 >
-                  {language === "ar"
-                    ? "تريد تغيير بياناتك؟ تواصل معنا"
-                    : "Want to change your info? Contact us"}
+                  {language === "ar" ? "تواصل معنا" : "Contact us"}
                 </button>
               </div>
             ) : (
