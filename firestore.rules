@@ -142,7 +142,8 @@ service cloud.firestore {
       allow create: if request.auth != null &&
                    request.resource.data.keys().hasAll(['message']) &&
                    request.resource.data.keys().size() < 20 &&
-                   request.resource.data.message is string;
+                   request.resource.data.message is string &&
+                   request.resource.data.timestamp is timestamp;
     }
     
     match /{document=**} {

@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, memo } from "react";
 import { Headphones } from "lucide-react";
 import { useLanguage } from "@/contexts";
 import { ChatMessageItem } from "@/components/chat/ChatMessage";
@@ -16,13 +16,16 @@ interface ChatMessagesProps {
   onDelete: (msgId: string) => void;
 }
 
-export function ChatMessages({ messages, user, onReply, onReact, onDelete }: ChatMessagesProps) {
+const ChatMessagesMemo = memo(ChatMessages);
+export { ChatMessagesMemo as ChatMessages };
+
+function ChatMessages({ messages, user, onReply, onReact, onDelete }: ChatMessagesProps) {
   const { language } = useLanguage();
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, [messages]);
+  }, [messages.length]); // Only scroll on new messages
 
   return (
     <div

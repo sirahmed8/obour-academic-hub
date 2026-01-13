@@ -27,7 +27,7 @@ export async function POST(request: Request) {
       from: `"Obour Academic Hub" <${process.env.SMTP_USER}>`,
       to: Array.isArray(to) ? to.join(",") : to,
       subject,
-      html,
+      html: html ? html.replace(/<script\b[^>]*>([\s\S]*?)<\/script>/gm, "") : "", // Basic Sanitization
     });
 
     console.log("Message sent: %s", info.messageId);

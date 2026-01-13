@@ -41,6 +41,7 @@ export function Navbar({ onMenuClick }: NavbarProps) {
         {/* Mobile Menu Button */}
         <button
           onClick={onMenuClick}
+          aria-label={t("navbar.menu")}
           className="p-2 -ml-2 hover:bg-white/10 rounded-full lg:hidden transition-colors active:scale-95"
           ref={mobileMenuButtonRef}
         >
@@ -75,6 +76,7 @@ export function Navbar({ onMenuClick }: NavbarProps) {
           <button
             ref={profileMenuButtonRef}
             onClick={() => setShowSettings(!showSettings)}
+            aria-label={t("navbar.profile")}
             className="flex items-center gap-2 p-2 hover:bg-muted/20 rounded-xl transition-colors relative"
           >
             {user && (
