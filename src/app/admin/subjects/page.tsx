@@ -21,7 +21,6 @@ import { cn } from "@/lib/utils";
 import { Subject } from "@/types";
 import { ConfirmationModal } from "@/components/ui/ConfirmationModal";
 import { motion, AnimatePresence } from "framer-motion";
-import { FadeIn } from "@/components/ui/Animations";
 import { AnimatedIcon } from "@/components/ui/AnimatedIcon";
 import { PICKER_OPTIONS, getSubjectAnimation } from "@/lib/subjectIcons";
 

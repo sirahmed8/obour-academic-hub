@@ -113,6 +113,28 @@ export default function AdminNotificationsPage() {
     return () => unsubscribe();
   }, [isAdmin]);
 
+  // --- Keyboard Navigation ---
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      // Ignore if typing in an input or textarea
+      if (["INPUT", "TEXTAREA"].includes((e.target as HTMLElement).tagName)) return;
+
+      const tabs: ("send" | "email" | "banners")[] = ["send", "email", "banners"];
+      const currentIndex = tabs.indexOf(activeTab);
+
+      if (e.key === "ArrowRight") {
+        const nextIndex = (currentIndex + 1) % tabs.length;
+        setActiveTab(tabs[nextIndex]);
+      } else if (e.key === "ArrowLeft") {
+        const prevIndex = (currentIndex - 1 + tabs.length) % tabs.length;
+        setActiveTab(tabs[prevIndex]);
+      }
+    };
+
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [activeTab]);
+
   // --- Notification Handlers ---
   const handleSendNotification = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -199,14 +221,22 @@ export default function AdminNotificationsPage() {
         }),
       });
 
-      if (!response.ok) throw new Error("Failed to send");
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.error || "Failed to send");
+      }
 
       toast.success(language === "ar" ? "تم إرسال البريد الإلكتروني" : "Email sent successfully");
       setEmailSubject("");
       setEmailMessage("");
     } catch (error) {
       console.error("Error sending email:", error);
-      toast.error(language === "ar" ? "فشل إرسال البريد" : "Failed to send email");
+      const errorMessage = error instanceof Error ? error.message : "Unknown error";
+      toast.error(
+        language === "ar"
+          ? `فشل إرسال البريد: ${errorMessage}`
+          : `Failed to send email: ${errorMessage}`
+      );
     } finally {
       setSendingEmail(false);
     }

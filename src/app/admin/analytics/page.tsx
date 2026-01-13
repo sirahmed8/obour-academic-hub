@@ -11,7 +11,6 @@ import { StaggerChildren, ScaleIn, FadeIn } from "@/components/ui/Animations";
 import { BarChart3, Users, BookOpen, Activity, Loader2, RefreshCw, Trash2 } from "lucide-react";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
 import { cn } from "@/lib/utils";
-import { SystemStatus } from "@/components/admin/SystemStatus";
 import { toast } from "sonner";
 
 interface AnalyticsData {
