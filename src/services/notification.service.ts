@@ -16,6 +16,7 @@ import {
 } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import { Notification as AppNotification } from "@/types";
+import { getApiBaseUrl } from "@/lib/config";
 
 /**
  * Notification Service - Handles all notification operations
@@ -37,7 +38,8 @@ export const notificationService = {
    */
   async sendEmailNotification(to: string[], subject: string, html: string) {
     try {
-      const response = await fetch("/api/send-email", {
+      const baseUrl = getApiBaseUrl();
+      const response = await fetch(`${baseUrl}/api/send-email`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ to, subject, html }),

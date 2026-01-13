@@ -14,6 +14,7 @@ import { toast } from "sonner";
 import { ConfirmationModal } from "@/components/ui/ConfirmationModal";
 import { ChatMessages } from "./chatbot/ChatMessages";
 import { ChatInput } from "./chatbot/ChatInput";
+import { getApiBaseUrl } from "@/lib/config";
 import { AnimatedIcon } from "@/components/ui/AnimatedIcon";
 import infoAnim from "react-useanimations/lib/info/info.json";
 
@@ -351,7 +352,8 @@ export function AIChatbot() {
           const payloadMessages = [...history, currentMessage];
           console.log("AI PAYLOAD (Client):", JSON.stringify(payloadMessages, null, 2));
 
-          const response = await fetch("/api/chat", {
+          const baseUrl = getApiBaseUrl();
+          const response = await fetch(`${baseUrl}/api/chat`, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({
