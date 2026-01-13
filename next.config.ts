@@ -1,7 +1,7 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  // output: "export", // Disabled to allow API Routes (Email/AI)
+  // output: "export", // Not needed for Vercel - supports full Next.js features
   trailingSlash: false,
   images: {
     unoptimized: true,
