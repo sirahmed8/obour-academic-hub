@@ -113,7 +113,6 @@
     "ignore": "^7.0.5",
     "jackspeak": "^4.1.1",
     "path-scurry": "^2.0.1",
-    "entities": "^7.0.0",
     "type-fest": "^5.3.1",
     "eastasianwidth": "^0.3.0",
     "dotenv": "^17.2.3",
