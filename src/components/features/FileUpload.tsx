@@ -5,6 +5,7 @@ import { Upload, FileText, Loader2, X } from "lucide-react";
 import Image from "next/image";
 
 import { motion, AnimatePresence } from "framer-motion";
+import { useLanguage } from "@/contexts";
 
 interface FileAttachment {
   url: string;
@@ -148,19 +149,30 @@ import { createPortal } from "react-dom";
 
 function ImageLightbox({ src, alt, onClose }: { src: string; alt: string; onClose: () => void }) {
   const [mounted, setMounted] = useState(false);
+  const { language } = useLanguage();
 
   useEffect(() => {
     setMounted(true);
     document.body.style.overflow = "hidden";
+
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape") onClose();
+    };
+    window.addEventListener("keydown", handleKeyDown);
+
     return () => {
       document.body.style.overflow = "unset";
+      window.removeEventListener("keydown", handleKeyDown);
     };
-  }, []);
+  }, [onClose]);
 
   if (!mounted) return null;
 
   return createPortal(
     <motion.div
+      role="dialog"
+      aria-modal="true"
+      aria-label={language === "ar" ? "معاينة الصورة" : "Image preview"}
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
@@ -170,6 +182,7 @@ function ImageLightbox({ src, alt, onClose }: { src: string; alt: string; onClos
     >
       <button
         onClick={onClose}
+        aria-label={language === "ar" ? "إغلاق المعاينة" : "Close preview"}
         className="absolute top-6 right-6 p-3 bg-black/50 hover:bg-white/20 rounded-full text-white transition-all hover:scale-110 z-510 border border-white/10"
       >
         <X className="w-6 h-6" />

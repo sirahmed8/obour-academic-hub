@@ -15,3 +15,8 @@
 4. Loading states are communicated to screen readers
 
 **Action:** Check all button components for missing labels and focus styles.
+
+## 2026-01-14 - Ad-hoc Modals require standard accessibility
+
+**Learning:** Internal, non-shared modal components (like `ImageLightbox` in `FileUpload.tsx`) often escape standard accessibility checks. They need the same `role="dialog"`, `aria-modal="true"`, and keyboard handlers (Escape key) as shared UI components.
+**Action:** When auditing features, check for local "lightbox" or "preview" implementations that might be custom-built and miss these attributes.
