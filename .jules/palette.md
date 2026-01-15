@@ -15,3 +15,8 @@
 4. Loading states are communicated to screen readers
 
 **Action:** Check all button components for missing labels and focus styles.
+
+## 2025-02-17 - Chat Interface Accessibility
+
+**Learning:** Chat interfaces frequently use icon-only buttons (toggle, clear, close) which are invisible to screen readers without explicit labels.
+**Action:** Audit all chat-related components (ChatInput, AIChatbot) and add localized `aria-label` attributes to every icon-only button.

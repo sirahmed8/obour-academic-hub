@@ -445,6 +445,15 @@ export function AIChatbot() {
         onClick={toggleChat}
         onMouseEnter={() => setIsBtnHovered(true)}
         onMouseLeave={() => setIsBtnHovered(false)}
+        aria-label={
+          isOpen
+            ? language === "ar"
+              ? "إغلاق المحادثة"
+              : "Close chat"
+            : language === "ar"
+            ? "فتح المحادثة"
+            : "Open chat"
+        }
         className={cn(
           "fixed bottom-6 right-6 w-14 h-14 md:w-16 md:h-16 rounded-2xl shadow-2xl flex items-center justify-center z-50 transition-all duration-300 group overflow-hidden box-border border-0 outline-none ring-0 bg-linear-to-tr from-primary via-purple-500 to-indigo-600 text-primary-foreground hover:shadow-primary/50"
         )}
@@ -552,6 +561,15 @@ export function AIChatbot() {
                   {aiEnabled && (
                     <button
                       onClick={() => setMode(mode === "live" ? "bot" : "live")}
+                      aria-label={
+                        mode === "live"
+                          ? language === "ar"
+                            ? "التبديل إلى المساعد الذكي"
+                            : "Switch to AI Assistant"
+                          : language === "ar"
+                          ? "التبديل إلى الدعم المباشر"
+                          : "Switch to Live Support"
+                      }
                       className="px-3 py-1.5 rounded-lg text-xs font-medium bg-secondary hover:bg-secondary/80 transition-colors flex items-center gap-1.5"
                     >
                       {mode === "bot" ? (
@@ -573,12 +591,14 @@ export function AIChatbot() {
 
                   <button
                     onClick={() => setShowClearConfirm(true)}
+                    aria-label={language === "ar" ? "مسح المحادثة" : "Clear chat history"}
                     className="p-2 hover:bg-destructive/10 text-muted-foreground hover:text-destructive rounded-full transition-colors"
                   >
                     <Trash2 className="w-4 h-4" />
                   </button>
                   <button
                     onClick={() => setIsOpen(false)}
+                    aria-label={language === "ar" ? "إغلاق المحادثة" : "Close chat"}
                     className="p-2 hover:bg-muted rounded-full transition-colors"
                   >
                     <X className="w-4 h-4" />
