@@ -4,9 +4,9 @@ const nextConfig: NextConfig = {
   // output: "export", // Not needed for Vercel - supports full Next.js features
   trailingSlash: false,
   env: {
-    SMTP_HOST: process.env.SMTP_HOST,
-    SMTP_USER: process.env.SMTP_USER,
-    SMTP_PASS: process.env.SMTP_PASS,
+    // 🛡️ Sentinel: Removed sensitive SMTP credentials from here.
+    // They are available in API routes via process.env automatically.
+    // Exposing them here would leak them to the client bundle.
   },
   images: {
     unoptimized: true,
