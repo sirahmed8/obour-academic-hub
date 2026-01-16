@@ -15,3 +15,8 @@
 4. Loading states are communicated to screen readers
 
 **Action:** Check all button components for missing labels and focus styles.
+
+## 2024-05-23 - Toggle Button Semantics
+
+**Learning:** Settings toggles (Solid Mode, Notifications) were implemented as generic buttons, missing `role="switch"` and state indicators (`aria-checked`), leaving screen reader users unaware of the control's type and state.
+**Action:** Use `role="switch"` with `aria-checked` for binary toggles, and `aria-pressed` for toggle buttons. Ensure visual toggles have semantic backing.

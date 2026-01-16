@@ -183,6 +183,7 @@ export function ProfileMenu({ onClose, triggerRef, direction }: ProfileMenuProps
           <div className="flex gap-2 mb-4">
             <button
               onClick={() => setLanguage("en")}
+              aria-pressed={language === "en"}
               className={cn(
                 "flex-1 py-1.5 px-3 rounded-lg flex items-center justify-center gap-2 transition-all text-xs font-medium",
                 language === "en"
@@ -194,6 +195,7 @@ export function ProfileMenu({ onClose, triggerRef, direction }: ProfileMenuProps
             </button>
             <button
               onClick={() => setLanguage("ar")}
+              aria-pressed={language === "ar"}
               className={cn(
                 "flex-1 py-1.5 px-3 rounded-lg flex items-center justify-center gap-2 transition-all text-xs font-medium",
                 language === "ar"
@@ -211,6 +213,9 @@ export function ProfileMenu({ onClose, triggerRef, direction }: ProfileMenuProps
             {/* Solid Mode Toggle */}
             <button
               onClick={() => toggleSolidMode()}
+              role="switch"
+              aria-checked={isSolid}
+              aria-label={t("profile.solidMode")}
               className="w-full flex items-center justify-between p-3 rounded-xl bg-muted/50 hover:bg-muted transition-all duration-200 active:scale-[0.98]"
             >
               <span className="flex items-center gap-3 text-sm font-medium">
@@ -262,6 +267,9 @@ export function ProfileMenu({ onClose, triggerRef, direction }: ProfileMenuProps
                   }
                 }
               }}
+              role="switch"
+              aria-checked={notifPermission === "granted"}
+              aria-label={t("notifications.title")}
               className="w-full flex items-center justify-between p-3 rounded-xl bg-muted/50 hover:bg-muted transition-all duration-200 active:scale-[0.98]"
             >
               <span className="flex items-center gap-3 text-sm font-medium">
@@ -322,6 +330,9 @@ export function ProfileMenu({ onClose, triggerRef, direction }: ProfileMenuProps
                   toast.error("Failed to update preference");
                 }
               }}
+              role="switch"
+              aria-checked={!!user.notificationSettings?.email}
+              aria-label={language === "ar" ? "إشعارات البريد" : "Email Notifications"}
               className="w-full flex items-center justify-between p-3 rounded-xl bg-muted/50 hover:bg-muted transition-all duration-200 active:scale-[0.98] mt-2"
             >
               <span className="flex items-center gap-3 text-sm font-medium">
