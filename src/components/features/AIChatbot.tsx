@@ -7,7 +7,7 @@ import { useAuth, useLanguage, useSolidMode } from "@/contexts";
 import { SiteSettings } from "@/types";
 import { cn } from "@/lib/utils";
 import { db } from "@/lib/firebase";
-import { collection, query, orderBy, onSnapshot, doc } from "firebase/firestore";
+import { collection, query, orderBy, onSnapshot, doc, limitToLast } from "firebase/firestore";
 import { sendMessage, clearChatHistory, toggleReaction, deleteMessage } from "@/lib/chatUtils";
 import { ChatMessage } from "@/types";
 import { toast } from "sonner";
@@ -120,7 +120,11 @@ export function AIChatbot() {
     if (!user) return;
 
     // Separate collections for AI and Live
-    const q = query(collection(db, `chats/${currentChatId}/messages`), orderBy("timestamp", "asc"));
+    const q = query(
+      collection(db, `chats/${currentChatId}/messages`),
+      orderBy("timestamp", "asc"),
+      limitToLast(75) // Optimization: Only load recent history to prevent memory/rendering issues
+    );
 
     const unsubscribe = onSnapshot(q, (snapshot) => {
       const msgs = snapshot.docs.map(
@@ -146,7 +150,11 @@ export function AIChatbot() {
   useEffect(() => {
     if (!user || mode === "live") return;
 
-    const q = query(collection(db, `chats/${user.uid}/messages`), orderBy("timestamp", "asc"));
+    const q = query(
+      collection(db, `chats/${user.uid}/messages`),
+      orderBy("timestamp", "asc"),
+      limitToLast(1) // Optimization: Only fetch the very last message for notification checks
+    );
 
     // Initial load flag to prevent notification on first mount
     let isInitialLoad = true;
