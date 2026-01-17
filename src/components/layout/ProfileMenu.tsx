@@ -211,6 +211,8 @@ export function ProfileMenu({ onClose, triggerRef, direction }: ProfileMenuProps
             {/* Solid Mode Toggle */}
             <button
               onClick={() => toggleSolidMode()}
+              role="switch"
+              aria-checked={isSolid}
               className="w-full flex items-center justify-between p-3 rounded-xl bg-muted/50 hover:bg-muted transition-all duration-200 active:scale-[0.98]"
             >
               <span className="flex items-center gap-3 text-sm font-medium">
@@ -262,6 +264,8 @@ export function ProfileMenu({ onClose, triggerRef, direction }: ProfileMenuProps
                   }
                 }
               }}
+              role="switch"
+              aria-checked={notifPermission === "granted"}
               className="w-full flex items-center justify-between p-3 rounded-xl bg-muted/50 hover:bg-muted transition-all duration-200 active:scale-[0.98]"
             >
               <span className="flex items-center gap-3 text-sm font-medium">
@@ -322,6 +326,8 @@ export function ProfileMenu({ onClose, triggerRef, direction }: ProfileMenuProps
                   toast.error("Failed to update preference");
                 }
               }}
+              role="switch"
+              aria-checked={user.notificationSettings?.email ?? false}
               className="w-full flex items-center justify-between p-3 rounded-xl bg-muted/50 hover:bg-muted transition-all duration-200 active:scale-[0.98] mt-2"
             >
               <span className="flex items-center gap-3 text-sm font-medium">

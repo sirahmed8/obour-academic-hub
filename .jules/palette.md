@@ -15,3 +15,8 @@
 4. Loading states are communicated to screen readers
 
 **Action:** Check all button components for missing labels and focus styles.
+
+## 2025-05-20 - Toggle Switch Semantics
+
+**Learning:** Visual toggle switches implemented as generic `button` elements are confusing for screen reader users because they are announced as "button" rather than "switch", and their state (on/off) is often communicated only by visual color changes.
+**Action:** Always add `role="switch"` and `aria-checked` to toggle buttons to explicitly communicate their semantic meaning and current state to assistive technologies.
