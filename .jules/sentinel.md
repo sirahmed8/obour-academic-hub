@@ -1,5 +1,4 @@
-## 2024-02-27 - Hardcoded Secrets in Config
-
-**Vulnerability:** Found hardcoded Firebase API keys and configuration values serving as "fallbacks" in `src/lib/firebase.ts`.
-**Learning:** Developers often add hardcoded fallbacks to make local development easier or "just work," but this leaks secrets into source control.
-**Prevention:** Always use `process.env` (or equivalent) and ensure the application fails fast or handles missing configuration gracefully (e.g., returning `null` or logging a warning) rather than silently using a hardcoded secret. I implemented a check in `initFirebaseApp` to return `null` if keys are missing.
+## 2024-05-23 - Firestore Log Spoofing Prevention
+**Vulnerability:** The `logs`, `error_logs`, and `system_errors` collections allowed any authenticated user to create documents with arbitrary content, including spoofing `userId` or `userEmail` fields. This could compromise audit log integrity.
+**Learning:** Even "write-only" (for students) collections like logs need strict validation to ensure the data source (user) matches the authenticated user. Never trust the client to truthfully report who they are in the data payload.
+**Prevention:** In Firestore rules, always validate that user-identifying fields in the document data (e.g., `userId`, `email`) match the `request.auth` properties.
