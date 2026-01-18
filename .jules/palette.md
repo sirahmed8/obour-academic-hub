@@ -1,5 +1,10 @@
 # Palette
 
+## 2024-05-23 - Focus Management in Modals
+
+**Learning:** `ConfirmationModal` lacked a focus trap, allowing keyboard users to tab out to the background. This is a common oversight in custom modal implementations.
+**Action:** Implement a focus trap using `useEffect` that listens for `keydown` (Tab) and cycles focus between the first and last focusable elements. Ensure focus is restored to the triggering element upon closing.
+
 ## 2024-05-22 - Modal Accessibility Pattern
 
 **Learning:** Custom modals often miss critical ARIA roles (`dialog`, `aria-modal`) and labeled close buttons, making them confusing or unusable for screen reader users.

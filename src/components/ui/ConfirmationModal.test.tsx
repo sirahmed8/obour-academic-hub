@@ -1,5 +1,6 @@
 import { describe, it, expect, vi } from "vitest";
-import { render, screen } from "@testing-library/react";
+import { render, screen, waitFor } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
 import { ConfirmationModal } from "./ConfirmationModal";
 
 describe("ConfirmationModal", () => {
@@ -36,5 +37,33 @@ describe("ConfirmationModal", () => {
     render(<ConfirmationModal {...defaultProps} />);
     const closeButton = screen.getByLabelText("Close");
     expect(closeButton).toBeInTheDocument();
+  });
+
+  it("traps focus inside the modal", async () => {
+    const user = userEvent.setup();
+    render(
+      <div>
+        <button>Outside Button</button>
+        <ConfirmationModal {...defaultProps} />
+      </div>
+    );
+
+    // Wait for modal to be visible
+    await waitFor(() => expect(screen.getByRole("dialog")).toBeInTheDocument());
+
+    const closeButton = screen.getByLabelText("Close");
+    const confirmButton = screen.getByText("Confirm");
+
+    // Manually focus the last element to start the cycle test
+    confirmButton.focus();
+    expect(document.activeElement).toBe(confirmButton);
+
+    // Tab -> should go to Close button (first focusable element)
+    await user.tab();
+    expect(document.activeElement).toBe(closeButton);
+
+    // Shift+Tab -> should go back to Confirm button (last focusable element)
+    await user.tab({ shift: true });
+    expect(document.activeElement).toBe(confirmButton);
   });
 });
