@@ -1,6 +1,8 @@
 import { NextResponse } from "next/server";
 import nodemailer from "nodemailer";
 import sanitizeHtml from "sanitize-html";
+import { headers } from "next/headers";
+import { rateLimit } from "@/lib/rate-limit";
 
 const sanitizeEmailHtml = (html: string | undefined | null): string => {
   if (!html) {
@@ -53,6 +55,15 @@ const sanitizeEmailHtml = (html: string | undefined | null): string => {
 
 export async function POST(request: Request) {
   try {
+    // 🛡️ Sentinel: Add rate limiting to prevent spam
+    const headersList = await headers();
+    const ip = headersList.get("x-forwarded-for") || "unknown";
+    const { success } = rateLimit(ip, { interval: 60 * 1000, limit: 5 }); // 5 emails per minute
+
+    if (!success) {
+      return NextResponse.json({ error: "Too many requests" }, { status: 429 });
+    }
+
     const { to, subject, html } = await request.json();
 
     if (!process.env.SMTP_HOST || !process.env.SMTP_USER || !process.env.SMTP_PASS) {

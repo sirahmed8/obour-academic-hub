@@ -1,6 +1,8 @@
 import { generateText } from "ai";
 import { NextResponse } from "next/server";
 import { getAIModel, AIModelProvider, SYSTEM_PROMPT } from "@/lib/ai";
+import { headers } from "next/headers";
+import { rateLimit } from "@/lib/rate-limit";
 
 interface RawPart {
   type: string;
@@ -21,6 +23,15 @@ export async function POST(req: Request) {
   let sanitizedMessages: AIMessages = [];
 
   try {
+    // 🛡️ Sentinel: Add rate limiting to prevent abuse
+    const headersList = await headers();
+    const ip = headersList.get("x-forwarded-for") || "unknown";
+    const { success } = rateLimit(ip, { interval: 60 * 1000, limit: 10 }); // 10 chats per minute
+
+    if (!success) {
+      return NextResponse.json({ error: "Too many requests" }, { status: 429 });
+    }
+
     const json = await req.json();
     messages = json.messages;
     const model = json.model;
@@ -99,7 +110,6 @@ export async function POST(req: Request) {
     return NextResponse.json(
       {
         error: errorMessage,
-        details: error,
       },
       { status: 500 }
     );
