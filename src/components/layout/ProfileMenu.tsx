@@ -210,6 +210,8 @@ export function ProfileMenu({ onClose, triggerRef, direction }: ProfileMenuProps
           <div className="space-y-2 pt-2 border-t border-border mt-4">
             {/* Solid Mode Toggle */}
             <button
+              role="switch"
+              aria-checked={isSolid}
               onClick={() => toggleSolidMode()}
               className="w-full flex items-center justify-between p-3 rounded-xl bg-muted/50 hover:bg-muted transition-all duration-200 active:scale-[0.98]"
             >
@@ -250,6 +252,8 @@ export function ProfileMenu({ onClose, triggerRef, direction }: ProfileMenuProps
               {t("notifications.title")}
             </p>
             <button
+              role="switch"
+              aria-checked={notifPermission === "granted"}
               onClick={async () => {
                 if (notifPermission === "granted") {
                   toast.info(t("notifications.disableInstruction"));
@@ -294,6 +298,8 @@ export function ProfileMenu({ onClose, triggerRef, direction }: ProfileMenuProps
 
             {/* Email Notifications Toggle */}
             <button
+              role="switch"
+              aria-checked={!!user.notificationSettings?.email}
               onClick={async () => {
                 if (!user) return;
                 try {

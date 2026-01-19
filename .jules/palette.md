@@ -15,3 +15,8 @@
 4. Loading states are communicated to screen readers
 
 **Action:** Check all button components for missing labels and focus styles.
+
+## 2025-05-22 - Semantic Switches vs. Generic Buttons
+
+**Learning:** Toggle interfaces styled as switches (iOS-style) often rely on generic `<button>` elements, which screen readers announce only as "button", failing to communicate the on/off state.
+**Action:** Explicitly add `role="switch"` and `aria-checked="{boolean}"` to any button that functions as a state toggle to ensure screen readers announce it as "switch on/off".
