@@ -2,13 +2,11 @@ import { useState, useEffect, useRef } from "react";
 
 interface PerformanceData {
   isLagging: boolean;
-  currentFps: number;
   isLowEndDevice: boolean;
 }
 
 export function usePerformance(): PerformanceData {
   const [isLagging, setIsLagging] = useState(false);
-  const [currentFps, setCurrentFps] = useState(60);
   const frameCount = useRef(0);
   const lastTime = useRef(0);
   const rafId = useRef<number>(0);
@@ -29,7 +27,9 @@ export function usePerformance(): PerformanceData {
 
       if (now - lastTime.current >= 1000) {
         const fps = Math.round((frameCount.current * 1000) / (now - lastTime.current));
-        setCurrentFps(fps);
+
+        // Removed high-frequency state update (setCurrentFps) to prevent global re-renders
+        // Only update state if lag status actually changes
 
         // User's requested threshold: 35 FPS
         const lagDetected = fps < 35;
@@ -50,5 +50,5 @@ export function usePerformance(): PerformanceData {
     return () => cancelAnimationFrame(rafId.current);
   }, []);
 
-  return { isLagging, currentFps, isLowEndDevice };
+  return { isLagging, isLowEndDevice };
 }
