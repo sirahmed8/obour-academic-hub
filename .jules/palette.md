@@ -15,3 +15,9 @@
 4. Loading states are communicated to screen readers
 
 **Action:** Check all button components for missing labels and focus styles.
+
+## 2025-05-27 - Custom Checkbox Accessibility
+
+**Learning:** Custom checkbox components (like `AnimatedCheckbox`) built with `motion.button` often lack mechanism to receive and render `aria-label` or `aria-labelledby`, rendering them inaccessible when used without visible text labels (e.g., in bulk selection tables).
+
+**Action:** Ensure all custom form controls expose `aria-*` props in their interface and pass them to the underlying interactive element. Always provide `aria-label` when using these controls in "select row" or "select all" contexts.
