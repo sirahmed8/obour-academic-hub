@@ -7,9 +7,8 @@ service cloud.firestore {
     // Helper to check for Owner
     function isOwner() {
       return request.auth != null && (
-        request.auth.token.email == 'a7medorabe7@gmail.com' ||
-        (exists(/databases/$(database)/documents/users/$(request.auth.uid)) && 
-         get(/databases/$(database)/documents/users/$(request.auth.uid)).data.get('role', 'student') == 'owner')
+        exists(/databases/$(database)/documents/users/$(request.auth.uid)) &&
+         get(/databases/$(database)/documents/users/$(request.auth.uid)).data.get('role', 'student') == 'owner'
       );
     }
 
