@@ -1,5 +1,10 @@
 # Palette
 
+## 2026-01-21 - Invisible Focus on Hover Actions
+
+**Learning:** Chat message actions hidden by `opacity-0` until hover are invisible to keyboard users. Tabbing into them creates a confusing "lost focus" state where the focus indicator disappears.
+**Action:** Always add `focus-within:opacity-100` to containers of hover-only actions so they automatically reveal themselves when a user tabs into them.
+
 ## 2024-05-22 - Modal Accessibility Pattern
 
 **Learning:** Custom modals often miss critical ARIA roles (`dialog`, `aria-modal`) and labeled close buttons, making them confusing or unusable for screen reader users.

@@ -255,8 +255,8 @@ export const ChatMessageItem = memo<ChatMessageProps>(function ChatMessageItem({
           <div
             className={cn(
               "absolute top-1/2 -translate-y-1/2 flex items-center gap-1 transition-all duration-300 z-50 px-2",
-              // Mobile: Always visible but smaller. Desktop: Hover.
-              "opacity-100 lg:opacity-0 lg:group-hover:opacity-100",
+              // Mobile: Always visible but smaller. Desktop: Hover or Focus.
+              "opacity-100 lg:opacity-0 lg:group-hover:opacity-100 lg:focus-within:opacity-100",
               isUser
                 ? "right-full mr-1 translate-x-2 lg:group-hover:translate-x-0"
                 : "left-full ml-1 -translate-x-2 lg:group-hover:translate-x-0"
@@ -266,7 +266,7 @@ export const ChatMessageItem = memo<ChatMessageProps>(function ChatMessageItem({
               {onReply && (
                 <button
                   onClick={() => onReply(msg)}
-                  className="p-1.5 rounded-full hover:bg-white/50 dark:hover:bg-white/10 text-muted-foreground hover:text-primary transition-all active:scale-95"
+                  className="p-1.5 rounded-full hover:bg-white/50 dark:hover:bg-white/10 text-muted-foreground hover:text-primary transition-all active:scale-95 focus-visible:ring-2 focus-visible:ring-primary focus-visible:bg-white/20"
                   title="Reply"
                   aria-label="Reply"
                 >
@@ -290,7 +290,7 @@ export const ChatMessageItem = memo<ChatMessageProps>(function ChatMessageItem({
                 <button
                   ref={reactButtonRef}
                   onClick={handleTogglePicker}
-                  className="p-1.5 rounded-full hover:bg-white/50 dark:hover:bg-white/10 text-muted-foreground hover:text-primary transition-all active:scale-95"
+                  className="p-1.5 rounded-full hover:bg-white/50 dark:hover:bg-white/10 text-muted-foreground hover:text-primary transition-all active:scale-95 focus-visible:ring-2 focus-visible:ring-primary focus-visible:bg-white/20"
                   title="React"
                   aria-label="React"
                 >
@@ -315,7 +315,7 @@ export const ChatMessageItem = memo<ChatMessageProps>(function ChatMessageItem({
               {onDelete && isUser && (
                 <button
                   onClick={() => onDelete(msg.id)}
-                  className="p-1.5 rounded-full hover:bg-white/50 dark:hover:bg-white/10 text-muted-foreground hover:text-destructive transition-all active:scale-95"
+                  className="p-1.5 rounded-full hover:bg-white/50 dark:hover:bg-white/10 text-muted-foreground hover:text-destructive transition-all active:scale-95 focus-visible:ring-2 focus-visible:ring-destructive focus-visible:bg-white/20"
                   title="Delete"
                   aria-label="Delete"
                 >
@@ -365,7 +365,7 @@ export const ChatMessageItem = memo<ChatMessageProps>(function ChatMessageItem({
                       setShowPicker(false);
                     }}
                     className={cn(
-                      "hover:scale-125 transition-all text-lg leading-none p-1.5 rounded-full",
+                      "hover:scale-125 transition-all text-lg leading-none p-1.5 rounded-full focus-visible:ring-2 focus-visible:ring-primary",
                       isSelected && "bg-primary/20 scale-125 shadow-[0_0_8px_rgba(99,102,241,0.6)]"
                     )}
                     aria-label={`React with ${emoji}`}
