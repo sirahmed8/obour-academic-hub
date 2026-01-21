@@ -133,7 +133,10 @@ service cloud.firestore {
                    request.resource.data.keys().hasAll(['action', 'details']) &&
                    request.resource.data.keys().size() < 20 &&
                    request.resource.data.action is string &&
-                   request.resource.data.details is string;
+                   request.resource.data.details is string &&
+                   // Anti-spoofing checks
+                   (!('userId' in request.resource.data) || request.resource.data.userId == request.auth.uid) &&
+                   (!('userEmail' in request.resource.data) || request.resource.data.userEmail == request.auth.token.email);
     }
     
     match /system_errors/{errorId} {
@@ -143,7 +146,9 @@ service cloud.firestore {
                    request.resource.data.keys().hasAll(['message']) &&
                    request.resource.data.keys().size() < 20 &&
                    request.resource.data.message is string &&
-                   request.resource.data.timestamp is timestamp;
+                   request.resource.data.timestamp is timestamp &&
+                   // Anti-spoofing check
+                   (!('userId' in request.resource.data) || request.resource.data.userId == request.auth.uid || request.resource.data.userId == 'anonymous');
     }
     
     match /{document=**} {
