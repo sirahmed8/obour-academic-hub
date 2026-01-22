@@ -15,3 +15,8 @@
 4. Loading states are communicated to screen readers
 
 **Action:** Check all button components for missing labels and focus styles.
+
+## 2025-02-18 - Custom Form Control Accessibility
+
+**Learning:** Custom form controls like `AnimatedCheckbox` need to explicitly handle `aria-label` and `aria-labelledby` props to be accessible when used without visible labels (e.g., in data tables). They also require explicit `focus-visible` styles since they don't inherit native browser focus behaviors.
+**Action:** When creating custom inputs, always expose ARIA labeling props and add `focus-visible:ring` styles.
