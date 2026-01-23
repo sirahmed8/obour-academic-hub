@@ -222,6 +222,7 @@ export function ChatInput({
               <button
                 onClick={() => setStagedAttachment(null)}
                 className="absolute top-1 right-1 p-1 bg-black/50 hover:bg-destructive text-white rounded-full opacity-0 group-hover:opacity-100 transition-all"
+                aria-label={language === "ar" ? "إزالة المرفق" : "Remove attachment"}
               >
                 <X className="w-3 h-3" />
               </button>
