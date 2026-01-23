@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { v2 as cloudinary, UploadApiResponse } from "cloudinary";
+import { rateLimit } from "@/lib/rate-limit";
 
 // Configure Cloudinary with environment variables
 cloudinary.config({
@@ -10,6 +11,20 @@ cloudinary.config({
 
 export async function POST(request: Request) {
   try {
+    // 🛡️ Sentinel: Rate Limiting
+    const ip = request.headers.get("x-forwarded-for") || "unknown";
+    const limiter = rateLimit(ip + "-upload", { interval: 60 * 1000, limit: 10 }); // 10 uploads per minute
+
+    if (!limiter.success) {
+      return NextResponse.json(
+        { error: "Too many uploads. Please try again later." },
+        {
+          status: 429,
+          headers: { "Retry-After": Math.ceil((limiter.reset - Date.now()) / 1000).toString() },
+        }
+      );
+    }
+
     const formData = await request.formData();
     const file = formData.get("file") as File;
 

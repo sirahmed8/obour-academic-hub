@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import nodemailer from "nodemailer";
 import sanitizeHtml from "sanitize-html";
+import { rateLimit } from "@/lib/rate-limit";
 
 const sanitizeEmailHtml = (html: string | undefined | null): string => {
   if (!html) {
@@ -53,7 +54,27 @@ const sanitizeEmailHtml = (html: string | undefined | null): string => {
 
 export async function POST(request: Request) {
   try {
+    // 🛡️ Sentinel: Rate Limiting
+    const ip = request.headers.get("x-forwarded-for") || "unknown";
+    const limiter = rateLimit(ip + "-email", { interval: 60 * 1000, limit: 5 }); // 5 requests per minute
+
+    if (!limiter.success) {
+      return NextResponse.json(
+        { error: "Too many requests. Please try again later." },
+        {
+          status: 429,
+          headers: { "Retry-After": Math.ceil((limiter.reset - Date.now()) / 1000).toString() },
+        }
+      );
+    }
+
     const { to, subject, html } = await request.json();
+
+    // 🛡️ Sentinel: Recipient Limit
+    const recipientList = Array.isArray(to) ? to : [to];
+    if (recipientList.length > 50) {
+      return NextResponse.json({ error: "Too many recipients (max 50)" }, { status: 400 });
+    }
 
     if (!process.env.SMTP_HOST || !process.env.SMTP_USER || !process.env.SMTP_PASS) {
       console.warn("SMTP credentials not found in environment variables");
