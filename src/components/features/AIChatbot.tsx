@@ -213,14 +213,14 @@ export function AIChatbot() {
     }
   };
 
-  const toggleChat = () => {
+  const toggleChat = useCallback(() => {
     if (!isOpen) {
       setIsOpen(true);
       // Auto-switch logic in effect
     } else {
       setIsOpen(false);
     }
-  };
+  }, [isOpen]);
 
   const handleSend = async (
     textOverride?: string,
@@ -413,15 +413,18 @@ export function AIChatbot() {
     [user]
   );
 
-  const handleDeleteMessage = async (msgId: string) => {
-    if (!user) return;
-    try {
-      await deleteMessage(user.uid, msgId);
-      toast.success(language === "ar" ? "تم حذف الرسالة" : "Message deleted");
-    } catch {
-      toast.error(language === "ar" ? "فشل حذف الرسالة" : "Failed to delete message");
-    }
-  };
+  const handleDeleteMessage = useCallback(
+    async (msgId: string) => {
+      if (!user) return;
+      try {
+        await deleteMessage(user.uid, msgId);
+        toast.success(language === "ar" ? "تم حذف الرسالة" : "Message deleted");
+      } catch {
+        toast.error(language === "ar" ? "فشل حذف الرسالة" : "Failed to delete message");
+      }
+    },
+    [user, language]
+  );
 
   if (!user) return null;
 
