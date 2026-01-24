@@ -1,6 +1,7 @@
 import { generateText } from "ai";
 import { NextResponse } from "next/server";
 import { getAIModel, AIModelProvider, SYSTEM_PROMPT } from "@/lib/ai";
+import { rateLimit } from "@/lib/rate-limit";
 
 interface RawPart {
   type: string;
@@ -17,6 +18,13 @@ interface RawMessage {
 type AIMessages = NonNullable<Parameters<typeof generateText>[0]["messages"]>;
 
 export async function POST(req: Request) {
+  const ip = req.headers.get("x-forwarded-for") ?? "127.0.0.1";
+  const { success } = rateLimit(ip);
+
+  if (!success) {
+    return NextResponse.json({ error: "Too many requests" }, { status: 429 });
+  }
+
   let messages: RawMessage[] = [];
   let sanitizedMessages: AIMessages = [];
 
@@ -99,7 +107,6 @@ export async function POST(req: Request) {
     return NextResponse.json(
       {
         error: errorMessage,
-        details: error,
       },
       { status: 500 }
     );
