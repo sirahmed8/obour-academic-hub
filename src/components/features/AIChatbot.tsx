@@ -202,7 +202,8 @@ export function AIChatbot() {
     }
   }, [isOpen, unreadCount, mode]);
 
-  const confirmClearChat = async () => {
+  // Optimized: Memoized to prevent re-renders
+  const confirmClearChat = useCallback(async () => {
     if (!user) return;
     try {
       await clearChatHistory(currentChatId);
@@ -211,16 +212,12 @@ export function AIChatbot() {
     } catch {
       toast.error("Failed to clear history");
     }
-  };
+  }, [user, currentChatId, language]);
 
-  const toggleChat = () => {
-    if (!isOpen) {
-      setIsOpen(true);
-      // Auto-switch logic in effect
-    } else {
-      setIsOpen(false);
-    }
-  };
+  // Optimized: Memoized to prevent re-renders. Functional update avoids dependency on isOpen.
+  const toggleChat = useCallback(() => {
+    setIsOpen((prev) => !prev);
+  }, []);
 
   const handleSend = async (
     textOverride?: string,
@@ -413,15 +410,19 @@ export function AIChatbot() {
     [user]
   );
 
-  const handleDeleteMessage = async (msgId: string) => {
-    if (!user) return;
-    try {
-      await deleteMessage(user.uid, msgId);
-      toast.success(language === "ar" ? "تم حذف الرسالة" : "Message deleted");
-    } catch {
-      toast.error(language === "ar" ? "فشل حذف الرسالة" : "Failed to delete message");
-    }
-  };
+  // Optimized: Memoized to prevent re-renders of ChatMessages list when parent state updates
+  const handleDeleteMessage = useCallback(
+    async (msgId: string) => {
+      if (!user) return;
+      try {
+        await deleteMessage(user.uid, msgId);
+        toast.success(language === "ar" ? "تم حذف الرسالة" : "Message deleted");
+      } catch {
+        toast.error(language === "ar" ? "فشل حذف الرسالة" : "Failed to delete message");
+      }
+    },
+    [user, language]
+  );
 
   if (!user) return null;
 
