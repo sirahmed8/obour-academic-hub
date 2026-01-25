@@ -7,7 +7,7 @@ import { useAuth, useLanguage, useSolidMode } from "@/contexts";
 import { SiteSettings } from "@/types";
 import { cn } from "@/lib/utils";
 import { db } from "@/lib/firebase";
-import { collection, query, orderBy, onSnapshot, doc } from "firebase/firestore";
+import { collection, query, orderBy, onSnapshot, doc, limitToLast } from "firebase/firestore";
 import { sendMessage, clearChatHistory, toggleReaction, deleteMessage } from "@/lib/chatUtils";
 import { ChatMessage } from "@/types";
 import { toast } from "sonner";
@@ -146,7 +146,11 @@ export function AIChatbot() {
   useEffect(() => {
     if (!user || mode === "live") return;
 
-    const q = query(collection(db, `chats/${user.uid}/messages`), orderBy("timestamp", "asc"));
+    const q = query(
+      collection(db, `chats/${user.uid}/messages`),
+      orderBy("timestamp", "asc"),
+      limitToLast(1)
+    );
 
     // Initial load flag to prevent notification on first mount
     let isInitialLoad = true;
