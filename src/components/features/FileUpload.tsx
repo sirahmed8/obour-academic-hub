@@ -3,6 +3,7 @@
 import { useState, useRef, useEffect } from "react";
 import { Upload, FileText, Loader2, X } from "lucide-react";
 import Image from "next/image";
+import { useLanguage } from "@/contexts";
 
 import { motion, AnimatePresence } from "framer-motion";
 
@@ -147,6 +148,7 @@ import { createPortal } from "react-dom";
 // ... inside ImageLightbox ...
 
 function ImageLightbox({ src, alt, onClose }: { src: string; alt: string; onClose: () => void }) {
+  const { language } = useLanguage();
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
@@ -171,6 +173,7 @@ function ImageLightbox({ src, alt, onClose }: { src: string; alt: string; onClos
       <button
         onClick={onClose}
         className="absolute top-6 right-6 p-3 bg-black/50 hover:bg-white/20 rounded-full text-white transition-all hover:scale-110 z-510 border border-white/10"
+        aria-label={language === "ar" ? "إغلاق" : "Close"}
       >
         <X className="w-6 h-6" />
       </button>
