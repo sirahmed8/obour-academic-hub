@@ -81,6 +81,11 @@ const TableRow = ({
             checked={isSelected}
             onChange={() => toggleUserSelection(user.uid)}
             className="mr-2"
+            aria-label={
+              language === "ar"
+                ? `تحديد المستخدم ${user.displayName || ""}`
+                : `Select user ${user.displayName || "User"}`
+            }
           />
         ) : (
           <div className="w-4 h-4 mr-2" />
@@ -400,6 +405,7 @@ export default function AdminUsersPage() {
                   }
                 }}
                 className="mr-2"
+                aria-label={language === "ar" ? "تحديد جميع المستخدمين" : "Select all users"}
               />
               {language === "ar" ? "المستخدم" : "User"}
             </div>
@@ -435,6 +441,11 @@ export default function AdminUsersPage() {
                               checked={isSelected}
                               onChange={() => toggleUserSelection(user.uid)}
                               className="mr-2"
+                              aria-label={
+                                language === "ar"
+                                  ? `تحديد المستخدم ${user.displayName || ""}`
+                                  : `Select user ${user.displayName || "User"}`
+                              }
                             />
                           ) : (
                             <div className="w-5 h-5 shrink-0" />

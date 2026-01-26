@@ -1,5 +1,10 @@
 # Palette
 
+## 2024-05-25 - Custom Checkbox Accessibility
+
+**Learning:** The `AnimatedCheckbox` component (built with Framer Motion) lacked `aria-label` support, making it inaccessible in data tables where visual labels are decoupled.
+**Action:** Extended the component to accept `aria-label` and `aria-labelledby`, and updated its usage in the Admin Users table to provide context-rich labels (e.g., "Select user [Name]").
+
 ## 2024-05-22 - Modal Accessibility Pattern
 
 **Learning:** Custom modals often miss critical ARIA roles (`dialog`, `aria-modal`) and labeled close buttons, making them confusing or unusable for screen reader users.
