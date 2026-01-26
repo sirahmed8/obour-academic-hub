@@ -202,7 +202,7 @@ export function AIChatbot() {
     }
   }, [isOpen, unreadCount, mode]);
 
-  const confirmClearChat = async () => {
+  const confirmClearChat = useCallback(async () => {
     if (!user) return;
     try {
       await clearChatHistory(currentChatId);
@@ -211,7 +211,7 @@ export function AIChatbot() {
     } catch {
       toast.error("Failed to clear history");
     }
-  };
+  }, [user, currentChatId, language]);
 
   const toggleChat = () => {
     if (!isOpen) {
@@ -413,15 +413,18 @@ export function AIChatbot() {
     [user]
   );
 
-  const handleDeleteMessage = async (msgId: string) => {
-    if (!user) return;
-    try {
-      await deleteMessage(user.uid, msgId);
-      toast.success(language === "ar" ? "تم حذف الرسالة" : "Message deleted");
-    } catch {
-      toast.error(language === "ar" ? "فشل حذف الرسالة" : "Failed to delete message");
-    }
-  };
+  const handleDeleteMessage = useCallback(
+    async (msgId: string) => {
+      if (!user) return;
+      try {
+        await deleteMessage(user.uid, msgId);
+        toast.success(language === "ar" ? "تم حذف الرسالة" : "Message deleted");
+      } catch {
+        toast.error(language === "ar" ? "فشل حذف الرسالة" : "Failed to delete message");
+      }
+    },
+    [user, language]
+  );
 
   if (!user) return null;
 
