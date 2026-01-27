@@ -81,6 +81,7 @@ const TableRow = ({
             checked={isSelected}
             onChange={() => toggleUserSelection(user.uid)}
             className="mr-2"
+            aria-label={language === "ar" ? "تحديد " + user.displayName : "Select " + user.displayName}
           />
         ) : (
           <div className="w-4 h-4 mr-2" />
@@ -373,6 +374,7 @@ export default function AdminUsersPage() {
             <input
               type="text"
               placeholder={language === "ar" ? "بحث عن مستخدم..." : "Search users..."}
+              aria-label={language === "ar" ? "بحث عن مستخدم" : "Search users"}
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               className="w-full px-4 py-3 pl-10 rtl:pr-10 rounded-2xl bg-white/5 dark:bg-white/2 backdrop-blur-xl border border-white/10 focus:border-primary/50 focus:ring-4 focus:ring-primary/10 transition-all duration-300 outline-none text-sm shadow-sm placeholder:text-muted-foreground/50"
@@ -400,6 +402,7 @@ export default function AdminUsersPage() {
                   }
                 }}
                 className="mr-2"
+                aria-label={language === "ar" ? "تحديد جميع المستخدمين" : "Select all users"}
               />
               {language === "ar" ? "المستخدم" : "User"}
             </div>
@@ -435,6 +438,7 @@ export default function AdminUsersPage() {
                               checked={isSelected}
                               onChange={() => toggleUserSelection(user.uid)}
                               className="mr-2"
+                              aria-label={language === "ar" ? "تحديد " + user.displayName : "Select " + user.displayName}
                             />
                           ) : (
                             <div className="w-5 h-5 shrink-0" />
@@ -629,10 +633,11 @@ export default function AdminUsersPage() {
 
                 <div className="space-y-6">
                   <div className="space-y-2">
-                    <label className="text-sm font-medium mb-1 block">
+                    <label htmlFor="edit-user-name" className="text-sm font-medium mb-1 block">
                       {language === "ar" ? "الاسم" : "Name"}
                     </label>
                     <input
+                      id="edit-user-name"
                       type="text"
                       value={editModal.name}
                       onChange={(e) =>
@@ -647,10 +652,11 @@ export default function AdminUsersPage() {
                   </div>
 
                   <div className="space-y-2">
-                    <label className="text-sm font-medium mb-1 block">
+                    <label htmlFor="edit-user-code" className="text-sm font-medium mb-1 block">
                       {language === "ar" ? "كود الطالب" : "Student Code"}
                     </label>
                     <input
+                      id="edit-user-code"
                       type="text"
                       value={editModal.code}
                       onChange={(e) => {

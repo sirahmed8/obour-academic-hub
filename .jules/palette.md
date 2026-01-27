@@ -15,3 +15,8 @@
 4. Loading states are communicated to screen readers
 
 **Action:** Check all button components for missing labels and focus styles.
+
+## 2024-05-24 - Accessible Custom Checkboxes
+
+**Learning:** Custom checkbox components like `AnimatedCheckbox` often omit `aria-label` or `aria-labelledby`, making them inaccessible in data tables where visible labels aren't adjacent.
+**Action:** Ensure all custom form components accept and forward ARIA attributes to their underlying interactive elements.
