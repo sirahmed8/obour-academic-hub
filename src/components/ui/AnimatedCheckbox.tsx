@@ -9,6 +9,8 @@ interface AnimatedCheckboxProps {
   onChange: () => void;
   disabled?: boolean;
   className?: string;
+  "aria-label"?: string;
+  "aria-labelledby"?: string;
 }
 
 export function AnimatedCheckbox({
@@ -16,12 +18,16 @@ export function AnimatedCheckbox({
   onChange,
   disabled,
   className,
+  "aria-label": ariaLabel,
+  "aria-labelledby": ariaLabelledBy,
 }: AnimatedCheckboxProps) {
   return (
     <motion.button
       type="button"
       role="checkbox"
       aria-checked={checked}
+      aria-label={ariaLabel}
+      aria-labelledby={ariaLabelledBy}
       disabled={disabled}
       onClick={onChange}
       whileTap={{ scale: 0.9 }}
