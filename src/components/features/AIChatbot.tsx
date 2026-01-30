@@ -213,14 +213,10 @@ export function AIChatbot() {
     }
   };
 
-  const toggleChat = () => {
-    if (!isOpen) {
-      setIsOpen(true);
-      // Auto-switch logic in effect
-    } else {
-      setIsOpen(false);
-    }
-  };
+  // ⚡ Bolt Optimization: Stable handler for toggle to prevent unnecessary re-renders
+  const toggleChat = useCallback(() => {
+    setIsOpen((prev) => !prev);
+  }, []);
 
   const handleSend = async (
     textOverride?: string,
@@ -413,15 +409,22 @@ export function AIChatbot() {
     [user]
   );
 
-  const handleDeleteMessage = async (msgId: string) => {
-    if (!user) return;
-    try {
-      await deleteMessage(user.uid, msgId);
-      toast.success(language === "ar" ? "تم حذف الرسالة" : "Message deleted");
-    } catch {
-      toast.error(language === "ar" ? "فشل حذف الرسالة" : "Failed to delete message");
-    }
-  };
+  // ⚡ Bolt Optimization: Wrapped in useCallback to prevent ChatMessages (memoized) from re-rendering
+  // on every keystroke (when 'input' state changes). Dependencies minimized using languageRef.
+  const handleDeleteMessage = useCallback(
+    async (msgId: string) => {
+      if (!user) return;
+      try {
+        await deleteMessage(user.uid, msgId);
+        const currentLang = languageRef.current;
+        toast.success(currentLang === "ar" ? "تم حذف الرسالة" : "Message deleted");
+      } catch {
+        const currentLang = languageRef.current;
+        toast.error(currentLang === "ar" ? "فشل حذف الرسالة" : "Failed to delete message");
+      }
+    },
+    [user]
+  );
 
   if (!user) return null;
 
