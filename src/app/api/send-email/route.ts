@@ -1,6 +1,8 @@
 import { NextResponse } from "next/server";
+import { headers } from "next/headers";
 import nodemailer from "nodemailer";
 import sanitizeHtml from "sanitize-html";
+import { rateLimit } from "@/lib/rate-limit";
 
 const sanitizeEmailHtml = (html: string | undefined | null): string => {
   if (!html) {
@@ -51,9 +53,53 @@ const sanitizeEmailHtml = (html: string | undefined | null): string => {
   });
 };
 
+const isValidEmail = (email: string) => {
+  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+};
+
 export async function POST(request: Request) {
   try {
+    // 🛡️ Sentinel: Security Checks
+    const headersList = await headers();
+    const forwardedFor = headersList.get("x-forwarded-for");
+    const ip = forwardedFor ? forwardedFor.split(",")[0].trim() : "127.0.0.1";
+
+    // 1. Rate Limiting (10 requests per hour per IP)
+    const { success } = rateLimit(ip, { interval: 60 * 60 * 1000, limit: 10 });
+    if (!success) {
+      return NextResponse.json(
+        { error: "Too many requests. Please try again later." },
+        { status: 429 }
+      );
+    }
+
     const { to, subject, html } = await request.json();
+
+    // 2. Input Validation
+    if (!to || !subject || !html) {
+      return NextResponse.json({ error: "Missing required fields" }, { status: 400 });
+    }
+
+    const recipients = Array.isArray(to) ? to : [to];
+
+    // Validate recipient count
+    if (recipients.length > 50) {
+      return NextResponse.json({ error: "Too many recipients (max 50)" }, { status: 400 });
+    }
+
+    // Validate email format
+    if (recipients.some((email: unknown) => typeof email !== 'string' || !isValidEmail(email))) {
+      return NextResponse.json({ error: "Invalid recipient email format" }, { status: 400 });
+    }
+
+    // Validate content length
+    if (subject.length > 200) {
+      return NextResponse.json({ error: "Subject too long (max 200 chars)" }, { status: 400 });
+    }
+
+    if (html.length > 100000) { // 100KB limit
+      return NextResponse.json({ error: "Message content too large" }, { status: 400 });
+    }
 
     if (!process.env.SMTP_HOST || !process.env.SMTP_USER || !process.env.SMTP_PASS) {
       console.warn("SMTP credentials not found in environment variables");
@@ -78,15 +124,16 @@ export async function POST(request: Request) {
       await transporter.verify();
     } catch (verifyError) {
       console.error("SMTP Connection Error:", verifyError);
+      // 🛡️ Sentinel: Don't leak internal connection details
       return NextResponse.json(
-        { error: "SMTP Connection failed. Check credentials." },
+        { error: "Email service temporarily unavailable" },
         { status: 500 }
       );
     }
 
     const info = await transporter.sendMail({
       from: `"Obour Academic Hub" <${process.env.SMTP_USER}>`,
-      to: Array.isArray(to) ? to.join(",") : to,
+      to: recipients.join(","),
       subject,
       html: sanitizeEmailHtml(html),
     });
@@ -95,7 +142,7 @@ export async function POST(request: Request) {
     return NextResponse.json({ success: true, messageId: info.messageId });
   } catch (error) {
     console.error("Error sending email:", error);
-    const errorMessage = error instanceof Error ? error.message : "Unknown error";
-    return NextResponse.json({ error: errorMessage }, { status: 500 });
+    // 🛡️ Sentinel: Generic error message for security
+    return NextResponse.json({ error: "Failed to send email" }, { status: 500 });
   }
 }
