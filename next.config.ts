@@ -3,11 +3,6 @@ import type { NextConfig } from "next";
 const nextConfig: NextConfig = {
   // output: "export", // Not needed for Vercel - supports full Next.js features
   trailingSlash: false,
-  env: {
-    SMTP_HOST: process.env.SMTP_HOST,
-    SMTP_USER: process.env.SMTP_USER,
-    SMTP_PASS: process.env.SMTP_PASS,
-  },
   images: {
     unoptimized: true,
     remotePatterns: [
