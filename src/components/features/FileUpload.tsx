@@ -20,6 +20,7 @@ interface FileUploadProps {
 
 import { uploadFileToFirebase } from "@/lib/storage";
 import { toast } from "sonner";
+import { useLanguage } from "@/contexts";
 
 export function FileUpload({ onFileUploaded, language }: FileUploadProps) {
   const [uploading, setUploading] = useState(false);
@@ -148,6 +149,7 @@ import { createPortal } from "react-dom";
 
 function ImageLightbox({ src, alt, onClose }: { src: string; alt: string; onClose: () => void }) {
   const [mounted, setMounted] = useState(false);
+  const { language } = useLanguage();
 
   useEffect(() => {
     setMounted(true);
@@ -170,7 +172,8 @@ function ImageLightbox({ src, alt, onClose }: { src: string; alt: string; onClos
     >
       <button
         onClick={onClose}
-        className="absolute top-6 right-6 p-3 bg-black/50 hover:bg-white/20 rounded-full text-white transition-all hover:scale-110 z-510 border border-white/10"
+        aria-label={language === "ar" ? "إغلاق العرض" : "Close preview"}
+        className="absolute top-6 right-6 p-3 bg-black/50 hover:bg-white/20 rounded-full text-white transition-all hover:scale-110 z-510 border border-white/10 focus-visible:ring-2 focus-visible:ring-white"
       >
         <X className="w-6 h-6" />
       </button>
