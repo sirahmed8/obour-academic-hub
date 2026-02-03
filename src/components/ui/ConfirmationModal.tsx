@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { AlertTriangle, X } from "lucide-react";
 import { AnimatePresence, motion } from "framer-motion";
 import { cn } from "@/lib/utils";
@@ -27,13 +27,60 @@ export function ConfirmationModal({
   type = "danger",
 }: ConfirmationModalProps) {
   const [visible, setVisible] = useState(false);
+  const modalRef = useRef<HTMLDivElement>(null);
+  const previousFocusRef = useRef<HTMLElement | null>(null);
+
+  useEffect(() => {
+    if (isOpen) {
+      previousFocusRef.current = document.activeElement as HTMLElement;
+      // Small timeout to ensure element is mounted and ready
+      const timer = setTimeout(() => modalRef.current?.focus(), 50);
+
+      const handleKeyDown = (e: KeyboardEvent) => {
+        if (e.key === "Escape") {
+          onClose();
+          e.preventDefault();
+        }
+        if (e.key === "Tab" && modalRef.current) {
+          const focusableElements = modalRef.current.querySelectorAll(
+            'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
+          );
+          if (focusableElements.length === 0) return;
+
+          const firstElement = focusableElements[0] as HTMLElement;
+          const lastElement = focusableElements[
+            focusableElements.length - 1
+          ] as HTMLElement;
+
+          if (e.shiftKey) {
+            if (document.activeElement === firstElement) {
+              lastElement.focus();
+              e.preventDefault();
+            }
+          } else {
+            if (document.activeElement === lastElement) {
+              firstElement.focus();
+              e.preventDefault();
+            }
+          }
+        }
+      };
+
+      document.addEventListener("keydown", handleKeyDown);
+      return () => {
+        clearTimeout(timer);
+        document.removeEventListener("keydown", handleKeyDown);
+        previousFocusRef.current?.focus();
+      };
+    } else {
+      const timer = setTimeout(() => setVisible(false), 300); // Wait for transition
+      return () => clearTimeout(timer);
+    }
+  }, [isOpen, onClose]);
 
   useEffect(() => {
     if (isOpen) {
       const timer = setTimeout(() => setVisible(true), 10);
-      return () => clearTimeout(timer);
-    } else {
-      const timer = setTimeout(() => setVisible(false), 300); // Wait for transition
       return () => clearTimeout(timer);
     }
   }, [isOpen]);
@@ -50,6 +97,8 @@ export function ConfirmationModal({
             onClick={onClose}
           />
           <motion.div
+            ref={modalRef}
+            tabIndex={-1}
             role="dialog"
             aria-modal="true"
             aria-labelledby="confirmation-modal-title"
@@ -58,7 +107,7 @@ export function ConfirmationModal({
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.9, y: 20 }}
             transition={{ type: "spring", stiffness: 300, damping: 30 }}
-            className="bg-card w-full max-w-md rounded-3xl p-6 shadow-2xl border border-border relative z-10"
+            className="bg-card w-full max-w-md rounded-3xl p-6 shadow-2xl border border-border relative z-10 outline-none"
           >
             <div className="flex items-start gap-4">
               <div
