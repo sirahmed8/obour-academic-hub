@@ -1,12 +1,10 @@
 import { NextResponse } from "next/server";
 import nodemailer from "nodemailer";
 import sanitizeHtml from "sanitize-html";
+import { rateLimit } from "@/lib/rate-limit";
+import { sendEmailSchema } from "@/lib/zod-schemas";
 
-const sanitizeEmailHtml = (html: string | undefined | null): string => {
-  if (!html) {
-    return "";
-  }
-
+const sanitizeEmailHtml = (html: string): string => {
   return sanitizeHtml(html, {
     allowedTags: [
       "a",
@@ -53,7 +51,30 @@ const sanitizeEmailHtml = (html: string | undefined | null): string => {
 
 export async function POST(request: Request) {
   try {
-    const { to, subject, html } = await request.json();
+    // 🛡️ Sentinel: Rate limiting to prevent abuse
+    const ip = request.headers.get("x-forwarded-for") ?? "127.0.0.1";
+    const { success } = rateLimit(ip, { interval: 60000, limit: 5 }); // 5 emails per minute per IP
+
+    if (!success) {
+      return NextResponse.json(
+        { error: "Too many requests. Please try again later." },
+        { status: 429 }
+      );
+    }
+
+    const body = await request.json();
+
+    // 🛡️ Sentinel: Input validation with Zod
+    const result = await sendEmailSchema.safeParseAsync(body);
+
+    if (!result.success) {
+      return NextResponse.json(
+        { error: "Invalid input", details: result.error.flatten() },
+        { status: 400 }
+      );
+    }
+
+    const { to, subject, html } = result.data;
 
     if (!process.env.SMTP_HOST || !process.env.SMTP_USER || !process.env.SMTP_PASS) {
       console.warn("SMTP credentials not found in environment variables");
@@ -63,14 +84,12 @@ export async function POST(request: Request) {
     const transporter = nodemailer.createTransport({
       host: process.env.SMTP_HOST,
       port: Number(process.env.SMTP_PORT) || 587,
-      secure: false, // true for 465, false for other ports
+      secure: Number(process.env.SMTP_PORT) === 465, // true for 465, false for other ports
       auth: {
         user: process.env.SMTP_USER,
         pass: process.env.SMTP_PASS,
       },
-      tls: {
-        rejectUnauthorized: false,
-      },
+      // 🛡️ Sentinel: Removed insecure `rejectUnauthorized: false`
     });
 
     // Verify connection configuration
@@ -79,7 +98,7 @@ export async function POST(request: Request) {
     } catch (verifyError) {
       console.error("SMTP Connection Error:", verifyError);
       return NextResponse.json(
-        { error: "SMTP Connection failed. Check credentials." },
+        { error: "Failed to connect to email service." }, // Don't leak details
         { status: 500 }
       );
     }
@@ -95,7 +114,7 @@ export async function POST(request: Request) {
     return NextResponse.json({ success: true, messageId: info.messageId });
   } catch (error) {
     console.error("Error sending email:", error);
-    const errorMessage = error instanceof Error ? error.message : "Unknown error";
-    return NextResponse.json({ error: errorMessage }, { status: 500 });
+    // 🛡️ Sentinel: Don't leak internal error details
+    return NextResponse.json({ error: "Internal server error" }, { status: 500 });
   }
 }

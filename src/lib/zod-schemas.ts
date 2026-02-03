@@ -22,3 +22,14 @@ export const uploadRequestSchema = z.object({
       message: "Invalid file extension",
     }),
 });
+
+export const sendEmailSchema = z.object({
+  to: z.union([
+    z.string().email("Invalid email address"),
+    z.array(z.string().email("Invalid email address")).min(1, "At least one recipient required"),
+  ]),
+  subject: z.string().min(1, "Subject cannot be empty").max(200, "Subject too long"),
+  html: z.string().min(1, "Email content cannot be empty"),
+});
+
+export type SendEmailRequest = z.infer<typeof sendEmailSchema>;
