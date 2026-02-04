@@ -11,7 +11,7 @@ import {
   doc,
   updateDoc,
 } from "firebase/firestore";
-import { db } from "@/lib/firebase";
+import { db, auth } from "@/lib/firebase";
 
 import { useAuth, useLanguage } from "@/contexts";
 import { userService } from "@/services/user.service";
@@ -211,9 +211,17 @@ export default function AdminNotificationsPage() {
       }
 
       // 2. Send API Request
+      const token = await auth.currentUser?.getIdToken();
+      if (!token) {
+        throw new Error("Authentication token missing");
+      }
+
       const response = await fetch("/api/send-email", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
         body: JSON.stringify({
           to: emails, // sending as array
           subject: emailSubject,

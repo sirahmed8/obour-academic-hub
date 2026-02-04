@@ -14,7 +14,7 @@ import {
   where,
   writeBatch,
 } from "firebase/firestore";
-import { db } from "@/lib/firebase";
+import { db, auth } from "@/lib/firebase";
 import { Notification as AppNotification } from "@/types";
 import { getApiBaseUrl } from "@/lib/config";
 
@@ -39,9 +39,18 @@ export const notificationService = {
   async sendEmailNotification(to: string[], subject: string, html: string) {
     try {
       const baseUrl = getApiBaseUrl();
+      const token = await auth.currentUser?.getIdToken();
+      if (!token) {
+        console.warn("[Email Service] No user authenticated, cannot send email");
+        return;
+      }
+
       const response = await fetch(`${baseUrl}/api/send-email`, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
         body: JSON.stringify({ to, subject, html }),
       });
 
