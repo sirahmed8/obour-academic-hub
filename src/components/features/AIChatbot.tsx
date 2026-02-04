@@ -413,15 +413,19 @@ export function AIChatbot() {
     [user]
   );
 
-  const handleDeleteMessage = async (msgId: string) => {
-    if (!user) return;
-    try {
-      await deleteMessage(user.uid, msgId);
-      toast.success(language === "ar" ? "تم حذف الرسالة" : "Message deleted");
-    } catch {
-      toast.error(language === "ar" ? "فشل حذف الرسالة" : "Failed to delete message");
-    }
-  };
+  // Optimization: specific dependency array to prevent unnecessary re-renders of ChatMessages
+  const handleDeleteMessage = useCallback(
+    async (msgId: string) => {
+      if (!user) return;
+      try {
+        await deleteMessage(user.uid, msgId);
+        toast.success(language === "ar" ? "تم حذف الرسالة" : "Message deleted");
+      } catch {
+        toast.error(language === "ar" ? "فشل حذف الرسالة" : "Failed to delete message");
+      }
+    },
+    [user, language]
+  );
 
   if (!user) return null;
 
