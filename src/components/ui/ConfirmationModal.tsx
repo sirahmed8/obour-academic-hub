@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { AlertTriangle, X } from "lucide-react";
 import { AnimatePresence, motion } from "framer-motion";
 import { cn } from "@/lib/utils";
@@ -27,16 +27,74 @@ export function ConfirmationModal({
   type = "danger",
 }: ConfirmationModalProps) {
   const [visible, setVisible] = useState(false);
+  const modalRef = useRef<HTMLDivElement>(null);
+  const previousFocusRef = useRef<HTMLElement | null>(null);
 
   useEffect(() => {
     if (isOpen) {
-      const timer = setTimeout(() => setVisible(true), 10);
+      previousFocusRef.current = document.activeElement as HTMLElement;
+      const timer = setTimeout(() => {
+        setVisible(true);
+        // Focus the first focusable element or the modal itself
+        if (modalRef.current) {
+          const focusableElement = modalRef.current.querySelector(
+            'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
+          ) as HTMLElement;
+          if (focusableElement) {
+            focusableElement.focus();
+          } else {
+            modalRef.current.focus();
+          }
+        }
+      }, 10);
       return () => clearTimeout(timer);
     } else {
-      const timer = setTimeout(() => setVisible(false), 300); // Wait for transition
+      const timer = setTimeout(() => {
+        setVisible(false);
+        // Restore focus
+        if (previousFocusRef.current) {
+          previousFocusRef.current.focus();
+        }
+      }, 300); // Wait for transition
       return () => clearTimeout(timer);
     }
   }, [isOpen]);
+
+  useEffect(() => {
+    if (!isOpen) return;
+
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape") {
+        onClose();
+        return;
+      }
+
+      if (e.key === "Tab") {
+        if (!modalRef.current) return;
+
+        const focusableElements = modalRef.current.querySelectorAll(
+          'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
+        );
+        const firstElement = focusableElements[0] as HTMLElement;
+        const lastElement = focusableElements[focusableElements.length - 1] as HTMLElement;
+
+        if (e.shiftKey) {
+          if (document.activeElement === firstElement) {
+            e.preventDefault();
+            lastElement.focus();
+          }
+        } else {
+          if (document.activeElement === lastElement) {
+            e.preventDefault();
+            firstElement.focus();
+          }
+        }
+      }
+    };
+
+    document.addEventListener("keydown", handleKeyDown);
+    return () => document.removeEventListener("keydown", handleKeyDown);
+  }, [isOpen, onClose]);
 
   return (
     <AnimatePresence>
@@ -50,15 +108,17 @@ export function ConfirmationModal({
             onClick={onClose}
           />
           <motion.div
+            ref={modalRef}
             role="dialog"
             aria-modal="true"
             aria-labelledby="confirmation-modal-title"
             aria-describedby="confirmation-modal-message"
+            tabIndex={-1}
             initial={{ opacity: 0, scale: 0.9, y: 20 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.9, y: 20 }}
             transition={{ type: "spring", stiffness: 300, damping: 30 }}
-            className="bg-card w-full max-w-md rounded-3xl p-6 shadow-2xl border border-border relative z-10"
+            className="bg-card w-full max-w-md rounded-3xl p-6 shadow-2xl border border-border relative z-10 focus:outline-none"
           >
             <div className="flex items-start gap-4">
               <div
@@ -85,9 +145,10 @@ export function ConfirmationModal({
                 </p>
               </div>
               <button
+                type="button"
                 onClick={onClose}
                 aria-label="Close"
-                className="p-1 rounded-full hover:bg-muted transition-colors text-muted-foreground"
+                className="p-1 rounded-full hover:bg-muted transition-colors text-muted-foreground focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none"
               >
                 <X className="w-5 h-5" />
               </button>
@@ -95,18 +156,20 @@ export function ConfirmationModal({
 
             <div className="flex justify-end gap-3 mt-8">
               <button
+                type="button"
                 onClick={onClose}
-                className="px-5 py-2.5 rounded-xl border border-input font-medium hover:bg-muted transition-colors"
+                className="px-5 py-2.5 rounded-xl border border-input font-medium hover:bg-muted transition-colors focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none"
               >
                 {cancelText}
               </button>
               <button
+                type="button"
                 onClick={() => {
                   onConfirm();
                   onClose();
                 }}
                 className={cn(
-                  "px-5 py-2.5 rounded-xl font-medium text-white shadow-lg transition-all active:scale-95",
+                  "px-5 py-2.5 rounded-xl font-medium text-white shadow-lg transition-all active:scale-95 focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none",
                   type === "danger"
                     ? "bg-red-500 hover:bg-red-600 shadow-red-500/20"
                     : type === "warning"

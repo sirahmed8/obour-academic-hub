@@ -1,5 +1,10 @@
 # Palette
 
+## 2025-02-04 - Focus Trap for Custom Modals
+
+**Learning:** Custom modals implemented with `framer-motion` need manual focus management (trap focus inside, restore focus on close) to be accessible. `useEffect` with `document.activeElement` and `keydown` listeners is a robust pattern when library solutions (like Radix) aren't used.
+**Action:** When enhancing custom modals, always implement a focus trap and ensure the Escape key closes the modal.
+
 ## 2024-05-22 - Modal Accessibility Pattern
 
 **Learning:** Custom modals often miss critical ARIA roles (`dialog`, `aria-modal`) and labeled close buttons, making them confusing or unusable for screen reader users.

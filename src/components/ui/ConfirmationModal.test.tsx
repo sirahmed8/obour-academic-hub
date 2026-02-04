@@ -1,5 +1,5 @@
 import { describe, it, expect, vi } from "vitest";
-import { render, screen } from "@testing-library/react";
+import { render, screen, fireEvent } from "@testing-library/react";
 import { ConfirmationModal } from "./ConfirmationModal";
 
 describe("ConfirmationModal", () => {
@@ -36,5 +36,13 @@ describe("ConfirmationModal", () => {
     render(<ConfirmationModal {...defaultProps} />);
     const closeButton = screen.getByLabelText("Close");
     expect(closeButton).toBeInTheDocument();
+  });
+
+  it("calls onClose when Escape key is pressed", () => {
+    render(<ConfirmationModal {...defaultProps} />);
+
+    fireEvent.keyDown(document, { key: "Escape" });
+
+    expect(defaultProps.onClose).toHaveBeenCalled();
   });
 });
