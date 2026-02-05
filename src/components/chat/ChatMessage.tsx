@@ -255,18 +255,18 @@ export const ChatMessageItem = memo<ChatMessageProps>(function ChatMessageItem({
           <div
             className={cn(
               "absolute top-1/2 -translate-y-1/2 flex items-center gap-1 transition-all duration-300 z-50 px-2",
-              // Mobile: Always visible but smaller. Desktop: Hover.
-              "opacity-100 lg:opacity-0 lg:group-hover:opacity-100",
+              // Mobile: Always visible but smaller. Desktop: Hover or Focus Within.
+              "opacity-100 lg:opacity-0 lg:group-hover:opacity-100 lg:focus-within:opacity-100",
               isUser
-                ? "right-full mr-1 translate-x-2 lg:group-hover:translate-x-0"
-                : "left-full ml-1 -translate-x-2 lg:group-hover:translate-x-0"
+                ? "right-full mr-1 translate-x-2 lg:group-hover:translate-x-0 lg:focus-within:translate-x-0"
+                : "left-full ml-1 -translate-x-2 lg:group-hover:translate-x-0 lg:focus-within:translate-x-0"
             )}
           >
             <div className="flex items-center gap-1 bg-white/95 dark:bg-zinc-900/95 backdrop-blur-md border border-white/10 dark:border-white/5 rounded-full p-1 shadow-lg transform hover:scale-105 transition-transform">
               {onReply && (
                 <button
                   onClick={() => onReply(msg)}
-                  className="p-1.5 rounded-full hover:bg-white/50 dark:hover:bg-white/10 text-muted-foreground hover:text-primary transition-all active:scale-95"
+                  className="p-1.5 rounded-full hover:bg-white/50 dark:hover:bg-white/10 text-muted-foreground hover:text-primary transition-all active:scale-95 focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 outline-none"
                   title="Reply"
                   aria-label="Reply"
                 >
@@ -290,7 +290,7 @@ export const ChatMessageItem = memo<ChatMessageProps>(function ChatMessageItem({
                 <button
                   ref={reactButtonRef}
                   onClick={handleTogglePicker}
-                  className="p-1.5 rounded-full hover:bg-white/50 dark:hover:bg-white/10 text-muted-foreground hover:text-primary transition-all active:scale-95"
+                  className="p-1.5 rounded-full hover:bg-white/50 dark:hover:bg-white/10 text-muted-foreground hover:text-primary transition-all active:scale-95 focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 outline-none"
                   title="React"
                   aria-label="React"
                 >
@@ -315,7 +315,7 @@ export const ChatMessageItem = memo<ChatMessageProps>(function ChatMessageItem({
               {onDelete && isUser && (
                 <button
                   onClick={() => onDelete(msg.id)}
-                  className="p-1.5 rounded-full hover:bg-white/50 dark:hover:bg-white/10 text-muted-foreground hover:text-destructive transition-all active:scale-95"
+                  className="p-1.5 rounded-full hover:bg-white/50 dark:hover:bg-white/10 text-muted-foreground hover:text-destructive transition-all active:scale-95 focus-visible:ring-2 focus-visible:ring-destructive focus-visible:ring-offset-2 outline-none"
                   title="Delete"
                   aria-label="Delete"
                 >

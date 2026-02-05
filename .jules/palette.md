@@ -15,3 +15,7 @@
 4. Loading states are communicated to screen readers
 
 **Action:** Check all button components for missing labels and focus styles.
+
+## 2024-05-22 - Invisible Focus Traps
+**Learning:** Action buttons hidden with `opacity-0` until hover create confusion for keyboard users, who can tab into them without seeing them.
+**Action:** Always add `focus-within:opacity-100` (or `focus-visible:opacity-100`) to the container of hidden actions so they reveal themselves when focused.
