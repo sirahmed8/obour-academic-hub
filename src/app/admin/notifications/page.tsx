@@ -210,10 +210,19 @@ export default function AdminNotificationsPage() {
         return;
       }
 
-      // 2. Send API Request
+      // 2. Get ID Token
+      const token = await user?.getIdToken();
+      if (!token) {
+        throw new Error(language === "ar" ? "رمز المصادقة مفقود" : "Authentication token missing");
+      }
+
+      // 3. Send API Request
       const response = await fetch("/api/send-email", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
         body: JSON.stringify({
           to: emails, // sending as array
           subject: emailSubject,
