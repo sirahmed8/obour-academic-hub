@@ -22,3 +22,11 @@ export const uploadRequestSchema = z.object({
       message: "Invalid file extension",
     }),
 });
+
+export const emailRequestSchema = z.object({
+  to: z.union([z.string().email(), z.array(z.string().email())]),
+  subject: z.string().min(1).max(200),
+  html: z.string().min(1),
+});
+
+export type EmailRequest = z.infer<typeof emailRequestSchema>;
