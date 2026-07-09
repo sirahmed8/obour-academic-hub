@@ -109,16 +109,18 @@ export function Dashboard() {
                             </motion.span>
                           ))}
                       {language === "ar" ? "،" : ","}{" "}
-                      <span className="text-gradient-primary inline-block hover:scale-105 transition-transform duration-300 cursor-default">
-                        {user?.displayName?.split(" ")[0]}
-                      </span>{" "}
-                      <motion.span
-                        animate={{ rotate: [0, 20, 0] }}
-                        transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
-                        className="inline-block"
-                      >
-                        👋
-                      </motion.span>
+                      <span className="whitespace-nowrap">
+                        <span className="text-gradient-primary inline-block hover:scale-105 transition-transform duration-300 cursor-default align-baseline">
+                          {user?.displayName?.split(" ")[0]}
+                        </span>
+                        <motion.span
+                          animate={{ rotate: [0, 20, 0] }}
+                          transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
+                          className="inline-block origin-[70%_70%] ms-2 md:ms-4"
+                        >
+                          👋
+                        </motion.span>
+                      </span>
                     </motion.span>
                   )}
                 </h1>

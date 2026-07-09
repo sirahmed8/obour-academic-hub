@@ -17,7 +17,8 @@
 ## Recent Changes (Latest First)
 
 - **2026-07-09**:
-  - **Security Remediation**: Erased the entire git repository history, removed leaked secrets (`.env` and service accounts) from the cache, updated `.gitignore`, and force-pushed a fresh initial commit to GitHub to prevent further exposure of secrets.
+  - **Dashboard UI Fix**: Fixed the waving hand emoji (👋) placement on the main Dashboard banner. Wrapped the user's name and the emoji in a `whitespace-nowrap` span, aligned the emoji to the text baseline using `align-baseline` and `origin-[70%_70%]`, and applied consistent margin-inline-start (`ms-2 md:ms-4`) to ensure proper rendering for both LTR and RTL orientations without unintended line breaks.
+  - **Security Remediation**: Erased the entire git repository history, removed leaked secrets (`.env` and service accounts) from the cache, updated `.gitignore`, and force-pushed a fresh initial commit to GitHub to prevent further exposure of secrets. Added `NEXT_PUBLIC` variables to the `ci.yml` pipeline to fix Firebase Authentication on deployment.
 
 - **2026-06-26**:
   - **Firebase Project Migration & Data Transfer**: Successfully completed migration from `obour-institutes-a607d` to `obourinstitutes1`.
