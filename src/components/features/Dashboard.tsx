@@ -116,7 +116,7 @@ export function Dashboard() {
                         <motion.span
                           animate={{ rotate: [0, 20, 0] }}
                           transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
-                          className="inline-block origin-[70%_70%] ms-2 md:ms-4"
+                          className="inline-block origin-[70%_70%] text-[0.7em] relative -top-2 md:-top-3 ms-2 md:ms-3"
                         >
                           👋
                         </motion.span>
