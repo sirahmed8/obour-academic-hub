@@ -1,0 +1,41 @@
+{
+  "chat.includeApplyingInstructions": true,
+  "chat.includeReferencedInstructions": true,
+  "chat.instructionsFilesLocations": {
+    ".github/instructions": true
+  },
+  "github.copilot.chat.codeGeneration.instructions": [
+    {
+      "text": "Before any code change: read AI_STATUS.md at the repo root. After completing work: update AI_STATUS.md with files changed, verification, risks, and next step."
+    },
+    {
+      "file": "AI_INSTRUCTIONS.md"
+    },
+    {
+      "file": "AI_STATUS.md"
+    }
+  ],
+  "github.copilot.chat.codeGeneration.useInstructionFiles": true,
+  "css.lint.unknownAtRules": "ignore",
+  "github-actions.secrets": [
+    "NEXT_PUBLIC_FIREBASE_API_KEY",
+    "NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN",
+    "NEXT_PUBLIC_FIREBASE_DATABASE_URL",
+    "NEXT_PUBLIC_FIREBASE_PROJECT_ID",
+    "NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET",
+    "NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID",
+    "NEXT_PUBLIC_FIREBASE_APP_ID",
+    "NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID",
+    "FIREBASE_SERVICE_ACCOUNT"
+  ],
+  "dart.mcpServerLogFile": null,
+  "dart.mcpServerTools": {
+    "dart_fix": true,
+    "analyze_files": true,
+    "dart_format": true,
+    "run_tests": true
+  },
+  "gitlens.gitkraken.mcp.autoEnabled": true,
+  "graph-it-live.enableMcpDebugLogging": true,
+  "graph-it-live.enableMcpServer": true
+}

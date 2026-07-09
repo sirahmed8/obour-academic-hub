@@ -1,0 +1,55 @@
+{
+  "plugins": {
+    "firebase": {
+      "enabled": false
+    },
+    "figma": {
+      "enabled": true
+    },
+    "linear": {
+      "enabled": true
+    },
+    "aws-amplify": {
+      "enabled": true
+    },
+    "migration-to-aws": {
+      "enabled": true
+    },
+    "aws-serverless": {
+      "enabled": true
+    },
+    "mongodb": {
+      "enabled": true
+    },
+    "slack": {
+      "enabled": true
+    },
+    "datadog": {
+      "enabled": true
+    },
+    "render": {
+      "enabled": true
+    },
+    "vercel": {
+      "enabled": true
+    },
+    "cloudflare": {
+      "enabled": true
+    },
+    "gitlab": {
+      "enabled": true
+    },
+    "postman": {
+      "enabled": true
+    },
+    "supabase": {
+      "enabled": true
+    },
+    "cli-for-agent": {
+      "enabled": true
+    },
+    "superpowers": {
+      "enabled": true
+    }
+  }
+}

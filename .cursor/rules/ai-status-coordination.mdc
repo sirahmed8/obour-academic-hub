@@ -1,0 +1,46 @@
+---
+description: Multi-agent coordination via AI_STATUS.md - read before coding, update after finishing
+alwaysApply: true
+---
+
+# AI Workspace Coordination Protocol
+
+This project uses multiple AI agents and tools. **`AI_STATUS.md` in the repository root is the single source of truth** for project state, recent work, and next steps.
+
+## Before You Code (Read Phase)
+
+1. **Read `AI_STATUS.md` first** - before writing code, proposing architecture, or generating implementation output.
+2. **Analyze the codebase** relevant to the assigned task so you build on prior agents' work without overriding or duplicating it.
+3. **Do not contradict** documented decisions in `AI_STATUS.md` unless the user explicitly asks for a change; if you must diverge, explain why in your update.
+
+## After You Finish (Write Phase)
+
+When your task is done and verified (build/lint/tests as appropriate):
+
+1. **Update `AI_STATUS.md` immediately** with a concise technical handoff:
+   - What changed and which files were affected
+   - Remaining bugs, edge cases, or pending tasks
+   - The next immediate logical step for the following agent
+2. Add new entries under **Recent Changes (Latest First)**; keep older history brief.
+3. Do not erase other agents' progress - append and refine, do not wholesale replace unrelated sections.
+
+## Collaboration Rules
+
+- No fixed agent role; follow the user's current task assignment.
+- Minimize scope: only change what the task requires.
+- Match existing conventions (naming, patterns, auth flows documented in project guidelines).
+- Only create git commits or PRs when the user explicitly requests them.
+
+## Project Quick Reference
+
+- **Stack**: Next.js (App Router, TypeScript), Firebase (Auth, Firestore, Hosting), Sentry, Vitest, Cloudinary, Vercel Analytics
+- **App**: Obour Academic Hub - admin, community, notifications, chat, subjects
+- **Auth**: Use popup-based login (`signInWithPopup`); do not revert to `signInWithRedirect` (see `PROJECT_GUIDELINES.md` / `.cursorrules`)
+
+## When Starting a New Chat
+
+If `AI_STATUS.md` is missing or stale, ask the user for the latest task or read the repo and initialize/update the status file before implementing.
+
+## Other tools in this repo
+
+The user also uses **Codex**, **Antigravity**, and **VS Code (Copilot)**. They load `AGENTS.md`, `ANTIGRAVITY.md`, `.antigravity/rules/ai-status.md`, `.github/copilot-instructions.md`, and `AI_INSTRUCTIONS.md`, but only **`AI_STATUS.md`** holds live state. Always update `AI_STATUS.md` so those tools stay in sync.

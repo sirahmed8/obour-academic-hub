@@ -1,0 +1,54 @@
+rules_version = '2';
+service firebase.storage {
+  match /b/{bucket}/o {
+    
+    // Helper: Check if user is Admin via Custom Claims
+    function isAdmin() {
+      return request.auth != null && (request.auth.token.role == 'admin' || request.auth.token.role == 'owner');
+    }
+
+    // Helper: Is Image
+    function isImage() {
+      return request.resource.contentType.matches('image/.*');
+    }
+
+    // Helper: Size Limit (e.g. 5MB)
+    function isUnder5MB() {
+      return request.resource.size < 5 * 1024 * 1024;
+    }
+
+    // Profile Pictures
+    match /profile_pictures/{userId} {
+      allow read: if request.auth != null;
+      allow write: if request.auth != null && 
+                   request.auth.uid == userId && 
+                   isImage() && 
+                   isUnder5MB();
+    }
+
+    // Chat Attachments
+    match /chat_attachments/{chatId}/{fileName} {
+      // Helper: Check if user is a participant in the chat via Firestore
+      function isChatParticipant() {
+        let chat = firestore.get(/databases/(default)/documents/chats/$(chatId)).data;
+        return request.auth.uid == chat.userId || 
+               request.auth.uid == chat.adminId || 
+               request.auth.uid in chatId.split('_'); // Fallback for legacy ID format
+      }
+
+      allow read: if request.auth != null && (isChatParticipant() || isAdmin());
+      allow write: if request.auth != null && (isChatParticipant() || isAdmin()) && isUnder5MB();
+    }
+
+    // Resources (Admin Only)
+    match /resources/{allPaths=**} {
+      allow read: if request.auth != null;
+      allow write: if isAdmin();
+    }
+    
+    // Default Deny
+    match /{allPaths=**} {
+      allow read, write: if false;
+    }
+  }
+}
