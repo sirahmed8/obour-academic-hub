@@ -7,6 +7,7 @@ import { cn } from "@/lib/utils";
 import Image from "next/image";
 import { ProfileMenu } from "./ProfileMenu";
 import { SearchBar } from "../ui/SearchBar";
+import { FocusTimer } from "../ui/FocusTimer";
 import { AnimatePresence } from "framer-motion";
 
 interface NavbarProps {
@@ -80,61 +81,66 @@ export const Navbar = memo(function Navbar({ onMenuClick }: NavbarProps) {
 
         <div className="flex-1 md:hidden" />
 
-        {/* Settings Dropdown */}
-        <div className="relative">
-          <button
-            ref={profileMenuButtonRef}
-            onClick={() => setShowSettings(!showSettings)}
-            aria-label={t("navbar.profile")}
-            className="flex items-center gap-2 p-2 hover:bg-muted/20 rounded-xl transition-colors relative"
-          >
-            {user && (
-              <>
-                {user.photoURL ? (
-                  <Image
-                    src={user.photoURL}
-                    alt={user.displayName || "User"}
-                    width={36}
-                    height={36}
-                    className="rounded-full border-2 border-primary/20"
-                  />
-                ) : (
-                  <div className="w-9 h-9 rounded-full border-2 border-primary/20 bg-muted/50 flex items-center justify-center">
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      width="20"
-                      height="20"
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      stroke="currentColor"
-                      strokeWidth="2"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      className="text-muted-foreground"
-                    >
-                      <path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2" />
-                      <circle cx="12" cy="7" r="4" />
-                    </svg>
-                  </div>
-                )}
-                {/* Red dot for incomplete profile */}
-                {!user.studentCode && (
-                  <span className="absolute top-1 right-1 w-3 h-3 bg-red-500 rounded-full border-2 border-card animate-pulse" />
-                )}
-              </>
-            )}
-          </button>
+        <div className="flex items-center gap-2">
+          {/* Study Focus Timer */}
+          <FocusTimer />
 
-          <AnimatePresence>
-            {showSettings && (
-              <ProfileMenu
-                key={language}
-                direction={dir || "ltr"}
-                onClose={() => setShowSettings(false)}
-                triggerRef={profileMenuButtonRef as React.RefObject<HTMLElement>}
-              />
-            )}
-          </AnimatePresence>
+          {/* Settings Dropdown */}
+          <div className="relative">
+            <button
+              ref={profileMenuButtonRef}
+              onClick={() => setShowSettings(!showSettings)}
+              aria-label={t("navbar.profile")}
+              className="flex items-center gap-2 p-2 hover:bg-muted/20 rounded-xl transition-colors relative"
+            >
+              {user && (
+                <>
+                  {user.photoURL ? (
+                    <Image
+                      src={user.photoURL}
+                      alt={user.displayName || "User"}
+                      width={36}
+                      height={36}
+                      className="rounded-full border-2 border-primary/20"
+                    />
+                  ) : (
+                    <div className="w-9 h-9 rounded-full border-2 border-primary/20 bg-muted/50 flex items-center justify-center">
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        width="20"
+                        height="20"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        strokeWidth="2"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        className="text-muted-foreground"
+                      >
+                        <path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2" />
+                        <circle cx="12" cy="7" r="4" />
+                      </svg>
+                    </div>
+                  )}
+                  {/* Red dot for incomplete profile */}
+                  {!user.studentCode && (
+                    <span className="absolute top-1 right-1 w-3 h-3 bg-red-500 rounded-full border-2 border-card animate-pulse" />
+                  )}
+                </>
+              )}
+            </button>
+
+            <AnimatePresence>
+              {showSettings && (
+                <ProfileMenu
+                  key={language}
+                  direction={dir || "ltr"}
+                  onClose={() => setShowSettings(false)}
+                  triggerRef={profileMenuButtonRef as React.RefObject<HTMLElement>}
+                />
+              )}
+            </AnimatePresence>
+          </div>
         </div>
       </div>
     </header>

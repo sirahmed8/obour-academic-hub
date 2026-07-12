@@ -1,4 +1,4 @@
-import { collection, query, onSnapshot, Unsubscribe } from "firebase/firestore";
+import { collection, query, where, onSnapshot, Unsubscribe } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 
 /**
@@ -17,7 +17,7 @@ export class ChatService {
   }
 
   /**
-   * Subscribe to global admin unread count across all chats.
+   * Subscribe to global admin unread count across active chats.
    */
   subscribeToAdminUnreadCount(
     onUpdate: (count: number) => void,
@@ -25,7 +25,7 @@ export class ChatService {
   ): Unsubscribe {
     if (!db) return () => {};
 
-    const chatQuery = query(collection(db, "chats"));
+    const chatQuery = query(collection(db, "chats"), where("adminUnreadCount", ">", 0));
     return onSnapshot(
       chatQuery,
       (snapshot) => {

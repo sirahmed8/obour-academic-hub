@@ -159,11 +159,14 @@ export default function LeaderboardClient() {
                     </div>
 
                     {/* Info */}
-                    <div className="text-center mt-4 w-full">
-                      <h3 className="font-bold text-xs md:text-sm text-foreground truncate max-w-full px-1 flex items-center justify-center gap-1">
+                    <div className="text-center mt-4 w-full min-w-0 px-2">
+                      <h3
+                        className="font-bold text-xs md:text-sm text-foreground truncate w-full"
+                        title={user.displayName || "Anonymous Student"}
+                      >
                         {user.displayName || "Anonymous Student"}
                       </h3>
-                      <p className="text-[10px] md:text-xs text-muted-foreground truncate">
+                      <p className="text-[10px] md:text-xs text-muted-foreground truncate w-full">
                         {user.email?.split("@")[0] || "Student"}
                       </p>
 
@@ -258,18 +261,21 @@ export default function LeaderboardClient() {
                             <div className="w-9 h-9 rounded-full bg-primary/10 border border-primary/20 flex items-center justify-center text-primary font-bold uppercase shrink-0 text-sm">
                               {user.displayName?.charAt(0) || user.email?.charAt(0) || "?"}
                             </div>
-                            <div className="min-w-0">
-                              <div className="font-semibold text-sm text-foreground flex items-center gap-1.5 flex-wrap">
-                                <span className="truncate max-w-[150px] sm:max-w-xs">
+                            <div className="min-w-0 flex-1">
+                              <div className="font-semibold text-sm text-foreground flex items-center gap-2">
+                                <span
+                                  className="truncate max-w-[180px] sm:max-w-xs md:max-w-md"
+                                  title={user.displayName || "Anonymous Student"}
+                                >
                                   {user.displayName || "Anonymous Student"}
                                 </span>
                                 {isCurrentUser && (
-                                  <span className="text-[10px] bg-primary/20 text-primary px-2 py-0.5 rounded-full font-bold animate-pulse">
+                                  <span className="text-[10px] bg-primary/20 text-primary px-2 py-0.5 rounded-full font-bold animate-pulse shrink-0">
                                     {t("leaderboard.you")}
                                   </span>
                                 )}
                               </div>
-                              <div className="text-xs text-muted-foreground truncate">
+                              <div className="text-xs text-muted-foreground truncate max-w-[180px] sm:max-w-xs">
                                 {user.email?.split("@")[0] || "Student"}
                               </div>
                             </div>

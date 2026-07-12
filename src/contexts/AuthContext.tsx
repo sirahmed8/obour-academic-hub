@@ -243,9 +243,20 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         status: "online",
         currentPath: pathname,
       });
-      onDisconnect(presenceRef).remove();
+      onDisconnect(presenceRef).update({
+        status: "offline",
+        lastActive: Date.now(),
+      });
       return () => {
-        set(presenceRef, null).catch(() => {});
+        set(presenceRef, {
+          uid: user.uid,
+          email: user.email,
+          displayName: user.displayName,
+          photoURL: user.photoURL,
+          lastActive: Date.now(),
+          status: "offline",
+          currentPath: pathname,
+        }).catch(() => {});
       };
     } catch (err) {
       console.warn("[AuthContext] Presence tracking failed:", err);

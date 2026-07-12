@@ -368,16 +368,14 @@ export const Sidebar = memo(function Sidebar({ isOpen, onClose }: SidebarProps) 
           </div>
 
           {/* 
-            Navigation Content - Scrollable: h-full allows scrolling behind Navbar.
-            We use a custom style for the scrollbar track to force it to start below the Navbar (64px).
+            Navigation Content - Scrollable: flex-1 allows scrolling above footer and under Navbar.
           */}
           <div
             className={cn(
-              "flex-1 overflow-y-auto overscroll-contain h-full pt-17 lg:pt-[68px]",
+              "flex-1 overflow-y-auto overscroll-contain pt-17 lg:pt-[68px]",
               "[&::-webkit-scrollbar-track]:mt-[64px]"
             )}
           >
-            {/* Custom Scrollbar applied via CSS or class if needed, or default browser scrollbar inside clipped area */}
             <div className="pb-4">
               <nav ref={navRef} onScroll={handleScroll} className="space-y-1 px-2">
                 {/* Main Nav */}
@@ -449,39 +447,39 @@ export const Sidebar = memo(function Sidebar({ isOpen, onClose }: SidebarProps) 
                 </div>
               </nav>
             </div>
+          </div>
 
-            {/* User Profile Section - Premium Footer */}
-            <div className="mt-auto p-4 border-t border-black/5 dark:border-white/5 bg-white/5 backdrop-blur-sm">
-              <div className="flex items-center gap-3 p-2 rounded-2xl bg-muted/30 border border-border/50 group transition-all duration-300 hover:bg-muted/50">
-                <div className="relative w-10 h-10 shrink-0 rounded-xl overflow-hidden ring-2 ring-primary/20 shadow-lg">
-                  {user?.photoURL ? (
-                    <Image
-                      src={user.photoURL}
-                      alt={user.displayName || "User"}
-                      fill
-                      className="object-cover"
-                    />
-                  ) : (
-                    <div className="w-full h-full bg-primary/10 flex items-center justify-center text-primary font-black">
-                      {user?.displayName?.[0] || "U"}
-                    </div>
-                  )}
-                </div>
-                <div className="flex flex-col min-w-0 flex-1">
-                  <span className="text-sm font-black truncate">{user?.displayName}</span>
-                  <span className="text-[10px] text-muted-foreground font-bold uppercase tracking-tighter truncate opacity-70">
-                    {isAdmin ? t("dashboard.adminMode") : t("auth.student")}
-                  </span>
-                </div>
-                <Link
-                  href="/profile"
-                  onClick={onClose}
-                  aria-label={language === "ar" ? "إعدادات الحساب" : "Account Settings"}
-                  className="p-2 hover:bg-primary/20 rounded-lg text-muted-foreground hover:text-primary transition-colors"
-                >
-                  <Settings size={18} />
-                </Link>
+          {/* User Profile Section - Fixed Non-Scrolling Premium Footer */}
+          <div className="shrink-0 p-4 border-t border-black/5 dark:border-white/5 bg-white/5 backdrop-blur-sm">
+            <div className="flex items-center gap-3 p-2 rounded-2xl bg-muted/30 border border-border/50 group transition-all duration-300 hover:bg-muted/50">
+              <div className="relative w-10 h-10 shrink-0 rounded-xl overflow-hidden ring-2 ring-primary/20 shadow-lg">
+                {user?.photoURL ? (
+                  <Image
+                    src={user.photoURL}
+                    alt={user.displayName || "User"}
+                    fill
+                    className="object-cover"
+                  />
+                ) : (
+                  <div className="w-full h-full bg-primary/10 flex items-center justify-center text-primary font-black">
+                    {user?.displayName?.[0] || "U"}
+                  </div>
+                )}
               </div>
+              <div className="flex flex-col min-w-0 flex-1">
+                <span className="text-sm font-black truncate">{user?.displayName}</span>
+                <span className="text-[10px] text-muted-foreground font-bold uppercase tracking-tighter truncate opacity-70">
+                  {isAdmin ? t("dashboard.adminMode") : t("auth.student")}
+                </span>
+              </div>
+              <Link
+                href="/profile"
+                onClick={onClose}
+                aria-label={language === "ar" ? "إعدادات الحساب" : "Account Settings"}
+                className="p-2 hover:bg-primary/20 rounded-lg text-muted-foreground hover:text-primary transition-colors"
+              >
+                <Settings size={18} />
+              </Link>
             </div>
           </div>
         </div>

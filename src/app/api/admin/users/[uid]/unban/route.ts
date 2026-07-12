@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { adminAuth, adminDb, Timestamp } from "@/lib/server/firebase-admin";
 import { corsOptions, withCors } from "@/lib/server/cors";
 import { assertCanManageUser, handleRouteError, requirePermission } from "@/lib/server/auth";
+import { rateLimit } from "@/lib/server/rate-limit";
 import type { UserPermission } from "@/types";
 
 export const runtime = "nodejs";
@@ -14,6 +15,25 @@ export async function OPTIONS(request: Request) {
 export async function PUT(request: Request, { params }: { params: Promise<{ uid: string }> }) {
   try {
     const context = await requirePermission(request, "manage_users");
+
+    const limiter = await rateLimit({
+      key: `api:admin:unban:${context.uid}`,
+      limit: 20,
+      windowMs: 60_000,
+    });
+    if (!limiter.allowed) {
+      return withCors(
+        request,
+        NextResponse.json(
+          { error: "Too many requests. Please try again shortly." },
+          {
+            status: 429,
+            headers: { "Retry-After": String(Math.ceil(limiter.retryAfterMs / 1000)) },
+          }
+        )
+      );
+    }
+
     const { uid } = await params;
 
     // Fetch user and assert can manage

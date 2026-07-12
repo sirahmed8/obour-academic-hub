@@ -8,6 +8,7 @@ import { useLanguage } from "@/contexts";
 import { AlertCircle, Search, Clock, Loader2, Bug, Layout, Server, Trash2 } from "lucide-react";
 
 import { FadeIn, ScaleIn, StaggerChildren } from "@/components/ui/Animations";
+import { ConfirmationModal } from "@/components/ui/ConfirmationModal";
 interface SystemError {
   id: string;
   message: string;
@@ -23,6 +24,7 @@ export default function AdminErrorsPage() {
   const [errors, setErrors] = useState<SystemError[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
+  const [showConfirmModal, setShowConfirmModal] = useState(false);
   const { language } = useLanguage();
 
   useEffect(() => {
@@ -45,16 +47,7 @@ export default function AdminErrorsPage() {
     return () => unsubscribe();
   }, []);
 
-  const handleDeleteAll = async () => {
-    if (
-      !window.confirm(
-        language === "ar"
-          ? "هل أنت متأكد من حذف جميع الأخطاء؟"
-          : "Are you sure you want to delete ALL logged errors?"
-      )
-    )
-      return;
-
+  const executeDeleteAll = async () => {
     if (!db) return;
     try {
       setLoading(true);
@@ -106,7 +99,7 @@ export default function AdminErrorsPage() {
           </div>
           {errors.length > 0 && (
             <button
-              onClick={handleDeleteAll}
+              onClick={() => setShowConfirmModal(true)}
               disabled={loading}
               className="px-4 py-3 rounded-2xl bg-rose-500/10 hover:bg-rose-500/20 text-rose-600 border border-rose-500/20 transition-all flex items-center justify-center disabled:opacity-50"
               title={language === "ar" ? "مسح جميع الأخطاء" : "Clear All Errors"}
@@ -191,6 +184,24 @@ export default function AdminErrorsPage() {
           ))}
         </StaggerChildren>
       )}
+
+      <ConfirmationModal
+        isOpen={showConfirmModal}
+        onClose={() => setShowConfirmModal(false)}
+        onConfirm={() => {
+          setShowConfirmModal(false);
+          executeDeleteAll();
+        }}
+        title={language === "ar" ? "مسح جميع الأخطاء" : "Clear All Errors"}
+        message={
+          language === "ar"
+            ? "هل أنت متأكد من حذف جميع سجلات الأخطاء؟ لا يمكن التراجع عن هذا الإجراء."
+            : "Are you sure you want to delete ALL logged errors? This action cannot be undone."
+        }
+        confirmText={language === "ar" ? "حذف الكل" : "Delete All"}
+        cancelText={language === "ar" ? "إلغاء" : "Cancel"}
+        type="danger"
+      />
     </div>
   );
 }

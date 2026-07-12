@@ -74,8 +74,48 @@ export const ChatMessageItem = memo(function ChatMessageItem({
 }: ChatMessageProps) {
   const isBot = msg.senderId === "bot";
   const [showPicker, setShowPicker] = useState(false);
+  const [showActions, setShowActions] = useState(false);
   const [pickerPlacement, setPickerPlacement] = useState<"above" | "below">("above");
   const reactButtonRef = useRef<HTMLButtonElement>(null);
+
+  const formattedTime = (() => {
+    const rawMsg = msg as unknown as Record<string, unknown>;
+    const ts = (msg.timestamp || rawMsg.createdAt) as
+      | { toDate?: () => Date; seconds?: number }
+      | string
+      | number
+      | Date
+      | undefined;
+    if (!ts) return "Just now";
+    try {
+      if (
+        typeof ts === "object" &&
+        ts !== null &&
+        "toDate" in ts &&
+        typeof ts.toDate === "function"
+      ) {
+        return ts.toDate().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+      }
+      if (
+        typeof ts === "object" &&
+        ts !== null &&
+        "seconds" in ts &&
+        typeof ts.seconds === "number"
+      ) {
+        return new Date(ts.seconds * 1000).toLocaleTimeString([], {
+          hour: "2-digit",
+          minute: "2-digit",
+        });
+      }
+      const d = new Date(ts as string | number | Date);
+      if (!isNaN(d.getTime())) {
+        return d.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+      }
+    } catch {
+      // fallback
+    }
+    return "Just now";
+  })();
 
   const handleTogglePicker = () => {
     if (!showPicker && reactButtonRef.current) {
@@ -174,8 +214,9 @@ export const ChatMessageItem = memo(function ChatMessageItem({
 
         {/* Message Bubble */}
         <div
+          onClick={() => setShowActions((prev) => !prev)}
           className={cn(
-            "px-4 py-2.5 shadow-sm text-sm relative z-10",
+            "px-4 py-2.5 shadow-sm text-sm relative z-10 cursor-pointer select-text",
             // Shape styling based on sender
             isUser
               ? "bg-linear-to-br from-primary via-purple-600 to-indigo-600 text-white rounded-3xl rounded-tr-md shadow-indigo-500/20"
@@ -217,12 +258,7 @@ export const ChatMessageItem = memo(function ChatMessageItem({
               isUser ? "justify-end text-white/80" : "justify-start text-muted-foreground"
             )}
           >
-            {msg.timestamp?.seconds
-              ? new Date(msg.timestamp.seconds * 1000).toLocaleTimeString([], {
-                  hour: "2-digit",
-                  minute: "2-digit",
-                })
-              : "Sending..."}
+            {formattedTime}
           </div>
         </div>
 
@@ -289,11 +325,10 @@ export const ChatMessageItem = memo(function ChatMessageItem({
           <div
             className={cn(
               "absolute top-1/2 -translate-y-1/2 flex items-center gap-1 transition-all duration-300 z-50 px-2",
-              // Mobile: Always visible but smaller. Desktop: Hover or Focus Within.
-              "opacity-100 lg:opacity-0 lg:group-hover:opacity-100 lg:focus-within:opacity-100",
-              isUser
-                ? "right-full mr-1 translate-x-2 lg:group-hover:translate-x-0 lg:focus-within:translate-x-0"
-                : "left-full ml-1 -translate-x-2 lg:group-hover:translate-x-0 lg:focus-within:translate-x-0"
+              showActions
+                ? "opacity-100 pointer-events-auto scale-100"
+                : "opacity-0 pointer-events-none scale-95 group-hover:opacity-100 group-hover:pointer-events-auto group-hover:scale-100 focus-within:opacity-100 focus-within:pointer-events-auto",
+              isUser ? "right-full mr-1" : "left-full ml-1"
             )}
           >
             <div className="flex items-center gap-1 bg-white/95 dark:bg-zinc-900/95 backdrop-blur-md border border-white/10 dark:border-white/5 rounded-full p-1 shadow-lg transform hover:scale-105 transition-transform">

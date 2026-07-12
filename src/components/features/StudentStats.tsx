@@ -333,7 +333,7 @@ export function StudentStats() {
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.95, y: 20 }}
               transition={{ type: "spring", damping: 25, stiffness: 300 }}
-              className="fixed inset-4 md:inset-auto md:left-1/2 md:top-1/2 md:-translate-x-1/2 md:-translate-y-1/2 z-50 md:w-[500px] md:max-h-[80vh] bg-card border border-border rounded-3xl shadow-2xl overflow-hidden flex flex-col"
+              className="fixed inset-x-4 top-1/2 -translate-y-1/2 max-h-[85vh] md:inset-auto md:left-1/2 md:top-1/2 md:-translate-x-1/2 md:-translate-y-1/2 z-50 md:w-[500px] md:max-h-[80vh] bg-card border border-border rounded-3xl shadow-2xl overflow-hidden flex flex-col"
             >
               {/* Modal Header */}
               <div className="shrink-0 flex items-center justify-between p-6 border-b border-border/30">
@@ -360,7 +360,7 @@ export function StudentStats() {
               </div>
 
               {/* Modal Content */}
-              <div className="flex-1 overflow-y-auto p-4 space-y-3">
+              <div className="overflow-y-auto max-h-[65vh] p-4 space-y-3">
                 {achievements.map((achievement, idx) => (
                   <motion.div
                     key={idx}

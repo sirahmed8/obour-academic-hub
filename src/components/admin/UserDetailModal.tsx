@@ -9,6 +9,7 @@ import { X, Download, Trash2, Activity, MessageSquare, AlertTriangle } from "luc
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 import Image from "next/image";
+import { ConfirmationModal } from "@/components/ui/ConfirmationModal";
 
 // Define proper types for admin data
 interface LogEntry {
@@ -43,6 +44,7 @@ interface UserDetailModalProps {
 export function UserDetailModal({ user, onClose, language }: UserDetailModalProps) {
   const [activeTab, setActiveTab] = useState<"activity" | "chats" | "errors">("activity");
   const [loading, setLoading] = useState(true);
+  const [showConfirmModal, setShowConfirmModal] = useState(false);
   const [data, setData] = useState<{
     logs: LogEntry[];
     chats: ChatEntry[];
@@ -164,13 +166,6 @@ export function UserDetailModal({ user, onClose, language }: UserDetailModalProp
   };
 
   const handleDeleteData = async () => {
-    if (
-      !window.confirm(
-        "Are you sure? This will delete ALL tracked data for this user. This cannot be undone."
-      )
-    )
-      return;
-
     if (!db) return;
 
     try {
@@ -264,7 +259,7 @@ export function UserDetailModal({ user, onClose, language }: UserDetailModalProp
             {language === "ar" ? "تصدير البيانات (JSON)" : "Export Data (JSON)"}
           </button>
           <button
-            onClick={handleDeleteData}
+            onClick={() => setShowConfirmModal(true)}
             className="flex items-center gap-2 px-4 py-2 bg-red-50 hover:bg-red-100 text-red-600 dark:bg-red-950/20 dark:hover:bg-red-950/40 dark:text-red-400 rounded-xl text-sm font-bold transition-all active:scale-95 border border-red-100 dark:border-red-900/30"
           >
             <Trash2 size={16} />
@@ -410,6 +405,24 @@ export function UserDetailModal({ user, onClose, language }: UserDetailModalProp
             </div>
           )}
         </div>
+
+        <ConfirmationModal
+          isOpen={showConfirmModal}
+          onClose={() => setShowConfirmModal(false)}
+          onConfirm={() => {
+            setShowConfirmModal(false);
+            handleDeleteData();
+          }}
+          title={language === "ar" ? "حذف بيانات المستخدم" : "Delete User Data"}
+          message={
+            language === "ar"
+              ? "هل أنت متأكد من حذف جميع البيانات والسجلات الخاصة بهذا المستخدم؟ لا يمكن التراجع عن هذا الإجراء."
+              : "Are you sure you want to delete ALL tracked data for this user? This cannot be undone."
+          }
+          confirmText={language === "ar" ? "حذف البيانات" : "Delete Data"}
+          cancelText={language === "ar" ? "إلغاء" : "Cancel"}
+          type="danger"
+        />
       </motion.div>
     </motion.div>
   );

@@ -10,6 +10,7 @@ import { Trash2, Settings, Mail, UserPlus, Shield, Loader2 } from "lucide-react"
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { ConfirmationModal } from "@/components/ui/ConfirmationModal";
+import { AnimatedCheckbox } from "@/components/ui/AnimatedCheckbox";
 import { CustomSelect } from "@/components/ui/CustomSelect";
 import { User, UserPermission } from "@/types";
 import { FadeIn, ScaleIn, StaggerChildren } from "@/components/ui/Animations";
@@ -329,24 +330,24 @@ export default function AdminTeamPage() {
                         label: language === "ar" ? "إدارة الإعلانات" : "Manage Announcements",
                       },
                     ].map((perm) => (
-                      <label
+                      <div
                         key={perm.id}
-                        className="flex items-center gap-2 cursor-pointer bg-muted/30 px-3 py-2 rounded-lg hover:bg-muted/50 transition-colors"
+                        onClick={() => {
+                          const isChecked = newPermissions.includes(perm.id as UserPermission);
+                          if (!isChecked) {
+                            setNewPermissions([...newPermissions, perm.id as UserPermission]);
+                          } else {
+                            setNewPermissions(newPermissions.filter((p) => p !== perm.id));
+                          }
+                        }}
+                        className="flex items-center gap-2.5 cursor-pointer bg-muted/30 px-3.5 py-2.5 rounded-xl hover:bg-muted/50 transition-all active:scale-[0.99] border border-border/40 select-none"
                       >
-                        <input
-                          type="checkbox"
+                        <AnimatedCheckbox
                           checked={newPermissions.includes(perm.id as UserPermission)}
-                          onChange={(e) => {
-                            if (e.target.checked) {
-                              setNewPermissions([...newPermissions, perm.id as UserPermission]);
-                            } else {
-                              setNewPermissions(newPermissions.filter((p) => p !== perm.id));
-                            }
-                          }}
-                          className="rounded border-border text-primary focus:ring-primary"
+                          onChange={() => {}}
                         />
-                        <span className="text-sm font-medium">{perm.label}</span>
-                      </label>
+                        <span className="text-sm font-medium text-foreground">{perm.label}</span>
+                      </div>
                     ))}
                   </div>
                 )}

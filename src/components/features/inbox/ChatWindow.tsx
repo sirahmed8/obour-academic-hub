@@ -5,6 +5,9 @@ import { ChatSession, ChatMessage } from "@/types";
 import { MessageBubble } from "./MessageBubble";
 import { Trash2, ArrowLeft, Loader2, X } from "lucide-react";
 import { AnimatePresence, motion, HTMLMotionProps } from "framer-motion";
+import { rtdb } from "@/lib/firebase";
+import { ref, onValue } from "firebase/database";
+import { cn } from "@/lib/utils";
 
 import Image from "next/image";
 import { useRef, useEffect, useState } from "react";
@@ -52,6 +55,32 @@ export function ChatWindow({
     id: string;
     position: { top?: number; bottom?: number; left: number };
   } | null>(null);
+
+  const [userPresence, setUserPresence] = useState<{
+    status: "online" | "offline";
+    lastActive?: number;
+  }>({
+    status: "offline",
+  });
+
+  useEffect(() => {
+    if (!session?.userId || !rtdb) {
+      setUserPresence({ status: "offline" });
+      return;
+    }
+    const presenceRef = ref(rtdb, `presence/${session.userId}`);
+    const unsubscribe = onValue(presenceRef, (snapshot) => {
+      const data = snapshot.val();
+      if (data && data.status === "online") {
+        setUserPresence({ status: "online", lastActive: data.lastActive });
+      } else {
+        setUserPresence({ status: "offline", lastActive: data?.lastActive });
+      }
+    });
+    return () => unsubscribe();
+  }, [session?.userId]);
+
+  const isOnline = userPresence.status === "online";
 
   // Scroll to bottom when new messages arrive - with session guard
   const hasSession = !!session;
@@ -137,7 +166,12 @@ export function ChatWindow({
                     height={48}
                     className="rounded-xl shadow-md"
                   />
-                  <div className="absolute -bottom-1 -right-1 w-3.5 h-3.5 bg-green-500 rounded-full border-2 border-card" />
+                  <div
+                    className={cn(
+                      "absolute -bottom-1 -right-1 w-3.5 h-3.5 rounded-full border-2 border-card",
+                      isOnline ? "bg-green-500" : "bg-zinc-400 dark:bg-zinc-600"
+                    )}
+                  />
                 </div>
 
                 <div>
@@ -150,7 +184,20 @@ export function ChatWindow({
                   <div className="flex items-center gap-2 text-xs text-muted-foreground">
                     <span>{session.userEmail}</span>
                     <span className="w-1 h-1 rounded-full bg-border" />
-                    <span className="text-green-500 font-medium">Online</span>
+                    <span
+                      className={cn(
+                        "font-medium",
+                        isOnline ? "text-green-500" : "text-muted-foreground"
+                      )}
+                    >
+                      {isOnline
+                        ? language === "ar"
+                          ? "متصل الآن"
+                          : "Online"
+                        : language === "ar"
+                          ? "غير متصل"
+                          : "Offline"}
+                    </span>
                   </div>
                 </div>
               </div>

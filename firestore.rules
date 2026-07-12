@@ -106,8 +106,6 @@ service cloud.firestore {
     match /global_chat/{messageId} {
       allow read: if request.auth != null;
       allow create: if request.auth != null &&
-        request.resource.data.keys().hasOnly(['uid', 'text', 'createdAt', 'displayName', 'role']) &&
-        request.resource.data.keys().hasAll(['uid', 'text', 'createdAt', 'displayName', 'role']) &&
         request.resource.data.uid == request.auth.uid &&
         request.resource.data.text is string &&
         request.resource.data.text.size() > 0 &&
@@ -116,8 +114,9 @@ service cloud.firestore {
         request.resource.data.displayName.size() > 0 &&
         request.resource.data.role in ['student', 'moderator', 'admin', 'owner'] &&
         request.resource.data.createdAt == request.time;
-      allow update: if false;
-      allow delete: if hasPermission('delete_chats');
+      allow update: if request.auth != null;
+      allow delete: if request.auth != null &&
+        (resource.data.uid == request.auth.uid || hasPermission('delete_chats') || isOwner());
     }
 
     match /notifications/{notificationId} {

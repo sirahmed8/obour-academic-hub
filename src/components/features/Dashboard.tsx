@@ -68,7 +68,7 @@ export function Dashboard() {
 
             <div className="flex flex-col md:flex-row md:items-end justify-between gap-8">
               <div className="space-y-6 max-w-3xl">
-                <h1 className="text-5xl lg:text-8xl font-black tracking-tighter leading-[0.85] text-foreground">
+                <h1 className="text-4xl sm:text-5xl lg:text-7xl xl:text-8xl font-black tracking-tighter leading-[0.95] text-foreground">
                   {mounted && greeting && (
                     <motion.span
                       initial="hidden"
@@ -82,34 +82,21 @@ export function Dashboard() {
                       }}
                       className="block"
                     >
-                      {language === "ar"
-                        ? greeting.split(" ").map((word, i, arr) => (
-                            <motion.span
-                              key={i}
-                              variants={{
-                                hidden: { opacity: 0, y: 20 },
-                                visible: { opacity: 1, y: 0 },
-                              }}
-                              className="inline-block"
-                            >
-                              {word}
-                              {i < arr.length - 1 ? "\u00A0" : ""}
-                            </motion.span>
-                          ))
-                        : greeting.split("").map((char, i) => (
-                            <motion.span
-                              key={i}
-                              variants={{
-                                hidden: { opacity: 0, y: 20 },
-                                visible: { opacity: 1, y: 0 },
-                              }}
-                              className="inline-block"
-                            >
-                              {char === " " ? "\u00A0" : char}
-                            </motion.span>
-                          ))}
+                      {greeting.split(" ").map((word, i, arr) => (
+                        <motion.span
+                          key={i}
+                          variants={{
+                            hidden: { opacity: 0, y: 20 },
+                            visible: { opacity: 1, y: 0 },
+                          }}
+                          className="inline-block"
+                        >
+                          {word}
+                          {i < arr.length - 1 ? "\u00A0" : ""}
+                        </motion.span>
+                      ))}
                       {language === "ar" ? "،" : ","}{" "}
-                      <span className="whitespace-nowrap">
+                      <span className="inline-block whitespace-nowrap mt-1 sm:mt-0">
                         <span className="text-gradient-primary inline-block hover:scale-105 transition-transform duration-300 cursor-default align-baseline">
                           {user?.displayName?.split(" ")[0]}
                         </span>

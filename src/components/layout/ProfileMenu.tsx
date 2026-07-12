@@ -32,44 +32,49 @@ interface ProfileMenuProps {
 // Check if we're on client side (for SSR-safe portal)
 const isClient = typeof window !== "undefined";
 
-const getMenuVariants = (isSolid: boolean): Variants => ({
-  hidden: {
-    opacity: 0,
-    scale: 0.95,
-    y: -10,
-    filter: isSolid ? "none" : "blur(12px)",
-    transition: {
-      type: "spring",
-      stiffness: 400,
-      damping: 30,
-    },
-  },
-  visible: {
-    opacity: 1,
-    scale: 1,
-    y: 0,
-    filter: "blur(0px)",
-    transition: isSolid
-      ? { duration: 0.2 }
-      : {
-          type: "spring",
-          stiffness: 300,
-          damping: 25,
-          staggerChildren: 0.05,
-          delayChildren: 0.1,
+const getMenuVariants = (isSolid: boolean): Variants =>
+  isSolid
+    ? {
+        hidden: { opacity: 0, scale: 1, y: 0, filter: "none" },
+        visible: { opacity: 1, scale: 1, y: 0, filter: "none", transition: { duration: 0 } },
+        exit: { opacity: 0, scale: 1, y: 0, filter: "none", transition: { duration: 0 } },
+      }
+    : {
+        hidden: {
+          opacity: 0,
+          scale: 0.95,
+          y: -10,
+          filter: "blur(12px)",
+          transition: {
+            type: "spring",
+            stiffness: 400,
+            damping: 30,
+          },
         },
-  },
-  exit: {
-    opacity: 0,
-    scale: 0.95,
-    y: -5,
-    filter: isSolid ? "none" : "blur(8px)",
-    transition: {
-      duration: 0.2,
-      ease: "anticipate",
-    },
-  },
-});
+        visible: {
+          opacity: 1,
+          scale: 1,
+          y: 0,
+          filter: "blur(0px)",
+          transition: {
+            type: "spring",
+            stiffness: 300,
+            damping: 25,
+            staggerChildren: 0.05,
+            delayChildren: 0.1,
+          },
+        },
+        exit: {
+          opacity: 0,
+          scale: 0.95,
+          y: -5,
+          filter: "blur(8px)",
+          transition: {
+            duration: 0.2,
+            ease: "anticipate",
+          },
+        },
+      };
 
 const itemVariants: Variants = {
   hidden: { opacity: 0, x: -10 },
@@ -193,7 +198,7 @@ export function ProfileMenu({ onClose, triggerRef, direction }: ProfileMenuProps
         initial="hidden"
         animate="visible"
         exit="exit"
-        layout
+        layout={!isSolid}
         role="dialog"
         aria-label={t("navbar.profile")}
         className={cn(
@@ -204,8 +209,8 @@ export function ProfileMenu({ onClose, triggerRef, direction }: ProfileMenuProps
           direction === "rtl" ? "left-4 origin-top-left" : "right-4 origin-top-right"
         )}
         style={{
-          WebkitBackdropFilter: "blur(32px) saturate(200%)",
-          willChange: "transform, opacity, filter",
+          WebkitBackdropFilter: isSolid ? "none" : "blur(32px) saturate(200%)",
+          willChange: isSolid ? "auto" : "transform, opacity, filter",
           boxShadow: isSolid ? "none" : "0 25px 50px -12px rgba(0, 0, 0, 0.5)",
         }}
       >
