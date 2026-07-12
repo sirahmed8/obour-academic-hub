@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef, useCallback, useMemo } from "react";
 import {
   Search,
   Command,
@@ -14,12 +14,18 @@ import {
   Sun,
   Sparkles,
   ArrowRight,
+  MessageSquare,
+  User,
+  Bell,
 } from "lucide-react";
 import { useLanguage } from "@/contexts";
 import { useTheme } from "next-themes";
 import { cn } from "@/lib/utils";
 import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
+import { doc, onSnapshot } from "firebase/firestore";
+import { db } from "@/lib/firebase";
+import { SiteSettings } from "@/types";
 
 interface CommandItem {
   id: string;
@@ -31,101 +37,227 @@ interface CommandItem {
   action: () => void;
 }
 
+interface CommandListItemProps {
+  item: CommandItem;
+  index: number;
+  isSelected: boolean;
+  isAr: boolean;
+  onSelect: (item: CommandItem) => void;
+  onHoverIndex: (index: number) => void;
+}
+
+const CommandListItem = React.memo(function CommandListItem({
+  item,
+  index,
+  isSelected,
+  isAr,
+  onSelect,
+  onHoverIndex,
+}: CommandListItemProps) {
+  const handleMouseEnter = useCallback(() => {
+    onHoverIndex(index);
+  }, [onHoverIndex, index]);
+
+  const handleClick = useCallback(() => {
+    onSelect(item);
+  }, [onSelect, item]);
+
+  return (
+    <button
+      type="button"
+      onClick={handleClick}
+      onMouseEnter={handleMouseEnter}
+      className={cn(
+        "w-full flex items-center justify-between px-3 py-2.5 rounded-xl text-sm transition-colors text-start",
+        isSelected
+          ? "bg-primary/10 text-primary font-medium"
+          : "hover:bg-muted/50 text-foreground/90"
+      )}
+    >
+      <div className="flex items-center gap-3 min-w-0 flex-1">
+        <div className={cn("p-2 rounded-lg shrink-0", isSelected ? "bg-primary/20" : "bg-muted")}>
+          {item.icon}
+        </div>
+        <div className="min-w-0 flex-1">
+          <div className="leading-tight truncate font-medium">
+            {isAr ? item.labelAr : item.labelEn}
+          </div>
+          <div className="text-[10px] text-muted-foreground mt-0.5 truncate">
+            {isAr ? item.categoryAr : item.categoryEn}
+          </div>
+        </div>
+      </div>
+      <ArrowRight
+        className={cn(
+          "w-4 h-4 shrink-0 transition-all duration-200",
+          isSelected ? "opacity-100 translate-x-0" : "opacity-0 -translate-x-2"
+        )}
+      />
+    </button>
+  );
+});
+
 export function SearchBar() {
   const { language } = useLanguage();
   const { theme, setTheme } = useTheme();
   const [isOpen, setIsOpen] = useState(false);
   const [query, setQuery] = useState("");
   const [selectedIndex, setSelectedIndex] = useState(0);
+  const [aiEnabled, setAiEnabled] = useState(true);
   const inputRef = useRef<HTMLInputElement>(null);
   const router = useRouter();
 
   const isAr = language === "ar";
 
-  // Define spotlight command items
-  const items: CommandItem[] = [
-    {
-      id: "nav-home",
-      labelEn: "Dashboard & Home",
-      labelAr: "الرئيسية ولوحة التحكم",
-      categoryEn: "Navigation",
-      categoryAr: "التنقل",
-      icon: <Home className="w-4 h-4 text-blue-500" />,
-      action: () => router.push("/"),
-    },
-    {
-      id: "nav-subjects",
-      labelEn: "Academic Subjects Hub",
-      labelAr: "المواد الدراسية والمحاضرات",
-      categoryEn: "Navigation",
-      categoryAr: "التنقل",
-      icon: <BookOpen className="w-4 h-4 text-emerald-500" />,
-      action: () => router.push("/subject"),
-    },
-    {
-      id: "nav-community",
-      labelEn: "Student Community Forum & Chat",
-      labelAr: "مجتمع الطلاب والمحادثة العامة",
-      categoryEn: "Navigation",
-      categoryAr: "التنقل",
-      icon: <Users className="w-4 h-4 text-purple-500" />,
-      action: () => router.push("/community"),
-    },
-    {
-      id: "nav-leaderboard",
-      labelEn: "Academic Honor Leaderboard",
-      labelAr: "لوحة الشرف وتصنيف الطلاب",
-      categoryEn: "Navigation",
-      categoryAr: "التنقل",
-      icon: <Trophy className="w-4 h-4 text-amber-500" />,
-      action: () => router.push("/leaderboard"),
-    },
-    {
-      id: "nav-todo",
-      labelEn: "My Academic Tasks & Todos",
-      labelAr: "مهامي وواجباتي الدراسية",
-      categoryEn: "Navigation",
-      categoryAr: "التنقل",
-      icon: <CheckSquare className="w-4 h-4 text-indigo-500" />,
-      action: () => router.push("/todo"),
-    },
-    {
-      id: "act-theme",
-      labelEn: `Switch to ${theme === "dark" ? "Light" : "Dark"} Mode`,
-      labelAr: `التبديل إلى الوضع ${theme === "dark" ? "الفاتح" : "الداكن"}`,
-      categoryEn: "Actions",
-      categoryAr: "إجراءات سريعة",
-      icon:
-        theme === "dark" ? (
-          <Sun className="w-4 h-4 text-yellow-400" />
-        ) : (
-          <Moon className="w-4 h-4 text-slate-700" />
-        ),
-      action: () => setTheme(theme === "dark" ? "light" : "dark"),
-    },
-    {
-      id: "act-ai",
-      labelEn: "Ask Academic Assistant AI",
-      labelAr: "اسأل المساعد الذكي للمواد",
-      categoryEn: "Actions",
-      categoryAr: "إجراءات سريعة",
-      icon: <Sparkles className="w-4 h-4 text-pink-500" />,
-      action: () => {
-        router.push("/subject");
+  // Listen for global settings to check if AI Mode is enabled
+  useEffect(() => {
+    if (!db) return;
+    const settingsRef = doc(db, "settings", "global");
+    const unsubscribe = onSnapshot(
+      settingsRef,
+      (docSnap) => {
+        if (!docSnap.exists()) return;
+        const data = docSnap.data() as SiteSettings;
+        setAiEnabled(data.aiEnabled ?? true);
       },
-    },
-  ];
-
-  const filteredItems = items.filter((item) => {
-    if (!query.trim()) return true;
-    const q = query.toLowerCase();
-    return (
-      item.labelEn.toLowerCase().includes(q) ||
-      item.labelAr.toLowerCase().includes(q) ||
-      item.categoryEn.toLowerCase().includes(q) ||
-      item.categoryAr.toLowerCase().includes(q)
+      (error) => {
+        console.error("SearchBar settings listener error:", error);
+      }
     );
-  });
+    return () => unsubscribe();
+  }, []);
+
+  const items: CommandItem[] = useMemo(() => {
+    const list: CommandItem[] = [
+      {
+        id: "nav-home",
+        labelEn: "Dashboard & Home",
+        labelAr: "الرئيسية ولوحة التحكم",
+        categoryEn: "Navigation",
+        categoryAr: "التنقل",
+        icon: <Home className="w-4 h-4 text-blue-500" />,
+        action: () => router.push("/"),
+      },
+      {
+        id: "nav-subjects",
+        labelEn: "Academic Subjects Hub",
+        labelAr: "المواد الدراسية والمحاضرات",
+        categoryEn: "Navigation",
+        categoryAr: "التنقل",
+        icon: <BookOpen className="w-4 h-4 text-emerald-500" />,
+        action: () => router.push("/subject"),
+      },
+      {
+        id: "nav-community",
+        labelEn: "Student Community Forum",
+        labelAr: "منتدى مجتمع الطلاب",
+        categoryEn: "Navigation",
+        categoryAr: "التنقل",
+        icon: <Users className="w-4 h-4 text-purple-500" />,
+        action: () => router.push("/community"),
+      },
+      {
+        id: "nav-global-chat",
+        labelEn: "Live Global Student Chat",
+        labelAr: "المحادثة العامة للطلاب",
+        categoryEn: "Navigation",
+        categoryAr: "التنقل",
+        icon: <MessageSquare className="w-4 h-4 text-cyan-500" />,
+        action: () => router.push("/community/chat"),
+      },
+      {
+        id: "nav-leaderboard",
+        labelEn: "Academic Honor Leaderboard",
+        labelAr: "لوحة الشرف وتصنيف الطلاب",
+        categoryEn: "Navigation",
+        categoryAr: "التنقل",
+        icon: <Trophy className="w-4 h-4 text-amber-500" />,
+        action: () => router.push("/community/leaderboard"),
+      },
+      {
+        id: "nav-todo",
+        labelEn: "My Academic Tasks & Todos",
+        labelAr: "مهامي وواجباتي الدراسية",
+        categoryEn: "Navigation",
+        categoryAr: "التنقل",
+        icon: <CheckSquare className="w-4 h-4 text-indigo-500" />,
+        action: () => router.push("/todo"),
+      },
+      {
+        id: "nav-profile",
+        labelEn: "My Profile & Account Settings",
+        labelAr: "الملف الشخصي وإعدادات الحساب",
+        categoryEn: "Navigation",
+        categoryAr: "التنقل",
+        icon: <User className="w-4 h-4 text-violet-500" />,
+        action: () => router.push("/profile"),
+      },
+      {
+        id: "nav-notifications",
+        labelEn: "Notifications & Alerts Hub",
+        labelAr: "مركز التنبيهات والإشعارات",
+        categoryEn: "Navigation",
+        categoryAr: "التنقل",
+        icon: <Bell className="w-4 h-4 text-rose-500" />,
+        action: () => router.push("/notifications"),
+      },
+      {
+        id: "act-theme",
+        labelEn: `Switch to ${theme === "dark" ? "Light" : "Dark"} Mode`,
+        labelAr: `التبديل إلى الوضع ${theme === "dark" ? "الفاتح" : "الداكن"}`,
+        categoryEn: "Quick Actions",
+        categoryAr: "إجراءات سريعة",
+        icon:
+          theme === "dark" ? (
+            <Sun className="w-4 h-4 text-yellow-400" />
+          ) : (
+            <Moon className="w-4 h-4 text-slate-700" />
+          ),
+        action: () => setTheme(theme === "dark" ? "light" : "dark"),
+      },
+    ];
+
+    if (aiEnabled) {
+      list.push({
+        id: "act-ai",
+        labelEn: "Ask Academic Assistant AI",
+        labelAr: "اسأل المساعد الذكي للمواد",
+        categoryEn: "AI Assistant",
+        categoryAr: "المساعد الذكي",
+        icon: <Sparkles className="w-4 h-4 text-pink-500" />,
+        action: () => {
+          window.dispatchEvent(new CustomEvent("openChatbot"));
+        },
+      });
+    }
+
+    return list;
+  }, [router, theme, setTheme, aiEnabled]);
+
+  const filteredItems = useMemo(() => {
+    if (!query.trim()) return items;
+    const q = query.toLowerCase();
+    return items.filter(
+      (item) =>
+        item.labelEn.toLowerCase().includes(q) ||
+        item.labelAr.toLowerCase().includes(q) ||
+        item.categoryEn.toLowerCase().includes(q) ||
+        item.categoryAr.toLowerCase().includes(q)
+    );
+  }, [items, query]);
+
+  const handleSelect = useCallback((item: CommandItem) => {
+    setIsOpen(false);
+    setQuery("");
+    // Defer navigation to next tick so UI unmounts immediately without blocking
+    setTimeout(() => {
+      item.action();
+    }, 15);
+  }, []);
+
+  const handleHoverIndex = useCallback((index: number) => {
+    setSelectedIndex((prev) => (prev === index ? prev : index));
+  }, []);
 
   // Global Keyboard Shortcuts (Ctrl+K or Cmd+K)
   useEffect(() => {
@@ -157,14 +289,12 @@ export function SearchBar() {
         );
       } else if (e.key === "Enter" && filteredItems[selectedIndex]) {
         e.preventDefault();
-        filteredItems[selectedIndex].action();
-        setIsOpen(false);
-        setQuery("");
+        handleSelect(filteredItems[selectedIndex]);
       }
     };
     window.addEventListener("keydown", handleNavigation);
     return () => window.removeEventListener("keydown", handleNavigation);
-  }, [isOpen, filteredItems, selectedIndex]);
+  }, [isOpen, filteredItems, selectedIndex, handleSelect]);
 
   return (
     <>
@@ -245,52 +375,17 @@ export function SearchBar() {
                     {isAr ? "لا توجد نتائج مطابقة للبحث" : "No matching results found"}
                   </div>
                 ) : (
-                  filteredItems.map((item, index) => {
-                    const isSelected = index === selectedIndex;
-                    return (
-                      <button
-                        key={item.id}
-                        type="button"
-                        onClick={() => {
-                          item.action();
-                          setIsOpen(false);
-                          setQuery("");
-                        }}
-                        onMouseEnter={() => setSelectedIndex(index)}
-                        className={cn(
-                          "w-full flex items-center justify-between px-3 py-2.5 rounded-xl text-sm transition-colors text-start",
-                          isSelected
-                            ? "bg-primary/10 text-primary font-medium"
-                            : "hover:bg-muted/50 text-foreground/90"
-                        )}
-                      >
-                        <div className="flex items-center gap-3">
-                          <div
-                            className={cn(
-                              "p-2 rounded-lg",
-                              isSelected ? "bg-primary/20" : "bg-muted"
-                            )}
-                          >
-                            {item.icon}
-                          </div>
-                          <div>
-                            <div className="leading-tight">
-                              {isAr ? item.labelAr : item.labelEn}
-                            </div>
-                            <div className="text-[10px] text-muted-foreground mt-0.5">
-                              {isAr ? item.categoryAr : item.categoryEn}
-                            </div>
-                          </div>
-                        </div>
-                        <ArrowRight
-                          className={cn(
-                            "w-4 h-4 transition-transform",
-                            isSelected ? "opacity-100 translate-x-0.5" : "opacity-0 -translate-x-1"
-                          )}
-                        />
-                      </button>
-                    );
-                  })
+                  filteredItems.map((item, index) => (
+                    <CommandListItem
+                      key={item.id}
+                      item={item}
+                      index={index}
+                      isSelected={index === selectedIndex}
+                      isAr={isAr}
+                      onSelect={handleSelect}
+                      onHoverIndex={handleHoverIndex}
+                    />
+                  ))
                 )}
               </div>
 
