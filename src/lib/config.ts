@@ -17,11 +17,9 @@ export const getApiBaseUrl = () => {
       return "";
     }
 
-    // Firebase Hosting domain should point to Vercel API endpoint
-    if (
-      host.includes("obourinstitutes.web.app") ||
-      host.includes("obourinstitutes.firebaseapp.com")
-    ) {
+    // Firebase Hosting domains should point to Vercel API endpoint
+    // Matches obourinstitutes1.web.app, obourinstitutes.web.app, etc.
+    if (host.includes(".web.app") || host.includes(".firebaseapp.com")) {
       return "https://obour-academic-hub.vercel.app";
     }
 

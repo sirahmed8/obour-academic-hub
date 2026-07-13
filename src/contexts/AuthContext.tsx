@@ -48,6 +48,7 @@ const getEmergencyOwnerUser = (firebaseUser: FirebaseUser, existingData?: Partia
     "access_inbox",
     "manage_announcements",
     "view_analytics",
+    "view_audit_logs",
   ],
   photoURL: existingData?.photoURL || firebaseUser.photoURL || undefined,
   createdAt: normalizeDate(existingData?.createdAt || "2026"),
