@@ -18,6 +18,7 @@ import {
 import { cn } from "@/lib/utils";
 import { FadeIn, ScaleIn, StaggerChildren } from "@/components/ui/Animations";
 import { AnimatedIcon } from "@/components/ui/AnimatedIcon";
+import { LoadingPage } from "@/components/ui/Loading";
 import { CustomSelect } from "@/components/ui/CustomSelect";
 import { Subject, Resource } from "@/types";
 import { subjectService } from "@/services/subject.service";
@@ -166,11 +167,7 @@ export function SubjectClient({ subjectName }: SubjectClientProps) {
   }, [subject?.id]);
 
   if (loading) {
-    return (
-      <div className="flex items-center justify-center min-h-[60vh]">
-        <Loader2 className="animate-spin text-primary" size={40} />
-      </div>
-    );
+    return <LoadingPage />;
   }
 
   if (fetchError || !subject) {

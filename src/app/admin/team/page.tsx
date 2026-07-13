@@ -14,6 +14,7 @@ import { AnimatedCheckbox } from "@/components/ui/AnimatedCheckbox";
 import { CustomSelect } from "@/components/ui/CustomSelect";
 import { User, UserPermission } from "@/types";
 import { FadeIn, ScaleIn, StaggerChildren } from "@/components/ui/Animations";
+import { LoadingCardGrid } from "@/components/ui/Loading";
 import Image from "next/image";
 import { AnimatePresence } from "framer-motion";
 import { EditUserModal } from "../users/_components/EditUserModal";
@@ -251,9 +252,7 @@ export default function AdminTeamPage() {
           <h2 className="text-xl font-bold">Access Denied</h2>
         </div>
       ) : loading ? (
-        <div className="flex justify-center items-center p-20">
-          <Loader2 className="animate-spin w-8 h-8 text-primary" />
-        </div>
+        <LoadingCardGrid count={6} />
       ) : (
         <div className="w-full p-4 md:p-8 space-y-8 page-transition">
           <FadeIn className="flex flex-col gap-4 mb-8">

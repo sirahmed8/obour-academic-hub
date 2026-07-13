@@ -18,6 +18,7 @@ import { toast } from "sonner";
 import { apiFetch } from "@/lib/api-client";
 import { FadeIn, ScaleIn } from "@/components/ui/Animations";
 import { ConfirmationModal } from "@/components/ui/ConfirmationModal";
+import { LoadingCardGrid } from "@/components/ui/Loading";
 import { SiteSettings } from "@/types";
 
 export default function AdminSettingsPage() {
@@ -150,9 +151,7 @@ export default function AdminSettingsPage() {
         </FadeIn>
 
         {loading ? (
-          <div className="flex justify-center p-12">
-            <Loader2 className="animate-spin text-primary" size={40} />
-          </div>
+          <LoadingCardGrid count={4} />
         ) : (
           <div className="space-y-6">
             <ScaleIn>

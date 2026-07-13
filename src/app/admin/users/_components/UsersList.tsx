@@ -1,6 +1,7 @@
 "use client";
 
 import { Loader2 } from "lucide-react";
+import { LoadingTable } from "@/components/ui/Loading";
 import { AnimatedCheckbox } from "@/components/ui/AnimatedCheckbox";
 import { StaggerChildren } from "@/components/ui/Animations";
 import { User } from "@/types";
@@ -86,8 +87,8 @@ export function UsersList({
 
       <div className="custom-scrollbar max-h-[365px] w-full overflow-y-auto bg-background/30">
         {loading ? (
-          <div className="flex items-center justify-center p-12">
-            <Loader2 className="animate-spin text-primary" size={40} />
+          <div className="p-4">
+            <LoadingTable rows={6} />
           </div>
         ) : filteredUsers.length === 0 ? (
           <div className="flex items-center justify-center p-12 text-muted-foreground">

@@ -9,6 +9,7 @@ import { AlertCircle, Search, Clock, Loader2, Bug, Layout, Server, Trash2 } from
 
 import { FadeIn, ScaleIn, StaggerChildren } from "@/components/ui/Animations";
 import { ConfirmationModal } from "@/components/ui/ConfirmationModal";
+import { LoadingTable } from "@/components/ui/Loading";
 interface SystemError {
   id: string;
   message: string;
@@ -111,12 +112,7 @@ export default function AdminErrorsPage() {
       </FadeIn>
 
       {loading ? (
-        <div className="flex flex-col items-center justify-center py-40 gap-4">
-          <Loader2 className="animate-spin text-rose-500" size={48} />
-          <p className="text-muted-foreground font-medium animate-pulse italic">
-            {language === "ar" ? "جاري جلب بيانات الأخطاء..." : "DIAGNOSING SYSTEM HEALTH..."}
-          </p>
-        </div>
+        <LoadingTable rows={6} />
       ) : filteredErrors.length === 0 ? (
         <div className="py-40 text-center opacity-30 flex flex-col items-center gap-6">
           <Bug size={80} className="text-muted-foreground" />

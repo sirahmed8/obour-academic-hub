@@ -16,6 +16,7 @@ import { useLanguage } from "@/contexts";
 
 import { Subject, ActivityLog, Resource, User } from "@/types";
 import { StaggerChildren, ScaleIn, FadeIn } from "@/components/ui/Animations";
+import { LoadingPage } from "@/components/ui/Loading";
 import {
   BarChart3,
   Users,
@@ -457,12 +458,7 @@ export default function AdminAnalyticsPage() {
       </FadeIn>
 
       {loading ? (
-        <div className="flex flex-col items-center justify-center py-40 gap-4">
-          <Loader2 className="animate-spin text-primary" size={48} />
-          <p className="text-muted-foreground font-medium animate-pulse">
-            {language === "ar" ? "جاري جلب التحليلات..." : "GATHERING INTELLIGENCE..."}
-          </p>
-        </div>
+        <LoadingPage />
       ) : (
         <StaggerChildren className="space-y-8">
           {/* Tabs Navigation */}

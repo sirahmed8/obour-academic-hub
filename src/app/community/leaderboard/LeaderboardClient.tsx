@@ -9,6 +9,7 @@ import Link from "next/link";
 import { useAuth, useLanguage } from "@/contexts";
 import { motion } from "framer-motion";
 import { FadeIn } from "@/components/ui/Animations";
+import { LoadingTable } from "@/components/ui/Loading";
 
 const LEAGUES = [
   {
@@ -104,9 +105,7 @@ export default function LeaderboardClient() {
       </div>
 
       {loading ? (
-        <div className="flex justify-center items-center h-64">
-          <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary"></div>
-        </div>
+        <LoadingTable rows={8} />
       ) : (
         <div className="space-y-8">
           {/* Stunning Podium Section */}

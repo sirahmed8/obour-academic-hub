@@ -7,6 +7,7 @@ import { notificationService } from "@/services/notification.service";
 
 import { Bell, Info, AlertTriangle, CheckCircle, Loader2, Trash2, CheckCheck } from "lucide-react";
 import { ConfirmationModal } from "@/components/ui/ConfirmationModal";
+import { LoadingTable } from "@/components/ui/Loading";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { motion } from "framer-motion";
@@ -140,9 +141,7 @@ export default function NotificationsPage() {
         </div>
 
         {loading ? (
-          <div className="flex items-center justify-center py-20">
-            <Loader2 className="animate-spin text-primary" size={40} />
-          </div>
+          <LoadingTable rows={5} />
         ) : notifications.length === 0 ? (
           <div className="text-center py-20 bg-muted/30 rounded-2xl border-2 border-dashed border-border">
             <Bell size={48} className="mx-auto text-muted-foreground mb-4" />

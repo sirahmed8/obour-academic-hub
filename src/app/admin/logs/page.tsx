@@ -18,6 +18,7 @@ import {
 } from "lucide-react";
 
 import { FadeIn, ScaleIn, StaggerChildren } from "@/components/ui/Animations";
+import { LoadingTable } from "@/components/ui/Loading";
 import { cn } from "@/lib/utils";
 
 export default function AdminLogsPage() {
@@ -106,12 +107,7 @@ export default function AdminLogsPage() {
       </FadeIn>
 
       {loading ? (
-        <div className="flex flex-col items-center justify-center py-40 gap-4">
-          <Loader2 className="animate-spin text-primary" size={48} />
-          <p className="text-muted-foreground font-medium animate-pulse italic">
-            {language === "ar" ? "جاري جلب السجلات..." : "RETRIEVING AUDIT TRAIL..."}
-          </p>
-        </div>
+        <LoadingTable rows={8} />
       ) : filteredLogs.length === 0 ? (
         <div className="py-40 text-center opacity-30 flex flex-col items-center gap-6">
           <ActivityLogIcon size={80} className="text-muted-foreground" />
