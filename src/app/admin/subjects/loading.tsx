@@ -1,5 +1,5 @@
 import { LoadingSubjectsPage } from "@/components/ui/Loading";
 
-export default function SubjectLoading() {
+export default function Loading() {
   return <LoadingSubjectsPage />;
 }

@@ -16,7 +16,7 @@ import { useLanguage } from "@/contexts";
 
 import { Subject, ActivityLog, Resource, User } from "@/types";
 import { StaggerChildren, ScaleIn, FadeIn } from "@/components/ui/Animations";
-import { LoadingPage } from "@/components/ui/Loading";
+import { LoadingAnalyticsPage } from "@/components/ui/Loading";
 import {
   BarChart3,
   Users,
@@ -458,7 +458,7 @@ export default function AdminAnalyticsPage() {
       </FadeIn>
 
       {loading ? (
-        <LoadingPage />
+        <LoadingAnalyticsPage />
       ) : (
         <StaggerChildren className="space-y-8">
           {/* Tabs Navigation */}
