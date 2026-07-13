@@ -10,7 +10,8 @@ export type UserPermission =
   | "manage_users"
   | "access_inbox"
   | "manage_announcements"
-  | "view_analytics";
+  | "view_analytics"
+  | "view_audit_logs";
 
 export type FirestoreDate =
   | string

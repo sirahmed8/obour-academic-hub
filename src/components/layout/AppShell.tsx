@@ -10,6 +10,7 @@ import dynamic from "next/dynamic";
 import { SkipLink } from "@/components/ui/SkipLink";
 import { usePageTracking } from "@/hooks/usePageTracking";
 import { cn } from "@/lib/utils";
+import { LoadingPage } from "@/components/ui/Loading";
 
 // Lazy load AIChatbot for better initial bundle size
 const AIChatbot = dynamic(
@@ -25,8 +26,16 @@ const StudentProfileSetup = dynamic(
   {
     ssr: false,
     loading: () => (
-      <div className="fixed inset-0 z-50 flex items-center justify-center bg-background/80 backdrop-blur-sm">
-        <Loader2 className="animate-spin text-primary" size={32} />
+      <div className="fixed inset-0 z-50 flex items-center justify-center bg-background/80 backdrop-blur-sm p-4">
+        <div className="w-full max-w-lg rounded-3xl border border-border/50 bg-card p-8 shadow-2xl space-y-6 animate-pulse">
+          <div className="h-8 w-2/3 rounded-xl bg-muted" />
+          <div className="space-y-3">
+            <div className="h-4 w-full rounded-lg bg-muted/60" />
+            <div className="h-12 w-full rounded-2xl bg-muted" />
+            <div className="h-12 w-full rounded-2xl bg-muted" />
+          </div>
+          <div className="h-12 w-full rounded-2xl bg-primary/20" />
+        </div>
       </div>
     ),
   }
@@ -160,11 +169,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   }, [user, isSolid, toggleSolidMode, isLagging, isLowEndDevice]);
 
   if (loading) {
-    return (
-      <div className="h-screen w-full flex items-center justify-center bg-background">
-        <Loader2 className="animate-spin text-primary" size={40} />
-      </div>
-    );
+    return <LoadingPage />;
   }
 
   // Allow rendering even without user (for 404s or public views within the shell)

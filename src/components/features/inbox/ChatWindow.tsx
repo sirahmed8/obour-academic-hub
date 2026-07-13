@@ -13,6 +13,7 @@ import Image from "next/image";
 import { useRef, useEffect, useState } from "react";
 
 import { ChatInput } from "@/components/features/chatbot/ChatInput";
+import { LoadingChat } from "@/components/ui/Loading";
 
 interface ChatWindowProps {
   session: ChatSession | null;
@@ -237,10 +238,7 @@ export function ChatWindow({
               />
 
               {loadingMessages ? (
-                <div className="flex flex-col items-center justify-center h-full gap-3 opacity-50">
-                  <Loader2 className="animate-spin" />
-                  <span className="text-sm">Loading history...</span>
-                </div>
+                <LoadingChat />
               ) : messages.length === 0 ? (
                 <div className="flex flex-col items-center justify-center h-full gap-4 text-center opacity-40">
                   <div className="w-16 h-16 bg-muted rounded-2xl flex items-center justify-center">

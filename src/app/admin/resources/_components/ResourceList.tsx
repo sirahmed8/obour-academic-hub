@@ -4,6 +4,7 @@ import { AnimatePresence, motion } from "framer-motion";
 import { ExternalLink, Eye, FileText, Loader2, Pencil, Trash2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { FadeIn } from "@/components/ui/Animations";
+import { LoadingCardGrid } from "@/components/ui/Loading";
 import { Resource } from "@/types";
 import { getDisplayResourceIcon, getResourceColor } from "../resource-utils";
 
@@ -25,12 +26,12 @@ export function ResourceList({
   selectedSubjectId,
 }: ResourceListProps) {
   return (
-    <FadeIn delay={0.2}>
-      <div className="rounded-3xl border border-border bg-card p-8 shadow-sm">
-        <h2 className="mb-6 flex items-center gap-2 border-b pb-4 text-xl font-bold">
-          <Eye className="h-5 w-5 text-primary" />
-          {language === "ar" ? "المصادر الحالية" : "Existing Resources"}
-          <span className="ml-auto rounded-full bg-muted px-3 py-1 text-sm font-normal text-muted-foreground">
+    <FadeIn className="lg:col-span-2">
+      <div className="rounded-2xl border border-border/50 bg-card/80 p-6 shadow-xl backdrop-blur-xl">
+        <h2 className="mb-6 flex items-center gap-2 text-xl font-bold">
+          <FileText className="h-5 w-5 text-primary" />
+          {language === "ar" ? "المصادر المتاحة" : "Available Resources"}
+          <span className="ml-auto rounded-full bg-primary/10 px-3 py-0.5 text-xs text-primary">
             {resources.length}
           </span>
         </h2>
@@ -41,9 +42,7 @@ export function ResourceList({
             <p>{language === "ar" ? "اختر مادة أولاً" : "Select a subject first"}</p>
           </div>
         ) : loadingResources ? (
-          <div className="flex justify-center py-12">
-            <Loader2 className="h-8 w-8 animate-spin text-primary" />
-          </div>
+          <LoadingCardGrid count={3} />
         ) : resources.length === 0 ? (
           <div className="py-12 text-center text-muted-foreground">
             <FileText className="mx-auto mb-3 h-12 w-12 opacity-30" />

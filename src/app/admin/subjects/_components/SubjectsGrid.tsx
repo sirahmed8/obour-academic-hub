@@ -1,7 +1,8 @@
 "use client";
 
 import { AnimatePresence, motion } from "framer-motion";
-import { Loader2, Search } from "lucide-react";
+import { Search } from "lucide-react";
+import { LoadingCardGrid } from "@/components/ui/Loading";
 import { Subject } from "@/types";
 import { SubjectCard } from "./SubjectCard";
 
@@ -25,11 +26,7 @@ export function SubjectsGrid({
   subjects,
 }: SubjectsGridProps) {
   if (loading) {
-    return (
-      <div className="flex justify-center py-20">
-        <Loader2 className="h-10 w-10 animate-spin text-primary" />
-      </div>
-    );
+    return <LoadingCardGrid count={6} />;
   }
 
   if (subjects.length === 0) {

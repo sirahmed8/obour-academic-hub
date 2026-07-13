@@ -8,6 +8,7 @@ import { MessageSquare, Pin, Search, CheckCheck, Loader2, Trash2 } from "lucide-
 import Image from "next/image";
 import { motion, AnimatePresence } from "framer-motion";
 import { ScaleIn } from "@/components/ui/Animations";
+import { LoadingTable } from "@/components/ui/Loading";
 
 interface ChatListProps {
   sessions: ChatSession[];
@@ -79,8 +80,8 @@ export function ChatList({
       {/* List */}
       <div className="flex-1 overflow-y-auto px-4 py-2 space-y-2 scrollbar-hide">
         {isLoading ? (
-          <div className="flex justify-center items-center h-40">
-            <Loader2 className="animate-spin text-primary" />
+          <div className="py-2">
+            <LoadingTable rows={5} />
           </div>
         ) : sessions.length === 0 ? (
           <div className="text-center text-muted-foreground text-sm py-10 opacity-50">

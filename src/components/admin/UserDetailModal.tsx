@@ -10,6 +10,7 @@ import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 import Image from "next/image";
 import { ConfirmationModal } from "@/components/ui/ConfirmationModal";
+import { LoadingTable } from "@/components/ui/Loading";
 
 // Define proper types for admin data
 interface LogEntry {
@@ -313,8 +314,8 @@ export function UserDetailModal({ user, onClose, language }: UserDetailModalProp
         {/* Content */}
         <div className="flex-1 overflow-y-auto p-6 bg-background/50 text-foreground font-mono text-sm relative">
           {loading ? (
-            <div className="flex items-center justify-center h-full py-20">
-              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary" />
+            <div className="py-4">
+              <LoadingTable rows={4} />
             </div>
           ) : (
             <div className="space-y-3">
