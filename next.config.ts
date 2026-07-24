@@ -8,7 +8,7 @@ const nextConfig: NextConfig = {
   // Filter out .ts and .js files from route discovery during static export
   // to avoid conflicts with dynamic API routes. UI pages use .tsx.
   pageExtensions: isFirebaseBuild ? ["tsx", "jsx", "mdx"] : ["tsx", "ts", "jsx", "js", "mdx"],
-  trailingSlash: false,
+  trailingSlash: isFirebaseBuild ? true : false,
   serverExternalPackages: [
     "firebase-admin",
     "@google-cloud/firestore",

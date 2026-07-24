@@ -3,7 +3,7 @@
 import { useLanguage } from "@/contexts";
 import { ChatSession, ChatMessage } from "@/types";
 import { MessageBubble } from "./MessageBubble";
-import { Trash2, ArrowLeft, Loader2, X } from "lucide-react";
+import { Trash2, ArrowLeft, X } from "lucide-react";
 import { AnimatePresence, motion, HTMLMotionProps } from "framer-motion";
 import { rtdb } from "@/lib/firebase";
 import { ref, onValue } from "firebase/database";

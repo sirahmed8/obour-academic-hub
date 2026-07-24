@@ -4,7 +4,7 @@ import { useState } from "react";
 import { useLanguage } from "@/contexts";
 import { ChatSession } from "@/types";
 import { cn } from "@/lib/utils";
-import { MessageSquare, Pin, Search, CheckCheck, Loader2, Trash2 } from "lucide-react";
+import { MessageSquare, Pin, Search, CheckCheck, Trash2 } from "lucide-react";
 import Image from "next/image";
 import { motion, AnimatePresence } from "framer-motion";
 import { ScaleIn } from "@/components/ui/Animations";

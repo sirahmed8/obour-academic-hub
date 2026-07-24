@@ -30,15 +30,17 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     if (!isAdmin) return false;
     if (isOwner) return true;
 
+    const cleanPath = pathname ? pathname.replace(/\/+$/, "") || "/" : "";
+
     // Direct match check
-    const mapped = PERMISSION_MAP[pathname];
+    const mapped = PERMISSION_MAP[cleanPath];
     if (mapped) {
       if (mapped === "owner") return false;
       return hasPermission(mapped);
     }
 
     // Prefix match check for nested dynamic routes (e.g., /admin/subjects/123)
-    const matchingPrefix = Object.keys(PERMISSION_MAP).find((route) => pathname.startsWith(route));
+    const matchingPrefix = Object.keys(PERMISSION_MAP).find((route) => cleanPath.startsWith(route));
     if (!matchingPrefix) return true; // Default admin access if no specific permission required
 
     const permission = PERMISSION_MAP[matchingPrefix];

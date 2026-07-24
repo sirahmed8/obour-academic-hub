@@ -14,7 +14,7 @@
         "headers": [{ "key": "Cache-Control", "value": "public, max-age=86400, must-revalidate" }]
       },
       {
-        "source": "**/*.html",
+        "source": "**/*.@(html|txt)",
         "headers": [
           { "key": "Cache-Control", "value": "no-cache, no-store, must-revalidate" },
           { "key": "X-Content-Type-Options", "value": "nosniff" },

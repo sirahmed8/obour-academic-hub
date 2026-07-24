@@ -14,7 +14,6 @@ import {
   CheckCircle,
   Clock,
   User as UserIcon,
-  Loader2,
 } from "lucide-react";
 
 import { FadeIn, ScaleIn, StaggerChildren } from "@/components/ui/Animations";

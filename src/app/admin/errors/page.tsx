@@ -5,7 +5,7 @@ import { db } from "@/lib/firebase";
 import { collection, query, orderBy, limit, onSnapshot, doc, writeBatch } from "firebase/firestore";
 import { toast } from "sonner";
 import { useLanguage } from "@/contexts";
-import { AlertCircle, Search, Clock, Loader2, Bug, Layout, Server, Trash2 } from "lucide-react";
+import { AlertCircle, Search, Clock, Bug, Layout, Server, Trash2 } from "lucide-react";
 
 import { FadeIn, ScaleIn, StaggerChildren } from "@/components/ui/Animations";
 import { ConfirmationModal } from "@/components/ui/ConfirmationModal";

@@ -1,7 +1,7 @@
 "use client";
 
 import { AnimatePresence, motion } from "framer-motion";
-import { ExternalLink, Eye, FileText, Loader2, Pencil, Trash2 } from "lucide-react";
+import { ExternalLink, FileText, Pencil, Trash2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { FadeIn } from "@/components/ui/Animations";
 import { LoadingCardGrid } from "@/components/ui/Loading";

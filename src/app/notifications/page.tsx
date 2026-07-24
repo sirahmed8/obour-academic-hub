@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { useLanguage, useAuth } from "@/contexts";
 import { notificationService } from "@/services/notification.service";
 
-import { Bell, Info, AlertTriangle, CheckCircle, Loader2, Trash2, CheckCheck } from "lucide-react";
+import { Bell, Info, AlertTriangle, CheckCircle, Trash2, CheckCheck } from "lucide-react";
 import { ConfirmationModal } from "@/components/ui/ConfirmationModal";
 import { LoadingTable } from "@/components/ui/Loading";
 import { toast } from "sonner";

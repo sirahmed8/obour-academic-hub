@@ -536,7 +536,7 @@ const SidebarLink = memo(
       <Link
         href={path}
         onClick={onClose}
-        prefetch={true}
+        prefetch={false}
         onMouseEnter={() => setIsHovered(true)}
         onMouseLeave={() => setIsHovered(false)}
         aria-label={ariaLabel || name}

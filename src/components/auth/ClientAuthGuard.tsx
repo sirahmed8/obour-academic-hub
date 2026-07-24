@@ -18,10 +18,12 @@ export default function ClientAuthGuard({ children }: ClientAuthGuardProps) {
   useEffect(() => {
     if (loading) return;
 
+    const cleanPath = pathname ? pathname.replace(/\/+$/, "") || "/" : "";
+
     const isProtectedPath =
-      pathname.startsWith("/admin") ||
-      pathname.startsWith("/profile") ||
-      pathname.startsWith("/todo");
+      cleanPath.startsWith("/admin") ||
+      cleanPath.startsWith("/profile") ||
+      cleanPath.startsWith("/todo");
 
     const session = typeof window !== "undefined" && document.cookie.includes("__session");
 

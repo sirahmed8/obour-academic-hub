@@ -22,7 +22,6 @@ import {
   Users,
   BookOpen,
   Activity,
-  Loader2,
   RefreshCw,
   Trash2,
   LogIn,

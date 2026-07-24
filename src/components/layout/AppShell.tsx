@@ -44,7 +44,7 @@ const StudentProfileSetup = dynamic(
 import { LiveBanner } from "@/components/features/LiveBanner";
 import { AdminApprovalModal } from "@/components/admin/AdminApprovalModal";
 import { CookieConsent } from "@/components/ui/CookieConsent";
-import { Loader2, ExternalLink } from "lucide-react";
+import { ExternalLink } from "lucide-react";
 import { useGlobalKeyboard } from "@/hooks/useGlobalKeyboard";
 import { usePerformance } from "@/hooks/usePerformance";
 import { PageTransition } from "@/components/ui/Animations";

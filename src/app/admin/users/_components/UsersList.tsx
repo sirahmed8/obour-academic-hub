@@ -1,6 +1,5 @@
 "use client";
 
-import { Loader2 } from "lucide-react";
 import { LoadingTable } from "@/components/ui/Loading";
 import { AnimatedCheckbox } from "@/components/ui/AnimatedCheckbox";
 import { StaggerChildren } from "@/components/ui/Animations";

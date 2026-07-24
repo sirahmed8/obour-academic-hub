@@ -19,10 +19,6 @@ import { errorLogger } from "@/lib/errorLogger";
  * Service to handle Authentication related Firestore operations.
  * Allows decoupling UI logic (AuthContext) from direct Firestore SDK calls.
  */
-/**
- * Service to handle Authentication related Firestore operations.
- * Allows decoupling UI logic (AuthContext) from direct Firestore SDK calls.
- */
 class AuthService {
   private static instance: AuthService;
 

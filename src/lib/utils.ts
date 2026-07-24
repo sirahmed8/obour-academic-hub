@@ -45,6 +45,11 @@ export function normalizeDate(date: DateInput): string {
   return isNaN(d.getTime()) ? "1970-01-01T00:00:00.000Z" : d.toISOString();
 }
 
+/**
+ * Formats a date for English locale (e.g. "Oct 15, 2026")
+ * @param date The Date, Timestamp, or date string to format
+ * @returns Formatted date string or "N/A" if invalid
+ */
 export function formatDate(date: DateInput): string {
   const validDate = toDate(date);
   if (isNaN(validDate.getTime())) return "N/A";
@@ -56,6 +61,11 @@ export function formatDate(date: DateInput): string {
   }).format(validDate);
 }
 
+/**
+ * Formats a date for Arabic locale (e.g. "١٥ أكتوبر ٢٠٢٦")
+ * @param date The Date, Timestamp, or date string to format
+ * @returns Formatted Arabic date string or "تاريخ غير صالح" if invalid
+ */
 export function formatDateArabic(date: DateInput): string {
   const validDate = toDate(date);
   if (isNaN(validDate.getTime())) return "تاريخ غير صالح";
@@ -102,6 +112,12 @@ export function getGreeting(): { en: string; ar: string } {
   return list[Math.floor(Math.random() * list.length)];
 }
 
+/**
+ * Generates a profile avatar image URL based on the user's name
+ * @param name User's display name
+ * @param bgColor Background color hex (default: "6366f1")
+ * @returns Avatar image URL
+ */
 export function generateAvatarUrl(name: string, bgColor = "6366f1"): string {
   return `https://ui-avatars.com/api/?name=${encodeURIComponent(
     name
