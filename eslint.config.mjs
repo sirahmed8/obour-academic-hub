@@ -19,9 +19,9 @@ const eslintConfig = defineConfig([
     rules: {
       "@typescript-eslint/no-unused-vars": ["error", { argsIgnorePattern: "^_" }],
       "@typescript-eslint/no-explicit-any": "error",
-      "react-hooks/exhaustive-deps": "error"
-    }
-  }
+      "react-hooks/exhaustive-deps": "error",
+    },
+  },
 ]);
 
 export default eslintConfig;
