@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import { useAuth, useLanguage } from "@/contexts";
 import { Sparkles, Lock, Lightbulb, Loader2, RefreshCw } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
+import { apiFetch } from "@/lib/api-client";
 
 export function TacticalAdviceCard() {
   const { user } = useAuth();
@@ -33,19 +34,15 @@ export function TacticalAdviceCard() {
     try {
       const prompt =
         language === "ar"
-          ? "قدم لي نصيحة أكاديمية وتكتيكية قصيرة وملهمة لتحسين أدائي في الدراسة وإدارة الوقت اليوم بناءً على إحصائياتي."
-          : "Provide me concise, impactful tactical academic advice to improve my study efficiency and time management today.";
+          ? "قدم لي بصفتك المستشار الأكاديمي والتكتيكي لمنصة معاهد العبور خطة ونصيحة دراسية وتكتيكية مخصصة ومباشرة لتحسين أدائي الأكاديمي وإدارة الوقت اليوم بناءً على بياناتي."
+          : "As the Obour Academic Advisor, provide me a concise, impactful study strategy and academic tactics for Obour Institute students today.";
 
-      const res = await fetch("/api/chat", {
+      const data = await apiFetch<{ content: string }>("/api/chat", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
+        body: {
           messages: [{ role: "user", content: prompt }],
-        }),
+        },
       });
-
-      if (!res.ok) throw new Error("Advice request failed");
-      const data = await res.json();
 
       const cleanAdvice = (data.content || "").replace(/\[SUGGESTIONS:.*?\]/g, "").trim();
       setAdvice(cleanAdvice);
@@ -55,10 +52,10 @@ export function TacticalAdviceCard() {
       localStorage.setItem(storageKey, String(nextUsed));
       setUsesLeft(3 - nextUsed);
     } catch (err) {
-      console.error(err);
+      console.error("Failed to fetch advice:", err);
       setAdvice(
         language === "ar"
-          ? "حدث خطأ أثناء جلب النصيحة، يرجى المحاولة لاحقاً."
+          ? "عذراً، حدث خطأ أثناء جلب النصيحة. يرجى إعادة المحاولة لاحقاً."
           : "An error occurred while fetching advice. Please try again later."
       );
     } finally {
@@ -71,16 +68,18 @@ export function TacticalAdviceCard() {
       <div className="flex items-center justify-between mb-4">
         <div className="flex items-center gap-3">
           <div className="p-3 bg-primary/10 text-primary rounded-2xl">
-            <Sparkles size={22} className="animate-pulse" />
+            <Sparkles size={22} className="animate-pulse text-amber-500" />
           </div>
           <div>
             <h3 className="text-lg font-black text-foreground">
-              {language === "ar" ? "المستشار التكتيكي بالذكاء الاصطناعي" : "AI Tactical Advisor"}
+              {language === "ar"
+                ? "المستشار الأكاديمي والتكتيكي بالذكاء الاصطناعي"
+                : "AI Academic & Tactical Advisor"}
             </h3>
             <p className="text-xs text-muted-foreground font-medium">
               {language === "ar"
-                ? "نصائح دراسية وتكتيكية مخصصة يومياً"
-                : "Daily personalized study strategy"}
+                ? "خطة دراسية ونصائح تكتيكية مخصصة يومياً لطلاب معاهد العبور"
+                : "Daily personalized study strategy for Obour Institute students"}
             </p>
           </div>
         </div>
