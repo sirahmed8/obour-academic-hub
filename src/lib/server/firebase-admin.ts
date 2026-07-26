@@ -143,7 +143,9 @@ export const getAdminApp = (): App => {
         credential: cert(config as ServiceAccount),
         projectId,
         databaseURL:
-          process.env.FIREBASE_DATABASE_URL || `https://${projectId}-default-rtdb.firebaseio.com`,
+          process.env.FIREBASE_DATABASE_URL ||
+          process.env.NEXT_PUBLIC_FIREBASE_DATABASE_URL ||
+          `https://${projectId}-default-rtdb.europe-west1.firebasedatabase.app`,
         storageBucket: process.env.FIREBASE_STORAGE_BUCKET || `${projectId}.firebasestorage.app`,
       });
     }

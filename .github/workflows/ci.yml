@@ -13,7 +13,7 @@ env:
   NEXT_TELEMETRY_DISABLED: 1
   NEXT_PUBLIC_FIREBASE_API_KEY: AIzaSyDtRfBzbvqDaM8pmVX1xNCXm08gR0BXeIU
   NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN: obourinstitutes1.firebaseapp.com
-  NEXT_PUBLIC_FIREBASE_DATABASE_URL: https://obourinstitutes1-default-rtdb.firebaseio.com
+  NEXT_PUBLIC_FIREBASE_DATABASE_URL: https://obourinstitutes1-default-rtdb.europe-west1.firebasedatabase.app
   NEXT_PUBLIC_FIREBASE_PROJECT_ID: obourinstitutes1
   NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET: obourinstitutes1.firebasestorage.app
   NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID: "944853182691"

@@ -10,7 +10,7 @@ import { getPerformance, FirebasePerformance } from "firebase/performance";
 const DEFAULT_FIREBASE_CONFIG = {
   apiKey: "AIzaSyDtRfBzbvqDaM8pmVX1xNCXm08gR0BXeIU",
   authDomain: "obourinstitutes1.firebaseapp.com",
-  databaseURL: "https://obourinstitutes1-default-rtdb.firebaseio.com",
+  databaseURL: "https://obourinstitutes1-default-rtdb.europe-west1.firebasedatabase.app",
   projectId: "obourinstitutes1",
   storageBucket: "obourinstitutes1.firebasestorage.app",
   messagingSenderId: "944853182691",

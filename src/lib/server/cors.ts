@@ -2,6 +2,8 @@ import { NextResponse } from "next/server";
 
 function getAllowedOrigins() {
   const origins = new Set([
+    "https://obourinstitutes1.web.app",
+    "https://obourinstitutes1.firebaseapp.com",
     "https://obourinstitutes.web.app",
     "https://obourinstitutes.firebaseapp.com",
     "https://obour-academic-hub.vercel.app",
@@ -26,9 +28,12 @@ export function getCorsHeaders(request: Request) {
 
   // If origin matches one of the allowed origins (ignoring trailing slashes), echo it back.
   const normalizedOrigin = origin?.replace(/\/$/, "");
-  const isAllowed = normalizedOrigin && allowedOrigins.includes(normalizedOrigin);
+  const isAllowed =
+    normalizedOrigin &&
+    (allowedOrigins.includes(normalizedOrigin) ||
+      /^https:\/\/obourinstitutes\d*\.(web\.app|firebaseapp\.com)$/.test(normalizedOrigin));
 
-  const allowedOrigin = isAllowed ? origin! : "https://obourinstitutes.web.app";
+  const allowedOrigin = isAllowed ? origin! : "https://obourinstitutes1.web.app";
 
   return {
     "Access-Control-Allow-Origin": allowedOrigin,
