@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { History, Megaphone, Plus, X } from "lucide-react";
+import { History, Megaphone, Plus, X, Sparkles, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import { AnimatePresence } from "framer-motion";
 import { apiFetch } from "@/lib/api-client";
@@ -26,10 +26,47 @@ const EMPTY_BANNER_FORM: BannerDraft = {
 export function BannerManagerTab({ banners, language }: BannerManagerTabProps) {
   const [isAdding, setIsAdding] = useState(false);
   const [bannerForm, setBannerForm] = useState<BannerDraft>(EMPTY_BANNER_FORM);
+  const [isEnhancing, setIsEnhancing] = useState(false);
   const [deleteModal, setDeleteModal] = useState<{ isOpen: boolean; bannerId: string | null }>({
     isOpen: false,
     bannerId: null,
   });
+
+  const handleAIEnhanceBanner = async () => {
+    if (isEnhancing) return;
+    setIsEnhancing(true);
+    try {
+      const result = await apiFetch<{
+        titleAr: string;
+        titleEn: string;
+        messageAr: string;
+        messageEn: string;
+      }>("/api/admin/notifications/ai-enhance", {
+        method: "POST",
+        body: {
+          messageAr: bannerForm.textAr,
+          messageEn: bannerForm.textEn,
+          tone: "مختصر ومباشر جداً لشريط الإعلانات العلوي",
+        },
+      });
+
+      setBannerForm((prev) => ({
+        ...prev,
+        textAr: result.messageAr || result.titleAr || prev.textAr,
+        textEn: result.messageEn || result.titleEn || prev.textEn,
+      }));
+
+      toast.success(
+        language === "ar"
+          ? "تم تحسين نص الشريط الإعلاني بالذكاء الاصطناعي ✨"
+          : "Banner text polished by AI ✨"
+      );
+    } catch {
+      toast.error(language === "ar" ? "فشل تحسين الشريط" : "Failed to enhance banner");
+    } finally {
+      setIsEnhancing(false);
+    }
+  };
 
   const activeBanners = useMemo(() => banners.filter((banner) => banner.isActive), [banners]);
   const historyBanners = useMemo(() => banners.filter((banner) => !banner.isActive), [banners]);
@@ -97,6 +134,30 @@ export function BannerManagerTab({ banners, language }: BannerManagerTabProps) {
           )}
         >
           <div className="mb-4 space-y-4 rounded-2xl border border-border bg-card p-6 shadow-sm">
+            <div className="flex items-center justify-between p-3.5 rounded-xl bg-purple-500/10 border border-purple-500/20">
+              <div className="flex items-center gap-2">
+                <Sparkles className="w-4 h-4 text-purple-400 animate-pulse" />
+                <span className="text-xs font-bold text-foreground">
+                  {language === "ar"
+                    ? "تحسين وتدقيق شريط الإعلان بالذكاء الاصطناعي"
+                    : "AI Banner Text Auto-Polish"}
+                </span>
+              </div>
+              <button
+                type="button"
+                disabled={isEnhancing}
+                onClick={handleAIEnhanceBanner}
+                className="px-3 py-1.5 rounded-lg bg-purple-600 hover:bg-purple-500 text-white font-bold text-xs flex items-center gap-1.5 transition-all cursor-pointer disabled:opacity-50"
+              >
+                {isEnhancing ? (
+                  <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                ) : (
+                  <Sparkles className="w-3.5 h-3.5" />
+                )}
+                <span>{language === "ar" ? "تحسين النص ✨" : "Polish Text ✨"}</span>
+              </button>
+            </div>
+
             <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
               <div className="space-y-2">
                 <label className="text-sm font-medium">Text (Arabic)</label>

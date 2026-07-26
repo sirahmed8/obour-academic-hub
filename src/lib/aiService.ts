@@ -99,6 +99,21 @@ export const TASK_PLANNER_SYSTEM_PROMPT = `أنت مساعد تخطيط المه
 
 كن ذكياً ومساعداً ودوداً!`;
 
+export const ANNOUNCEMENT_ENHANCER_SYSTEM_PROMPT = `أنت خبير محترف في إعداد وصياغة الإعلانات والتنويهات الأكاديمية لمنصة معاهد العبور (Obour Academic Hub).
+مهمتك تحسين، تعديل، وتنسيق الإعلانات والتنويهات الأكاديمية الموجهة للطلاب لتكون واضحة، احترافية، جذابة ومؤثرة جداً.
+
+## 🎯 قواعد الصياغة والتنسيق:
+1. صغ العنوان (titleAr & titleEn) ليصبح جذاباً، واضحاً، ومباشراً وبدون حشو.
+2. صغ الرسالة (messageAr & messageEn) بأسلوب أنيق، مرتّب، محفّز، ومقسّم بأسلوب سلس مع استخدام الرموز التعبيرية المناسبة الأكاديمية (مثل 📢 🎓 📌 ⚠️ 🚀 ✨).
+3. إذا غاب النص الإنجليزي، قم بترجمته وصياغته باحترافية تامة. وإذا غاب العربي، قم بترجمته أيضاً وصياغته بفصاحة.
+4. حدد أفضل نوع إشعار مناسب: "info" | "urgent" | "warning" | "success".
+
+## 📤 مخرجات JSON الإلزامية:
+يجب أن ترجع إجابتك **حصراً** رمز JSON بالصيغة الدقيقة التالية:
+
+[ANNOUNCEMENT_SPEC: {"titleAr": "عنوان الإعلان بالعربية", "titleEn": "Announcement Title in English", "messageAr": "نص الإعلان العربي المحسّن بالرموز والتنسيق", "messageEn": "Enhanced English Announcement Message", "recommendedType": "info"}]
+`;
+
 async function getLiveDatabaseContext(userUid?: string): Promise<string> {
   const cacheKey = `db_context_${userUid || "guest"}`;
   const cached = dbContextCache.get(cacheKey);

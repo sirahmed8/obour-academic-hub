@@ -1,7 +1,7 @@
 "use client";
 
 import { FormEvent, useState } from "react";
-import { Loader2, Mail } from "lucide-react";
+import { Loader2, Mail, Sparkles } from "lucide-react";
 import { toast } from "sonner";
 import { apiFetch } from "@/lib/api-client";
 import { userService } from "@/services/user.service";
@@ -18,6 +18,34 @@ export function SendEmailTab({ language }: SendEmailTabProps) {
   const [message, setMessage] = useState("");
   const [target, setTarget] = useState<NotificationAudience>("all");
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isEnhancing, setIsEnhancing] = useState(false);
+
+  const handleAIEnhance = async () => {
+    if (isEnhancing) return;
+    setIsEnhancing(true);
+    try {
+      const result = await apiFetch<{
+        titleAr: string;
+        messageAr: string;
+      }>("/api/admin/notifications/ai-enhance", {
+        method: "POST",
+        body: { titleAr: subject, messageAr: message, tone: "رسمية وأكاديمية وجذابة للإيميل" },
+      });
+
+      if (result.titleAr) setSubject(result.titleAr);
+      if (result.messageAr) setMessage(result.messageAr);
+
+      toast.success(
+        language === "ar"
+          ? "تم صيغ وتصميم الإيميل بالذكاء الاصطناعي ✨"
+          : "Email body polished & structured by AI ✨"
+      );
+    } catch {
+      toast.error(language === "ar" ? "فشل تحسين الإيميل" : "Failed to enhance email");
+    } finally {
+      setIsEnhancing(false);
+    }
+  };
 
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -77,6 +105,38 @@ export function SendEmailTab({ language }: SendEmailTabProps) {
   return (
     <ScaleIn delay={0.1} className="rounded-xl border border-border bg-card p-6 shadow-sm">
       <form onSubmit={handleSubmit} className="space-y-6">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-4 rounded-2xl bg-purple-500/10 border border-purple-500/20">
+          <div className="flex items-center gap-2">
+            <Sparkles className="w-5 h-5 text-purple-400 animate-pulse shrink-0" />
+            <div>
+              <h4 className="text-sm font-bold text-foreground">
+                {language === "ar" ? "مساعد الإيميلات الأكاديمية" : "AI Academic Email Assistant"}
+              </h4>
+              <p className="text-xs text-muted-foreground">
+                {language === "ar"
+                  ? "اكتب مسودة سريعة وصغ الرسالة بالذكاء الاصطناعي بنقرة واحدة"
+                  : "Type a rough idea and let AI structure a polished academic email in 1-click"}
+              </p>
+            </div>
+          </div>
+
+          <button
+            type="button"
+            disabled={isEnhancing}
+            onClick={handleAIEnhance}
+            className="px-4 py-2 rounded-xl bg-gradient-to-r from-purple-600 via-indigo-600 to-purple-600 hover:from-purple-500 hover:to-indigo-500 text-white font-bold text-xs flex items-center justify-center gap-2 shadow-lg shadow-purple-500/20 border border-purple-400/30 transition-all cursor-pointer disabled:opacity-50 shrink-0"
+          >
+            {isEnhancing ? (
+              <Loader2 className="w-4 h-4 animate-spin text-purple-200" />
+            ) : (
+              <Sparkles className="w-4 h-4 text-purple-200" />
+            )}
+            <span>
+              {language === "ar" ? "صياغة وتدقيق بالذكاء الاصطناعي ✨" : "Polish with AI ✨"}
+            </span>
+          </button>
+        </div>
+
         <div className="space-y-4">
           <div className="space-y-2">
             <label className="text-sm font-medium">

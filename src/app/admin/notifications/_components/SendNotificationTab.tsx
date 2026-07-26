@@ -1,7 +1,7 @@
 "use client";
 
 import { FormEvent, useState } from "react";
-import { AlertTriangle, CheckCircle, Info, Loader2, Send } from "lucide-react";
+import { AlertTriangle, CheckCircle, Info, Loader2, Send, Sparkles } from "lucide-react";
 import { toast } from "sonner";
 import { apiFetch } from "@/lib/api-client";
 import { ScaleIn } from "@/components/ui/Animations";
@@ -21,6 +21,40 @@ export function SendNotificationTab({ language }: SendNotificationTabProps) {
   const [type, setType] = useState<NotificationKind>("info");
   const [target, setTarget] = useState<NotificationAudience>("all");
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isEnhancing, setIsEnhancing] = useState(false);
+
+  const handleAIEnhance = async () => {
+    if (isEnhancing) return;
+    setIsEnhancing(true);
+    try {
+      const result = await apiFetch<{
+        titleAr: string;
+        titleEn: string;
+        messageAr: string;
+        messageEn: string;
+        recommendedType?: NotificationKind;
+      }>("/api/admin/notifications/ai-enhance", {
+        method: "POST",
+        body: { titleAr, titleEn, messageAr, messageEn },
+      });
+
+      if (result.titleAr) setTitleAr(result.titleAr);
+      if (result.titleEn) setTitleEn(result.titleEn);
+      if (result.messageAr) setMessageAr(result.messageAr);
+      if (result.messageEn) setMessageEn(result.messageEn);
+      if (result.recommendedType) setType(result.recommendedType);
+
+      toast.success(
+        language === "ar"
+          ? "تم تحسين نص الإشعار وتدقيقه بالذكاء الاصطناعي ✨"
+          : "Announcement enhanced & polished by AI ✨"
+      );
+    } catch {
+      toast.error(language === "ar" ? "فشل في تحسين الإعلان" : "Failed to enhance announcement");
+    } finally {
+      setIsEnhancing(false);
+    }
+  };
 
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -63,6 +97,38 @@ export function SendNotificationTab({ language }: SendNotificationTabProps) {
   return (
     <ScaleIn delay={0.1} className="rounded-xl border border-border bg-card p-6 shadow-sm">
       <form onSubmit={handleSubmit} className="space-y-6">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-4 rounded-2xl bg-purple-500/10 border border-purple-500/20">
+          <div className="flex items-center gap-2">
+            <Sparkles className="w-5 h-5 text-purple-400 animate-pulse shrink-0" />
+            <div>
+              <h4 className="text-sm font-bold text-foreground">
+                {language === "ar" ? "مساعد الإعلانات الذكي" : "AI Announcement Assistant"}
+              </h4>
+              <p className="text-xs text-muted-foreground">
+                {language === "ar"
+                  ? "اكتب مسودة قصيرة أو انقر مباشرة لتوليد وتحسين الإعلان باللغتين وتنسيقه بالذكاء الاصطناعي"
+                  : "Type a short draft or click to generate & polish announcement in AR & EN with AI"}
+              </p>
+            </div>
+          </div>
+
+          <button
+            type="button"
+            disabled={isEnhancing}
+            onClick={handleAIEnhance}
+            className="px-4 py-2 rounded-xl bg-gradient-to-r from-purple-600 via-indigo-600 to-purple-600 hover:from-purple-500 hover:to-indigo-500 text-white font-bold text-xs flex items-center justify-center gap-2 shadow-lg shadow-purple-500/20 border border-purple-400/30 transition-all cursor-pointer disabled:opacity-50 shrink-0"
+          >
+            {isEnhancing ? (
+              <Loader2 className="w-4 h-4 animate-spin text-purple-200" />
+            ) : (
+              <Sparkles className="w-4 h-4 text-purple-200" />
+            )}
+            <span>
+              {language === "ar" ? "تحسين بالذكاء الاصطناعي ✨" : "Auto-Improve with AI ✨"}
+            </span>
+          </button>
+        </div>
+
         <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
           <div className="space-y-4">
             <h3 className="flex items-center gap-2 text-sm font-semibold text-muted-foreground">
