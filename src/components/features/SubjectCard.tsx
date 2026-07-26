@@ -80,12 +80,17 @@ export const SubjectCard = React.memo(function SubjectCard({
             </div>
 
             <div className="flex items-center gap-2">
-              <span className="px-2.5 py-1 rounded-full text-[10px] font-black uppercase tracking-wider bg-muted text-muted-foreground border border-border/50">
-                {subject.code ||
-                  (language === "ar"
-                    ? `مستوى ${subject.level || subject.year || 1}`
-                    : `L${subject.level || subject.year || 1}`)}
-              </span>
+              {(() => {
+                const sObj = subject as unknown as { code?: string; level?: number; year?: number };
+                return (
+                  <span className="px-2.5 py-1 rounded-full text-[10px] font-black uppercase tracking-wider bg-muted text-muted-foreground border border-border/50">
+                    {sObj.code ||
+                      (language === "ar"
+                        ? `مستوى ${sObj.level || sObj.year || 1}`
+                        : `L${sObj.level || sObj.year || 1}`)}
+                  </span>
+                );
+              })()}
               <div className="p-2 rounded-xl bg-card border border-border/50 opacity-0 group-hover:opacity-100 transition-opacity">
                 <ArrowUpRight
                   size={16}
