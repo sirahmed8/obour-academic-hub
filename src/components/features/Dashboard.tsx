@@ -60,10 +60,6 @@ export function Dashboard() {
           transition={{ duration: 0.6, ease: "easeOut" }}
           className="relative rounded-3xl sm:rounded-4xl overflow-hidden bg-[#0c1020] dark:bg-[#090c18] border border-white/10 shadow-xl group"
         >
-          {/* Ambient Glow Orbs */}
-          <div className="absolute -top-24 -right-24 w-72 h-72 bg-primary/20 rounded-full blur-3xl pointer-events-none group-hover:scale-125 transition-transform duration-700" />
-          <div className="absolute -bottom-24 -left-24 w-72 h-72 bg-indigo-500/15 rounded-full blur-3xl pointer-events-none group-hover:scale-125 transition-transform duration-700" />
-
           <div className="relative z-10 p-6 sm:p-10 lg:p-12 flex flex-col justify-between min-h-[300px]">
             <div className="flex flex-wrap items-center justify-between gap-3 mb-6">
               <div className="flex items-center gap-2 bg-white/60 dark:bg-white/10 px-4 py-1.5 rounded-full border border-white/40 dark:border-white/10 backdrop-blur-md shadow-sm">
