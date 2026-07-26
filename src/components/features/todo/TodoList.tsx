@@ -16,7 +16,8 @@ import { TodoTask } from "@/types";
 import { AnimatePresence, motion } from "framer-motion";
 import { TodoItem } from "./TodoItem";
 import { AddTodoModal } from "./AddTodoModal";
-import { Plus, CheckCircle2, ChevronRight, ArrowUpDown, Search, X } from "lucide-react";
+import { AITaskAssistantModal } from "./AITaskAssistantModal";
+import { Plus, CheckCircle2, ChevronRight, ArrowUpDown, Search, X, Sparkles } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { buttonVariants } from "@/lib/ui-variants";
 import { toast } from "sonner";
@@ -42,6 +43,7 @@ export function TodoList() {
   const [sortBy, setSortBy] = useState<"dueDate" | "priority" | "newest">("dueDate");
 
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isAIAssistantOpen, setIsAIAssistantOpen] = useState(false);
   const [editingTask, setEditingTask] = useState<TodoTask | undefined>(undefined);
   const [isLoading, setIsLoading] = useState(true);
   const [showCompleted, setShowCompleted] = useState(false);
@@ -366,22 +368,34 @@ export function TodoList() {
           )}
         </div>
 
-        <motion.button
-          onClick={() => {
-            setEditingTask(undefined);
-            setIsModalOpen(true);
-          }}
-          whileHover={{ scale: 1.02 }}
-          whileTap={{ scale: 0.95 }}
-          className={cn(
-            "group relative overflow-hidden shadow-lg shadow-primary/25 hover:shadow-primary/40 transition-all rounded-2xl px-6 py-3.5",
-            buttonVariants({ variant: "primary", size: "lg" }),
-            "flex items-center justify-center gap-2 text-sm font-black"
-          )}
-        >
-          <Plus size={20} />
-          <span>{language === "ar" ? "إضافة مهمة جديدة" : "New Task"}</span>
-        </motion.button>
+        <div className="flex flex-wrap items-center gap-3">
+          <motion.button
+            onClick={() => setIsAIAssistantOpen(true)}
+            whileHover={{ scale: 1.02 }}
+            whileTap={{ scale: 0.95 }}
+            className="relative overflow-hidden bg-gradient-to-r from-purple-600 via-indigo-600 to-purple-600 hover:from-purple-500 hover:to-indigo-500 text-white shadow-lg shadow-purple-500/25 hover:shadow-purple-500/40 transition-all rounded-2xl px-5 py-3.5 flex items-center justify-center gap-2 text-sm font-black border border-purple-400/30"
+          >
+            <Sparkles size={18} className="animate-pulse text-purple-200" />
+            <span>{language === "ar" ? "مساعد المهام بالذكاء الاصطناعي" : "AI Task Planner"}</span>
+          </motion.button>
+
+          <motion.button
+            onClick={() => {
+              setEditingTask(undefined);
+              setIsModalOpen(true);
+            }}
+            whileHover={{ scale: 1.02 }}
+            whileTap={{ scale: 0.95 }}
+            className={cn(
+              "group relative overflow-hidden shadow-lg shadow-primary/25 hover:shadow-primary/40 transition-all rounded-2xl px-5 py-3.5",
+              buttonVariants({ variant: "primary", size: "lg" }),
+              "flex items-center justify-center gap-2 text-sm font-black"
+            )}
+          >
+            <Plus size={20} />
+            <span>{language === "ar" ? "إضافة مهمة جديدة" : "New Task"}</span>
+          </motion.button>
+        </div>
       </div>
 
       {/* Search Bar */}
@@ -626,6 +640,11 @@ export function TodoList() {
         onClose={() => setIsModalOpen(false)}
         onSuccess={handleSaveTask}
         editTask={editingTask}
+      />
+
+      <AITaskAssistantModal
+        isOpen={isAIAssistantOpen}
+        onClose={() => setIsAIAssistantOpen(false)}
       />
 
       <ConfirmationModal

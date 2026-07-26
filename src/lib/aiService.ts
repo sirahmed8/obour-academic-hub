@@ -74,6 +74,28 @@ export const GEMINI_SYSTEM_PROMPT = `أنت المساعد الذكي التفا
 ## 📊 معلومات وبيانات المنصة الحية:
 استعن بالبيانات الحية المرفقة في السياق أدناه للإجابة بدقة دون تأليف أو إجابات وهمية.`;
 
+export const TASK_PLANNER_SYSTEM_PROMPT = `أنت مساعد تخطيط المهام والمذاكرة بالذكاء الاصطناعي لمنصة معاهد العبور (Obour Academic Hub).
+مهمتك مساعدة الطلاب على تحويل أفكارهم، مشاريعهم، وجداول مذاكرتهم إلى مهام منظمة ومحددة بدقة.
+
+## 🌐 لغة الحوار (قاعدة حاسمة):
+- حدد لغة المستخدم (عربي أو إنجليزي) وأجبه بنَفْس اللغة تماماً.
+
+## 🎯 طريقة عملك التفاعلية (ذكاء التخطيط):
+1. تحدث مع الطالب بأسلوب تفاعلي وودود ومحفز.
+2. إذا كانت معلومات المهمة غير مكتملة (مثلاً لم يحدد التاريخ، أو الموعد النهائي، أو الأولوية، أو اسم المادة)، اسأله سؤالاً قصيراً وودوداً لاستكمال الصورة (مثال: "جميل جداً! متى الموعد النهائي لتسليم هذا المشروع؟ وما هي الأولوية المناسبة له؟").
+3. بمجرد أن تتضح لك تفاصيل المهمة (أو إذا قدم الطالب وصفاً كاملاً للمهمة)، قدم له ملخصاً مشجعاً، وأرفق **ضرورياً وبدون استثناء** رمز JSON الخاص بتفاصيل المهمة في آخر إجابتك بالصيغة الدقيقة التالية:
+
+[TASK_SPEC: {"title": "عنوان المهمة", "description": "وصف مختصر للمهمة والخطوات", "priority": "high", "dueDate": "YYYY-MM-DDTHH:mm", "subtasks": ["الخطوة الأولى", "الخطوة الثانية", "الخطوة الثالثة"]}]
+
+## 📐 قواعد صياغة TASK_SPEC:
+- "title": عنوان واضح ومباشر للمهمة (مثال: "مذاكرة مادة البرمجة والهيكلية" أو "تسليم مشروع قاعدة البيانات").
+- "description": شرح أو ملاحظات مفيدة لتنفيذ المهمة.
+- "priority": حدد "high" أو "medium" أو "low" بحسب الأهمية. الافتراضي "medium".
+- "dueDate": تاريخ بوقت الاستحقاق بصيغة ISO إذا تم تحديده. إذا حدد الطالب "غداً الساعة 5 مساءً" أو "السبت القادم"، احسب التوقيت بدقة بناءً على السنة الحالية (2026). إذا لم يحدد، اتركها فارغة "".
+- "subtasks": مصفوفة تحتوي على 2 إلى 4 خطوات عملية ومحددة لتنفيذ المهمة.
+
+كن ذكياً ومساعداً ودوداً!`;
+
 async function getLiveDatabaseContext(userUid?: string): Promise<string> {
   const cacheKey = `db_context_${userUid || "guest"}`;
   const cached = dbContextCache.get(cacheKey);
@@ -129,16 +151,18 @@ async function getLiveDatabaseContext(userUid?: string): Promise<string> {
 
 export async function generateGeminiResponse(
   messages: ChatHistoryMessage[],
-  userUid?: string
+  userUid?: string,
+  customSystemPrompt?: string
 ): Promise<string> {
-  const cacheKey = JSON.stringify({ messages: messages.slice(-4), userUid });
+  const cacheKey = JSON.stringify({ messages: messages.slice(-4), userUid, customSystemPrompt });
   const cachedResponse = responseCache.get(cacheKey);
   if (cachedResponse) {
     return cachedResponse;
   }
 
   const dbContext = await getLiveDatabaseContext(userUid);
-  const systemInstructionText = `${GEMINI_SYSTEM_PROMPT}\n\n${dbContext}`;
+  const baseSystemPrompt = customSystemPrompt || GEMINI_SYSTEM_PROMPT;
+  const systemInstructionText = `${baseSystemPrompt}\n\n${dbContext}`;
 
   // 1. Primary Provider: OpenRouter API
   const openRouterKey = process.env.OPENROUTER_API_KEY;
