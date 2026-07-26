@@ -62,10 +62,15 @@ function SubjectBrowser() {
         name.toLowerCase().includes(query) || profName.toLowerCase().includes(query);
 
       if (selectedCategory === "all") return matchesSearch;
-      if (selectedCategory === "year1") return matchesSearch && (s.year === 1 || s.level === 1);
-      if (selectedCategory === "year2") return matchesSearch && (s.year === 2 || s.level === 2);
-      if (selectedCategory === "year3") return matchesSearch && (s.year === 3 || s.level === 3);
-      if (selectedCategory === "year4") return matchesSearch && (s.year === 4 || s.level === 4);
+      const subjectWithYear = s as unknown as { year?: number; level?: number };
+      if (selectedCategory === "year1")
+        return matchesSearch && (subjectWithYear.year === 1 || subjectWithYear.level === 1);
+      if (selectedCategory === "year2")
+        return matchesSearch && (subjectWithYear.year === 2 || subjectWithYear.level === 2);
+      if (selectedCategory === "year3")
+        return matchesSearch && (subjectWithYear.year === 3 || subjectWithYear.level === 3);
+      if (selectedCategory === "year4")
+        return matchesSearch && (subjectWithYear.year === 4 || subjectWithYear.level === 4);
 
       return matchesSearch;
     });
