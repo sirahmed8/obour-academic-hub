@@ -57,6 +57,14 @@ build_output*.txt
 
 # firebase
 firebase-debug.log
+build_output*.txt
+
+
+#Ignore vscode AI rules
+.github\instructions\codacy.instructions.md
+
+# firebase
+firebase-debug.log
 .firebase/
 
 # local environment overrides
@@ -66,3 +74,6 @@ firebase-debug.log
 # never commit Firebase admin keys
 *firebase-adminsdk*.json
 new-service-account.json
+
+# teamwork runner temporary state
+.agents/

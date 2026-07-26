@@ -319,6 +319,30 @@
   backface-visibility: hidden;
 }
 
+/* Micro-Interactions */
+.hover-lift {
+  transition:
+    transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1),
+    box-shadow 0.2s ease;
+}
+.hover-lift:hover {
+  transform: translateY(-4px) scale(1.02);
+  box-shadow:
+    0 10px 25px -5px rgba(0, 0, 0, 0.1),
+    0 8px 10px -6px rgba(0, 0, 0, 0.1);
+}
+.dark .hover-lift:hover {
+  box-shadow:
+    0 10px 25px -5px rgba(0, 0, 0, 0.5),
+    0 8px 10px -6px rgba(0, 0, 0, 0.5);
+}
+.scale-active {
+  transition: transform 0.1s cubic-bezier(0.4, 0, 0.2, 1);
+}
+.scale-active:active {
+  transform: scale(0.96);
+}
+
 /**
  * Reduce blur intensity on low-capability devices
  * Uses @supports to detect if reduce motion is preferred
