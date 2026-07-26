@@ -62,7 +62,7 @@ export function ChatbotPanel({
   setInput,
   setReplyTo,
   setMode,
-  _aiEnabled,
+  aiEnabled: _aiEnabled,
   user,
 }: ChatbotPanelProps) {
   const [mounted, setMounted] = React.useState(false);
