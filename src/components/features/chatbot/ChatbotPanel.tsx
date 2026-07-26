@@ -184,34 +184,6 @@ export function ChatbotPanel({
           </div>
 
           <div className="flex items-center gap-1">
-            <div className="flex items-center gap-1 mx-1.5 bg-background/60 backdrop-blur-md rounded-xl p-1 border border-border/40 shadow-inner">
-              <button
-                type="button"
-                onClick={() => setMode("bot")}
-                className={cn(
-                  "px-2.5 py-1 rounded-lg text-xs font-black transition-all flex items-center gap-1",
-                  mode === "bot"
-                    ? "bg-gradient-to-r from-purple-600 to-indigo-600 text-white shadow-md shadow-purple-500/20"
-                    : "text-muted-foreground hover:bg-muted hover:text-foreground"
-                )}
-              >
-                <span>🤖</span>
-                <span>{language === "ar" ? "ذكاء اصطناعي" : "AI"}</span>
-              </button>
-              <button
-                type="button"
-                onClick={() => setMode("live")}
-                className={cn(
-                  "px-2.5 py-1 rounded-lg text-xs font-black transition-all flex items-center gap-1",
-                  mode === "live"
-                    ? "bg-gradient-to-r from-emerald-600 to-teal-600 text-white shadow-md shadow-emerald-500/20"
-                    : "text-muted-foreground hover:bg-muted hover:text-foreground"
-                )}
-              >
-                <span>🎧</span>
-                <span>{language === "ar" ? "مباشر" : "Live"}</span>
-              </button>
-            </div>
             <button
               onClick={onClearChat}
               className="rounded-xl p-2 text-muted-foreground transition-all duration-200 hover:bg-destructive/10 hover:text-destructive active:scale-90"
@@ -227,6 +199,38 @@ export function ChatbotPanel({
               <X className="h-4 w-4" />
             </button>
           </div>
+        </div>
+      </div>
+
+      {/* Mode Switcher Bar */}
+      <div className="px-3 py-2 border-b border-border/40 bg-muted/20 shrink-0">
+        <div className="grid grid-cols-2 gap-1.5 p-1 bg-background/80 backdrop-blur-md rounded-2xl border border-border/40 shadow-inner">
+          <button
+            type="button"
+            onClick={() => setMode("bot")}
+            className={cn(
+              "py-1.5 px-3 rounded-xl text-xs font-black transition-all flex items-center justify-center gap-2",
+              mode === "bot"
+                ? "bg-gradient-to-r from-purple-600 to-indigo-600 text-white shadow-md shadow-purple-500/25"
+                : "text-muted-foreground hover:bg-muted hover:text-foreground"
+            )}
+          >
+            <span className="text-sm">🤖</span>
+            <span>{language === "ar" ? "المساعد الذكي (AI)" : "AI Assistant"}</span>
+          </button>
+          <button
+            type="button"
+            onClick={() => setMode("live")}
+            className={cn(
+              "py-1.5 px-3 rounded-xl text-xs font-black transition-all flex items-center justify-center gap-2",
+              mode === "live"
+                ? "bg-gradient-to-r from-emerald-600 to-teal-600 text-white shadow-md shadow-emerald-500/25"
+                : "text-muted-foreground hover:bg-muted hover:text-foreground"
+            )}
+          >
+            <span className="text-sm">🎧</span>
+            <span>{language === "ar" ? "الدعم المباشر" : "Live Support"}</span>
+          </button>
         </div>
       </div>
 

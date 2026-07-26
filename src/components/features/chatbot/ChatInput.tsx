@@ -333,7 +333,7 @@ export function ChatInput({
               language === "ar" ? "اكتب رسالتك أو استخدم الصوت..." : "Type or use voice..."
             }
             disabled={disabled}
-            className="flex-1 bg-transparent border-none text-[16px] md:text-sm placeholder:text-muted-foreground/50 max-h-24 py-2 outline-none focus:ring-0 shadow-none ring-0 disabled:opacity-50 disabled:cursor-not-allowed"
+            className="flex-1 bg-transparent border-none text-[16px] md:text-sm placeholder:text-muted-foreground/50 max-h-24 py-2 px-2.5 outline-none focus:ring-0 shadow-none ring-0 disabled:opacity-50 disabled:cursor-not-allowed"
           />
         </div>
 
