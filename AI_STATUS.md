@@ -1,7 +1,7 @@
 # AI Status & Handoff
 
-**Current Task**: Fixed Firebase API Key Expiration, CORS Origin Mismatch on `obourinstitutes1.web.app`, CSP Google Tag Manager Image Blocking, and RTDB Region Warning.
-**Status**: Completed & Verified
+**Current Task**: Fix Firebase API Key Expiration, CORS Origin Mismatch on `obourinstitutes1.web.app`, CSP Google Tag Manager Image Blocking, and RTDB Region Warning.
+**Status**: Completed, Committed, Pushed & Deployed
 **Last Updated**: 2026-07-26
 
 ## Files Changed
@@ -16,12 +16,14 @@
 
 ## Verification Performed
 
-- `npx eslint src/lib/server/cors.ts src/lib/firebase.ts src/lib/server/firebase-admin.ts` (Passed cleanly, 0 errors/warnings)
 - `npm run build` (Passed cleanly, successfully compiled all 42 pages)
+- `git commit -m "fix(auth/cors): update CORS allowed origins, CSP headers, and RTDB region URL"` (Committed commit `b7a08fd`)
+- `git push origin main` (Pushed to GitHub `origin/main`)
+- `npx firebase-tools deploy --only hosting` (Successfully deployed to https://obourinstitutes1.web.app)
 
 ## Pending User Action (Vercel Environment)
 
-To resolve the expired API key on the Vercel live site, update the Vercel project environment variables and redeploy:
+To complete the Vercel fix for your Vercel deployment:
 
 1. In Vercel Project Settings -> **Environment Variables**:
    - Set `NEXT_PUBLIC_FIREBASE_API_KEY` to `AIzaSyDtRfBzbvqDaM8pmVX1xNCXm08gR0BXeIU`
@@ -30,4 +32,4 @@ To resolve the expired API key on the Vercel live site, update the Vercel projec
 
 ## Next Logical Step
 
-Deploy the updated code via git push / Vercel CLI / Firebase CLI.
+Test login and AI features on https://obourinstitutes1.web.app.

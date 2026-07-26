@@ -20,21 +20,30 @@ const DEFAULT_FIREBASE_CONFIG = {
 
 const isTest = process.env.NODE_ENV === "test";
 
+const sanitizeEnv = (val?: string) =>
+  val ? val.trim().replace(/^[\s\uFEFF\xA0]+|[\s\uFEFF\xA0]+$/g, "") : undefined;
+
 const firebaseConfig = {
   apiKey:
-    process.env.NEXT_PUBLIC_FIREBASE_API_KEY ||
+    sanitizeEnv(process.env.NEXT_PUBLIC_FIREBASE_API_KEY) ||
     (isTest ? undefined : DEFAULT_FIREBASE_CONFIG.apiKey),
-  authDomain: process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN || DEFAULT_FIREBASE_CONFIG.authDomain,
-  databaseURL: process.env.NEXT_PUBLIC_FIREBASE_DATABASE_URL || DEFAULT_FIREBASE_CONFIG.databaseURL,
-  projectId: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID || DEFAULT_FIREBASE_CONFIG.projectId,
+  authDomain:
+    sanitizeEnv(process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN) || DEFAULT_FIREBASE_CONFIG.authDomain,
+  databaseURL:
+    sanitizeEnv(process.env.NEXT_PUBLIC_FIREBASE_DATABASE_URL) ||
+    DEFAULT_FIREBASE_CONFIG.databaseURL,
+  projectId:
+    sanitizeEnv(process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID) || DEFAULT_FIREBASE_CONFIG.projectId,
   storageBucket:
-    process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET || DEFAULT_FIREBASE_CONFIG.storageBucket,
+    sanitizeEnv(process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET) ||
+    DEFAULT_FIREBASE_CONFIG.storageBucket,
   messagingSenderId:
-    process.env.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID ||
+    sanitizeEnv(process.env.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID) ||
     DEFAULT_FIREBASE_CONFIG.messagingSenderId,
-  appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID || DEFAULT_FIREBASE_CONFIG.appId,
+  appId: sanitizeEnv(process.env.NEXT_PUBLIC_FIREBASE_APP_ID) || DEFAULT_FIREBASE_CONFIG.appId,
   measurementId:
-    process.env.NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID || DEFAULT_FIREBASE_CONFIG.measurementId,
+    sanitizeEnv(process.env.NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID) ||
+    DEFAULT_FIREBASE_CONFIG.measurementId,
 };
 
 // Debug: Log env presence (Development Only)
