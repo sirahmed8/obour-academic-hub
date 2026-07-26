@@ -14,6 +14,8 @@ import {
   User,
   Plus,
   Loader2,
+  BookOpen,
+  Link2,
 } from "lucide-react";
 import { useLanguage, useAuth } from "@/contexts";
 import { cn } from "@/lib/utils";
@@ -28,6 +30,10 @@ interface ParsedTaskSpec {
   description?: string;
   priority: "high" | "medium" | "low";
   dueDate?: string;
+  subjectName?: string;
+  subjectId?: string;
+  sourceName?: string;
+  sourceUrl?: string;
   subtasks?: string[];
 }
 
@@ -176,7 +182,9 @@ export function AITaskAssistantModal({
         priority: spec.priority || "medium",
         dueDate: spec.dueDate || null,
         repeat: "none",
-        subjectId: null,
+        subjectId: spec.subjectId || null,
+        sourceName: spec.sourceName || null,
+        sourceUrl: spec.sourceUrl || null,
         subtasks: (spec.subtasks || []).map((st) => ({
           id: crypto.randomUUID(),
           title: st,
@@ -348,6 +356,24 @@ export function AITaskAssistantModal({
                           <p className="text-xs text-muted-foreground leading-relaxed">
                             {msg.taskSpec.description}
                           </p>
+                        )}
+
+                        {/* Subject & Source Tags */}
+                        {(msg.taskSpec.subjectName || msg.taskSpec.sourceName) && (
+                          <div className="flex flex-wrap gap-2 pt-1">
+                            {msg.taskSpec.subjectName && (
+                              <span className="inline-flex items-center gap-1 text-[11px] px-2.5 py-1 rounded-lg bg-indigo-500/10 text-indigo-300 border border-indigo-500/30 font-medium">
+                                <BookOpen className="w-3 h-3 text-indigo-400" />
+                                <span>{msg.taskSpec.subjectName}</span>
+                              </span>
+                            )}
+                            {msg.taskSpec.sourceName && (
+                              <span className="inline-flex items-center gap-1 text-[11px] px-2.5 py-1 rounded-lg bg-emerald-500/10 text-emerald-300 border border-emerald-500/30 font-medium">
+                                <Link2 className="w-3 h-3 text-emerald-400" />
+                                <span>{msg.taskSpec.sourceName}</span>
+                              </span>
+                            )}
+                          </div>
                         )}
 
                         {msg.taskSpec.dueDate && (

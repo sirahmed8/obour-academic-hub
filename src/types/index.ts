@@ -190,6 +190,8 @@ export interface TodoTask {
   reminder?: boolean;
   repeat?: "daily" | "weekly" | "monthly" | "none";
   subjectId?: string; // Links task to a subject
+  sourceName?: string; // Links task to a study source/material
+  sourceUrl?: string; // URL to the resource or subject page
   subtasks?: {
     id: string;
     title: string;

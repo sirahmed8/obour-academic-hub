@@ -1,5 +1,5 @@
 import { motion } from "framer-motion";
-import { Check, Edit2, Trash2, CalendarDays, AlertCircle } from "lucide-react";
+import { Check, Edit2, Trash2, CalendarDays, AlertCircle, Link2 } from "lucide-react";
 import { TodoTask } from "@/types";
 import { cn } from "@/lib/utils";
 import { useLanguage } from "@/contexts";
@@ -249,6 +249,22 @@ export function TodoItem({ task, onToggle, onDelete, onEdit, onSubtaskToggle }: 
                       : task.repeat}
                   </span>
                 </div>
+              )}
+
+              {/* Source/Material Tag */}
+              {task.sourceName && (
+                <a
+                  href={task.sourceUrl || "#"}
+                  target={task.sourceUrl?.startsWith("http") ? "_blank" : "_self"}
+                  rel="noreferrer"
+                  onClick={(e) => {
+                    if (!task.sourceUrl || task.sourceUrl === "#") e.preventDefault();
+                  }}
+                  className="inline-flex items-center gap-1 text-[10px] px-2.5 py-0.5 rounded-full border bg-emerald-500/10 text-emerald-400 border-emerald-500/20 font-medium hover:bg-emerald-500/20 transition-all cursor-pointer"
+                >
+                  <Link2 size={10} className="text-emerald-400" />
+                  <span>{task.sourceName}</span>
+                </a>
               )}
             </div>
           </div>
