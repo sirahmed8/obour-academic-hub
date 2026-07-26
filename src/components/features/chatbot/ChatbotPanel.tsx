@@ -204,30 +204,41 @@ export function ChatbotPanel({
 
       {/* Mode Switcher Bar */}
       <div className="px-3 py-2 border-b border-border/40 bg-muted/20 shrink-0">
-        <div className="grid grid-cols-2 gap-1.5 p-1 bg-background/80 backdrop-blur-md rounded-2xl border border-border/40 shadow-inner">
+        <div className="grid grid-cols-2 gap-1.5 p-1 bg-background/80 backdrop-blur-md rounded-2xl border border-border/40 shadow-inner relative">
           <button
             type="button"
             onClick={() => setMode("bot")}
             className={cn(
-              "py-1.5 px-3 rounded-xl text-xs font-black transition-all flex items-center justify-center gap-2",
-              mode === "bot"
-                ? "bg-gradient-to-r from-purple-600 to-indigo-600 text-white shadow-md shadow-purple-500/25"
-                : "text-muted-foreground hover:bg-muted hover:text-foreground"
+              "relative py-2 px-3 rounded-xl text-xs font-black transition-colors flex items-center justify-center gap-2 z-10",
+              mode === "bot" ? "text-white" : "text-muted-foreground hover:text-foreground"
             )}
           >
+            {mode === "bot" && (
+              <motion.div
+                layoutId="activeModeTabPill"
+                className="absolute inset-0 bg-gradient-to-r from-purple-600 to-indigo-600 rounded-xl shadow-md shadow-purple-500/25"
+                transition={{ type: "spring", stiffness: 450, damping: 35 }}
+              />
+            )}
             <span className="text-sm">🤖</span>
             <span>{language === "ar" ? "المساعد الذكي (AI)" : "AI Assistant"}</span>
           </button>
+
           <button
             type="button"
             onClick={() => setMode("live")}
             className={cn(
-              "py-1.5 px-3 rounded-xl text-xs font-black transition-all flex items-center justify-center gap-2",
-              mode === "live"
-                ? "bg-gradient-to-r from-emerald-600 to-teal-600 text-white shadow-md shadow-emerald-500/25"
-                : "text-muted-foreground hover:bg-muted hover:text-foreground"
+              "relative py-2 px-3 rounded-xl text-xs font-black transition-colors flex items-center justify-center gap-2 z-10",
+              mode === "live" ? "text-white" : "text-muted-foreground hover:text-foreground"
             )}
           >
+            {mode === "live" && (
+              <motion.div
+                layoutId="activeModeTabPill"
+                className="absolute inset-0 bg-gradient-to-r from-emerald-600 to-teal-600 rounded-xl shadow-md shadow-emerald-500/25"
+                transition={{ type: "spring", stiffness: 450, damping: 35 }}
+              />
+            )}
             <span className="text-sm">🎧</span>
             <span>{language === "ar" ? "الدعم المباشر" : "Live Support"}</span>
           </button>

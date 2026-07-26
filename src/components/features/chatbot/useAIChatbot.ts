@@ -74,9 +74,12 @@ export function useAIChatbot(): AIChatbotController {
   const [isGeneratingWelcome, setIsGeneratingWelcome] = useState(false);
   const [aiEnabled, setAiEnabled] = useState(true);
   const [chatbotEnabled, setChatbotEnabled] = useState(true);
+  const [aiMessages, setAiMessages] = useState<ChatMessage[]>([]);
   const [replyTo, setReplyTo] = useState<ChatMessage | null>(null);
-  const [messages, setMessages] = useState<ChatMessage[]>([]);
+  const [liveMessages, setLiveMessages] = useState<ChatMessage[]>([]);
   const [isBtnHovered, setIsBtnHovered] = useState(false);
+
+  const messages = mode === "bot" ? aiMessages : liveMessages;
 
   const welcomeFetchedRef = useRef(false);
 
@@ -113,16 +116,17 @@ export function useAIChatbot(): AIChatbotController {
     }
   };
 
-  // Keep refs in sync with state for closure consistency
+  // Keep refs in sync for closure consistency
+  inputRef.current = input;
+  replyToRef.current = replyTo;
+  modeRef.current = mode;
+  messagesRef.current = messages;
+
   useEffect(() => {
-    inputRef.current = input;
-    replyToRef.current = replyTo;
-    modeRef.current = mode;
-    messagesRef.current = messages;
     if (typeof window !== "undefined") {
       localStorage.setItem("chatbot-isOpen", String(isOpen));
     }
-  }, [input, replyTo, mode, messages, isOpen]);
+  }, [isOpen]);
 
   useEffect(() => {
     const handleOpenChatbot = (event: Event) => {
@@ -194,7 +198,7 @@ export function useAIChatbot(): AIChatbotController {
             ...docSnapshot.data(),
           }) as ChatMessage
       );
-      setMessages(nextMessages);
+      setLiveMessages(nextMessages);
     });
 
     return () => unsubscribe();
@@ -225,7 +229,7 @@ export function useAIChatbot(): AIChatbotController {
       }
 
       if (cachedText) {
-        setMessages((prev) => {
+        setAiMessages((prev) => {
           if (prev.length === 0) {
             return [
               {
@@ -273,7 +277,7 @@ export function useAIChatbot(): AIChatbotController {
             );
           } catch {}
 
-          setMessages((prev) => {
+          setAiMessages((prev) => {
             if (prev.length === 0 || (prev.length === 1 && prev[0].id === "ai-welcome-cached")) {
               return [
                 {
@@ -297,7 +301,7 @@ export function useAIChatbot(): AIChatbotController {
             language === "ar"
               ? `أهلاً بك يا ${userName}! 🎓 كيف يمكنني مساعدتك اليوم في دراستك؟`
               : `Welcome ${userName}! 🎓 How can I assist you with your studies today?`;
-          setMessages(() => [
+          setAiMessages(() => [
             {
               id: "ai-welcome-fallback",
               text: fallbackText,
@@ -379,9 +383,19 @@ export function useAIChatbot(): AIChatbotController {
   }, [isOpen, user, liveChatId, unreadCount]);
 
   const confirmClearChat = useCallback(async () => {
-    if (!user) {
+    if (mode === "bot") {
+      setAiMessages([]);
+      welcomeFetchedRef.current = false;
+      const cacheKey = `obour_ai_welcome_${user?.uid || "guest"}_${language}`;
+      try {
+        sessionStorage.removeItem(cacheKey);
+      } catch {}
+      toast.success(language === "ar" ? "تم مسح المحادثة" : "Chat history cleared");
+      setShowClearConfirm(false);
       return;
     }
+
+    if (!user) return;
 
     try {
       await clearChatHistory(currentChatId);
@@ -390,7 +404,7 @@ export function useAIChatbot(): AIChatbotController {
     } catch {
       toast.error("Failed to clear history");
     }
-  }, [currentChatId, language, user]);
+  }, [currentChatId, language, mode, user]);
 
   const handleSend = useCallback(
     async (textOverride?: string, attachment?: ChatbotAttachment) => {
@@ -427,6 +441,18 @@ export function useAIChatbot(): AIChatbotController {
         );
 
         if (modeRef.current === "bot") {
+          const userLocalMsg = {
+            id: "user-" + Date.now(),
+            text: textToSend,
+            senderId: user.uid,
+            senderName: user.displayName || "User",
+            timestamp: null,
+            status: "sent",
+            context: "bot",
+            role: "user",
+          } as unknown as ChatMessage;
+          setAiMessages((prev) => [...prev, userLocalMsg]);
+
           setIsGenerating(true);
           try {
             const history = messagesRef.current.slice(-5).map((message): CoreMessage => {
@@ -509,6 +535,19 @@ export function useAIChatbot(): AIChatbotController {
                 model: "balanced",
               },
             });
+
+            const botLocalMsg = {
+              id: "bot-" + Date.now(),
+              text: data.content,
+              senderId: "bot",
+              senderName: languageRef.current === "ar" ? "المساعد الذكي" : "AI Assistant",
+              timestamp: null,
+              status: "sent",
+              context: "bot",
+              role: "assistant",
+            } as unknown as ChatMessage;
+            setAiMessages((prev) => [...prev, botLocalMsg]);
+
             await sendMessage(
               currentChatId,
               data.content,
@@ -520,15 +559,17 @@ export function useAIChatbot(): AIChatbotController {
             );
           } catch (error) {
             console.error(error);
-            await sendMessage(
-              currentChatId,
-              languageRef.current === "ar" ? "عذراً، حدث خطأ." : "Sorry, error occurred.",
-              "bot",
-              "AI Assistant",
-              false,
-              undefined,
-              "bot"
-            );
+            const errLocalMsg = {
+              id: "err-" + Date.now(),
+              text: languageRef.current === "ar" ? "عذراً، حدث خطأ." : "Sorry, error occurred.",
+              senderId: "bot",
+              senderName: languageRef.current === "ar" ? "المساعد الذكي" : "AI Assistant",
+              timestamp: null,
+              status: "sent",
+              context: "bot",
+              role: "assistant",
+            } as unknown as ChatMessage;
+            setAiMessages((prev) => [...prev, errLocalMsg]);
           } finally {
             setIsGenerating(false);
           }
