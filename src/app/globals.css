@@ -434,3 +434,26 @@
   transform: scale(1.05) !important;
   opacity: 0.9 !important;
 }
+
+/* ============================================
+   COMFORTABLE TEXT SELECTION HIGHLIGHT
+   ============================================ */
+::selection {
+  background-color: rgba(79, 70, 229, 0.35); /* Subtle comfortable dark indigo */
+  color: inherit;
+}
+
+::-moz-selection {
+  background-color: rgba(79, 70, 229, 0.35);
+  color: inherit;
+}
+
+.dark ::selection {
+  background-color: rgba(99, 102, 241, 0.45); /* Sleek dark mode indigo selection */
+  color: #ffffff;
+}
+
+.dark ::-moz-selection {
+  background-color: rgba(99, 102, 241, 0.45);
+  color: #ffffff;
+}

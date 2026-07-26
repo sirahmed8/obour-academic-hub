@@ -1,11 +1,13 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import Link from "next/link";
 import { useAuth, useLanguage } from "@/contexts";
-import { Sparkles } from "lucide-react";
+import { Sparkles, Plus, BookOpen, MessageSquare } from "lucide-react";
 import { FadeIn } from "@/components/ui/Animations";
-import { StudentStats } from "@/components/features/StudentStats";
 import { TacticalAdviceCard } from "@/components/features/TacticalAdviceCard";
+import { AcademicShortcutBar } from "@/components/features/AcademicShortcutBar";
+import { AcademicStreakWidget } from "@/components/features/AcademicStreakWidget";
 import { OnboardingOverlay, shouldShowOnboarding } from "@/components/features/OnboardingOverlay";
 import { FeatureTips } from "@/components/features/FeatureTips";
 import { motion, AnimatePresence } from "framer-motion";
@@ -33,7 +35,6 @@ export function Dashboard() {
 
   useEffect(() => {
     setMounted(true);
-    // Show onboarding only for first-time users
     if (shouldShowOnboarding()) {
       setShowOnboarding(true);
     }
@@ -46,103 +47,133 @@ export function Dashboard() {
         {showOnboarding && <OnboardingOverlay onDismiss={() => setShowOnboarding(false)} />}
       </AnimatePresence>
 
-      <div className="p-6 lg:p-10 space-y-10 w-full page-transition min-h-screen">
+      <div className="p-4 sm:p-6 lg:p-10 space-y-8 w-full page-transition min-h-screen max-w-7xl mx-auto">
         {/* Feature Tips */}
-        <FadeIn delay={0.3}>
+        <FadeIn delay={0.1}>
           <FeatureTips />
         </FadeIn>
 
-        {/* Greeting Banner - Premium Glassmorphism */}
+        {/* Hero Greeting Banner — Premium 1000x Glassmorphism & Animated Glows */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6, ease: "easeOut" }}
-          className="relative rounded-4xl overflow-hidden bg-primary/10 dark:bg-primary/5 border border-primary/20 dark:border-primary/10 backdrop-blur-xl group"
+          className="relative rounded-3xl sm:rounded-4xl overflow-hidden bg-gradient-to-br from-primary/15 via-primary/5 to-transparent dark:from-primary/10 dark:via-primary/5 border border-primary/20 dark:border-primary/10 backdrop-blur-2xl shadow-xl group"
         >
-          <div className="relative z-10 p-8 lg:p-14 flex flex-col justify-center min-h-[320px]">
-            <div className="flex items-center gap-2 mb-6 bg-white/40 dark:bg-white/10 w-fit px-4 py-1.5 rounded-full border border-white/40 dark:border-white/10 backdrop-blur-md shadow-sm">
-              <Sparkles size={16} className="text-primary animate-pulse" />
-              <span className="text-[10px] font-black tracking-[0.2em] uppercase text-primary/80 dark:text-primary/90">
-                {t("dashboard.bannerTitle")}
-              </span>
-            </div>
+          {/* Ambient Glow Orbs */}
+          <div className="absolute -top-24 -right-24 w-72 h-72 bg-primary/20 rounded-full blur-3xl pointer-events-none group-hover:scale-125 transition-transform duration-700" />
+          <div className="absolute -bottom-24 -left-24 w-72 h-72 bg-indigo-500/15 rounded-full blur-3xl pointer-events-none group-hover:scale-125 transition-transform duration-700" />
 
-            <div className="flex flex-col md:flex-row md:items-end justify-between gap-8">
-              <div className="space-y-6 max-w-3xl">
-                <h1 className="text-4xl sm:text-5xl lg:text-7xl xl:text-8xl font-black tracking-tighter leading-[0.95] text-foreground">
-                  {mounted && greeting && (
-                    <motion.span
-                      initial="hidden"
-                      animate="visible"
-                      variants={{
-                        hidden: { opacity: 0 },
-                        visible: {
-                          opacity: 1,
-                          transition: { staggerChildren: 0.05 },
-                        },
-                      }}
-                      className="block"
-                    >
-                      {greeting.split(" ").map((word, i, arr) => (
-                        <motion.span
-                          key={i}
-                          variants={{
-                            hidden: { opacity: 0, y: 20 },
-                            visible: { opacity: 1, y: 0 },
-                          }}
-                          className="inline-block"
-                        >
-                          {word}
-                          {i < arr.length - 1 ? "\u00A0" : ""}
-                        </motion.span>
-                      ))}
-                      {language === "ar" ? "،" : ","}{" "}
-                      <span className="inline-block whitespace-nowrap mt-1 sm:mt-0">
-                        <span className="text-gradient-primary inline-block hover:scale-105 transition-transform duration-300 cursor-default align-baseline">
-                          {user?.displayName?.split(" ")[0]}
-                        </span>
-                        <motion.span
-                          animate={{ rotate: [0, 20, 0] }}
-                          transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
-                          className="inline-block origin-[70%_70%] text-[0.7em] relative -top-2 md:-top-3 ms-2 md:ms-3"
-                        >
-                          👋
-                        </motion.span>
-                      </span>
-                    </motion.span>
-                  )}
-                </h1>
-                <div className="space-y-3">
-                  <p className="text-2xl lg:text-4xl font-bold text-foreground/90 tracking-tight">
-                    {language === "ar" ? "أهلاً بك في منصة العبور" : "Welcome to Obour Hub"}
-                  </p>
-                  <p className="text-lg lg:text-xl text-muted-foreground font-medium leading-relaxed max-w-2xl">
-                    {t("dashboard.bannerSubtitle")}
-                  </p>
-                </div>
+          <div className="relative z-10 p-6 sm:p-10 lg:p-12 flex flex-col justify-between min-h-[300px]">
+            <div className="flex flex-wrap items-center justify-between gap-3 mb-6">
+              <div className="flex items-center gap-2 bg-white/60 dark:bg-white/10 px-4 py-1.5 rounded-full border border-white/40 dark:border-white/10 backdrop-blur-md shadow-sm">
+                <Sparkles size={16} className="text-primary animate-pulse" />
+                <span className="text-[10px] sm:text-xs font-black tracking-widest uppercase text-primary">
+                  {t("dashboard.bannerTitle")}
+                </span>
               </div>
 
               {isAdmin && (
                 <motion.div
                   whileHover={{ scale: 1.05 }}
-                  className="shrink-0 flex items-center gap-3 px-6 py-3 bg-foreground text-background dark:bg-white dark:text-black rounded-2xl text-sm font-black shadow-2xl border border-white/10 cursor-default"
+                  className="flex items-center gap-2 px-4 py-1.5 bg-foreground text-background dark:bg-white dark:text-black rounded-full text-xs font-black shadow-lg border border-white/10"
                 >
-                  <div className="flex items-center gap-2">
-                    <span className="relative flex h-3 w-3">
-                      <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
-                      <span className="relative inline-flex rounded-full h-3 w-3 bg-green-500 shadow-[0_0_10px_rgba(34,197,94,0.8)]"></span>
-                    </span>
-                    <span className="uppercase tracking-widest">{t("dashboard.adminMode")}</span>
-                  </div>
+                  <span className="relative flex h-2.5 w-2.5">
+                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
+                    <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-green-500 shadow-[0_0_8px_rgba(34,197,94,0.8)]"></span>
+                  </span>
+                  <span className="uppercase tracking-wider">{t("dashboard.adminMode")}</span>
                 </motion.div>
               )}
+            </div>
+
+            <div className="space-y-4 max-w-4xl">
+              <h1 className="text-3xl sm:text-5xl lg:text-6xl xl:text-7xl font-black tracking-tight leading-tight text-foreground">
+                {mounted && greeting && (
+                  <motion.span
+                    initial="hidden"
+                    animate="visible"
+                    variants={{
+                      hidden: { opacity: 0 },
+                      visible: {
+                        opacity: 1,
+                        transition: { staggerChildren: 0.05 },
+                      },
+                    }}
+                    className="inline-block flex-wrap"
+                  >
+                    {greeting.split(" ").map((word, i, arr) => (
+                      <motion.span
+                        key={i}
+                        variants={{
+                          hidden: { opacity: 0, y: 15 },
+                          visible: { opacity: 1, y: 0 },
+                        }}
+                        className="inline-block ms-1"
+                      >
+                        {word}
+                        {i < arr.length - 1 ? "\u00A0" : ""}
+                      </motion.span>
+                    ))}
+                    {language === "ar" ? "،" : ","}{" "}
+                    <span className="inline-block whitespace-nowrap">
+                      <span className="text-gradient-primary inline-block hover:scale-105 transition-transform duration-300 cursor-default">
+                        {user?.displayName?.split(" ")[0]}
+                      </span>
+                      <motion.span
+                        animate={{ rotate: [0, 20, 0] }}
+                        transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
+                        className="inline-block origin-[70%_70%] text-[0.75em] ms-2"
+                      >
+                        👋
+                      </motion.span>
+                    </span>
+                  </motion.span>
+                )}
+              </h1>
+
+              <p className="text-base sm:text-lg lg:text-xl text-muted-foreground font-medium leading-relaxed max-w-2xl">
+                {t("dashboard.bannerSubtitle")}
+              </p>
+            </div>
+
+            {/* Quick Action Launcher Pills */}
+            <div className="mt-8 pt-6 border-t border-primary/10 flex flex-wrap items-center gap-3">
+              <Link
+                href="/todo"
+                className="flex items-center gap-2 px-4 py-2.5 rounded-2xl bg-primary text-primary-foreground text-xs sm:text-sm font-bold shadow-md hover:shadow-lg hover:scale-105 active:scale-95 transition-all"
+              >
+                <Plus size={16} />
+                <span>{language === "ar" ? "إضافة مهمة دراسية" : "Add Homework Task"}</span>
+              </Link>
+
+              <Link
+                href="/subject"
+                className="flex items-center gap-2 px-4 py-2.5 rounded-2xl bg-white/70 dark:bg-white/10 hover:bg-white dark:hover:bg-white/20 text-foreground text-xs sm:text-sm font-bold border border-white/40 dark:border-white/10 backdrop-blur-md transition-all hover:scale-105 active:scale-95"
+              >
+                <BookOpen size={16} className="text-blue-500" />
+                <span>{language === "ar" ? "المواد الدراسية" : "Explore Subjects"}</span>
+              </Link>
+
+              <Link
+                href="/community"
+                className="flex items-center gap-2 px-4 py-2.5 rounded-2xl bg-white/70 dark:bg-white/10 hover:bg-white dark:hover:bg-white/20 text-foreground text-xs sm:text-sm font-bold border border-white/40 dark:border-white/10 backdrop-blur-md transition-all hover:scale-105 active:scale-95"
+              >
+                <MessageSquare size={16} className="text-emerald-500" />
+                <span>{language === "ar" ? "طرح سؤال مجتمعي" : "Ask Question"}</span>
+              </Link>
             </div>
           </div>
         </motion.div>
 
-        <TacticalAdviceCard />
+        {/* Academic Shortcuts Navigation Bar */}
+        <AcademicShortcutBar />
 
-        <StudentStats />
+        {/* Gamified Study Streak & Progress Widget */}
+        <AcademicStreakWidget />
+
+        {/* AI Tactical Academic Advisor */}
+        <TacticalAdviceCard />
       </div>
     </>
   );

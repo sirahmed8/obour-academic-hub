@@ -18,7 +18,7 @@ export function WhoIsOnline() {
   const { t } = useLanguage();
 
   useEffect(() => {
-    if (!rtdb || !isAdmin) return;
+    if (!rtdb) return;
 
     const presenceRef = ref(rtdb, "presence");
 
@@ -70,7 +70,7 @@ export function WhoIsOnline() {
     };
   }, [currentUser?.uid, isAdmin]);
 
-  if (loading || !isAdmin || onlineUsers.length === 0) return null;
+  if (loading || !currentUser || onlineUsers.length === 0) return null;
 
   // Owners see the full list below the count, Admins only see the count pill
   if (!isOwner) {

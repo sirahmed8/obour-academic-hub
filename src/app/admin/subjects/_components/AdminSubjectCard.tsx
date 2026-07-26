@@ -7,7 +7,7 @@ import { cn } from "@/lib/utils";
 import { getSubjectAnimation } from "@/lib/subjectIcons";
 import { Subject } from "@/types";
 
-interface SubjectCardProps {
+interface AdminSubjectCardProps {
   isPreview?: boolean;
   language: "ar" | "en";
   onDelete?: () => void;
@@ -15,7 +15,13 @@ interface SubjectCardProps {
   subject: Partial<Subject>;
 }
 
-export function SubjectCard({ isPreview, language, onDelete, onEdit, subject }: SubjectCardProps) {
+export function AdminSubjectCard({
+  isPreview,
+  language,
+  onDelete,
+  onEdit,
+  subject,
+}: AdminSubjectCardProps) {
   const icon = getSubjectAnimation(subject.icon || "BookOpen");
   const colorClass = subject.color || "bg-blue-500";
   const [isHovered, setIsHovered] = useState(false);

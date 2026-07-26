@@ -72,9 +72,7 @@ export function TacticalAdviceCard() {
           </div>
           <div>
             <h3 className="text-lg font-black text-foreground">
-              {language === "ar"
-                ? "المستشار الأكاديمي والتكتيكي بالذكاء الاصطناعي"
-                : "AI Academic & Tactical Advisor"}
+              {language === "ar" ? "المستشار الأكاديمي بالذكاء الاصطناعي" : "AI Academic Advisor"}
             </h3>
             <p className="text-xs text-muted-foreground font-medium">
               {language === "ar"
@@ -107,8 +105,8 @@ export function TacticalAdviceCard() {
                 {loading ? <Loader2 size={16} className="animate-spin" /> : <RefreshCw size={16} />}
                 <span>
                   {language === "ar"
-                    ? `💡 احصل على نصيحة AI التكتيكية (متبقي ${usesLeft}/3 اليوم)`
-                    : `💡 Get AI Tactical Advice (${usesLeft}/3 left today)`}
+                    ? `💡 احصل على نصيحة الذكاء الاصطناعي (متبقي ${usesLeft}/3 اليوم)`
+                    : `💡 Get AI Advice (${usesLeft}/3 left today)`}
                 </span>
               </button>
             ) : (
@@ -138,8 +136,8 @@ export function TacticalAdviceCard() {
                 {loading ? <Loader2 size={18} className="animate-spin" /> : <Lightbulb size={18} />}
                 <span>
                   {language === "ar"
-                    ? `💡 احصل على نصيحة AI التكتيكية (متبقي ${usesLeft}/3 اليوم)`
-                    : `💡 Get AI Tactical Advice (${usesLeft}/3 left today)`}
+                    ? `💡 احصل على نصيحة الذكاء الاصطناعي (متبقي ${usesLeft}/3 اليوم)`
+                    : `💡 Get AI Advice (${usesLeft}/3 left today)`}
                 </span>
               </button>
             ) : (

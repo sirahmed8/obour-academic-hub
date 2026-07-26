@@ -238,7 +238,20 @@ export function TodoList() {
             body: message,
             tag: `task-complete-${task.id}`, // Prevent duplicate notifications
           });
-          toast.success(language === "ar" ? "عمل رائع!" : "Great job!");
+
+          // 3. Confetti Celebration
+          try {
+            const confetti = (await import("canvas-confetti")).default;
+            confetti({
+              particleCount: 60,
+              spread: 70,
+              origin: { y: 0.7 },
+            });
+          } catch {
+            // Ignore if confetti fails
+          }
+
+          toast.success(language === "ar" ? "عمل رائع! +10 نقاط 🎉" : "Great job! +10 points 🎉");
         }
       } catch {
         toast.error("Failed to update task");
@@ -314,21 +327,43 @@ export function TodoList() {
     { value: "newest", label: language === "ar" ? "الأحدث أولاً" : "Newest First" },
   ];
 
+  const totalTaskCount = tasks.length;
+  const completedTaskCount = tasks.filter((t) => t.completed).length;
+  const taskProgressPercent =
+    totalTaskCount > 0 ? Math.round((completedTaskCount / totalTaskCount) * 100) : 0;
+
   return (
-    <div className="w-full p-4 sm:p-6 space-y-6">
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-        <div>
-          <h1 className="text-4xl font-black tracking-tight flex items-center gap-3">
-            <span className="bg-primary/10 p-2 rounded-xl text-primary">
+    <div className="w-full p-4 sm:p-6 lg:p-10 space-y-6 max-w-7xl mx-auto">
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 p-6 rounded-3xl bg-card/60 border border-primary/20 backdrop-blur-2xl shadow-xl">
+        <div className="space-y-1">
+          <h1 className="text-3xl sm:text-4xl font-black tracking-tight flex items-center gap-3">
+            <span className="bg-primary/10 p-2.5 rounded-2xl text-primary border border-primary/20">
               <CheckCircle2 size={32} />
             </span>
-            <span>{language === "ar" ? "قائمة المهام" : "My Tasks"}</span>
+            <span>{language === "ar" ? "قائمة المهام الأكاديمية" : "Academic Task Planner"}</span>
           </h1>
-          <p className="text-muted-foreground mt-1 text-sm font-medium opacity-80 pl-1">
+          <p className="text-muted-foreground text-xs sm:text-sm font-medium opacity-80 ps-1">
             {language === "ar"
-              ? "نظم وقتك، أنجز مهامك، واستمتع بالإنتاجية."
-              : "Organize your life, get things done."}
+              ? "نظم وقتك، أنجز واجباتك الدراسية، واكسب النقاط للتصدر في لوحة الشرف."
+              : "Organize your study schedule, hit your deadlines, and earn points."}
           </p>
+
+          {totalTaskCount > 0 && (
+            <div className="pt-3 max-w-md">
+              <div className="flex justify-between items-center text-xs font-bold mb-1 text-muted-foreground">
+                <span>
+                  {language === "ar" ? "نسبة إنجاز المهام اليومية" : "Daily Task Progress"}
+                </span>
+                <span className="text-primary font-black">{taskProgressPercent}%</span>
+              </div>
+              <div className="h-2 w-full bg-muted rounded-full overflow-hidden border border-border/50">
+                <div
+                  className="h-full bg-gradient-to-r from-primary to-indigo-500 transition-all duration-700 rounded-full"
+                  style={{ width: `${taskProgressPercent}%` }}
+                />
+              </div>
+            </div>
+          )}
         </div>
 
         <motion.button
@@ -339,14 +374,13 @@ export function TodoList() {
           whileHover={{ scale: 1.02 }}
           whileTap={{ scale: 0.95 }}
           className={cn(
-            "group relative overflow-hidden shadow-lg shadow-primary/25 hover:shadow-primary/40 transition-shadow",
+            "group relative overflow-hidden shadow-lg shadow-primary/25 hover:shadow-primary/40 transition-all rounded-2xl px-6 py-3.5",
             buttonVariants({ variant: "primary", size: "lg" }),
-            "flex items-center justify-center gap-2"
+            "flex items-center justify-center gap-2 text-sm font-black"
           )}
         >
-          <div className="absolute inset-0 bg-white/20 translate-y-full group-hover:translate-y-0 transition-transform duration-300" />
           <Plus size={20} />
-          <span>{language === "ar" ? "مهمة جديدة" : "New Task"}</span>
+          <span>{language === "ar" ? "إضافة مهمة جديدة" : "New Task"}</span>
         </motion.button>
       </div>
 

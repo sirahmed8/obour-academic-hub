@@ -96,9 +96,11 @@ export default function ProfilePage() {
   return (
     <div className="container mx-auto p-6 space-y-8">
       {/* Header section */}
-      <div className="flex flex-col md:flex-row items-center gap-6 bg-card/50 backdrop-blur-xl p-8 rounded-4xl border border-border shadow-xl">
+      <div className="relative overflow-hidden flex flex-col md:flex-row items-center gap-6 bg-card/60 backdrop-blur-2xl p-8 rounded-3xl border border-primary/20 shadow-2xl">
+        <div className="absolute top-0 right-0 -mt-8 -mr-8 w-40 h-40 bg-primary/10 rounded-full blur-3xl pointer-events-none" />
+
         <div className="relative">
-          <div className="w-32 h-32 rounded-full overflow-hidden ring-4 ring-primary/20 shadow-2xl bg-muted">
+          <div className="w-32 h-32 rounded-3xl overflow-hidden ring-4 ring-primary/30 shadow-2xl bg-muted transition-transform hover:scale-105">
             {user.photoURL ? (
               <Image
                 src={user.photoURL}
@@ -112,22 +114,35 @@ export default function ProfilePage() {
             )}
           </div>
           {isAdmin && (
-            <div className="absolute -bottom-2 -right-2 bg-primary text-primary-foreground px-3 py-1 rounded-full text-[10px] font-bold shadow-lg uppercase tracking-wider">
-              {isOwner ? "Owner" : "Admin"}
+            <div className="absolute -bottom-2 -right-2 bg-gradient-to-r from-primary to-indigo-600 text-primary-foreground px-3.5 py-1 rounded-full text-xs font-black shadow-lg uppercase tracking-wider border border-white/20">
+              {isOwner ? "Owner 👑" : "Admin 🛡️"}
             </div>
           )}
         </div>
 
-        <div className="text-center md:text-left space-y-2">
-          <h1 className="text-3xl font-black text-foreground tracking-tight">{user.displayName}</h1>
-          <div className="flex flex-wrap items-center justify-center md:justify-start gap-4 text-sm text-muted-foreground">
-            <div className="flex items-center gap-2">
-              <Mail className="w-4 h-4" />
+        <div className="text-center md:text-left space-y-3 flex-1">
+          <div>
+            <h1 className="text-3xl sm:text-4xl font-black text-foreground tracking-tight flex items-center justify-center md:justify-start gap-2">
+              <span>{user.displayName}</span>
+              <span className="text-xs px-2.5 py-1 rounded-full bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20 font-bold">
+                {language === "ar" ? "طالب مسجل 🟢" : "Active Student 🟢"}
+              </span>
+            </h1>
+            <p className="text-xs sm:text-sm text-muted-foreground font-medium mt-1">
+              {language === "ar"
+                ? "أكاديمية العبور للهندسة والتكنولوجيا"
+                : "Obour Institutes of Engineering & Technology"}
+            </p>
+          </div>
+
+          <div className="flex flex-wrap items-center justify-center md:justify-start gap-3 text-xs sm:text-sm font-semibold text-muted-foreground">
+            <div className="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-card border border-border/50">
+              <Mail className="w-4 h-4 text-primary" />
               {user.email}
             </div>
-            <div className="flex items-center gap-2">
-              <Shield className="w-4 h-4" />
-              {user.studentCode || t("profile.codeLocked")}
+            <div className="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-card border border-border/50">
+              <Shield className="w-4 h-4 text-primary" />
+              <span>{user.studentCode || t("profile.codeLocked")}</span>
             </div>
           </div>
         </div>

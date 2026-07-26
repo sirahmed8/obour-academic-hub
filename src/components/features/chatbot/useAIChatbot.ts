@@ -6,7 +6,7 @@ import { collection, doc, onSnapshot, orderBy, query } from "firebase/firestore"
 import { toast } from "sonner";
 import { useAuth, useLanguage, useSolidMode } from "@/contexts";
 import { db } from "@/lib/firebase";
-import { getApiBaseUrl } from "@/lib/config";
+import { apiFetch } from "@/lib/api-client";
 import {
   clearChatHistory,
   deleteMessage,
@@ -68,7 +68,7 @@ export function useAIChatbot(): AIChatbotController {
   const [input, setInput] = useState("");
   const [showClearConfirm, setShowClearConfirm] = useState(false);
   const [unreadCount, setUnreadCount] = useState(0);
-  const [mode, setInternalMode] = useState<ChatbotMode>("live");
+  const [mode, setInternalMode] = useState<ChatbotMode>("bot");
   const [isGenerating, setIsGenerating] = useState(false);
   const [aiEnabled, setAiEnabled] = useState(true);
   const [chatbotEnabled, setChatbotEnabled] = useState(true);
@@ -382,23 +382,13 @@ export function useAIChatbot(): AIChatbotController {
               content: currentMessageContent,
             };
 
-            const baseUrl = getApiBaseUrl();
-            const response = await fetch(`${baseUrl}/api/chat`, {
+            const data = await apiFetch<{ content: string }>("/api/chat", {
               method: "POST",
-              headers: { "Content-Type": "application/json" },
-              body: JSON.stringify({
+              body: {
                 messages: [...history, currentMessage],
                 model: "balanced",
-              }),
+              },
             });
-
-            if (!response.ok) {
-              const errorData = await response.json().catch(() => ({}));
-              console.error("AI Error Details:", errorData);
-              throw new Error(errorData.error || "AI Request Failed");
-            }
-
-            const data = await response.json();
             await sendMessage(
               currentChatId,
               data.content,

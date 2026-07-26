@@ -62,7 +62,7 @@ export function ChatbotPanel({
   setInput,
   setReplyTo,
   setMode,
-  aiEnabled,
+  _aiEnabled,
   user,
 }: ChatbotPanelProps) {
   const [mounted, setMounted] = React.useState(false);
@@ -202,32 +202,34 @@ export function ChatbotPanel({
           </div>
 
           <div className="flex items-center gap-1">
-            {aiEnabled && (
-              <div className="flex items-center gap-1 mr-2 bg-background/50 rounded-lg p-1 border border-border/10">
-                <button
-                  onClick={() => setMode("bot")}
-                  className={cn(
-                    "px-2 py-1 rounded-md text-[10px] font-bold transition-all",
-                    mode === "bot"
-                      ? "bg-purple-500 text-white shadow-sm"
-                      : "text-muted-foreground hover:bg-muted"
-                  )}
-                >
-                  {language === "ar" ? "ذكاء اصطناعي" : "AI"}
-                </button>
-                <button
-                  onClick={() => setMode("live")}
-                  className={cn(
-                    "px-2 py-1 rounded-md text-[10px] font-bold transition-all",
-                    mode === "live"
-                      ? "bg-green-500 text-white shadow-sm"
-                      : "text-muted-foreground hover:bg-muted"
-                  )}
-                >
-                  {language === "ar" ? "مباشر" : "Live"}
-                </button>
-              </div>
-            )}
+            <div className="flex items-center gap-1 mx-1.5 bg-background/60 backdrop-blur-md rounded-xl p-1 border border-border/40 shadow-inner">
+              <button
+                type="button"
+                onClick={() => setMode("bot")}
+                className={cn(
+                  "px-2.5 py-1 rounded-lg text-xs font-black transition-all flex items-center gap-1",
+                  mode === "bot"
+                    ? "bg-gradient-to-r from-purple-600 to-indigo-600 text-white shadow-md shadow-purple-500/20"
+                    : "text-muted-foreground hover:bg-muted hover:text-foreground"
+                )}
+              >
+                <span>🤖</span>
+                <span>{language === "ar" ? "ذكاء اصطناعي" : "AI"}</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => setMode("live")}
+                className={cn(
+                  "px-2.5 py-1 rounded-lg text-xs font-black transition-all flex items-center gap-1",
+                  mode === "live"
+                    ? "bg-gradient-to-r from-emerald-600 to-teal-600 text-white shadow-md shadow-emerald-500/20"
+                    : "text-muted-foreground hover:bg-muted hover:text-foreground"
+                )}
+              >
+                <span>🎧</span>
+                <span>{language === "ar" ? "مباشر" : "Live"}</span>
+              </button>
+            </div>
             <button
               onClick={onClearChat}
               className="rounded-xl p-2 text-muted-foreground transition-all duration-200 hover:bg-destructive/10 hover:text-destructive active:scale-90"

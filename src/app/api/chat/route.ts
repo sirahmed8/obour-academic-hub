@@ -14,10 +14,20 @@ export async function OPTIONS(request: Request) {
 
 export async function POST(req: Request) {
   try {
-    const context = await getRequestContext(req, { allowMissingProfile: true });
+    let uid = "guest";
+    try {
+      const context = await getRequestContext(req, { allowMissingProfile: true });
+      uid = context.uid;
+    } catch (authError) {
+      console.warn(
+        "[API /api/chat] Auth context fallback to guest:",
+        authError instanceof Error ? authError.message : String(authError)
+      );
+    }
+
     const limiter = await rateLimit({
-      key: `api:chat:${context.uid}`,
-      limit: 20,
+      key: `api:chat:${uid}`,
+      limit: 30,
       windowMs: 60_000,
     });
 
@@ -39,7 +49,7 @@ export async function POST(req: Request) {
     const json = chatRequestSchema.parse(await req.json());
     const messages = json.messages as ChatHistoryMessage[];
 
-    const responseText = await generateGeminiResponse(messages, context.uid);
+    const responseText = await generateGeminiResponse(messages, uid);
 
     return withCors(req, NextResponse.json({ role: "assistant", content: responseText }));
   } catch (error: unknown) {

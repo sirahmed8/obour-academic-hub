@@ -4,7 +4,7 @@ import { AnimatePresence, motion } from "framer-motion";
 import { Search } from "lucide-react";
 import { LoadingCardGrid } from "@/components/ui/Loading";
 import { Subject } from "@/types";
-import { SubjectCard } from "./SubjectCard";
+import { AdminSubjectCard } from "./AdminSubjectCard";
 
 interface SubjectsGridProps {
   language: string;
@@ -69,7 +69,7 @@ export function SubjectsGrid({
               damping: 25,
             }}
           >
-            <SubjectCard
+            <AdminSubjectCard
               subject={subject}
               language={language as "ar" | "en"}
               onEdit={() => onEdit(subject)}

@@ -186,7 +186,28 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             return { ...base, ...normalized } as User;
           });
         } else {
-          throw new Error(`Bootstrap status ${response.status}`);
+          console.warn(
+            `[AuthContext] Bootstrap API returned status ${response.status}. Using fallback user profile.`
+          );
+          const existingProfile = await authService
+            .getUserProfile(firebaseUser.uid)
+            .catch(() => null);
+          if (existingProfile) {
+            setUser((prev) => ({ ...prev, ...existingProfile }) as User);
+          } else {
+            setUser((prev) => {
+              if (prev && prev.role) return prev;
+              return {
+                uid: firebaseUser.uid,
+                email: firebaseUser.email || "",
+                displayName: firebaseUser.displayName || "User",
+                role: "student" as UserRole,
+                permissions: [],
+                photoURL: firebaseUser.photoURL || undefined,
+                createdAt: normalizeDate(new Date().toISOString()),
+              } as User;
+            });
+          }
         }
       } catch (err: unknown) {
         const error = err as Error;
@@ -264,6 +285,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   }, [user, pathname]);
 
+  const isLoggingInRef = useRef(false);
+
   const login = useCallback(async () => {
     if (!auth) {
       console.error(
@@ -276,6 +299,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       );
       return;
     }
+
+    if (isLoggingInRef.current) {
+      console.log("[AuthContext] Login popup request already in progress.");
+      return;
+    }
+
+    isLoggingInRef.current = true;
+
     try {
       console.log("[AuthContext] login clicked - Initiating popup...");
       await signInWithPopup(auth, googleProvider);
@@ -296,12 +327,17 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             : "This domain is not authorized for Google Sign-In in the Firebase console. Please add it to Authorized Domains.",
           { duration: 6000 }
         );
-      } else if (error.code !== "auth/popup-closed-by-user") {
+      } else if (
+        error.code !== "auth/popup-closed-by-user" &&
+        error.code !== "auth/cancelled-popup-request"
+      ) {
         toast.error(
           (language === "ar" ? "فشل تسجيل الدخول: " : "Login failed: ") +
             (error.message || error.code)
         );
       }
+    } finally {
+      isLoggingInRef.current = false;
     }
   }, [language]);
 

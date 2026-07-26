@@ -416,15 +416,22 @@ export default function AdminAnalyticsPage() {
   return (
     <div className="p-4 lg:p-8 w-full max-w-[1600px] mx-auto space-y-8 animate-in fade-in duration-700">
       {/* Header */}
-      <FadeIn className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-card/50 backdrop-blur-md p-6 rounded-3xl border border-border/50 shadow-sm">
-        <div>
-          <h1 className="text-3xl font-extrabold tracking-tight flex items-center gap-3">
-            <span className="p-2.5 rounded-2xl bg-primary/10 text-primary shadow-inner">
-              <BarChart3 className="w-6 h-6" />
+      <FadeIn className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-card/60 backdrop-blur-2xl p-6 sm:p-8 rounded-3xl border border-primary/20 shadow-xl relative overflow-hidden">
+        <div className="absolute top-0 right-0 -mt-6 -mr-6 w-36 h-36 bg-primary/10 rounded-full blur-3xl pointer-events-none" />
+
+        <div className="space-y-1">
+          <div className="flex items-center gap-3">
+            <span className="p-3 rounded-2xl bg-primary/10 text-primary border border-primary/20 shadow-sm">
+              <BarChart3 className="w-7 h-7" />
             </span>
-            {language === "ar" ? "لوحة التحليلات" : "Platform Analytics"}
-          </h1>
-          <p className="text-muted-foreground mt-1 ml-14 md:ml-0 md:mt-2 text-sm font-medium">
+            <h1 className="text-2xl sm:text-3xl font-black tracking-tight text-foreground flex items-center gap-2">
+              <span>{language === "ar" ? "لوحة تحليلات الإدارة" : "Admin Command Analytics"}</span>
+              <span className="text-xs px-2.5 py-0.5 rounded-full bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20 font-bold">
+                Live 🟢
+              </span>
+            </h1>
+          </div>
+          <p className="text-muted-foreground mt-1 text-xs sm:text-sm font-medium opacity-80 ps-1">
             {loading || !mounted ? (
               <span className="w-32 h-4 bg-muted animate-pulse inline-block rounded" />
             ) : (
@@ -440,18 +447,18 @@ export default function AdminAnalyticsPage() {
         <div className="flex items-center gap-3 self-end md:self-center">
           <button
             onClick={() => setShowResetModal(true)}
-            className="flex items-center gap-2 px-4 py-2.5 rounded-2xl bg-destructive/10 text-destructive hover:bg-destructive/20 transition-all active:scale-95 font-semibold text-sm"
+            className="flex items-center gap-2 px-4 py-2.5 rounded-2xl bg-destructive/10 text-destructive hover:bg-destructive hover:text-destructive-foreground transition-all active:scale-95 font-bold text-xs border border-destructive/20 shadow-sm"
           >
             <Trash2 className="w-4 h-4" />
-            {language === "ar" ? "تصفير الإحصائيات" : "Reset All Stats"}
+            <span>{language === "ar" ? "تصفير الإحصائيات" : "Reset All Stats"}</span>
           </button>
           <button
             onClick={handleRefresh}
             disabled={refreshing}
-            className="flex items-center gap-2 px-4 py-2.5 rounded-2xl bg-muted hover:bg-muted/80 transition-all active:scale-95 disabled:opacity-50 text-sm font-semibold"
+            className="flex items-center gap-2 px-4 py-2.5 rounded-2xl bg-primary/10 text-primary hover:bg-primary hover:text-primary-foreground transition-all active:scale-95 disabled:opacity-50 text-xs font-bold border border-primary/20 shadow-sm"
           >
             <RefreshCw className={cn("w-4 h-4", refreshing && "animate-spin")} />
-            {language === "ar" ? "تحديث" : "Refresh"}
+            <span>{language === "ar" ? "تحديث التزامن" : "Sync Data"}</span>
           </button>
         </div>
       </FadeIn>

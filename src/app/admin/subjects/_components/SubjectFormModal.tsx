@@ -8,7 +8,7 @@ import { cn } from "@/lib/utils";
 import { PICKER_OPTIONS, getSubjectAnimation } from "@/lib/subjectIcons";
 import { COLOR_OPTIONS } from "../subject-utils";
 import { SubjectFormData, SubjectFormErrors } from "../types";
-import { SubjectCard } from "./SubjectCard";
+import { AdminSubjectCard } from "./AdminSubjectCard";
 
 interface SubjectFormModalProps {
   editingId: string | null;
@@ -79,7 +79,11 @@ export function SubjectFormModal({
                     <label className="mb-3 block text-center text-xs font-semibold uppercase tracking-wider text-muted-foreground">
                       {language === "ar" ? "معاينة البطاقة" : "Card Preview"}
                     </label>
-                    <SubjectCard subject={formData} language={language as "ar" | "en"} isPreview />
+                    <AdminSubjectCard
+                      subject={formData}
+                      language={language as "ar" | "en"}
+                      isPreview
+                    />
                   </div>
                 </div>
 

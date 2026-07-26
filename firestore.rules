@@ -114,7 +114,11 @@ service cloud.firestore {
         request.resource.data.displayName.size() > 0 &&
         request.resource.data.role in ['student', 'moderator', 'admin', 'owner'] &&
         request.resource.data.createdAt == request.time;
-      allow update: if request.auth != null;
+      allow update: if request.auth != null && (
+        (resource.data.uid == request.auth.uid && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['text', 'updatedAt'])) ||
+        hasPermission('access_inbox') ||
+        isOwner()
+      );
       allow delete: if request.auth != null &&
         (resource.data.uid == request.auth.uid || hasPermission('delete_chats') || isOwner());
     }

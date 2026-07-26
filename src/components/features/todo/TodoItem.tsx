@@ -212,7 +212,13 @@ export function TodoItem({ task, onToggle, onDelete, onEdit, onSubtaskToggle }: 
                     priorityConfig[task.priority].bg.replace("/10", "")
                   )}
                 />
-                {task.priority}
+                {language === "ar"
+                  ? task.priority === "high"
+                    ? "أولوية عالية"
+                    : task.priority === "medium"
+                      ? "أولوية متوسطة"
+                      : "أولوية منخفضة"
+                  : task.priority}
               </span>
 
               {/* Due Date */}
@@ -231,7 +237,17 @@ export function TodoItem({ task, onToggle, onDelete, onEdit, onSubtaskToggle }: 
               )}
               {task.repeat && task.repeat !== "none" && (
                 <div className="flex items-center gap-1.5 text-[10px] px-2 py-0.5 rounded-full border bg-blue-500/5 text-blue-500 border-blue-500/10 font-medium">
-                  <span className="capitalize">{task.repeat}</span>
+                  <span className="capitalize">
+                    {language === "ar"
+                      ? task.repeat === "daily"
+                        ? "تكرار يومي"
+                        : task.repeat === "weekly"
+                          ? "تكرار أسبوعي"
+                          : task.repeat === "monthly"
+                            ? "تكرار شهري"
+                            : task.repeat
+                      : task.repeat}
+                  </span>
                 </div>
               )}
             </div>

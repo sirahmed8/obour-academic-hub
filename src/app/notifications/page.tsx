@@ -1,11 +1,19 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import { useLanguage, useAuth } from "@/contexts";
 import { notificationService } from "@/services/notification.service";
-
-import { Bell, Info, AlertTriangle, CheckCircle, Trash2, CheckCheck } from "lucide-react";
+import {
+  Bell,
+  Info,
+  AlertTriangle,
+  CheckCircle,
+  Trash2,
+  CheckCheck,
+  ExternalLink,
+  Filter,
+} from "lucide-react";
 import { ConfirmationModal } from "@/components/ui/ConfirmationModal";
 import { LoadingTable } from "@/components/ui/Loading";
 import { toast } from "sonner";
@@ -22,6 +30,7 @@ export default function NotificationsPage() {
   const { language, t } = useLanguage();
   const { user, isAdmin } = useAuth();
   const [deleteId, setDeleteId] = useState<string | null>(null);
+  const [activeFilter, setActiveFilter] = useState<"all" | "unread" | "academic">("all");
 
   useEffect(() => {
     if (!user) return;
@@ -29,8 +38,6 @@ export default function NotificationsPage() {
     const unsubscribe = notificationService.subscribeToUser(
       user.uid,
       (allNotifs) => {
-        // No need to filter deeply here as the query is already filtered
-        // But we can double check or just set state
         setNotifications(allNotifs);
         setLoading(false);
       },
@@ -50,7 +57,6 @@ export default function NotificationsPage() {
 
     if (unread.length === 0) return;
 
-    // In a real app, use a batch or backend function.
     unread.forEach(async (n) => {
       try {
         await notificationService.markAsRead(n.id, user.uid);
@@ -98,33 +104,52 @@ export default function NotificationsPage() {
   const getColors = (type: string) => {
     switch (type) {
       case "warning":
-        return "bg-yellow-100 text-yellow-600 dark:bg-yellow-900/30 dark:text-yellow-400";
+        return "bg-yellow-500/10 text-yellow-600 dark:text-yellow-400 border border-yellow-500/20";
       case "success":
-        return "bg-green-100 text-green-600 dark:bg-green-900/30 dark:text-green-400";
+        return "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20";
       case "urgent":
-        return "bg-red-100 text-red-600 dark:bg-red-900/30 dark:text-red-400";
+        return "bg-red-500/10 text-red-600 dark:text-red-400 border border-red-500/20";
       default:
-        return "bg-blue-100 text-blue-600 dark:bg-blue-900/30 dark:text-blue-400";
+        return "bg-blue-500/10 text-blue-600 dark:text-blue-400 border border-blue-500/20";
     }
   };
 
   const unreadCount = notifications.filter((n) => !n.readBy?.includes(user?.uid || "")).length;
 
+  const filteredNotifications = useMemo(() => {
+    return notifications.filter((n) => {
+      const isUnread = !n.readBy?.includes(user?.uid || "");
+      if (activeFilter === "unread") return isUnread;
+      if (activeFilter === "academic") return Boolean(n.subjectId);
+      return true;
+    });
+  }, [notifications, activeFilter, user?.uid]);
+
   return (
     <>
-      <div className="p-6 lg:p-10 w-full space-y-8 page-transition">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <div className="p-3 bg-primary/10 rounded-2xl relative">
-              <Bell className="w-6 h-6 text-primary" />
+      <div className="p-4 sm:p-6 lg:p-10 w-full space-y-6 max-w-7xl mx-auto page-transition min-h-screen">
+        {/* Header */}
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-6 sm:p-8 rounded-3xl bg-card/60 border border-primary/20 backdrop-blur-2xl shadow-xl">
+          <div className="flex items-center gap-4">
+            <div className="p-3.5 bg-primary/10 rounded-2xl border border-primary/20 relative shrink-0">
+              <Bell className="w-8 h-8 text-primary" />
               {unreadCount > 0 && (
-                <span className="absolute -top-1 -right-1 w-3 h-3 bg-red-500 rounded-full border-2 border-background" />
+                <span className="absolute -top-1 -right-1 w-4 h-4 bg-red-500 rounded-full border-2 border-background animate-pulse" />
               )}
             </div>
             <div>
-              <h1 className="text-2xl font-bold text-foreground">{t("nav.notifications")}</h1>
-              <p className="text-sm text-muted-foreground">
-                {unreadCount} {language === "ar" ? "غير مقروءة" : "unread"}
+              <div className="flex items-center gap-2">
+                <h1 className="text-2xl sm:text-3xl font-black text-foreground">
+                  {t("nav.notifications")}
+                </h1>
+                <span className="px-2.5 py-0.5 rounded-full text-xs font-black bg-primary/10 text-primary border border-primary/20">
+                  {unreadCount} {language === "ar" ? "جديد" : "new"}
+                </span>
+              </div>
+              <p className="text-xs sm:text-sm text-muted-foreground font-medium mt-1">
+                {language === "ar"
+                  ? "تابع آخر الإعلانات والتحديثات الأكاديمية والتنبيهات العامة"
+                  : "Stay updated with campus alerts and academic announcements"}
               </p>
             </div>
           </div>
@@ -132,21 +157,70 @@ export default function NotificationsPage() {
           {unreadCount > 0 && (
             <button
               onClick={markAllAsRead}
-              className="p-3 bg-primary/10 text-primary rounded-xl hover:bg-primary/20 transition-colors"
+              className="flex items-center gap-2 px-4 py-2.5 bg-primary/10 hover:bg-primary text-primary hover:text-primary-foreground text-xs font-bold rounded-2xl border border-primary/20 transition-all active:scale-95 shadow-sm"
               title={language === "ar" ? "تحديد الكل كمقروء" : "Mark all as read"}
             >
-              <CheckCheck className="w-5 h-5" />
+              <CheckCheck className="w-4 h-4" />
+              <span>{language === "ar" ? "تحديد الكل كمقروء" : "Mark All Read"}</span>
             </button>
           )}
         </div>
 
+        {/* Filter Controls Bar */}
+        <div className="flex items-center gap-2 p-1.5 bg-card/40 backdrop-blur-md rounded-2xl border border-border/50 w-fit overflow-x-auto">
+          <div className="px-3 py-1 text-muted-foreground">
+            <Filter size={16} />
+          </div>
+
+          <button
+            onClick={() => setActiveFilter("all")}
+            className={cn(
+              "px-4 py-2 rounded-xl text-xs font-bold transition-all whitespace-nowrap",
+              activeFilter === "all"
+                ? "bg-primary text-primary-foreground shadow-sm"
+                : "text-muted-foreground hover:bg-muted hover:text-foreground"
+            )}
+          >
+            {language === "ar" ? "جميع الإشعارات" : "All Alerts"} ({notifications.length})
+          </button>
+
+          <button
+            onClick={() => setActiveFilter("unread")}
+            className={cn(
+              "px-4 py-2 rounded-xl text-xs font-bold transition-all whitespace-nowrap",
+              activeFilter === "unread"
+                ? "bg-primary text-primary-foreground shadow-sm"
+                : "text-muted-foreground hover:bg-muted hover:text-foreground"
+            )}
+          >
+            {language === "ar" ? "غير مقروءة" : "Unread"} ({unreadCount})
+          </button>
+
+          <button
+            onClick={() => setActiveFilter("academic")}
+            className={cn(
+              "px-4 py-2 rounded-xl text-xs font-bold transition-all whitespace-nowrap",
+              activeFilter === "academic"
+                ? "bg-primary text-primary-foreground shadow-sm"
+                : "text-muted-foreground hover:bg-muted hover:text-foreground"
+            )}
+          >
+            {language === "ar" ? "تحديثات المواد" : "Course Updates"}
+          </button>
+        </div>
+
         {loading ? (
           <LoadingTable rows={5} />
-        ) : notifications.length === 0 ? (
-          <div className="text-center py-20 bg-muted/30 rounded-2xl border-2 border-dashed border-border">
-            <Bell size={48} className="mx-auto text-muted-foreground mb-4" />
-            <p className="text-muted-foreground">
-              {language === "ar" ? "لا توجد إشعارات" : "No notifications"}
+        ) : filteredNotifications.length === 0 ? (
+          <div className="text-center py-20 bg-card/30 backdrop-blur-xl rounded-3xl border-2 border-dashed border-border/50">
+            <Bell size={48} className="mx-auto text-muted-foreground/50 mb-4" />
+            <h3 className="text-lg font-bold text-foreground mb-1">
+              {language === "ar" ? "لا توجد إشعارات حالياً" : "No notifications right now"}
+            </h3>
+            <p className="text-muted-foreground text-sm max-w-sm mx-auto">
+              {language === "ar"
+                ? "كل شيء محدث! ستظهر هنا أي تحديثات جديدة من إدارة المنصة أو المواد."
+                : "Everything is up to date! New course updates and alerts will appear here."}
             </p>
           </div>
         ) : (
@@ -156,7 +230,7 @@ export default function NotificationsPage() {
             animate="visible"
             className="space-y-4"
           >
-            {notifications.map((notif) => {
+            {filteredNotifications.map((notif) => {
               const Icon = getIcon(notif.type);
               const isRead = notif.readBy?.includes(user?.uid || "");
 
@@ -165,11 +239,9 @@ export default function NotificationsPage() {
                   variants={listItem}
                   key={notif.id}
                   onClick={async () => {
-                    // Mark as read on click
                     if (!isRead && user) {
                       await notificationService.markAsRead(notif.id, user.uid);
                     }
-                    // Navigate to subject if available
                     if (notif.subjectId) {
                       const url = notif.resourceId
                         ? `/subject?id=${notif.subjectId}&highlight=${notif.resourceId}`
@@ -178,51 +250,72 @@ export default function NotificationsPage() {
                     }
                   }}
                   className={cn(
-                    "rounded-2xl p-6 border transition-all duration-200 cursor-default",
+                    "rounded-3xl p-5 sm:p-6 border transition-all duration-300 backdrop-blur-xl relative overflow-hidden group",
                     isRead
-                      ? "bg-card/50 border-border/50 opacity-70 hover:opacity-100"
-                      : "bg-card border-primary/20 shadow-sm ring-1 ring-primary/5",
-                    notif.subjectId && "cursor-pointer hover:border-primary/40 hover:shadow-md"
+                      ? "bg-card/40 border-border/40 opacity-75 hover:opacity-100 hover:border-primary/20"
+                      : "bg-card border-primary/30 shadow-lg shadow-primary/5 ring-1 ring-primary/10",
+                    notif.subjectId && "cursor-pointer hover:scale-[1.01]"
                   )}
                 >
                   <div className="flex items-start gap-4">
-                    <div className={cn("p-3 rounded-xl shrink-0", getColors(notif.type))}>
+                    <div
+                      className={cn("p-3.5 rounded-2xl shrink-0 shadow-sm", getColors(notif.type))}
+                    >
                       <Icon size={24} />
                     </div>
-                    <div className="flex-1">
-                      <div className="flex justify-between items-start">
+                    <div className="flex-1 min-w-0">
+                      <div className="flex flex-wrap justify-between items-start gap-2">
                         <div className="flex items-center gap-2">
                           <h3
-                            className={cn("font-bold text-foreground", !isRead && "text-primary")}
+                            className={cn(
+                              "font-extrabold text-base sm:text-lg text-foreground",
+                              !isRead && "text-primary"
+                            )}
                           >
                             {language === "ar"
                               ? notif.titleAr || notif.title || "إشعار"
                               : notif.titleEn || notif.title || "Notification"}
-                            {!isRead && (
-                              <span className="ml-2 inline-block w-2 h-2 rounded-full bg-red-500 align-middle" />
-                            )}
                           </h3>
+                          {!isRead && (
+                            <span className="w-2.5 h-2.5 rounded-full bg-red-500 inline-block animate-ping" />
+                          )}
+                        </div>
+
+                        <div className="flex items-center gap-3">
+                          <span className="text-xs text-muted-foreground font-semibold">
+                            {language === "ar"
+                              ? formatDateArabic(notif.createdAt)
+                              : formatDate(notif.createdAt)}
+                          </span>
+
                           {isAdmin && (
                             <button
                               onClick={(e) => confirmDelete(notif.id, e)}
-                              className="p-1 text-muted-foreground hover:text-red-500 transition-colors"
+                              className="p-1.5 text-muted-foreground hover:text-red-500 rounded-lg hover:bg-red-500/10 transition-colors"
                               title="Delete notification"
                             >
                               <Trash2 size={16} />
                             </button>
                           )}
                         </div>
-                        <span className="text-xs text-muted-foreground whitespace-nowrap">
-                          {language === "ar"
-                            ? formatDateArabic(notif.createdAt)
-                            : formatDate(notif.createdAt)}
-                        </span>
                       </div>
-                      <p className="text-muted-foreground mt-1 text-sm leading-relaxed">
+
+                      <p className="text-muted-foreground mt-1.5 text-xs sm:text-sm font-medium leading-relaxed">
                         {language === "ar"
                           ? notif.messageAr || notif.message || ""
                           : notif.messageEn || notif.message || ""}
                       </p>
+
+                      {notif.subjectId && (
+                        <div className="mt-4 flex items-center gap-2">
+                          <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-xl text-xs font-black bg-primary/10 text-primary border border-primary/20 group-hover:bg-primary group-hover:text-primary-foreground transition-all">
+                            <span>
+                              {language === "ar" ? "عرض المادة الدراسية" : "View Subject Material"}
+                            </span>
+                            <ExternalLink size={14} />
+                          </span>
+                        </div>
+                      )}
                     </div>
                   </div>
                 </motion.div>
