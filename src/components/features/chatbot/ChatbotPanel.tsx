@@ -128,7 +128,7 @@ export function ChatbotPanel({
         scale: 0.95,
       }}
       style={{ height: `${height}px` }}
-      className="fixed bottom-20 right-4 z-50 flex w-[calc(100vw-2rem)] sm:w-[420px] md:w-[440px] flex-col overflow-hidden rounded-3xl border border-white/10 bg-background/95 backdrop-blur-2xl shadow-2xl transition-all duration-200 dark:border-white/10 dark:bg-background/95 max-h-[calc(100vh-6rem)]"
+      className="fixed bottom-24 sm:bottom-28 right-4 md:right-6 z-50 flex w-[calc(100vw-2rem)] sm:w-[420px] md:w-[440px] flex-col overflow-hidden rounded-3xl border border-white/10 bg-background/95 backdrop-blur-2xl shadow-2xl transition-all duration-200 dark:border-white/10 dark:bg-background/95 max-h-[calc(100vh-7.5rem)]"
     >
       {/* Top Drag Handle Bar */}
       <div
