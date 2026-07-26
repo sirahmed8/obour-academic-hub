@@ -60,6 +60,7 @@ export function AIChatbot() {
             handleSend={chatbot.handleSend}
             input={chatbot.input}
             isGenerating={chatbot.isGenerating}
+            isGeneratingWelcome={chatbot.isGeneratingWelcome}
             isSolid={chatbot.isSolid}
             language={chatbot.language}
             messages={chatbot.messages}

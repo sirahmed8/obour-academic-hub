@@ -17,6 +17,7 @@ interface ChatbotPanelProps {
   ) => Promise<void>;
   input: string;
   isGenerating: boolean;
+  isGeneratingWelcome?: boolean;
   isSolid: boolean;
   language: string;
   messages: ChatMessage[];
@@ -52,7 +53,8 @@ export function ChatbotPanel({
   handleSend,
   input,
   isGenerating,
-  isSolid,
+  isGeneratingWelcome,
+  isSolid: _isSolid,
   language,
   messages,
   mode,
@@ -119,54 +121,28 @@ export function ChatbotPanel({
         opacity: 1,
         y: 0,
         scale: 1,
-        transition: {
-          type: "spring",
-          damping: 25,
-          stiffness: 300,
-          mass: 0.8,
-        },
       }}
       exit={{
         opacity: 0,
         y: 20,
         scale: 0.95,
-        transition: { duration: 0.2, ease: "easeIn" },
       }}
-      className={cn(
-        "fixed z-200 flex flex-col overflow-hidden shadow-2xl",
-        // Mobile: full-width floating card
-        "inset-x-2 sm:inset-x-auto sm:w-[400px] bottom-[env(safe-area-inset-bottom,0.5rem)] top-auto sm:bottom-20 max-h-[calc(100vh-6rem)] rounded-3xl border border-border/30",
-        // Desktop: positioned, resizable
-        "md:bottom-24 md:w-[420px] md:top-auto md:max-h-[calc(100vh-8rem)] md:inset-x-auto",
-        isSolid
-          ? "bg-background md:border-border"
-          : "bg-background/80 backdrop-blur-2xl backdrop-saturate-150 dark:md:border-white/10 md:border-black/5",
-        language === "ar"
-          ? "sm:left-4 sm:right-auto md:left-6 origin-bottom-left"
-          : "sm:right-4 sm:left-auto md:right-6 origin-bottom-right"
-      )}
-      style={{
-        height: `${height}px`,
-        WebkitBackdropFilter: isSolid ? "none" : "blur(20px) saturate(140%)",
-        backdropFilter: isSolid ? "none" : "blur(20px) saturate(140%)",
-        willChange: "transform, opacity",
-      }}
+      style={{ height: `${height}px` }}
+      className="fixed bottom-20 right-4 z-50 flex w-[calc(100vw-2rem)] sm:w-[420px] md:w-[440px] flex-col overflow-hidden rounded-3xl border border-white/10 bg-background/95 backdrop-blur-2xl shadow-2xl transition-all duration-200 dark:border-white/10 dark:bg-background/95 max-h-[calc(100vh-6rem)]"
     >
-      {/* Resize Handle - Mobile & Desktop */}
+      {/* Top Drag Handle Bar */}
       <div
         onPointerDown={handleResizeStart}
         onPointerMove={handleResizeMove}
         onPointerUp={handleResizeEnd}
-        className="flex shrink-0 items-center justify-center h-6 sm:h-4 cursor-ns-resize group hover:bg-primary/5 transition-colors touch-none"
+        className="group relative flex h-6 w-full cursor-ns-resize items-center justify-center bg-muted/40 transition-colors hover:bg-muted/70 active:bg-primary/20 shrink-0"
+        title={language === "ar" ? "اسحب لتغيير الحجم" : "Drag to resize"}
       >
-        <GripVertical
-          size={16}
-          className="text-muted-foreground/40 group-hover:text-primary/60 rotate-90 transition-colors"
-        />
+        <GripVertical className="h-3.5 w-3.5 rotate-90 text-muted-foreground transition-colors group-hover:text-foreground" />
       </div>
 
       {/* Header */}
-      <div className="flex shrink-0 flex-col gap-3 border-b border-border/20 bg-primary/5 p-4">
+      <div className="border-b border-border/50 bg-muted/30 px-4 py-3 shrink-0">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
             <div
@@ -196,7 +172,13 @@ export function ChatbotPanel({
                     mode === "live" ? "bg-green-500" : "bg-purple-500"
                   )}
                 />
-                {mode === "live" ? "Online" : "Gemini Flash"}
+                {mode === "live"
+                  ? language === "ar"
+                    ? "متصل"
+                    : "Online"
+                  : language === "ar"
+                    ? "نشط"
+                    : "Active"}
               </p>
             </div>
           </div>
@@ -254,6 +236,7 @@ export function ChatbotPanel({
         onReply={setReplyTo}
         onReact={handleReaction}
         onDelete={handleDeleteMessage}
+        isGeneratingWelcome={isGeneratingWelcome}
       />
 
       {isGenerating && mode === "bot" && (

@@ -58,7 +58,7 @@ export function Dashboard() {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6, ease: "easeOut" }}
-          className="relative rounded-3xl sm:rounded-4xl overflow-hidden bg-gradient-to-br from-primary/15 via-primary/5 to-transparent dark:from-primary/10 dark:via-primary/5 border border-primary/20 dark:border-primary/10 backdrop-blur-2xl shadow-xl group"
+          className="relative rounded-3xl sm:rounded-4xl overflow-hidden bg-[#0c1020] dark:bg-[#090c18] border border-white/10 shadow-xl group"
         >
           {/* Ambient Glow Orbs */}
           <div className="absolute -top-24 -right-24 w-72 h-72 bg-primary/20 rounded-full blur-3xl pointer-events-none group-hover:scale-125 transition-transform duration-700" />

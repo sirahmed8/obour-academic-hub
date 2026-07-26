@@ -40,6 +40,7 @@ export interface AIChatbotController {
   input: string;
   isBtnHovered: boolean;
   isGenerating: boolean;
+  isGeneratingWelcome: boolean;
   isOpen: boolean;
   isSolid: boolean;
   language: string;
@@ -70,11 +71,14 @@ export function useAIChatbot(): AIChatbotController {
   const [unreadCount, setUnreadCount] = useState(0);
   const [mode, setInternalMode] = useState<ChatbotMode>("bot");
   const [isGenerating, setIsGenerating] = useState(false);
+  const [isGeneratingWelcome, setIsGeneratingWelcome] = useState(false);
   const [aiEnabled, setAiEnabled] = useState(true);
   const [chatbotEnabled, setChatbotEnabled] = useState(true);
   const [replyTo, setReplyTo] = useState<ChatMessage | null>(null);
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [isBtnHovered, setIsBtnHovered] = useState(false);
+
+  const welcomeFetchedRef = useRef(false);
 
   const { user } = useAuth();
   const { language } = useLanguage();
@@ -173,7 +177,7 @@ export function useAIChatbot(): AIChatbotController {
   }, []);
 
   useEffect(() => {
-    if (!user || !db) {
+    if (!user || !db || mode === "bot") {
       return;
     }
 
@@ -194,7 +198,103 @@ export function useAIChatbot(): AIChatbotController {
     });
 
     return () => unsubscribe();
-  }, [currentChatId, user]);
+  }, [currentChatId, mode, user]);
+
+  useEffect(() => {
+    if (isOpen && mode === "bot" && !welcomeFetchedRef.current) {
+      welcomeFetchedRef.current = true;
+
+      const cacheKey = `obour_ai_welcome_${user?.uid || "guest"}_${language}`;
+      const cachedWelcome = typeof window !== "undefined" ? sessionStorage.getItem(cacheKey) : null;
+
+      if (cachedWelcome) {
+        setMessages((prev) => {
+          if (prev.length === 0) {
+            return [
+              {
+                id: "ai-welcome-cached",
+                text: cachedWelcome,
+                senderId: "bot",
+                senderName: language === "ar" ? "المساعد الذكي" : "AI Assistant",
+                timestamp: null,
+                status: "sent",
+                context: "bot",
+                role: "assistant",
+              } as unknown as ChatMessage,
+            ];
+          }
+          return prev;
+        });
+        return;
+      }
+
+      setIsGeneratingWelcome(true);
+      const userName =
+        user?.displayName?.split(" ")[0] || (language === "ar" ? "يا طالبنا" : "Student");
+      const prompt =
+        language === "ar"
+          ? `بصفتك المساعد الذكي لمعاهد العبور، رحب بالطالب "${userName}" بتحية قصيرة ومحفزة جداً (سطر واحد) واعرض مساعدتك في أي استفسار أكاديمي أو جدول أو مادة.`
+          : `As the Obour Institutes AI Assistant, give student "${userName}" a short, warm, encouraging welcome greeting (1 sentence) and offer help with any academic question or schedule.`;
+
+      apiFetch<{ content: string }>("/api/chat", {
+        method: "POST",
+        body: {
+          messages: [{ role: "user", content: prompt }],
+        },
+      })
+        .then((data) => {
+          const welcomeText =
+            data.content?.replace(/\[SUGGESTIONS:.*?\]/g, "").trim() ||
+            (language === "ar"
+              ? `أهلاً بك يا ${userName}! 🎓 أنا المساعد الذكي لمعاهد العبور، كيف يمكنني مساعدتك اليوم؟`
+              : `Welcome ${userName}! 🎓 I'm your Obour AI Assistant. How can I help you today?`);
+
+          try {
+            sessionStorage.setItem(cacheKey, welcomeText);
+          } catch {}
+
+          setMessages((prev) => {
+            if (prev.length === 0 || (prev.length === 1 && prev[0].id === "ai-welcome-cached")) {
+              return [
+                {
+                  id: "ai-welcome-" + Date.now(),
+                  text: welcomeText,
+                  senderId: "bot",
+                  senderName: language === "ar" ? "المساعد الذكي" : "AI Assistant",
+                  timestamp: null,
+                  status: "sent",
+                  context: "bot",
+                  role: "assistant",
+                } as unknown as ChatMessage,
+              ];
+            }
+            return prev;
+          });
+        })
+        .catch((err) => {
+          console.error("Failed to generate AI welcome:", err);
+          const fallbackText =
+            language === "ar"
+              ? `أهلاً بك يا ${userName}! 🎓 كيف يمكنني مساعدتك اليوم في دراستك؟`
+              : `Welcome ${userName}! 🎓 How can I assist you with your studies today?`;
+          setMessages(() => [
+            {
+              id: "ai-welcome-fallback",
+              text: fallbackText,
+              senderId: "bot",
+              senderName: language === "ar" ? "المساعد الذكي" : "AI Assistant",
+              timestamp: null,
+              status: "sent",
+              context: "bot",
+              role: "assistant",
+            } as unknown as ChatMessage,
+          ]);
+        })
+        .finally(() => {
+          setIsGeneratingWelcome(false);
+        });
+    }
+  }, [isOpen, mode, language, user]);
 
   useEffect(() => {
     if (!user || !db || mode === "live") {
@@ -462,6 +562,7 @@ export function useAIChatbot(): AIChatbotController {
     input,
     isBtnHovered,
     isGenerating,
+    isGeneratingWelcome,
     isOpen,
     isSolid,
     language,

@@ -1,34 +1,50 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useAuth, useLanguage } from "@/contexts";
-import { Sparkles, Lock, Lightbulb, Loader2, RefreshCw } from "lucide-react";
+import { Sparkles, Clock, Lightbulb, Loader2, RefreshCw } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { apiFetch } from "@/lib/api-client";
+
+const ONE_HOUR_MS = 60 * 60 * 1000;
 
 export function TacticalAdviceCard() {
   const { user } = useAuth();
   const { language } = useLanguage();
-  const [usesLeft, setUsesLeft] = useState(3);
   const [advice, setAdvice] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+  const [cooldownMinutes, setCooldownMinutes] = useState(0);
 
-  const todayDate = new Date().toISOString().split("T")[0];
   const userUid = user?.uid || "guest";
-  const storageKey = `11players_ai_advice_${todayDate}_${userUid}`;
+  const storageKey = `11players_ai_advice_timestamp_${userUid}`;
 
-  useEffect(() => {
+  const checkCooldown = useCallback(() => {
     try {
-      const storedCount = localStorage.getItem(storageKey);
-      const used = storedCount ? parseInt(storedCount, 10) : 0;
-      setUsesLeft(Math.max(0, 3 - used));
+      const lastTimeStr = localStorage.getItem(storageKey);
+      if (lastTimeStr) {
+        const lastTime = parseInt(lastTimeStr, 10);
+        const elapsed = Date.now() - lastTime;
+        if (elapsed < ONE_HOUR_MS) {
+          const remainingMinutes = Math.ceil((ONE_HOUR_MS - elapsed) / (60 * 1000));
+          setCooldownMinutes(remainingMinutes);
+          return remainingMinutes;
+        }
+      }
     } catch {
-      setUsesLeft(3);
+      // Ignore storage errors
     }
+    setCooldownMinutes(0);
+    return 0;
   }, [storageKey]);
 
+  useEffect(() => {
+    checkCooldown();
+    const interval = setInterval(checkCooldown, 30000);
+    return () => clearInterval(interval);
+  }, [checkCooldown]);
+
   const handleGetAdvice = async () => {
-    if (usesLeft <= 0 || loading) return;
+    if (cooldownMinutes > 0 || loading) return;
 
     setLoading(true);
     try {
@@ -47,10 +63,9 @@ export function TacticalAdviceCard() {
       const cleanAdvice = (data.content || "").replace(/\[SUGGESTIONS:.*?\]/g, "").trim();
       setAdvice(cleanAdvice);
 
-      const currentUsed = 3 - usesLeft;
-      const nextUsed = currentUsed + 1;
-      localStorage.setItem(storageKey, String(nextUsed));
-      setUsesLeft(3 - nextUsed);
+      const now = Date.now();
+      localStorage.setItem(storageKey, String(now));
+      setCooldownMinutes(60);
     } catch (err) {
       console.error("Failed to fetch advice:", err);
       setAdvice(
@@ -62,6 +77,8 @@ export function TacticalAdviceCard() {
       setLoading(false);
     }
   };
+
+  const isCooldown = cooldownMinutes > 0;
 
   return (
     <div className="bg-card/40 backdrop-blur-xl border border-primary/20 rounded-3xl p-6 shadow-xl relative overflow-hidden my-6">
@@ -76,8 +93,8 @@ export function TacticalAdviceCard() {
             </h3>
             <p className="text-xs text-muted-foreground font-medium">
               {language === "ar"
-                ? "خطة دراسية ونصائح تكتيكية مخصصة يومياً لطلاب معاهد العبور"
-                : "Daily personalized study strategy for Obour Institute students"}
+                ? "خطة دراسية ونصائح تكتيكية مخصصة لطلاب معاهد العبور"
+                : "Personalized study strategy for Obour Institute students"}
             </p>
           </div>
         </div>
@@ -95,7 +112,7 @@ export function TacticalAdviceCard() {
               {advice}
             </div>
 
-            {usesLeft > 0 ? (
+            {!isCooldown ? (
               <button
                 type="button"
                 onClick={handleGetAdvice}
@@ -104,9 +121,7 @@ export function TacticalAdviceCard() {
               >
                 {loading ? <Loader2 size={16} className="animate-spin" /> : <RefreshCw size={16} />}
                 <span>
-                  {language === "ar"
-                    ? `💡 احصل على نصيحة الذكاء الاصطناعي (متبقي ${usesLeft}/3 اليوم)`
-                    : `💡 Get AI Advice (${usesLeft}/3 left today)`}
+                  {language === "ar" ? "💡 احصل على نصيحة الذكاء الاصطناعي" : "💡 Get AI Advice"}
                 </span>
               </button>
             ) : (
@@ -115,18 +130,18 @@ export function TacticalAdviceCard() {
                 disabled
                 className="flex items-center justify-center gap-2 w-full py-3 bg-muted text-muted-foreground text-xs font-bold rounded-xl border border-border cursor-not-allowed opacity-75"
               >
-                <Lock size={16} />
+                <Clock size={16} />
                 <span>
                   {language === "ar"
-                    ? "🔒 استنفذت محاولاتك اليومية الثلاث (عد غداً)"
-                    : "🔒 Reached daily limit of 3 advice attempts (Come back tomorrow)"}
+                    ? `⏳ متاح طلب نصيحة جديدة بعد ${cooldownMinutes} دقيقة`
+                    : `⏳ Next advice available in ${cooldownMinutes}m`}
                 </span>
               </button>
             )}
           </motion.div>
         ) : (
           <div>
-            {usesLeft > 0 ? (
+            {!isCooldown ? (
               <button
                 type="button"
                 onClick={handleGetAdvice}
@@ -135,9 +150,7 @@ export function TacticalAdviceCard() {
               >
                 {loading ? <Loader2 size={18} className="animate-spin" /> : <Lightbulb size={18} />}
                 <span>
-                  {language === "ar"
-                    ? `💡 احصل على نصيحة الذكاء الاصطناعي (متبقي ${usesLeft}/3 اليوم)`
-                    : `💡 Get AI Advice (${usesLeft}/3 left today)`}
+                  {language === "ar" ? "💡 احصل على نصيحة الذكاء الاصطناعي" : "💡 Get AI Advice"}
                 </span>
               </button>
             ) : (
@@ -146,11 +159,11 @@ export function TacticalAdviceCard() {
                 disabled
                 className="flex items-center justify-center gap-2 w-full py-4 bg-muted text-muted-foreground text-sm font-bold rounded-2xl border border-border cursor-not-allowed opacity-75"
               >
-                <Lock size={18} />
+                <Clock size={18} />
                 <span>
                   {language === "ar"
-                    ? "🔒 استنفذت محاولاتك اليومية الثلاث (عد غداً)"
-                    : "🔒 Reached daily limit of 3 advice attempts (Come back tomorrow)"}
+                    ? `⏳ متاح طلب نصيحة جديدة بعد ${cooldownMinutes} دقيقة`
+                    : `⏳ Next advice available in ${cooldownMinutes}m`}
                 </span>
               </button>
             )}

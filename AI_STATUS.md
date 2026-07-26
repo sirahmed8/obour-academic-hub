@@ -1,35 +1,30 @@
 # AI Status & Handoff
 
-**Current Task**: Fix Firebase API Key Expiration, CORS Origin Mismatch on `obourinstitutes1.web.app`, CSP Google Tag Manager Image Blocking, and RTDB Region Warning.
-**Status**: Completed, Committed, Pushed & Deployed
+**Current Task**: Sanitized Firebase Environment Variables & Updated CSP for Pusher WebSockets.
+**Status**: Completed, Built, Committed, Pushed & Deployed
 **Last Updated**: 2026-07-26
 
 ## Files Changed
 
-1. `src/lib/server/cors.ts` - Added `obourinstitutes1.web.app` and `obourinstitutes1.firebaseapp.com` to allowed origins and added regex pattern matching (`^https:\/\/obourinstitutes\d*\.(web\.app|firebaseapp\.com)$`).
-2. `vercel.json` & `firebase.json` - Updated Content-Security-Policy:
-   - Added `https://*.firebasedatabase.app` and `https://obourinstitutes1.web.app` to `connect-src`.
-   - Added `https://www.googletagmanager.com` and `https://www.google-analytics.com` to `img-src`.
-3. `src/lib/firebase.ts` & `src/lib/server/firebase-admin.ts` - Updated default database URL to `https://obourinstitutes1-default-rtdb.europe-west1.firebasedatabase.app`.
-4. `.env.local`, `.env.production`, `.github/workflows/ci.yml` - Updated `NEXT_PUBLIC_FIREBASE_DATABASE_URL` to `https://obourinstitutes1-default-rtdb.europe-west1.firebasedatabase.app`.
-5. `AI_STATUS.md` - Created and updated handoff tracking file.
+1. `src/lib/firebase.ts` - Added `sanitizeEnv` helper with regex trimming (`val.trim().replace(/^[\s\uFEFF\xA0]+|[\s\uFEFF\xA0]+$/g, "")`) to strip leading tab characters (`%09`) and whitespace from env vars.
+2. `vercel.json` & `firebase.json` - Added `wss://*.pusher.com` and `https://*.pusher.com` to CSP `connect-src`.
+3. `AI_STATUS.md` - Updated handoff status.
 
 ## Verification Performed
 
-- `npm run build` (Passed cleanly, successfully compiled all 42 pages)
-- `git commit -m "fix(auth/cors): update CORS allowed origins, CSP headers, and RTDB region URL"` (Committed commit `b7a08fd`)
+- `npx eslint src/lib/firebase.ts --format stylish` (Passed cleanly, 0 errors)
+- `npx cross-env NODE_OPTIONS="--max-old-space-size=2560" next build --webpack` (Passed cleanly, compiled 42 pages)
+- `git commit -m "fix(firebase): sanitize env vars with trim to prevent tab character (%09) in authDomain, update CSP for Pusher"` (Commit `38dd330`)
 - `git push origin main` (Pushed to GitHub `origin/main`)
 - `npx firebase-tools deploy --only hosting` (Successfully deployed to https://obourinstitutes1.web.app)
 
 ## Pending User Action (Vercel Environment)
 
-To complete the Vercel fix for your Vercel deployment:
+In Vercel Dashboard -> Project Settings -> Environment Variables:
 
-1. In Vercel Project Settings -> **Environment Variables**:
-   - Set `NEXT_PUBLIC_FIREBASE_API_KEY` to `AIzaSyDtRfBzbvqDaM8pmVX1xNCXm08gR0BXeIU`
-   - Set `NEXT_PUBLIC_FIREBASE_DATABASE_URL` to `https://obourinstitutes1-default-rtdb.europe-west1.firebasedatabase.app`
-2. Trigger a **Redeploy** on Vercel.
+- Ensure `NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN` has no leading/trailing tab characters or spaces when saved (`obourinstitutes1.firebaseapp.com`).
+- Trigger a **Redeploy** on Vercel.
 
 ## Next Logical Step
 
-Test login and AI features on https://obourinstitutes1.web.app.
+Verify login on https://obourinstitutes1.web.app and https://obour-academic-hub.vercel.app.
