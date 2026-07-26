@@ -69,7 +69,13 @@ export function useAIChatbot(): AIChatbotController {
   const [input, setInput] = useState("");
   const [showClearConfirm, setShowClearConfirm] = useState(false);
   const [unreadCount, setUnreadCount] = useState(0);
-  const [mode, setInternalMode] = useState<ChatbotMode>("bot");
+  const [mode, setInternalMode] = useState<ChatbotMode>(() => {
+    if (typeof window !== "undefined") {
+      const stored = localStorage.getItem("chatbot-mode");
+      if (stored === "live" || stored === "bot") return stored;
+    }
+    return "bot";
+  });
   const [isGenerating, setIsGenerating] = useState(false);
   const [isGeneratingWelcome, setIsGeneratingWelcome] = useState(false);
   const [aiEnabled, setAiEnabled] = useState(true);
@@ -100,8 +106,14 @@ export function useAIChatbot(): AIChatbotController {
   const setModeAndClear = useCallback(
     (newMode: ChatbotMode) => {
       setInternalMode(newMode);
-      if (newMode === "live" && user) {
-        markMessagesAsSeen(liveChatId, false);
+      if (typeof window !== "undefined") {
+        localStorage.setItem("chatbot-mode", newMode);
+      }
+      if (newMode === "live") {
+        setIsGeneratingWelcome(false);
+        if (user) {
+          markMessagesAsSeen(liveChatId, false);
+        }
       }
     },
     [user, liveChatId]

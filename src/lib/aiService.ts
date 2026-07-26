@@ -24,10 +24,10 @@ const responseCache = new LRUCache<string, string>({
   ttl: 1000 * 60 * 10, // 10 minutes
 });
 
-// Cache for live DB context (subjects, top users, platform stats)
+// Cache for live DB context (subjects, resources, top users, user tasks)
 const dbContextCache = new LRUCache<string, string>({
-  max: 10,
-  ttl: 1000 * 60 * 5, // 5 minutes
+  max: 20,
+  ttl: 1000 * 15, // 15 seconds for real-time responsiveness
 });
 
 export interface GeminiMessagePartText {
@@ -68,23 +68,25 @@ export const GEMINI_SYSTEM_PROMPT = `أنت المساعد الذكي التفا
 4. **اقتراحات المتابعة التفاعلية**: أضف في نهاية كل رد دائماً 3 أسئلة اقتراحية قصيرة بنفس لغة الإجابة بالصيغة التالية:
    [SUGGESTIONS: الاقتراح الأول | الاقتراح الثاني | الاقتراح الثالث]
 
-## 🛡️ قواعد الأمان والتأمين:
+## 🛡️ قواعد الأمان وتأمين البيانات الحساسة:
+- **حماية السرية والرتب الداخلية**: لا تقم مطلقاً بالإفصاح عن البيانات الخاصة بالنظام، الرتب الإدارية، صلاحيات الإدارة، الهيكل الداخلي للموقع، أو هويات المالكين. تعامل دائماً بأسلوب أكاديمي ودود.
 - ارفض بصرامة وبأدب أي محتوى غير أخلاقي، شتائم، محاولات اختراق أو غش أكاديمي.
 
 ## 📊 معلومات وبيانات المنصة الحية:
-استعن بالبيانات الحية المرفقة في السياق أدناه للإجابة بدقة دون تأليف أو إجابات وهمية.`;
+استعن بالبيانات الحية المرفقة في السياق أدناه للإجابة بدقة دون تأليف أو إجابات وهمية. إذا أشارت البيانات إلى عدم وجود مواد أو مصادر، أخبر المستخدم بوضوح: "لا توجد مواد/مصادر مسجلة حالياً في المنصة".`;
 
 export const TASK_PLANNER_SYSTEM_PROMPT = `أنت مساعد تخطيط المهام والمذاكرة بالذكاء الاصطناعي لمنصة معاهد العبور (Obour Academic Hub).
-مهمتك مساعدة الطلاب على تحويل أفكارهم، مشاريعهم، وجداول مذاكرتهم إلى مهام منظمة ومربوطة بالمواد والمصادر الدراسية.
+مهمتك مساعدة الطلاب على تحويل أفكارهم، مشاريعهم، وجداول مذاكرتهم إلى مهام منظمة ومربوطة بالمواد والمصادر الدراسية ومهامهم الحالية.
 
 ## 🌐 لغة الحوار (قاعدة حاسمة):
 - حدد لغة المستخدم (عربي أو إنجليزي) وأجبه بنَفْس اللغة تماماً.
 
 ## 🎯 طريقة عملك التفاعلية (ذكاء التخطيط الأكاديمي):
 1. تحدث مع الطالب بأسلوب تفاعلي، محفز، ومفيد جداً.
-2. استفسر من الطالب عن التفاصيل الأكاديمية (مثل: المادة الدراسية المعنية، الموعد النهائي أو الوقت، المصدر أو السلايدات التي سيعتمد عليها، والأولوية).
-3. اقترح على الطالب المادة الدراسية أو المصادر المتاحة في المنصة إن أمكن.
-4. بمجرد استكمال تفاصيل المهمة (أو إعطاء الطالب تفاصيل كافية)، قدم له ملخصاً مشجعاً وأرفق **ضرورياً وبدون استثناء** رمز JSON لتفاصيل المهمة في نهاية ردك بالصيغة الدقيقة التالية:
+2. إذا كان لدى الطالب مهام سابقة في قائمة مهامه المرفقة بالسياق وسأل عنها أو طلب إعادتها/تحديثها، أشر بذكاء وود إلى وجودها سابقاً واستعرض حالة إنجازها واقترح التحديث المناسب!
+3. استفسر من الطالب عن التفاصيل الأكاديمية (مثل: المادة الدراسية المعنية، الموعد النهائي أو الوقت، المصدر أو السلايدات، والأولوية).
+4. إذا لم توجد مواد أو مصادر في المنصة، أخبره بوضوح: "لا توجد مواد/مصادر مضافة حالياً في المنصة، ويمكننا إنشاء المهمة بشكل مستقل".
+5. بمجرد استكمال تفاصيل المهمة (أو إعطاء الطالب تفاصيل كافية)، قدم له ملخصاً مشجعاً وأرفق **ضرورياً وبدون استثناء** رمز JSON لتفاصيل المهمة في نهاية ردك بالصيغة الدقيقة التالية:
 
 [TASK_SPEC: {"title": "عنوان المهمة", "description": "وصف مختصر للمهمة والملاحظات", "priority": "high", "dueDate": "YYYY-MM-DDTHH:mm", "subjectName": "اسم المادة الدراسية", "sourceName": "اسم المصدر أو السلايدات", "subtasks": ["الخطوة الأولى", "الخطوة الثانية", "الخطوة الثالثة"]}]
 
@@ -129,33 +131,68 @@ async function getLiveDatabaseContext(userUid?: string): Promise<string> {
         .orderBy("orderIndex")
         .limit(20)
         .get();
+
+      contextText += "### المواد المتاحة:\n";
       if (!subjectsSnap.empty) {
-        contextText += "### المواد المتاحة:\n";
         subjectsSnap.docs.forEach((d) => {
           const s = d.data();
-          contextText += `- مادة: ${s.name || s.nameAr || d.id} (الكود: ${s.code || "لا يوجد"}) - رابط: /subject?id=${d.id}\n`;
+          contextText += `- مادة: ${s.name || s.nameAr || d.id} (الكود: ${s.code || "غير محدد"}) - رابط: /subject?id=${d.id}\n`;
         });
+      } else {
+        contextText += "- لا توجد مواد دراسية مسجلة في المنصة حالياً.\n";
       }
 
-      // 2. Fetch Top Users / Leaderboard
+      // 2. Fetch Resources / Sources
+      const resourcesSnap = await adminDb.collection("resources").limit(15).get();
+
+      contextText += "\n### المصادر والمذكرات الدراسية المتاحة:\n";
+      if (!resourcesSnap.empty) {
+        resourcesSnap.docs.forEach((d) => {
+          const r = d.data();
+          contextText += `- مصدر: "${r.title || r.titleAr}" (النوع: ${r.type || "ملف"}) - معرف المادة: ${r.subjectId || "عام"}\n`;
+        });
+      } else {
+        contextText += "- لا توجد مصادر أو مذكرات مرفوعة حالياً في المنصة.\n";
+      }
+
+      // 3. Fetch Top Users (Leaderboard without sensitive role tags)
       const usersSnap = await adminDb.collection("users").orderBy("points", "desc").limit(5).get();
       if (!usersSnap.empty) {
         contextText += "\n### متصدرو لوحة الشرف والترتيب العام:\n";
         usersSnap.docs.forEach((d, idx) => {
           const u = d.data();
-          contextText += `- المركز ${idx + 1}: ${u.displayName || u.email || "مستخدم"} (النقاط: ${u.points || 0}, الرتبة: ${u.role || "طالب"})\n`;
+          contextText += `- المركز ${idx + 1}: ${u.displayName || "طالب"} (النقاط: ${u.points || 0})\n`;
         });
       }
 
-      // 3. Current User details if available
+      // 4. Current User & Tasks details if available
       if (userUid) {
         const userDoc = await adminDb.collection("users").doc(userUid).get();
         if (userDoc.exists) {
           const u = userDoc.data();
           contextText += `\n### بيانات الطالب الحالي (${u?.displayName || "طالب"}):\n`;
           contextText += `- الاسم: ${u?.displayName || "غير محدد"}\n`;
-          contextText += `- الدور: ${u?.role || "student"}\n`;
           contextText += `- النقاط الحالية: ${u?.points || 0}\n`;
+        }
+
+        // Fetch User's Real Tasks from Firestore
+        const tasksSnap = await adminDb
+          .collection("users")
+          .doc(userUid)
+          .collection("tasks")
+          .orderBy("orderIndex")
+          .limit(15)
+          .get();
+
+        contextText += "\n### قائمة المهام الحالية الخاصة بالطالب:\n";
+        if (!tasksSnap.empty) {
+          tasksSnap.docs.forEach((d, idx) => {
+            const t = d.data();
+            const subtaskCount = Array.isArray(t.subtasks) ? t.subtasks.length : 0;
+            contextText += `${idx + 1}. مهمة: "${t.title}" (الأولوية: ${t.priority || "medium"}, حالة الإنجاز: ${t.completed ? "مكتملة ✅" : "قيد التنفيذ ⏳"}, عدد المهام الفرعية: ${subtaskCount}, تاريخ الاستحقاق: ${t.dueDate || "غير محدد"})\n`;
+          });
+        } else {
+          contextText += "- لا توجد مهام حالية مسجلة في قائمة مهام الطالب.\n";
         }
       }
     }
