@@ -84,9 +84,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     let unsubscribeSnapshot: (() => void) | null = null;
 
+    // Safety fallback: ensure loading state never hangs or lags for more than 2.5 seconds
+    const safetyTimeout = setTimeout(() => {
+      setLoading(false);
+    }, 2500);
+
     if (!auth) {
       console.error("[AuthContext] Firebase Auth is not initialized.");
       setLoading(false);
+      clearTimeout(safetyTimeout);
       return;
     }
 
@@ -94,6 +100,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     // 2. Main Auth Listener
     const unsubscribeAuth = onAuthStateChanged(auth, async (firebaseUser) => {
+      clearTimeout(safetyTimeout);
       // Abort previous requests
       if (abortControllerRef.current) abortControllerRef.current.abort();
       abortControllerRef.current = new AbortController();
@@ -245,6 +252,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     });
 
     return () => {
+      clearTimeout(safetyTimeout);
       unsubscribeAuth();
       if (unsubscribeSnapshot) unsubscribeSnapshot();
       if (abortControllerRef.current) abortControllerRef.current.abort();

@@ -205,15 +205,32 @@ export function useAIChatbot(): AIChatbotController {
       welcomeFetchedRef.current = true;
 
       const cacheKey = `obour_ai_welcome_${user?.uid || "guest"}_${language}`;
-      const cachedWelcome = typeof window !== "undefined" ? sessionStorage.getItem(cacheKey) : null;
+      let cachedText: string | null = null;
 
-      if (cachedWelcome) {
+      if (typeof window !== "undefined") {
+        try {
+          const raw = sessionStorage.getItem(cacheKey);
+          if (raw) {
+            const parsed = JSON.parse(raw);
+            // Cache valid for 30 minutes (1800000 ms)
+            if (parsed.timestamp && Date.now() - parsed.timestamp < 30 * 60 * 1000) {
+              cachedText = parsed.text;
+            }
+          }
+        } catch {
+          // Legacy string cache fallback
+          const raw = sessionStorage.getItem(cacheKey);
+          if (raw && !raw.startsWith("{")) cachedText = raw;
+        }
+      }
+
+      if (cachedText) {
         setMessages((prev) => {
           if (prev.length === 0) {
             return [
               {
                 id: "ai-welcome-cached",
-                text: cachedWelcome,
+                text: cachedText!,
                 senderId: "bot",
                 senderName: language === "ar" ? "المساعد الذكي" : "AI Assistant",
                 timestamp: null,
@@ -250,7 +267,10 @@ export function useAIChatbot(): AIChatbotController {
               : `Welcome ${userName}! 🎓 I'm your Obour AI Assistant. How can I help you today?`);
 
           try {
-            sessionStorage.setItem(cacheKey, welcomeText);
+            sessionStorage.setItem(
+              cacheKey,
+              JSON.stringify({ text: welcomeText, timestamp: Date.now() })
+            );
           } catch {}
 
           setMessages((prev) => {
