@@ -60,12 +60,13 @@ function ChatMessages({
   const isInitialMount = useRef(true);
 
   useEffect(() => {
+    if (messages.length === 0) return;
     if (!messagesEndRef.current) return;
     const container = messagesEndRef.current.parentElement;
     if (!container) return;
 
     if (isInitialMount.current) {
-      // On first render, scroll instantly to bottom (no animation = no jump)
+      // On first render with messages, scroll instantly to bottom
       container.scrollTo({ top: container.scrollHeight, behavior: "instant" as ScrollBehavior });
       isInitialMount.current = false;
       return;
@@ -81,7 +82,7 @@ function ChatMessages({
   return (
     <div
       className={cn(
-        "flex-1 overflow-y-auto p-4 space-y-4 bg-muted/5 scrollbar-hide scroll-smooth overscroll-y-contain [WebkitOverflowScrolling:touch]",
+        "relative flex-1 overflow-y-auto p-4 space-y-4 bg-muted/5 scrollbar-hide scroll-smooth overscroll-y-contain [WebkitOverflowScrolling:touch]",
         messages.length === 0 && !isGeneratingWelcome && "overflow-hidden"
       )}
     >
@@ -99,9 +100,9 @@ function ChatMessages({
       )}
 
       {messages.length === 0 && !isGeneratingWelcome && (
-        <div className="h-full flex flex-col items-center justify-center text-center text-muted-foreground p-6 opacity-60">
-          <Headphones className="w-12 h-12 mb-3" />
-          <p className="text-sm">
+        <div className="absolute inset-0 flex flex-col items-center justify-center text-center text-muted-foreground p-6 pointer-events-none select-none">
+          <Headphones className="w-12 h-12 mb-3 text-emerald-500/80" />
+          <p className="text-sm font-medium opacity-80">
             {language === "ar"
               ? "لا توجد رسائل بعد. ابدأ المحادثة مع فريق الدعم!"
               : "No messages yet. Start chatting with support!"}

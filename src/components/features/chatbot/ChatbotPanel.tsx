@@ -209,38 +209,42 @@ export function ChatbotPanel({
             type="button"
             onClick={() => setMode("bot")}
             className={cn(
-              "relative py-2 px-3 rounded-xl text-xs font-black transition-colors flex items-center justify-center gap-2 z-10",
+              "relative py-2 px-3 rounded-xl text-xs font-black transition-colors flex items-center justify-center gap-2 select-none overflow-hidden",
               mode === "bot" ? "text-white" : "text-muted-foreground hover:text-foreground"
             )}
           >
             {mode === "bot" && (
               <motion.div
                 layoutId="activeModeTabPill"
-                className="absolute inset-0 bg-gradient-to-r from-purple-600 to-indigo-600 rounded-xl shadow-md shadow-purple-500/25"
+                className="absolute inset-0 bg-gradient-to-r from-purple-600 to-indigo-600 rounded-xl shadow-md shadow-purple-500/25 z-0"
                 transition={{ type: "spring", stiffness: 450, damping: 35 }}
               />
             )}
-            <span className="text-sm">🤖</span>
-            <span>{language === "ar" ? "المساعد الذكي (AI)" : "AI Assistant"}</span>
+            <span className="relative z-10 text-sm pointer-events-none">🤖</span>
+            <span className="relative z-10 pointer-events-none">
+              {language === "ar" ? "المساعد الذكي (AI)" : "AI Assistant"}
+            </span>
           </button>
 
           <button
             type="button"
             onClick={() => setMode("live")}
             className={cn(
-              "relative py-2 px-3 rounded-xl text-xs font-black transition-colors flex items-center justify-center gap-2 z-10",
+              "relative py-2 px-3 rounded-xl text-xs font-black transition-colors flex items-center justify-center gap-2 select-none overflow-hidden",
               mode === "live" ? "text-white" : "text-muted-foreground hover:text-foreground"
             )}
           >
             {mode === "live" && (
               <motion.div
                 layoutId="activeModeTabPill"
-                className="absolute inset-0 bg-gradient-to-r from-emerald-600 to-teal-600 rounded-xl shadow-md shadow-emerald-500/25"
+                className="absolute inset-0 bg-gradient-to-r from-emerald-600 to-teal-600 rounded-xl shadow-md shadow-emerald-500/25 z-0"
                 transition={{ type: "spring", stiffness: 450, damping: 35 }}
               />
             )}
-            <span className="text-sm">🎧</span>
-            <span>{language === "ar" ? "الدعم المباشر" : "Live Support"}</span>
+            <span className="relative z-10 text-sm pointer-events-none">🎧</span>
+            <span className="relative z-10 pointer-events-none">
+              {language === "ar" ? "الدعم المباشر" : "Live Support"}
+            </span>
           </button>
         </div>
       </div>
