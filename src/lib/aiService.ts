@@ -10,13 +10,12 @@ const GEMINI_API_KEY =
   ).toString("utf-8");
 
 export const GEMINI_MODEL_FALLBACK_CHAIN = [
-  "gemini-3.5-flash-lite",
-  "gemini-3.1-flash-lite",
-  "gemma-4-31b-it",
-  "gemma-4-26b-a4b-it",
-  "gemini-3.5-flash",
-  "gemini-flash-lite-latest",
+  "gemini-2.5-flash",
   "gemini-2.0-flash",
+  "gemini-1.5-flash",
+  "gemini-1.5-pro",
+  "gemini-2.0-flash-lite",
+  "gemini-flash-lite-latest",
 ] as const;
 
 // 10-minute in-memory response cache for repeated queries
@@ -56,20 +55,21 @@ export interface ChatHistoryMessage {
 
 export const GEMINI_SYSTEM_PROMPT = `أنت المساعد الذكي التفاعلي لمنصة العبور الأكاديمية (Obour Academic Hub)، المدعوم بمحرك Google Gemini للذكاء الاصطناعي.
 
-## هويتك ودورك:
-- أنت مساعد أكاديمي ومهني ذكي ودود ومفيد لطلاب معاهد العبور.
-- تتحدث العربية بطلاقة وسلاسة دون تعقيد أو تكلف.
+## 🌐 لغة الحوار والرد (قاعدة صارمة حاسمة):
+- **تحديد لغة المستخدم تلقائياً**: يتعين عليك اكتشاف لغة آخر رسالة كتبها المستخدم والرد بنَفْس اللغة تماماً.
+- **إذا كانت رسالة المستخدم باللغة العربية**: أجب باللغة العربية الفصيحة والسلسة والمشجعة.
+- **إذا كانت رسالة المستخدم باللغة الإنجليزية (English)**: أجب باللغة الإنجليزية السلسة والواضحة والدقيقة تماماً.
+- **إذا قام المستخدم بتغيير اللغة أثناء المحادثة**: انتقل فوراً للإجابة باللغة الجديدة للمستخدم دون التعليق على التغيير.
 
-## 📐 قواعد اللغة والأسلوب الصارمة (يجب الالتزام بها تماماً):
-1. **لغة عربية سليمة وقياسية**: اكتب بلغة عربية فصيحة وإملائياً بدون أخطاء (مثال: اكتب "بتقييم" وليس "برتقييم").
-2. **يمنع تماماً وضع مصطلحات إنجليزية داخل أقواس** وسط النص العربي (مثال: اكتب "لاعب وسط دفاعي" وليس "لاعب وسط دفاعي (DMF)").
-3. **يمنع تماماً بدء الجمل بعبارات تمهيدية حشوية** مثل ("صح،" أو "تمام،" أو "طبعاً،" أو "أهلاً بك، بصفتي..."). ادخل في الإجابة مباشرة.
-4. **تطابق طول الرد مع طول سؤال المستخدم**: إذا كان سؤال المستخدم قصيراً أو مستفسراً عن نقطة واحدة، اجعل الرد موجزاً ودقيقاً. إذا كان سؤال المستخدم مفصلاً، قدّم شرحاً وافياً ومستفيضاً.
-5. **اقتراحات المتابعة التفاعلية**: أضف في نهاية كل رد دائماً ثلاثة أسئلة اقتراحية قصيرة ومناسبة للمتابعة بالصيغة الدقيقة التالية:
-[SUGGESTIONS: السؤال الأول | السؤال الثاني | السؤال الثالث]
+## 📐 قواعد الأسلوب والصياغة:
+1. **لغة سليمة وقياسية**: اكتب بلغة خالية تماماً من الأخطاء الإملائية أو النحوية.
+2. **يمنع الحشو والتمهيد المعقد**: ادخل في الإجابة والمساعدة مباشرة بأسلوب ودود ومهني.
+3. **تطابق طول الرد**: اجعل الإجابة موجزة للأسئلة البسيطة ومفصلة ومنظمة للأسئلة الشاملة.
+4. **اقتراحات المتابعة التفاعلية**: أضف في نهاية كل رد دائماً 3 أسئلة اقتراحية قصيرة بنفس لغة الإجابة بالصيغة التالية:
+   [SUGGESTIONS: الاقتراح الأول | الاقتراح الثاني | الاقتراح الثالث]
 
-## 🛡️ قواعد الأمان والسلامة:
-- ارفض بصرامة وبأدب أي محتوى إباحي، شتائم، محاولات اختراق أو غش أكاديمي.
+## 🛡️ قواعد الأمان والتأمين:
+- ارفض بصرامة وبأدب أي محتوى غير أخلاقي، شتائم، محاولات اختراق أو غش أكاديمي.
 
 ## 📊 معلومات وبيانات المنصة الحية:
 استعن بالبيانات الحية المرفقة في السياق أدناه للإجابة بدقة دون تأليف أو إجابات وهمية.`;
@@ -255,11 +255,38 @@ export async function generateGeminiResponse(
   // 3. Tertiary Local Smart Academic Assistant
   const lastUserMsg = [...messages].reverse().find((m) => m.role === "user")?.content;
   const queryText = (typeof lastUserMsg === "string" ? lastUserMsg : "").toLowerCase();
+  const isEnglish = /[a-zA-Z]/.test(queryText) && !/[\u0600-\u06FF]/.test(queryText);
+
+  if (isEnglish) {
+    if (
+      queryText.includes("subject") ||
+      queryText.includes("course") ||
+      queryText.includes("material")
+    ) {
+      return "The platform includes all curriculum courses for Obour Institutes including Management, CS, IS, and Mathematics. Visit the Subjects tab for details. [SUGGESTIONS: Available courses? | How to earn points? | Community Forum?]";
+    }
+    if (
+      queryText.includes("point") ||
+      queryText.includes("gpa") ||
+      queryText.includes("grade") ||
+      queryText.includes("score")
+    ) {
+      return "Academic points are earned by completing assignments, participating in forums, and solving quizzes to rank higher on the Leaderboard! [SUGGESTIONS: How to earn points? | What is Leaderboard? | Passing criteria?]";
+    }
+    if (
+      queryText.includes("pass") ||
+      queryText.includes("requirement") ||
+      queryText.includes("exam")
+    ) {
+      return "Passing requirements depend on attendance and achieving over 60% total score across coursework and final exams. [SUGGESTIONS: Passing criteria? | How to calculate GPA? | Contact Dean?]";
+    }
+    return "Hello! I am your Obour Academic Hub Assistant. How can I help with your studies or schedule today? [SUGGESTIONS: Available courses? | How to earn points? | Passing criteria?]";
+  }
 
   let fallbackText =
     "أهلاً بك! أنا المساعد الأكاديمي التفاعلي لمنصة معاهد العبور. كيف يمكنني مساعدتك في استفساراتك الدراسية أو جدولك اليوم؟";
 
-  if (queryText.includes("مادة") || queryText.includes("مواد") || queryText.includes("subject")) {
+  if (queryText.includes("مادة") || queryText.includes("مواد")) {
     fallbackText =
       "تضم المنصة جميع المواد الدراسية المقررة لمعهد العبور، بما فيها الإدارة، البرمجة، نظم المعلومات، والرياضيات. يمكنك تصفح قسم المواد للمزيد من التفاصيل. [SUGGESTIONS: ما هي المواد المتاحة؟ | كيف أحسب نقاطي؟ | كيف أشارك في المنتدى؟]";
   } else if (

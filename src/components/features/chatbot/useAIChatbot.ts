@@ -536,9 +536,17 @@ export function useAIChatbot(): AIChatbotController {
               },
             });
 
+            const isEnglishInput =
+              /[a-zA-Z]/.test(textToSend) && !/[\u0600-\u06FF]/.test(textToSend);
+            const responseText =
+              data?.content?.trim() ||
+              (isEnglishInput
+                ? "I'm sorry, I couldn't generate a response right now. Please try asking again."
+                : "عذراً، لم أتمكن من الحصول على إجابة الآن. يرجى المحاولة مرة أخرى.");
+
             const botLocalMsg = {
               id: "bot-" + Date.now(),
-              text: data.content,
+              text: responseText,
               senderId: "bot",
               senderName: languageRef.current === "ar" ? "المساعد الذكي" : "AI Assistant",
               timestamp: null,
@@ -550,7 +558,7 @@ export function useAIChatbot(): AIChatbotController {
 
             await sendMessage(
               currentChatId,
-              data.content,
+              responseText,
               "bot",
               "AI Assistant",
               false,
@@ -558,10 +566,16 @@ export function useAIChatbot(): AIChatbotController {
               "bot"
             );
           } catch (error) {
-            console.error(error);
+            console.error("AI Chatbot Error:", error);
+            const isEnglishInput =
+              /[a-zA-Z]/.test(textToSend) && !/[\u0600-\u06FF]/.test(textToSend);
+            const errorText = isEnglishInput
+              ? "Sorry, a temporary connection error occurred. Please try again in a moment."
+              : "عذراً، حدث خطأ مؤقت في الاتصال. يرجى المحاولة مرة أخرى بعد لحظات.";
+
             const errLocalMsg = {
               id: "err-" + Date.now(),
-              text: languageRef.current === "ar" ? "عذراً، حدث خطأ." : "Sorry, error occurred.",
+              text: errorText,
               senderId: "bot",
               senderName: languageRef.current === "ar" ? "المساعد الذكي" : "AI Assistant",
               timestamp: null,
