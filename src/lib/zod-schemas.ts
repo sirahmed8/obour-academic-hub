@@ -4,17 +4,20 @@ function isTrustedImageInput(value: string) {
   const v = value.trim();
   if (!v) return false;
 
-  // Allow small data URLs for images only (prevent huge payloads / non-image data)
+  // Allow base64 data URLs for images (prevent huge payloads / non-image data)
   if (v.startsWith("data:image/")) {
-    // Rough guardrail: keep payloads bounded (base64 expands ~33%)
-    return v.length <= 2_000_000;
+    return v.length <= 5_000_000;
   }
 
-  // Allow only trusted remote image hosts (Cloudinary secure URLs)
+  // Allow base64 data string
+  if (v.length > 50 && !v.includes(" ") && !v.startsWith("http")) {
+    return v.length <= 5_000_000;
+  }
+
+  // Allow trusted remote image hosts
   try {
     const url = new URL(v);
     if (url.protocol !== "https:") return false;
-    // Cloudinary uses res.cloudinary.com/<cloud>/...
     if (url.hostname !== "res.cloudinary.com") return false;
     return true;
   } catch {

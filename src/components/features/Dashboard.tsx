@@ -5,6 +5,7 @@ import { useAuth, useLanguage } from "@/contexts";
 import { Sparkles } from "lucide-react";
 import { FadeIn } from "@/components/ui/Animations";
 import { StudentStats } from "@/components/features/StudentStats";
+import { TacticalAdviceCard } from "@/components/features/TacticalAdviceCard";
 import { OnboardingOverlay, shouldShowOnboarding } from "@/components/features/OnboardingOverlay";
 import { FeatureTips } from "@/components/features/FeatureTips";
 import { motion, AnimatePresence } from "framer-motion";
@@ -138,6 +139,8 @@ export function Dashboard() {
             </div>
           </div>
         </motion.div>
+
+        <TacticalAdviceCard />
 
         <StudentStats />
       </div>

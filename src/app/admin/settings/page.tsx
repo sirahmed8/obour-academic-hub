@@ -2,18 +2,9 @@
 
 import { useState, useEffect } from "react";
 import { db } from "@/lib/firebase";
-import { doc, onSnapshot, setDoc } from "firebase/firestore";
+import { doc, onSnapshot } from "firebase/firestore";
 import { useLanguage, useAuth } from "@/contexts";
-import {
-  Settings,
-  Cpu,
-  Loader2,
-  Sparkles,
-  ShieldCheck,
-  Trash2,
-  AlertTriangle,
-  RefreshCw,
-} from "lucide-react";
+import { Settings, Loader2, Trash2, AlertTriangle, RefreshCw } from "lucide-react";
 import { toast } from "sonner";
 import { apiFetch } from "@/lib/api-client";
 import { FadeIn, ScaleIn } from "@/components/ui/Animations";
@@ -22,15 +13,13 @@ import { LoadingCardGrid } from "@/components/ui/Loading";
 import { SiteSettings } from "@/types";
 
 export default function AdminSettingsPage() {
-  const [settings, setSettings] = useState<SiteSettings | null>(null);
+  const [, setSettings] = useState<SiteSettings | null>(null);
   const [loading, setLoading] = useState(true);
-  const [savingAI, setSavingAI] = useState(false);
-  const [savingChatbot, setSavingChatbot] = useState(false);
   const [isResetting, setIsResetting] = useState(false);
   const [showResetModal, setShowResetModal] = useState(false);
   const [isSyncing, setIsSyncing] = useState(false);
   const { language, t } = useLanguage();
-  const { isOwner, user } = useAuth();
+  const { isOwner } = useAuth();
 
   useEffect(() => {
     if (!db) return;
@@ -58,50 +47,6 @@ export default function AdminSettingsPage() {
 
     return () => unsubscribe();
   }, []);
-
-  const handleToggleAI = async () => {
-    if (!settings || !db || !user) return;
-    setSavingAI(true);
-    try {
-      await setDoc(
-        doc(db, "settings", "global"),
-        {
-          aiEnabled: !settings.aiEnabled,
-          updatedAt: new Date().toISOString(),
-          updatedBy: user.uid,
-        },
-        { merge: true }
-      );
-      toast.success(t("settings.saveSuccess"));
-    } catch (error) {
-      console.error("Failed to update AI settings:", error);
-      toast.error(t("settings.saveError"));
-    } finally {
-      setSavingAI(false);
-    }
-  };
-
-  const handleToggleChatbot = async () => {
-    if (!settings || !db || !user) return;
-    setSavingChatbot(true);
-    try {
-      await setDoc(
-        doc(db, "settings", "global"),
-        {
-          chatbotEnabled: settings.chatbotEnabled === undefined ? false : !settings.chatbotEnabled,
-          updatedAt: new Date().toISOString(),
-          updatedBy: user.uid,
-        },
-        { merge: true }
-      );
-      toast.success(t("settings.saveSuccess"));
-    } catch (error) {
-      console.error("Failed to update Chatbot settings:", error);
-      toast.error(t("settings.saveError"));
-    } finally {
-      setSavingChatbot(false);
-    }
-  };
 
   const handleSyncStats = async () => {
     setIsSyncing(true);
@@ -154,113 +99,10 @@ export default function AdminSettingsPage() {
           <LoadingCardGrid count={4} />
         ) : (
           <div className="space-y-6">
-            <ScaleIn>
-              <div className="group bg-card p-6 rounded-3xl border border-border hover:shadow-2xl hover:shadow-primary/5 transition-all duration-500 overflow-hidden relative">
-                {/* Decorative background glow */}
-                <div className="absolute -top-24 -right-24 w-48 h-48 bg-primary/10 blur-3xl rounded-full group-hover:bg-primary/20 transition-all duration-500" />
-
-                <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-6 relative z-10">
-                  <div className="flex items-center gap-4">
-                    <div className="p-4 bg-primary/10 rounded-2xl text-primary group-hover:scale-110 transition-transform duration-500">
-                      <Cpu size={28} />
-                    </div>
-                    <div>
-                      <h3 className="text-lg font-bold text-foreground flex items-center gap-2">
-                        {t("settings.aiToggle")}
-                        {settings?.aiEnabled && <Sparkles size={16} className="text-yellow-500" />}
-                      </h3>
-                      {t("settings.aiDescription") && (
-                        <p className="text-sm text-muted-foreground mt-1 max-w-md">
-                          {t("settings.aiDescription")}
-                        </p>
-                      )}
-                    </div>
-                  </div>
-
-                  <button
-                    onClick={handleToggleAI}
-                    disabled={savingAI}
-                    className={`relative w-16 h-8 rounded-full transition-all duration-500 outline-none focus:ring-4 focus:ring-primary/20 ${
-                      settings?.aiEnabled ? "bg-primary" : "bg-muted"
-                    }`}
-                  >
-                    <div
-                      className={`absolute top-1 w-6 h-6 bg-white rounded-full shadow-lg transition-all duration-500 ${
-                        settings?.aiEnabled
-                          ? language === "ar"
-                            ? "right-9"
-                            : "left-9"
-                          : language === "ar"
-                            ? "right-1"
-                            : "left-1"
-                      } flex items-center justify-center`}
-                    >
-                      {savingAI ? (
-                        <Loader2 size={12} className="animate-spin text-primary" />
-                      ) : (
-                        settings?.aiEnabled && <ShieldCheck size={12} className="text-primary" />
-                      )}
-                    </div>
-                  </button>
-                </div>
-              </div>
-
-              {/* Chatbot Toggle */}
-              <div className="group bg-card p-6 rounded-3xl border border-border hover:shadow-2xl hover:shadow-blue-500/5 transition-all duration-500 overflow-hidden relative mt-6">
-                <div className="absolute -top-24 -right-24 w-48 h-48 bg-blue-500/10 blur-3xl rounded-full group-hover:bg-blue-500/20 transition-all duration-500" />
-
-                <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-6 relative z-10">
-                  <div className="flex items-center gap-4">
-                    <div className="p-4 bg-blue-500/10 rounded-2xl text-blue-500 group-hover:scale-110 transition-transform duration-500">
-                      <Sparkles size={28} />
-                    </div>
-                    <div>
-                      <h3 className="text-lg font-bold text-foreground flex items-center gap-2">
-                        {t("settings.chatbotToggle")}
-                      </h3>
-                      {t("settings.chatbotDesc") && (
-                        <p className="text-sm text-muted-foreground mt-1 max-w-md">
-                          {t("settings.chatbotDesc")}
-                        </p>
-                      )}
-                    </div>
-                  </div>
-
-                  <button
-                    onClick={handleToggleChatbot}
-                    disabled={savingChatbot}
-                    className={`relative w-16 h-8 rounded-full transition-all duration-500 outline-none focus:ring-4 focus:ring-blue-500/20 ${
-                      settings?.chatbotEnabled !== false ? "bg-blue-500" : "bg-muted"
-                    }`}
-                  >
-                    <div
-                      className={`absolute top-1 w-6 h-6 bg-white rounded-full shadow-lg transition-all duration-500 ${
-                        settings?.chatbotEnabled !== false
-                          ? language === "ar"
-                            ? "right-9"
-                            : "left-9"
-                          : language === "ar"
-                            ? "right-1"
-                            : "left-1"
-                      } flex items-center justify-center`}
-                    >
-                      {savingChatbot ? (
-                        <Loader2 size={12} className="animate-spin text-blue-500" />
-                      ) : (
-                        settings?.chatbotEnabled !== false && (
-                          <ShieldCheck size={12} className="text-blue-500" />
-                        )
-                      )}
-                    </div>
-                  </button>
-                </div>
-              </div>
-            </ScaleIn>
-
             {isOwner && (
               <ScaleIn>
                 {/* Stats Sync Control */}
-                <div className="group bg-primary/5 p-8 rounded-4xl border border-primary/20 hover:shadow-2xl hover:shadow-primary/5 transition-all duration-500 overflow-hidden relative mt-12 mb-6">
+                <div className="group bg-primary/5 p-8 rounded-4xl border border-primary/20 hover:shadow-2xl hover:shadow-primary/5 transition-all duration-500 overflow-hidden relative mb-6">
                   <div className="absolute -top-24 -right-24 w-48 h-48 bg-primary/10 blur-3xl rounded-full group-hover:bg-primary/20 transition-all duration-500" />
 
                   <div className="flex flex-col md:flex-row items-center justify-between gap-8 relative z-10">
@@ -281,6 +123,7 @@ export default function AdminSettingsPage() {
                     </div>
 
                     <button
+                      type="button"
                       onClick={handleSyncStats}
                       disabled={isSyncing}
                       className="flex items-center gap-2 px-8 py-4 rounded-2xl bg-primary text-primary-foreground font-bold shadow-xl shadow-primary/20 hover:scale-105 active:scale-95 transition-all disabled:opacity-50"
@@ -318,6 +161,7 @@ export default function AdminSettingsPage() {
                     </div>
 
                     <button
+                      type="button"
                       onClick={() => setShowResetModal(true)}
                       disabled={isResetting}
                       className="flex items-center gap-2 px-8 py-4 rounded-2xl bg-destructive text-destructive-foreground font-bold shadow-xl shadow-destructive/20 hover:scale-105 active:scale-95 transition-all disabled:opacity-50"

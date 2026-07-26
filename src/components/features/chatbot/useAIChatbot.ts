@@ -334,18 +334,22 @@ export function useAIChatbot(): AIChatbotController {
               | Array<{ type: "text"; text: string } | { type: "image"; image: string | URL }> =
               textToSend;
 
-            if (attachment && attachment.url.startsWith("blob:")) {
+            if (attachment && attachment.type === "image") {
               try {
-                const response = await fetch(attachment.url);
-                const blob = await response.blob();
-                const base64 = await new Promise<string>((resolve) => {
-                  const reader = new FileReader();
-                  reader.onloadend = () => resolve(reader.result as string);
-                  reader.readAsDataURL(blob);
-                });
-                processedAttachment = { ...attachment, url: base64 };
+                if (attachment.url.startsWith("data:")) {
+                  processedAttachment = attachment;
+                } else {
+                  const response = await fetch(attachment.url);
+                  const blob = await response.blob();
+                  const base64 = await new Promise<string>((resolve) => {
+                    const reader = new FileReader();
+                    reader.onloadend = () => resolve(reader.result as string);
+                    reader.readAsDataURL(blob);
+                  });
+                  processedAttachment = { ...attachment, url: base64 };
+                }
               } catch (error) {
-                console.error("Failed to convert blob to base64:", error);
+                console.error("Failed to convert image to base64:", error);
               }
             }
 

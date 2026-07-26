@@ -3,7 +3,7 @@
 import * as React from "react";
 import { useState, useRef, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Send, X, Upload, Loader2 } from "lucide-react";
+import { Send, X, Upload, Loader2, Mic } from "lucide-react";
 import Image from "next/image";
 import { useLanguage } from "@/contexts";
 import { FileUpload } from "@/components/features/FileUpload";
@@ -40,6 +40,72 @@ export function ChatInput({
   const [isDragging, setIsDragging] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
   const [localInput, setLocalInput] = useState(input);
+  const [isListening, setIsListening] = useState(false);
+  const recognitionRef = useRef<{ stop: () => void } | null>(null);
+
+  const toggleListening = () => {
+    if (isListening) {
+      recognitionRef.current?.stop();
+      setIsListening(false);
+      return;
+    }
+
+    const SpeechRecognition =
+      (
+        window as unknown as {
+          SpeechRecognition?: new () => unknown;
+          webkitSpeechRecognition?: new () => unknown;
+        }
+      ).SpeechRecognition ||
+      (
+        window as unknown as {
+          SpeechRecognition?: new () => unknown;
+          webkitSpeechRecognition?: new () => unknown;
+        }
+      ).webkitSpeechRecognition;
+
+    if (!SpeechRecognition) {
+      toast.error(
+        language === "ar"
+          ? "متصفحك لا يدعم التعرف على الصوت"
+          : "Speech recognition is not supported in your browser"
+      );
+      return;
+    }
+
+    try {
+      const recognition = new (SpeechRecognition as new () => {
+        lang: string;
+        interimResults: boolean;
+        continuous: boolean;
+        onstart: () => void;
+        onresult: (event: { results: Array<Array<{ transcript: string }>> }) => void;
+        onerror: (event: { error: string }) => void;
+        onend: () => void;
+        start: () => void;
+        stop: () => void;
+      })();
+
+      recognition.lang = language === "ar" ? "ar-SA" : "en-US";
+      recognition.interimResults = false;
+      recognition.continuous = false;
+
+      recognition.onstart = () => setIsListening(true);
+      recognition.onresult = (event) => {
+        const transcript = event.results[0]?.[0]?.transcript;
+        if (transcript) {
+          setLocalInput((prev) => (prev ? `${prev} ${transcript}` : transcript));
+        }
+      };
+      recognition.onerror = () => setIsListening(false);
+      recognition.onend = () => setIsListening(false);
+
+      recognitionRef.current = recognition;
+      recognition.start();
+    } catch {
+      setIsListening(false);
+    }
+  };
 
   // Sync local input with parent (e.g., for fill message events)
   useEffect(() => {
@@ -246,12 +312,26 @@ export function ChatInput({
             }}
             language={language as "en" | "ar"}
           />
+          <button
+            type="button"
+            onClick={toggleListening}
+            className={cn(
+              "p-1.5 rounded-full transition-all text-muted-foreground hover:text-foreground shrink-0",
+              isListening && "bg-red-500/20 text-red-500 animate-pulse ring-2 ring-red-500/50"
+            )}
+            title={language === "ar" ? "إدخال صوتي 🎙️" : "Voice Input 🎙️"}
+            aria-label="Voice input"
+          >
+            <Mic className={cn("w-4 h-4", isListening && "text-red-500")} />
+          </button>
           <input
             ref={inputRef}
             value={localInput}
             onChange={(e) => setLocalInput(e.target.value)}
             onKeyDown={handleKeyPress}
-            placeholder={language === "ar" ? "اكتب رسالتك..." : "Type a message..."}
+            placeholder={
+              language === "ar" ? "اكتب رسالتك أو استخدم الصوت..." : "Type or use voice..."
+            }
             disabled={disabled}
             className="flex-1 bg-transparent border-none text-[16px] md:text-sm placeholder:text-muted-foreground/50 max-h-24 py-2 outline-none focus:ring-0 shadow-none ring-0 disabled:opacity-50 disabled:cursor-not-allowed"
           />

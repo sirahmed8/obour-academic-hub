@@ -2,7 +2,7 @@
 
 import { useState, memo, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Bot, Headphones } from "lucide-react";
+import { Bot, Headphones, Volume2, Sparkles } from "lucide-react";
 import Image from "next/image";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
@@ -76,7 +76,55 @@ export const ChatMessageItem = memo(function ChatMessageItem({
   const [showPicker, setShowPicker] = useState(false);
   const [showActions, setShowActions] = useState(false);
   const [pickerPlacement, setPickerPlacement] = useState<"above" | "below">("above");
+  const [isPlayingTTS, setIsPlayingTTS] = useState(false);
   const reactButtonRef = useRef<HTMLButtonElement>(null);
+
+  // Parse suggestions and clean text if present
+  const { cleanText, suggestions } = (() => {
+    const raw = msg.text || "";
+    const match = raw.match(/\[SUGGESTIONS:\s*(.+?)\]/);
+    if (!match) return { cleanText: raw, suggestions: [] as string[] };
+    const textWithout = raw.replace(/\[SUGGESTIONS:\s*(.+?)\]/, "").trim();
+    const parsedChips = match[1]
+      .split("|")
+      .map((s) => s.trim())
+      .filter(Boolean)
+      .slice(0, 3);
+    return { cleanText: textWithout, suggestions: parsedChips };
+  })();
+
+  const fallbackSpeech = (textToSpeak: string) => {
+    try {
+      if (typeof window !== "undefined" && "speechSynthesis" in window) {
+        window.speechSynthesis.cancel();
+        const utterance = new SpeechSynthesisUtterance(textToSpeak);
+        utterance.lang = "ar-SA";
+        utterance.onend = () => setIsPlayingTTS(false);
+        utterance.onerror = () => setIsPlayingTTS(false);
+        window.speechSynthesis.speak(utterance);
+      } else {
+        setIsPlayingTTS(false);
+      }
+    } catch {
+      setIsPlayingTTS(false);
+    }
+  };
+
+  const handlePlayTTS = async () => {
+    if (isPlayingTTS) return;
+    const textToPlay = cleanText.slice(0, 180).trim();
+    if (!textToPlay) return;
+
+    setIsPlayingTTS(true);
+    try {
+      const audio = new Audio(`/api/ai/tts?text=${encodeURIComponent(textToPlay)}`);
+      audio.onended = () => setIsPlayingTTS(false);
+      audio.onerror = () => fallbackSpeech(textToPlay);
+      await audio.play();
+    } catch {
+      fallbackSpeech(textToPlay);
+    }
+  };
 
   const formattedTime = (() => {
     const rawMsg = msg as unknown as Record<string, unknown>;
@@ -243,9 +291,46 @@ export const ChatMessageItem = memo(function ChatMessageItem({
               )}
 
               {/* Only render text wrapper if there IS text to avoid empty bubble */}
-              {msg.text && msg.text.trim() !== "" && (
+              {cleanText && cleanText.trim() !== "" && (
                 <div className="leading-relaxed wrap-break-word whitespace-pre-wrap prose prose-sm max-w-none prose-p:my-0 prose-ul:my-1 prose-li:my-0 prose-pre:my-1 prose-code:bg-black/10 prose-code:rounded prose-code:px-1 prose-code:py-0.5">
-                  {msg.senderId === "bot" ? <MarkdownContent content={msg.text} /> : msg.text}
+                  {msg.senderId === "bot" ? <MarkdownContent content={cleanText} /> : cleanText}
+                </div>
+              )}
+
+              {/* 🔊 Listen Voice Button for Bot responses */}
+              {isBot && !msg.isDeleted && cleanText && (
+                <button
+                  type="button"
+                  onClick={handlePlayTTS}
+                  className="flex items-center gap-1.5 mt-2 px-3 py-1 text-[11px] font-bold rounded-full bg-white/10 hover:bg-white/20 transition-all text-white/90 shadow-sm"
+                >
+                  <Volume2
+                    className={cn("w-3.5 h-3.5", isPlayingTTS && "animate-pulse text-amber-400")}
+                  />
+                  <span>{isPlayingTTS ? "جاري التشغيل..." : "🔊 استمع للصوت"}</span>
+                </button>
+              )}
+
+              {/* Follow-up Suggestion Chips */}
+              {isBot && suggestions.length > 0 && (
+                <div className="mt-3 flex flex-wrap gap-1.5 pt-2 border-t border-white/10">
+                  {suggestions.map((chip, idx) => (
+                    <button
+                      key={idx}
+                      type="button"
+                      onClick={() => {
+                        window.dispatchEvent(
+                          new CustomEvent("openChatbot", {
+                            detail: { mode: "fill", message: chip },
+                          })
+                        );
+                      }}
+                      className="flex items-center gap-1 text-[11px] font-semibold px-2.5 py-1 rounded-xl bg-primary/20 hover:bg-primary/30 text-white border border-primary/30 transition-all active:scale-95 text-start"
+                    >
+                      <Sparkles size={10} className="text-amber-400 shrink-0" />
+                      <span>{chip}</span>
+                    </button>
+                  ))}
                 </div>
               )}
             </>
