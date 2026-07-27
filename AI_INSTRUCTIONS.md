@@ -1,16 +1,16 @@
 # AI instructions (all tools)
 
-**Live project state:** [`AI_STATUS.md`](./AI_STATUS.md) — read this **before every task**, update it **before you stop**.
+**Live project state:** [`AGENT_INSTRUCTIONS.md`](./AGENT_INSTRUCTIONS.md) — read this **before every task**, update it **before you stop**.
 
 This repo is edited with **Codex**, **Cursor**, **Antigravity**, and **VS Code (GitHub Copilot)**. You do not need to hunt for rules; each tool has pointers in the files below.
 
 ## Workflow (every agent)
 
-1. Open and read **`AI_STATUS.md`** (current task, recent changes, known issues).
+1. Open and read **`AGENT_INSTRUCTIONS.md`** (current task, recent changes, known issues).
 2. Inspect only the code paths needed for the user's request.
 3. Make the smallest correct change; match existing patterns.
 4. Verify when reasonable (`npm run lint`, `npm test`, `npm run build` as appropriate).
-5. Update **`AI_STATUS.md`** with: files changed, verification, remaining risks, next step.
+5. Update **`AGENT_INSTRUCTIONS.md`** with: files changed, verification, remaining risks, next step.
 
 Do not revert or bulk-rewrite unrelated work from other agents unless the user asks.
 
@@ -24,10 +24,10 @@ Do not revert or bulk-rewrite unrelated work from other agents unless the user a
 | --------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | **Cursor**            | `.cursor/rules/ai-status-coordination.mdc` (`alwaysApply: true`), `.cursorrules`                                                                                             |
 | **VS Code / Copilot** | `.github/copilot-instructions.md`, root **`AGENTS.md`**, `.github/instructions/ai-status.instructions.md` (all files via `applyTo: "**"`), workspace `.vscode/settings.json` |
-| **Codex**             | Root **`AGENTS.md`** (OpenAI/Codex convention), this file, and **`AI_STATUS.md`** when referenced                                                                            |
+| **Codex**             | Root **`AGENTS.md`** (OpenAI/Codex convention), this file, and **`AGENT_INSTRUCTIONS.md`** when referenced                                                                   |
 | **Antigravity**       | **`.agents/rules/code-style.md`** (`always_on`), root **`ANTIGRAVITY.md`**, `.antigravity/rules/ai-status.md`                                                                |
 
-If an agent skipped context, tell it: **"Read `AI_STATUS.md` first, then follow `AI_INSTRUCTIONS.md`."**
+If an agent skipped context, tell it: **"Read `AGENT_INSTRUCTIONS.md` first, then follow `AI_INSTRUCTIONS.md`."**
 
 ---
 
@@ -35,7 +35,7 @@ If an agent skipped context, tell it: **"Read `AI_STATUS.md` first, then follow 
 
 | File                                           | Purpose                                                                             |
 | ---------------------------------------------- | ----------------------------------------------------------------------------------- |
-| **`AI_STATUS.md`**                             | Single source of truth — **only** place for current task, handoff, and recent edits |
+| **`AGENT_INSTRUCTIONS.md`**                    | Single source of truth — **only** place for current task, handoff, and recent edits |
 | **`AI_INSTRUCTIONS.md`**                       | Static protocol + tool table (this file)                                            |
 | **`AGENTS.md`**                                | Short entry for Codex / multi-agent tools                                           |
 | **`ANTIGRAVITY.md`**                           | Short entry for Antigravity                                                         |
@@ -50,7 +50,7 @@ Other paths (`.jules/`, `.zencoder/`, etc.) also point here; ignore them unless 
 
 | Check                                                                        | Status                                 |
 | ---------------------------------------------------------------------------- | -------------------------------------- |
-| Live handoff in `AI_STATUS.md` only                                          | OK                                     |
+| Live handoff in `AGENT_INSTRUCTIONS.md` only                                 | OK                                     |
 | README links for all four tools                                              | OK                                     |
 | Codex → `AGENTS.md`                                                          | OK                                     |
 | Cursor → `.cursor/rules/ai-status-coordination.mdc` + `.cursorrules`         | OK                                     |
@@ -58,4 +58,4 @@ Other paths (`.jules/`, `.zencoder/`, etc.) also point here; ignore them unless 
 | VS Code → `.github/copilot-instructions.md` + `.vscode/settings.json`        | OK                                     |
 | Committed to git (all machines see files)                                    | **Pending** — commit & push when ready |
 
-**If an AI skipped context:** say _"Read `AI_STATUS.md` first, update it when done."_
+**If an AI skipped context:** say _"Read `AGENT_INSTRUCTIONS.md` first, update it when done."_

@@ -133,6 +133,13 @@ export const Sidebar = memo(function Sidebar({ isOpen, onClose }: SidebarProps) 
         useAnimation: true,
       },
       {
+        name: language === "ar" ? "حجز السكاشن (Hagaz)" : "Study Hagaz & Battles",
+        path: "/hagaz",
+        icon: activityAnim,
+        fallback: Activity,
+        useAnimation: true,
+      },
+      {
         name: t("nav.community"),
         path: "/community",
         icon: exploreAnim,
@@ -147,6 +154,85 @@ export const Sidebar = memo(function Sidebar({ isOpen, onClose }: SidebarProps) 
         useAnimation: true,
       },
       {
+        name: language === "ar" ? "مولد الاختبارات (Quiz)" : "AI Quiz Generator",
+        path: "/quiz",
+        icon: checkBoxAnim,
+        fallback: CheckSquare,
+        useAnimation: true,
+      },
+      {
+        name: language === "ar" ? "تحويل الصوتيات (Transcribe)" : "Lecture Transcriber",
+        path: "/transcribe",
+        icon: exploreAnim,
+        fallback: Users,
+        useAnimation: true,
+      },
+      {
+        name: language === "ar" ? "الخرائط الذهنية (MindMap)" : "AI Mind Map",
+        path: "/mindmap",
+        icon: activityAnim,
+        fallback: Activity,
+        useAnimation: true,
+      },
+      {
+        name: language === "ar" ? "رفقاء الدراسة (Buddies)" : "Study Buddies",
+        path: "/buddies",
+        icon: exploreAnim,
+        fallback: Users,
+        useAnimation: true,
+      },
+      {
+        name: language === "ar" ? "أسئلة الأساتذة (Q&A)" : "Doctor Q&A Forum",
+        path: "/qa",
+        icon: checkBoxAnim,
+        fallback: CheckSquare,
+        useAnimation: true,
+      },
+      {
+        name: language === "ar" ? "بنك الامتحانات (Exams)" : "Past Exams Bank",
+        path: "/exams",
+        icon: archiveAnim,
+        fallback: Archive,
+        useAnimation: true,
+      },
+      {
+        name: language === "ar" ? "معرض المشاريع (Showcase)" : "Student Showcase",
+        path: "/showcase",
+        icon: homeAnim,
+        fallback: Home,
+        useAnimation: true,
+      },
+      {
+        name: language === "ar" ? "سوق المستلزمات (Market)" : "Gear Market",
+        path: "/market",
+        icon: activityAnim,
+        fallback: Activity,
+        useAnimation: true,
+      },
+      {
+        name: language === "ar" ? "شبكة الخريجين (Alumni)" : "Alumni & Internships",
+        path: "/alumni",
+        icon: exploreAnim,
+        fallback: Users,
+        useAnimation: true,
+      },
+
+      {
+        name: language === "ar" ? "حفل التكريم (Ceremony)" : "Season Ceremony",
+        path: "/ceremony",
+        icon: settingsAnim,
+        fallback: Settings,
+        useAnimation: true,
+      },
+      {
+        name: language === "ar" ? "دليل الطالب والقواعد" : "Guide & Rules",
+        path: "/guide",
+        icon: alertCircleAnim,
+        fallback: AlertCircle,
+        useAnimation: true,
+      },
+
+      {
         name: t("nav.notifications"),
         path: "/notifications",
         icon: notificationAnim,
@@ -155,7 +241,7 @@ export const Sidebar = memo(function Sidebar({ isOpen, onClose }: SidebarProps) 
         badge: unreadCount > 0 ? unreadCount : undefined,
       },
     ],
-    [t, unreadCount]
+    [t, unreadCount, language]
   );
 
   const adminItems = useMemo<SidebarItem[]>(

@@ -89,7 +89,7 @@ export function AdminApprovalModal() {
 
   return (
     <AnimatePresence>
-      <div className="fixed inset-0 z-100 flex items-end sm:items-center justify-center pointer-events-none p-4 pb-8 sm:pb-4">
+      <div className="fixed inset-0 z-[100] flex items-end sm:items-center justify-center pointer-events-none p-4 pb-8 sm:pb-4">
         {/* Backdrop - optional, maybe we want it non-blocking behind? 
             If valid "Live Modal that listens to live context", usually it IS blocking or semi-blocking.
             Let's make it non-blocking so admin can see context, but high z-index.

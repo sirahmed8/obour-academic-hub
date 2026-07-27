@@ -235,76 +235,85 @@ export function SubjectClient({ subjectName }: SubjectClientProps) {
       >
         {/* Dark Overlay for Text Contrast */}
         <div className="absolute inset-0 bg-black/20 pointer-events-none" />
-
         <div className="absolute top-0 right-0 w-64 h-64 bg-white/10 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2" />
 
-        <div className="relative z-10 flex items-start gap-6">
-          <div
-            onMouseEnter={() => setIsHovered(true)}
-            onMouseLeave={() => setIsHovered(false)}
-            className="p-4 bg-white/20 rounded-2xl shadow-inner text-white cursor-pointer transition-transform hover:scale-105 duration-300"
-          >
-            {isImageIcon ? (
-              <div className="relative w-10 h-10">
-                <Image
-                  src={subject.icon!}
-                  alt={subject.name}
-                  fill
-                  className="object-contain drop-shadow-md"
-                />
-              </div>
-            ) : (
-              <AnimatedIcon
-                icon={IconComp}
-                iconName={subject.icon}
-                size={40}
-                active={isHovered}
-                useAnimation={true}
-              />
-            )}
-          </div>
-          <div>
-            <h1 className="text-3xl font-black drop-shadow-md">
-              {language === "ar" && subject.nameAr ? subject.nameAr : subject.name}
-            </h1>
-            <p className="text-white/90 mt-2 font-bold drop-shadow-sm">
-              {language === "ar" ? "د." : "Dr."}{" "}
-              {language === "ar" && subject.profNameAr ? subject.profNameAr : subject.profName}
-            </p>
-            {subject.description && (
-              <p className="text-white/80 mt-4 max-w-xl font-medium drop-shadow-sm">
-                {subject.description}
-              </p>
-            )}
-
-            {/* Gamification Progress Bar */}
-            {user && resources.length > 0 && (
-              <div className="mt-6 max-w-sm">
-                <div className="flex justify-between items-center mb-1 drop-shadow-sm">
-                  <span className="text-sm font-semibold text-white/90">
-                    {language === "ar" ? "نسبة الإنجاز" : "Completion Progress"}
-                  </span>
-                  <span className="text-sm font-bold text-white">
-                    {Math.round(
-                      (resources.filter((r) => user.completedResources?.includes(r.id)).length /
-                        resources.length) *
-                        100
-                    )}
-                    %
-                  </span>
-                </div>
-                <div className="h-2.5 w-full bg-white/20 rounded-full overflow-hidden backdrop-blur-sm shadow-inner">
-                  <div
-                    className="h-full bg-white transition-all duration-1000 ease-out"
-                    style={{
-                      width: `${Math.round((resources.filter((r) => user.completedResources?.includes(r.id)).length / resources.length) * 100)}%`,
-                    }}
+        <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-6">
+          <div className="flex items-start gap-6">
+            <div
+              onMouseEnter={() => setIsHovered(true)}
+              onMouseLeave={() => setIsHovered(false)}
+              className="p-4 bg-white/20 rounded-2xl shadow-inner text-white cursor-pointer transition-transform hover:scale-105 duration-300 shrink-0"
+            >
+              {isImageIcon ? (
+                <div className="relative w-10 h-10">
+                  <Image
+                    src={subject.icon!}
+                    alt={subject.name}
+                    fill
+                    className="object-contain drop-shadow-md"
                   />
                 </div>
-              </div>
-            )}
+              ) : (
+                <AnimatedIcon
+                  icon={IconComp}
+                  iconName={subject.icon}
+                  size={40}
+                  active={isHovered}
+                  useAnimation={true}
+                />
+              )}
+            </div>
+            <div>
+              <h1 className="text-3xl font-black drop-shadow-md">
+                {language === "ar" && subject.nameAr ? subject.nameAr : subject.name}
+              </h1>
+              <p className="text-white/90 mt-1 font-bold drop-shadow-sm">
+                {language === "ar" ? "د." : "Dr."}{" "}
+                {language === "ar" && subject.profNameAr ? subject.profNameAr : subject.profName}
+              </p>
+              {subject.description && (
+                <p className="text-white/80 mt-3 max-w-xl font-medium drop-shadow-sm text-sm">
+                  {subject.description}
+                </p>
+              )}
+            </div>
+          </div>
+
+          <div className="shrink-0 flex items-center gap-3">
+            <Link
+              href={`/community?room=${subject.id}`}
+              className="px-5 py-3 rounded-2xl bg-white text-black font-extrabold text-xs sm:text-sm hover:bg-white/90 transition shadow-lg inline-flex items-center gap-2"
+            >
+              <span>{language === "ar" ? "غرفة محادثة المادة" : "Subject Room Chat"}</span>
+            </Link>
           </div>
         </div>
+
+        {user && resources.length > 0 && (
+          <div className="relative z-10 mt-6 max-w-sm">
+            <div className="flex justify-between items-center mb-1 drop-shadow-sm">
+              <span className="text-sm font-semibold text-white/90">
+                {language === "ar" ? "نسبة الإنجاز" : "Completion Progress"}
+              </span>
+              <span className="text-sm font-bold text-white">
+                {Math.round(
+                  (resources.filter((r) => user.completedResources?.includes(r.id)).length /
+                    resources.length) *
+                    100
+                )}
+                %
+              </span>
+            </div>
+            <div className="h-2.5 w-full bg-white/20 rounded-full overflow-hidden backdrop-blur-sm shadow-inner">
+              <div
+                className="h-full bg-white transition-all duration-1000 ease-out"
+                style={{
+                  width: `${Math.round((resources.filter((r) => user.completedResources?.includes(r.id)).length / resources.length) * 100)}%`,
+                }}
+              />
+            </div>
+          </div>
+        )}
       </ScaleIn>
 
       {/* Resources -> Sources */}

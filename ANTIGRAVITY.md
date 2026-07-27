@@ -2,8 +2,8 @@
 
 ## Required
 
-1. **Read** [`AI_STATUS.md`](./AI_STATUS.md) before any code, config, or doc change.
-2. **Update** [`AI_STATUS.md`](./AI_STATUS.md) when you finish (files, verification, risks, next step).
+1. **Read** [`AGENT_INSTRUCTIONS.md`](./AGENT_INSTRUCTIONS.md) before any code, config, or doc change.
+2. **Update** [`AGENT_INSTRUCTIONS.md`](./AGENT_INSTRUCTIONS.md) when you finish (files, verification, risks, next step).
 
 ## Auto-loaded in this repo
 
@@ -13,7 +13,7 @@
 | [`.antigravity/rules/ai-status.md`](./.antigravity/rules/ai-status.md) | Short coordination reminder                                    |
 | [`AI_INSTRUCTIONS.md`](./AI_INSTRUCTIONS.md)                           | Workflow + how Codex, Cursor, VS Code, and Antigravity connect |
 
-`AI_STATUS.md` is the **only** live handoff log. Do not duplicate task state in this file.
+`AGENT_INSTRUCTIONS.md` is the **only** live handoff log. Do not duplicate task state in this file.
 
 ## Shared rule
 

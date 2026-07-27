@@ -1,41 +1,61 @@
+import { apiFetch } from "@/lib/api-client";
+import { errorLogger } from "@/lib/errorLogger";
+import { db } from "@/lib/firebase";
 import {
+  calculateGPA,
+  calculateStudyStreak,
+  CourseGradeInput,
+  DateInput,
+  toDate,
+} from "@/lib/utils";
+import { User } from "@/types";
+import {
+  arrayUnion,
   collection,
+  deleteDoc,
   doc,
+  DocumentData,
   getDoc,
   getDocs,
-  deleteDoc,
-  query,
-  where,
-  orderBy,
-  limit as firestoreLimit,
-  setDoc,
-  onSnapshot,
-  Unsubscribe,
-  QueryConstraint,
-  QueryDocumentSnapshot,
-  DocumentData,
-  arrayUnion,
   increment,
+  limit as firestoreLimit,
+  onSnapshot,
+  orderBy,
+  query,
+  QueryConstraint,
+  serverTimestamp,
+  setDoc,
+  Unsubscribe,
+  where,
 } from "firebase/firestore";
-import { db } from "@/lib/firebase";
-import { apiFetch } from "@/lib/api-client";
-import { User } from "@/types";
-import { errorLogger } from "@/lib/errorLogger";
 
 /**
- * User Service - Handles all user-related Firestore operations and admin API calls.
+ * User Service - Handles all user-related Firestore operations, calculations, and admin API calls.
  */
 class UserService {
   /**
    * Transforms Firestore document data into a typed User object.
    */
-  private transformUser(doc: QueryDocumentSnapshot<DocumentData>): User {
-    const data = doc.data();
+  private transformUser(
+    snapshot:
+      | { id?: string; data?: () => DocumentData; exists?: () => boolean }
+      | Record<string, unknown>
+      | null
+      | undefined
+  ): User {
+    if (!snapshot) return {} as User;
+    const rawData = typeof snapshot.data === "function" ? snapshot.data() : snapshot;
+    const data = (rawData || {}) as Record<string, unknown>;
+    const id = snapshot.id || (data.uid as string | undefined) || (data.id as string | undefined);
     return {
       ...data,
-      uid: doc.id,
-      createdAt: data.createdAt?.toDate?.() || data.createdAt,
-      lastLogin: data.lastLogin?.toDate?.() || data.lastLogin,
+      uid: id,
+      createdAt: data.createdAt
+        ? toDate(data.createdAt as Parameters<typeof toDate>[0])
+        : data.createdAt,
+      lastLogin: data.lastLogin
+        ? toDate(data.lastLogin as Parameters<typeof toDate>[0])
+        : data.lastLogin,
     } as User;
   }
 
@@ -44,8 +64,34 @@ class UserService {
    */
   async getById(uid: string): Promise<User | null> {
     if (!db) return null;
-    const userDoc = await getDoc(doc(db, "users", uid));
-    return userDoc.exists() ? this.transformUser(userDoc) : null;
+    try {
+      const userDoc = await getDoc(doc(db, "users", uid));
+      return userDoc.exists() ? this.transformUser(userDoc) : null;
+    } catch (error) {
+      errorLogger.capture(error, { context: "UserService.getById", uid });
+      return null;
+    }
+  }
+
+  /**
+   * Subscribe to a single user by ID (real-time stream)
+   */
+  subscribeToUser(
+    uid: string,
+    onUpdate: (user: User | null) => void,
+    onError?: (error: Error) => void
+  ): Unsubscribe {
+    if (!db || !uid) return () => {};
+    return onSnapshot(
+      doc(db, "users", uid),
+      (snapshot) => {
+        onUpdate(snapshot.exists() ? this.transformUser(snapshot) : null);
+      },
+      (error) => {
+        errorLogger.capture(error, { context: "UserService.subscribeToUser", uid });
+        if (onError) onError(error);
+      }
+    );
   }
 
   /**
@@ -65,8 +111,120 @@ class UserService {
         const users = snapshot.docs.map((d) => this.transformUser(d));
         onUpdate(users);
       },
-      onError
+      (error) => {
+        errorLogger.capture(error, { context: "UserService.subscribeToAll" });
+        if (onError) onError(error);
+      }
     );
+  }
+
+  /**
+   * Processes leaderboard users with precise tie-breaking logic and explicit rank positions.
+   */
+  private processLeaderboard(rawUsers: User[]): User[] {
+    // Tie-breaking: 1. Points (desc), 2. Completed Resources count (desc), 3. Display Name (asc)
+    const sorted = [...rawUsers].sort((a, b) => {
+      const pA = a.points || 0;
+      const pB = b.points || 0;
+      if (pB !== pA) return pB - pA;
+
+      const rA = Array.isArray(a.completedResources) ? a.completedResources.length : 0;
+      const rB = Array.isArray(b.completedResources) ? b.completedResources.length : 0;
+      if (rB !== rA) return rB - rA;
+
+      return (a.displayName || "").localeCompare(b.displayName || "");
+    });
+
+    return sorted.map((u, index) => ({
+      ...u,
+      rank: index + 1,
+    }));
+  }
+
+  /**
+   * Subscribe to leaderboard (top users by points, real-time with rank computation)
+   */
+  subscribeToLeaderboard(
+    limitCount: number = 20,
+    onUpdate: (users: User[]) => void,
+    onError?: (error: Error) => void
+  ): Unsubscribe {
+    if (!db) return () => {};
+    const q = query(collection(db, "users"), orderBy("points", "desc"), firestoreLimit(limitCount));
+
+    return onSnapshot(
+      q,
+      (snapshot) => {
+        const users = snapshot.docs.map((d) => this.transformUser(d));
+        const rankedUsers = this.processLeaderboard(users);
+        onUpdate(rankedUsers);
+      },
+      (error) => {
+        errorLogger.capture(error, { context: "UserService.subscribeToLeaderboard" });
+        if (onError) onError(error);
+      }
+    );
+  }
+
+  /**
+   * Get leaderboard rankings (One-time fetch with tie-breaking and rank numbers)
+   */
+  async getLeaderboard(limitCount: number = 20): Promise<User[]> {
+    if (!db) return [];
+    try {
+      const q = query(
+        collection(db, "users"),
+        orderBy("points", "desc"),
+        firestoreLimit(limitCount)
+      );
+      const snapshot = await getDocs(q);
+      const users = snapshot.docs.map((d) => this.transformUser(d));
+      return this.processLeaderboard(users);
+    } catch (error) {
+      errorLogger.capture(error, { context: "UserService.getLeaderboard", limitCount });
+      return [];
+    }
+  }
+
+  /**
+   * Calculates student GPA accurately and updates user document in Firestore.
+   */
+  async calculateAndUpdateGPA(uid: string, courses: CourseGradeInput[]): Promise<number> {
+    const gpa = calculateGPA(courses);
+    if (!db || !uid) return gpa;
+
+    try {
+      await setDoc(doc(db, "users", uid), { gpa, updatedAt: serverTimestamp() }, { merge: true });
+    } catch (error) {
+      errorLogger.capture(error, { context: "UserService.calculateAndUpdateGPA", uid, courses });
+    }
+
+    return gpa;
+  }
+
+  /**
+   * Updates student study streak logic based on daily activity.
+   */
+  async updateStudyStreak(
+    uid: string,
+    lastActiveDate?: DateInput,
+    currentStreak: number = 0
+  ): Promise<number> {
+    const { streak, updated } = calculateStudyStreak(lastActiveDate, currentStreak);
+
+    if (!db || !uid || !updated) return streak;
+
+    try {
+      await setDoc(
+        doc(db, "users", uid),
+        { streak, lastActive: serverTimestamp() },
+        { merge: true }
+      );
+    } catch (error) {
+      errorLogger.capture(error, { context: "UserService.updateStudyStreak", uid });
+    }
+
+    return streak;
   }
 
   /**
@@ -78,33 +236,43 @@ class UserService {
     orderByField?: string;
   }): Promise<User[]> {
     if (!db) return [];
-    const constraints: QueryConstraint[] = [];
+    try {
+      const constraints: QueryConstraint[] = [];
 
-    if (options?.role) {
-      constraints.push(where("role", "==", options.role));
+      if (options?.role) {
+        constraints.push(where("role", "==", options.role));
+      }
+
+      if (options?.orderByField) {
+        constraints.push(orderBy(options.orderByField, "desc"));
+      }
+
+      if (options?.limit) {
+        constraints.push(firestoreLimit(options.limit));
+      }
+
+      const q = query(collection(db, "users"), ...constraints);
+      const snapshot = await getDocs(q);
+      return snapshot.docs.map((doc) => this.transformUser(doc));
+    } catch (error) {
+      errorLogger.capture(error, { context: "UserService.getAll", options });
+      return [];
     }
-
-    if (options?.orderByField) {
-      constraints.push(orderBy(options.orderByField, "desc"));
-    }
-
-    if (options?.limit) {
-      constraints.push(firestoreLimit(options.limit));
-    }
-
-    const q = query(collection(db, "users"), ...constraints);
-    const snapshot = await getDocs(q);
-    return snapshot.docs.map((doc) => this.transformUser(doc));
   }
 
   /**
    * Update user data
    */
   async update(uid: string, data: Partial<User>): Promise<void> {
-    await apiFetch(`/api/admin/users/${uid}`, {
-      method: "PATCH",
-      body: data,
-    });
+    try {
+      await apiFetch(`/api/admin/users/${uid}`, {
+        method: "PATCH",
+        body: data,
+      });
+    } catch (error) {
+      errorLogger.capture(error, { context: "UserService.update", uid });
+      throw error;
+    }
   }
 
   /**
@@ -112,7 +280,12 @@ class UserService {
    */
   async upsert(uid: string, data: Partial<User>): Promise<void> {
     if (!db) return;
-    await setDoc(doc(db, "users", uid), data, { merge: true });
+    try {
+      await setDoc(doc(db, "users", uid), data, { merge: true });
+    } catch (error) {
+      errorLogger.capture(error, { context: "UserService.upsert", uid });
+      throw error;
+    }
   }
 
   /**
@@ -120,29 +293,38 @@ class UserService {
    */
   async completeResource(uid: string, resourceId: string): Promise<void> {
     if (!db) return;
-    await setDoc(
-      doc(db, "users", uid),
-      {
-        completedResources: arrayUnion(resourceId),
-        points: increment(25), // 25 points for completing a resource
-      },
-      { merge: true }
-    );
+    try {
+      await setDoc(
+        doc(db, "users", uid),
+        {
+          completedResources: arrayUnion(resourceId),
+          points: increment(25), // 25 points for completing a resource
+        },
+        { merge: true }
+      );
+    } catch (error) {
+      errorLogger.capture(error, { context: "UserService.completeResource", uid, resourceId });
+      throw error;
+    }
   }
 
   /**
    * Promote user to admin and send notification
    */
   async promoteToAdmin(uid: string, email: string): Promise<void> {
-    await apiFetch(`/api/admin/users/${uid}`, {
-      method: "PATCH",
-      body: {
-        role: "admin",
-      },
-    });
+    try {
+      await apiFetch(`/api/admin/users/${uid}`, {
+        method: "PATCH",
+        body: {
+          role: "admin",
+        },
+      });
 
-    // Mock Email Notification
-    errorLogger.log(`[Email Service] Sending 'You are now an Admin' email to ${email}`, "info");
+      errorLogger.log(`[Email Service] Sending 'You are now an Admin' email to ${email}`, "info");
+    } catch (error) {
+      errorLogger.capture(error, { context: "UserService.promoteToAdmin", uid, email });
+      throw error;
+    }
   }
 
   /**
@@ -150,7 +332,12 @@ class UserService {
    */
   async delete(uid: string): Promise<void> {
     if (!db) return;
-    await deleteDoc(doc(db, "users", uid));
+    try {
+      await deleteDoc(doc(db, "users", uid));
+    } catch (error) {
+      errorLogger.capture(error, { context: "UserService.delete", uid });
+      throw error;
+    }
   }
 }
 

@@ -2,10 +2,8 @@
 applyTo: "**"
 ---
 
-# Multi-Agent Coordination
+# Multi-Agent Status Coordination
 
-Before editing this repository, read `AI_STATUS.md` in the root directory.
+Before editing this repository, read `AGENT_INSTRUCTIONS.md` in the root directory.
 
-After completing and verifying work, update `AI_STATUS.md` with changed files, verification, remaining risks, and next steps.
-
-Preserve unrelated work from other agents. Only change files needed for the user's current task.
+After completing and verifying work, update `AGENT_INSTRUCTIONS.md` with changed files, verification, remaining risks, and next steps.

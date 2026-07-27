@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
-import { Timer, Play, Pause, RotateCcw, X } from "lucide-react";
+import { Timer, Play, Pause, RotateCcw, X, Volume2 } from "lucide-react";
 import { useLanguage } from "@/contexts";
 import { cn } from "@/lib/utils";
 import { motion, AnimatePresence } from "framer-motion";
@@ -14,8 +14,10 @@ export function FocusTimer() {
   const [mode, setMode] = useState<"study" | "break">("study");
   const [secondsLeft, setSecondsLeft] = useState(25 * 60);
   const [isActive, setIsActive] = useState(false);
+  const [isSoundOn, setIsSoundOn] = useState(false);
 
   const intervalRef = useRef<NodeJS.Timeout | null>(null);
+  const audioContextRef = useRef<AudioContext | null>(null);
 
   useEffect(() => {
     if (isActive) {
@@ -141,6 +143,50 @@ export function FocusTimer() {
                     ? "خذ قسطاً من الراحة لتجديد نشاطك"
                     : "Take a breath to recharge"}
               </div>
+            </div>
+
+            {/* Ambient Lo-Fi Soundscape Toggle */}
+            <div className="mt-3 pt-3 border-t border-border flex items-center justify-between">
+              <span className="text-[11px] font-semibold text-muted-foreground flex items-center gap-1">
+                <Volume2 className="w-3.5 h-3.5 text-primary" />
+                {isAr ? "موسيقى التركيز (Lo-Fi)" : "Focus Soundscape"}
+              </span>
+              <button
+                type="button"
+                onClick={() => {
+                  const nextSound = !isSoundOn;
+                  setIsSoundOn(nextSound);
+                  if (nextSound) {
+                    try {
+                      const ctx = new (
+                        window.AudioContext ||
+                        (window as unknown as { webkitAudioContext: typeof AudioContext })
+                          .webkitAudioContext
+                      )();
+
+                      const osc = ctx.createOscillator();
+                      const gain = ctx.createGain();
+                      osc.type = "sine";
+                      osc.frequency.setValueAtTime(220, ctx.currentTime);
+                      gain.gain.setValueAtTime(0.02, ctx.currentTime);
+                      osc.connect(gain);
+                      gain.connect(ctx.destination);
+                      osc.start();
+                      audioContextRef.current = ctx;
+                    } catch {}
+                  } else if (audioContextRef.current) {
+                    audioContextRef.current.close();
+                  }
+                }}
+                className={cn(
+                  "px-2.5 py-1 rounded-lg text-[11px] font-bold transition-all",
+                  isSoundOn
+                    ? "bg-primary/20 text-primary border border-primary/30"
+                    : "bg-muted text-muted-foreground"
+                )}
+              >
+                {isSoundOn ? (isAr ? "مُشغّل 🎵" : "Playing 🎵") : isAr ? "تشغيل" : "Play"}
+              </button>
             </div>
 
             {/* Controls */}

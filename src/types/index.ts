@@ -40,6 +40,10 @@ export interface User {
   lastLogin?: FirestoreDate;
   points?: number;
   completedResources?: string[];
+  institute?: string;
+  academicYear?: string;
+  department?: string;
+  streakDays?: number;
 }
 
 export interface Notification {
@@ -73,6 +77,8 @@ export interface Subject {
   orderIndex: number;
   createdAt: FirestoreDate;
   views?: number;
+  year?: string;
+  department?: string;
 }
 
 export interface Resource {
@@ -97,7 +103,7 @@ export interface ChatMessage {
   text: string;
   senderId: string;
   senderName?: string;
-  timestamp: { seconds: number; nanoseconds: number } | null;
+  timestamp: { seconds: number; nanoseconds: number } | Date | null;
   status: "sent" | "delivered" | "seen";
   replyTo?: {
     id: string;
@@ -138,6 +144,8 @@ export interface ActivityLog {
   userEmail: string;
   action: string;
   details: string;
+  type?: string;
+  path?: string;
   timestamp: FirestoreDate;
 }
 
@@ -171,7 +179,7 @@ export interface ChatSession {
   userName: string;
   userEmail: string;
   lastMessage: string;
-  lastMessageTime: { seconds: number; nanoseconds: number } | null;
+  lastMessageTime: { seconds: number; nanoseconds: number } | Date | null;
   unreadCount: number; // For User (how many admin messages they haven't seen)
   adminUnreadCount: number; // For Admin (how many user messages admin hasn't seen)
   isTyping?: boolean;

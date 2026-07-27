@@ -14,6 +14,7 @@ import {
   clearChatHistory,
 } from "@/lib/chatUtils";
 import { ChatSession, ChatMessage } from "@/types";
+import { toDate } from "@/lib/utils";
 import { ConfirmationModal } from "@/components/ui/ConfirmationModal";
 import { InboxLayout } from "@/components/features/inbox/InboxLayout";
 import { ChatList } from "@/components/features/inbox/ChatList";
@@ -77,8 +78,8 @@ export default function AdminInboxPage() {
   const sortedSessions = [...sessions].sort((a, b) => {
     if (a.isPinned && !b.isPinned) return -1;
     if (!a.isPinned && b.isPinned) return 1;
-    const timeA = a.lastMessageTime?.seconds || 0;
-    const timeB = b.lastMessageTime?.seconds || 0;
+    const timeA = a.lastMessageTime ? toDate(a.lastMessageTime).getTime() : 0;
+    const timeB = b.lastMessageTime ? toDate(b.lastMessageTime).getTime() : 0;
     return timeB - timeA;
   });
 

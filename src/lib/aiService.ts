@@ -204,6 +204,10 @@ async function getLiveDatabaseContext(userUid?: string): Promise<string> {
   return contextText;
 }
 
+export async function generateText(prompt: string): Promise<string> {
+  return generateGeminiResponse([{ role: "user", content: prompt }]);
+}
+
 export async function generateGeminiResponse(
   messages: ChatHistoryMessage[],
   userUid?: string,
@@ -224,9 +228,9 @@ export async function generateGeminiResponse(
   if (openRouterKey && openRouterKey.startsWith("sk-or-v1-")) {
     const openRouterModels = [
       "google/gemini-2.5-flash",
+      "deepseek/deepseek-chat",
       "google/gemini-2.0-flash-001",
       "meta-llama/llama-3.3-70b-instruct",
-      "deepseek/deepseek-chat",
     ];
 
     const openRouterMessages = [
@@ -244,6 +248,9 @@ export async function generateGeminiResponse(
 
     for (const model of openRouterModels) {
       try {
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 8000);
+
         const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
           method: "POST",
           headers: {
@@ -256,7 +263,10 @@ export async function generateGeminiResponse(
             max_tokens: 1024,
             temperature: 0.3,
           }),
+          signal: controller.signal,
         });
+
+        clearTimeout(timeoutId);
 
         if (response.ok) {
           const resData = await response.json();
@@ -274,6 +284,54 @@ export async function generateGeminiResponse(
       } catch (err) {
         console.warn(`[OpenRouter Error] Model ${model} failed:`, err);
       }
+    }
+  }
+
+  // 1.5. DeepSeek Direct Provider Fallback
+  const deepseekKey = process.env.DEEPSEEK_API_KEY;
+  if (deepseekKey && deepseekKey.startsWith("sk-")) {
+    try {
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 8000);
+
+      const response = await fetch("https://api.deepseek.com/chat/completions", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${deepseekKey}`,
+        },
+        body: JSON.stringify({
+          model: "deepseek-chat",
+          messages: [
+            { role: "system", content: systemInstructionText },
+            ...messages.map((m) => ({
+              role: m.role === "assistant" ? "assistant" : "user",
+              content:
+                typeof m.content === "string"
+                  ? m.content
+                  : Array.isArray(m.content)
+                    ? m.content.map((p) => (p.type === "text" ? p.text : "")).join(" ")
+                    : String(m.content),
+            })),
+          ],
+          max_tokens: 1024,
+          temperature: 0.3,
+        }),
+        signal: controller.signal,
+      });
+
+      clearTimeout(timeoutId);
+
+      if (response.ok) {
+        const resData = await response.json();
+        const textOutput = resData?.choices?.[0]?.message?.content || "";
+        if (textOutput.trim()) {
+          responseCache.set(cacheKey, textOutput);
+          return textOutput;
+        }
+      }
+    } catch (err) {
+      console.warn("[DeepSeek Direct Provider Fallback Error]:", err);
     }
   }
 
@@ -299,6 +357,9 @@ export async function generateGeminiResponse(
 
   for (const model of GEMINI_MODEL_FALLBACK_CHAIN) {
     try {
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 8000);
+
       const response = await fetch(
         `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent`,
         {
@@ -312,8 +373,11 @@ export async function generateGeminiResponse(
             systemInstruction: { parts: [{ text: systemInstructionText }] },
             generationConfig: { temperature: 0.3, maxOutputTokens: 1024 },
           }),
+          signal: controller.signal,
         }
       );
+
+      clearTimeout(timeoutId);
 
       if (response.ok) {
         const resData = await response.json();

@@ -16,9 +16,8 @@ function getFormatter(locale: string, options: Intl.DateTimeFormatOptions): Intl
   return formatterCache.get(key)!;
 }
 
-// Helper to safely convert Firestore Timestamp or string to Date
-type Timestamp = { seconds: number; nanoseconds: number } | { toDate: () => Date };
-type DateInput = string | Date | Timestamp | null | undefined;
+export type Timestamp = { seconds: number; nanoseconds: number } | { toDate: () => Date };
+export type DateInput = string | Date | Timestamp | null | undefined;
 
 export function toDate(date: DateInput): Date {
   if (!date) return new Date(NaN);
@@ -128,4 +127,96 @@ export function formatFileSize(bytes: number): string {
   if (bytes < 1024) return bytes + " B";
   if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + " KB";
   return (bytes / (1024 * 1024)).toFixed(1) + " MB";
+}
+
+/**
+ * Standard grade point mappings for academic GPA calculation
+ */
+const GRADE_POINTS: Record<string, number> = {
+  "A+": 4.0,
+  A: 4.0,
+  "A-": 3.7,
+  "B+": 3.3,
+  B: 3.0,
+  "B-": 2.7,
+  "C+": 2.3,
+  C: 2.0,
+  "C-": 1.7,
+  "D+": 1.3,
+  D: 1.0,
+  F: 0.0,
+};
+
+export interface CourseGradeInput {
+  grade: string;
+  credits: number;
+  code?: string;
+  name?: string;
+}
+
+/**
+ * Calculates student GPA accurately based on completed courses, credit hours, and letter grades.
+ * Returns cumulative GPA rounded to 2 decimal places (0.00 to 4.00).
+ */
+export function calculateGPA(courses: CourseGradeInput[]): number {
+  if (!Array.isArray(courses) || courses.length === 0) return 0;
+
+  let totalPoints = 0;
+  let totalCredits = 0;
+
+  for (const c of courses) {
+    const credits = typeof c.credits === "number" && c.credits > 0 ? c.credits : 0;
+    if (credits === 0) continue;
+
+    const normalizedGrade = (c.grade || "").trim().toUpperCase();
+    const point = GRADE_POINTS[normalizedGrade] ?? 0;
+
+    totalPoints += point * credits;
+    totalCredits += credits;
+  }
+
+  if (totalCredits === 0) return 0;
+  return parseFloat((totalPoints / totalCredits).toFixed(2));
+}
+
+/**
+ * Calculates academic study streak logic based on consecutive daily activity.
+ * - Same day activity: Streak remains unchanged.
+ * - Consecutive day activity (1 calendar day difference): Streak increments by 1.
+ * - Missed day activity (> 1 calendar day difference or empty): Streak resets to 1.
+ */
+export function calculateStudyStreak(
+  lastActiveInput: DateInput,
+  currentStreak: number = 0,
+  targetDateInput: DateInput = new Date()
+): { streak: number; updated: boolean; diffDays: number } {
+  const lastActiveDate = toDate(lastActiveInput);
+  const targetDate = toDate(targetDateInput);
+
+  if (isNaN(targetDate.getTime())) {
+    return { streak: Math.max(1, currentStreak), updated: false, diffDays: 0 };
+  }
+
+  if (isNaN(lastActiveDate.getTime())) {
+    return { streak: 1, updated: true, diffDays: -1 };
+  }
+
+  // Calculate midnight-normalized calendar day difference
+  const d1 = new Date(
+    lastActiveDate.getFullYear(),
+    lastActiveDate.getMonth(),
+    lastActiveDate.getDate()
+  );
+  const d2 = new Date(targetDate.getFullYear(), targetDate.getMonth(), targetDate.getDate());
+
+  const diffMs = d2.getTime() - d1.getTime();
+  const diffDays = Math.round(diffMs / (1000 * 60 * 60 * 24));
+
+  if (diffDays === 0) {
+    return { streak: Math.max(1, currentStreak), updated: false, diffDays: 0 };
+  } else if (diffDays === 1) {
+    return { streak: Math.max(0, currentStreak) + 1, updated: true, diffDays: 1 };
+  } else {
+    return { streak: 1, updated: true, diffDays };
+  }
 }

@@ -1,26 +1,13 @@
-# Agents (Codex, Cursor, Copilot, and others)
+# Agents (Codex, Cursor, Claude Code, Antigravity, Copilot)
 
-## Required first step
+## Required Handoff Protocol
 
-Read **[`AI_STATUS.md`](./AI_STATUS.md)** before changing code, config, or docs.
+1. Read **[`AGENT_INSTRUCTIONS.md`](./AGENT_INSTRUCTIONS.md)** before changing code, config, or docs. It holds the single source of truth for global instructions, live handoff: active tasks, recent changes, known issues, and next steps.
+2. **MANDATORY RULE FOR ALL AGENTS**: Whenever any Agent adds, updates, or modifies a page/feature/route, it **MUST** immediately update **[`PROJECT_OVERVIEW.md`](./PROJECT_OVERVIEW.md)**.
+3. After finishing and verifying your work, update **[`AGENT_INSTRUCTIONS.md`](./AGENT_INSTRUCTIONS.md)** with files changed, verification results, open issues, and next steps.
 
-It holds the live handoff: active tasks, recent changes, known issues, and next steps.
+## Critical Project Rules
 
-## Required last step
-
-After you finish and verify your work, **update [`AI_STATUS.md`](./AI_STATUS.md)** with:
-
-- Files you changed
-- What you ran to verify (lint / test / build)
-- Open bugs or edge cases
-- The next logical step for the following agent
-
-## Full protocol
-
-See **[`AI_INSTRUCTIONS.md`](./AI_INSTRUCTIONS.md)** for the shared workflow and which files each tool uses.
-
-**Antigravity** also reads **[`.agents/rules/code-style.md`](./.agents/rules/code-style.md)** (`always_on`) and **[`ANTIGRAVITY.md`](./ANTIGRAVITY.md)**.
-
-## Project rule
-
-Authentication: use **`signInWithPopup`** only. Do not revert to **`signInWithRedirect`** (`PROJECT_GUIDELINES.md`).
+- **Authentication**: Use **`signInWithPopup`** only in `AuthContext.tsx` and `LoginScreen.tsx`. Do not revert to `signInWithRedirect` (`PROJECT_GUIDELINES.md`).
+- **Feature & Query Preservation**: Scope changes to visual layout, design system architecture, UX flow, and micro-interactions. DO NOT alter or break existing features, database queries, Firestore interactions, API routes, or state management logic.
+- **Design Standard**: Consult **[`DESIGN_SYSTEM.md`](./DESIGN_SYSTEM.md)** for unified color tokens, typography scale, spacing standards, glassmorphism presets, and animation utilities.

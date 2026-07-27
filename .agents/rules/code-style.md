@@ -8,9 +8,9 @@ description: Senior engineering and multi-agent coordination rules.
 
 ## Coordination First
 
-Before making code, architecture, config, or documentation changes, read `AI_STATUS.md` in the repository root.
+Before making code, architecture, config, or documentation changes, read `AGENT_INSTRUCTIONS.md` in the repository root.
 
-After completing and verifying a task, update `AI_STATUS.md` with:
+After completing and verifying a task, update `AGENT_INSTRUCTIONS.md` with:
 
 - What changed and which files were affected
 - Verification performed

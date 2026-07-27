@@ -22,14 +22,14 @@ This repository is maintained with multiple AI tools. **Do not skip the handoff 
 
 | Step                       | File                                                                                                             |
 | -------------------------- | ---------------------------------------------------------------------------------------------------------------- |
-| **Read first**             | [`AI_STATUS.md`](./AI_STATUS.md) — live task state and recent changes                                            |
+| **Read first**             | [`AGENT_INSTRUCTIONS.md`](./AGENT_INSTRUCTIONS.md) — live task state and global instructions                     |
 | **Workflow**               | [`AI_INSTRUCTIONS.md`](./AI_INSTRUCTIONS.md) — how each tool loads rules                                         |
 | **Codex / generic agents** | [`AGENTS.md`](./AGENTS.md)                                                                                       |
 | **Antigravity**            | [`.agents/rules/code-style.md`](./.agents/rules/code-style.md) (always on), [`ANTIGRAVITY.md`](./ANTIGRAVITY.md) |
 
 **Codex** → `AGENTS.md`. **Cursor** → `.cursor/rules/ai-status-coordination.mdc`. **Antigravity** → `.agents/rules/code-style.md` + `ANTIGRAVITY.md`. **VS Code / Copilot** → `.github/copilot-instructions.md` + `.vscode/settings.json`.
 
-Tell any agent: _"Read `AI_STATUS.md` first, update it when done."_
+Tell any agent: _"Read `AGENT_INSTRUCTIONS.md` first, update it when done."_
 
 ---
 

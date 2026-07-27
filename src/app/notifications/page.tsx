@@ -240,7 +240,11 @@ export default function NotificationsPage() {
                   key={notif.id}
                   onClick={async () => {
                     if (!isRead && user) {
-                      await notificationService.markAsRead(notif.id, user.uid);
+                      try {
+                        await notificationService.markAsRead(notif.id, user.uid);
+                      } catch (err) {
+                        console.error("Failed to mark notification as read:", err);
+                      }
                     }
                     if (notif.subjectId) {
                       const url = notif.resourceId

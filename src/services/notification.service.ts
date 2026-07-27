@@ -14,17 +14,15 @@ import {
   where,
   writeBatch,
   limit as firestoreLimit,
-  QueryDocumentSnapshot,
+  DocumentSnapshot,
   DocumentData,
 } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import { Notification as AppNotification } from "@/types";
 import { apiFetch } from "@/lib/api-client";
 import { errorLogger } from "@/lib/errorLogger";
+import { toDate } from "@/lib/utils";
 
-/**
- * Notification Service - Handles all notification operations
- */
 /**
  * Notification Service - Handles all notification operations
  */
@@ -32,12 +30,12 @@ class NotificationService {
   /**
    * Transforms Firestore document data into a typed Notification object.
    */
-  private transformNotification(doc: QueryDocumentSnapshot<DocumentData>): AppNotification {
-    const data = doc.data();
+  private transformNotification(snapshot: DocumentSnapshot<DocumentData>): AppNotification {
+    const data = snapshot.data() || {};
     return {
       ...data,
-      id: doc.id,
-      createdAt: data.createdAt?.toDate?.() || data.createdAt,
+      id: snapshot.id,
+      createdAt: data.createdAt ? toDate(data.createdAt) : data.createdAt,
     } as AppNotification;
   }
 
@@ -49,11 +47,16 @@ class NotificationService {
       errorLogger.log("This browser does not support desktop notification", "info");
       return "denied";
     }
-    return await window.Notification.requestPermission();
+    try {
+      return await window.Notification.requestPermission();
+    } catch (error) {
+      errorLogger.capture(error, { context: "NotificationService.requestPermission" });
+      return "denied";
+    }
   }
 
   /**
-   * Mock Email Notification
+   * Send Email Notification via API endpoint
    */
   async sendEmailNotification(to: string[], subject: string, html: string) {
     try {
@@ -61,15 +64,8 @@ class NotificationService {
         method: "POST",
         body: { to, subject, html },
       });
-
-      console.log("[Email Service] Email sent successfully");
     } catch (error) {
       errorLogger.capture(error, { context: "Email Service", to, subject });
-      // Fallback log
-      errorLogger.log(
-        `[Email Service Fallback] To: [${to.join(", ")}], Subject: ${subject}`,
-        "info"
-      );
     }
   }
 
@@ -107,7 +103,39 @@ class NotificationService {
         const notifications = snapshot.docs.map((d) => this.transformNotification(d));
         onUpdate(notifications);
       },
-      onError
+      (error) => {
+        errorLogger.capture(error, { context: "NotificationService.subscribeToUser", userId });
+        if (onError) onError(error);
+      }
+    );
+  }
+
+  /**
+   * Subscribe to all notifications (for Admin dashboard monitoring)
+   */
+  subscribeToAllNotifications(
+    onUpdate: (notifications: AppNotification[]) => void,
+    onError?: (error: Error) => void,
+    limitCount: number = 50
+  ): Unsubscribe {
+    if (!db) return () => {};
+
+    const q = query(
+      collection(db, "notifications"),
+      orderBy("createdAt", "desc"),
+      firestoreLimit(limitCount)
+    );
+
+    return onSnapshot(
+      q,
+      (snapshot) => {
+        const notifications = snapshot.docs.map((d) => this.transformNotification(d));
+        onUpdate(notifications);
+      },
+      (error) => {
+        errorLogger.capture(error, { context: "NotificationService.subscribeToAllNotifications" });
+        if (onError) onError(error);
+      }
     );
   }
 
@@ -138,19 +166,24 @@ class NotificationService {
       return "db-not-init";
     }
 
-    const { ...notificationData } = data;
+    try {
+      const { ...notificationData } = data;
 
-    const docRef = await addDoc(collection(db, "notifications"), {
-      ...notificationData,
-      readBy: [],
-      createdAt: Timestamp.now(),
-    });
+      const docRef = await addDoc(collection(db, "notifications"), {
+        ...notificationData,
+        readBy: [],
+        createdAt: Timestamp.now(),
+      });
 
-    if (shouldPushEmail) {
-      console.log("[Notification Service] SHOULD PUSH EMAIL:", data.title);
+      if (shouldPushEmail) {
+        errorLogger.log(`[Notification Service] Email requested for: ${data.title}`, "info");
+      }
+
+      return docRef.id;
+    } catch (error) {
+      errorLogger.capture(error, { context: "NotificationService.create", data });
+      throw error;
     }
-
-    return docRef.id;
   }
 
   /**
@@ -184,9 +217,37 @@ class NotificationService {
    */
   async markAsRead(id: string, userId: string): Promise<void> {
     if (!db) return;
-    await updateDoc(doc(db, "notifications", id), {
-      readBy: arrayUnion(userId),
-    });
+    try {
+      await updateDoc(doc(db, "notifications", id), {
+        readBy: arrayUnion(userId),
+      });
+    } catch (error) {
+      errorLogger.capture(error, { context: "NotificationService.markAsRead", id, userId });
+    }
+  }
+
+  /**
+   * Mark all targeted notifications as read for a specific user
+   */
+  async markAllAsRead(userId: string, includeAdmin: boolean = false): Promise<void> {
+    if (!db || !userId) return;
+    try {
+      const targets = includeAdmin ? [userId, "all", "admins"] : [userId, "all"];
+      const q = query(collection(db, "notifications"), where("target", "in", targets));
+      const snapshot = await getDocs(q);
+      const batch = writeBatch(db);
+      snapshot.docs.forEach((d) => {
+        const data = d.data();
+        if (!data.readBy || !data.readBy.includes(userId)) {
+          batch.update(d.ref, {
+            readBy: arrayUnion(userId),
+          });
+        }
+      });
+      await batch.commit();
+    } catch (error) {
+      errorLogger.capture(error, { context: "NotificationService.markAllAsRead", userId });
+    }
   }
 
   /**
@@ -194,7 +255,11 @@ class NotificationService {
    */
   async delete(id: string): Promise<void> {
     if (!db) return;
-    await deleteDoc(doc(db, "notifications", id));
+    try {
+      await deleteDoc(doc(db, "notifications", id));
+    } catch (error) {
+      errorLogger.capture(error, { context: "NotificationService.delete", id });
+    }
   }
 
   /**

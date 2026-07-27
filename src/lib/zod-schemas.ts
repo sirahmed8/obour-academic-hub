@@ -83,3 +83,28 @@ export const emailRequestSchema = z.object({
 });
 
 export type EmailRequest = z.infer<typeof emailRequestSchema>;
+
+export const courseGradeSchema = z.object({
+  grade: z
+    .string()
+    .trim()
+    .regex(/^(A\+|A|A-|B\+|B|B-|C\+|C|C-|D\+|D|F)$/i, "Invalid letter grade"),
+  credits: z.number().min(0.5).max(12),
+  code: z.string().trim().optional(),
+  name: z.string().trim().optional(),
+});
+
+export const gpaCalculationSchema = z.object({
+  courses: z.array(courseGradeSchema).min(1, "At least one course is required for GPA calculation"),
+});
+
+export type GPACalculationRequest = z.infer<typeof gpaCalculationSchema>;
+
+export const fileDownloadSchema = z.object({
+  resourceId: z.string().min(1, "Resource ID is required"),
+  subjectId: z.string().min(1, "Subject ID is required"),
+  fileName: z.string().optional(),
+  fileUrl: z.string().optional(),
+});
+
+export type FileDownloadRequest = z.infer<typeof fileDownloadSchema>;

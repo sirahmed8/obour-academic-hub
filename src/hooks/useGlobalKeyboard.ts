@@ -132,6 +132,7 @@ function showKeyboardShortcutsHelp() {
 
   // Close handlers
   const closeOverlay = () => {
+    document.removeEventListener("keydown", escHandler);
     overlay.style.animation = "fadeOut 0.15s ease-out";
     setTimeout(() => overlay.remove(), 150);
   };
@@ -145,7 +146,6 @@ function showKeyboardShortcutsHelp() {
   const escHandler = (e: KeyboardEvent) => {
     if (e.key === "Escape") {
       closeOverlay();
-      document.removeEventListener("keydown", escHandler);
     }
   };
   document.addEventListener("keydown", escHandler);

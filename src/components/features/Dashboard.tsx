@@ -4,10 +4,12 @@ import { useState, useEffect } from "react";
 import Link from "next/link";
 import { useAuth, useLanguage } from "@/contexts";
 import { Sparkles, Plus, BookOpen, MessageSquare } from "lucide-react";
+
 import { FadeIn } from "@/components/ui/Animations";
 import { TacticalAdviceCard } from "@/components/features/TacticalAdviceCard";
 import { AcademicShortcutBar } from "@/components/features/AcademicShortcutBar";
 import { AcademicStreakWidget } from "@/components/features/AcademicStreakWidget";
+import { WhoIsOnline } from "@/components/features/WhoIsOnline";
 import { OnboardingOverlay, shouldShowOnboarding } from "@/components/features/OnboardingOverlay";
 import { FeatureTips } from "@/components/features/FeatureTips";
 import { motion, AnimatePresence } from "framer-motion";
@@ -58,15 +60,18 @@ export function Dashboard() {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6, ease: "easeOut" }}
-          className="relative rounded-3xl sm:rounded-4xl overflow-hidden bg-[#0c1020] dark:bg-[#090c18] border border-white/10 shadow-xl group"
+          className="relative rounded-3xl sm:rounded-4xl overflow-hidden bg-[#0c1020] dark:bg-[#090c18] border border-white/10 shadow-2xl group"
         >
           <div className="relative z-10 p-6 sm:p-10 lg:p-12 flex flex-col justify-between min-h-[300px]">
             <div className="flex flex-wrap items-center justify-between gap-3 mb-6">
-              <div className="flex items-center gap-2 bg-white/60 dark:bg-white/10 px-4 py-1.5 rounded-full border border-white/40 dark:border-white/10 backdrop-blur-md shadow-sm">
-                <Sparkles size={16} className="text-primary animate-pulse" />
-                <span className="text-[10px] sm:text-xs font-black tracking-widest uppercase text-primary">
-                  {t("dashboard.bannerTitle")}
-                </span>
+              <div className="flex items-center gap-3">
+                <div className="flex items-center gap-2 bg-white/10 px-4 py-1.5 rounded-full border border-white/10 backdrop-blur-md shadow-sm">
+                  <Sparkles size={16} className="text-primary animate-pulse" />
+                  <span className="text-[10px] sm:text-xs font-black tracking-widest uppercase text-primary">
+                    {t("dashboard.bannerTitle")}
+                  </span>
+                </div>
+                <WhoIsOnline />
               </div>
 
               {isAdmin && (
@@ -84,7 +89,7 @@ export function Dashboard() {
             </div>
 
             <div className="space-y-4 max-w-4xl">
-              <h1 className="text-3xl sm:text-5xl lg:text-6xl xl:text-7xl font-black tracking-tight leading-tight text-foreground">
+              <h1 className="text-3xl sm:text-5xl lg:text-6xl xl:text-7xl font-black tracking-tight leading-tight text-white font-harman">
                 {mounted && greeting && (
                   <motion.span
                     initial="hidden"
@@ -113,7 +118,7 @@ export function Dashboard() {
                     ))}
                     {language === "ar" ? "،" : ","}{" "}
                     <span className="inline-block whitespace-nowrap">
-                      <span className="text-gradient-primary inline-block hover:scale-105 transition-transform duration-300 cursor-default">
+                      <span className="bg-gradient-to-r from-indigo-400 via-white to-purple-300 bg-clip-text text-transparent inline-block hover:scale-105 transition-transform duration-300 cursor-default font-extrabold">
                         {user?.displayName?.split(" ")[0]}
                       </span>
                       <motion.span
@@ -128,16 +133,16 @@ export function Dashboard() {
                 )}
               </h1>
 
-              <p className="text-base sm:text-lg lg:text-xl text-muted-foreground font-medium leading-relaxed max-w-2xl">
+              <p className="text-base sm:text-lg lg:text-xl text-white/70 font-medium leading-relaxed max-w-2xl">
                 {t("dashboard.bannerSubtitle")}
               </p>
             </div>
 
             {/* Quick Action Launcher Pills */}
-            <div className="mt-8 pt-6 border-t border-primary/10 flex flex-wrap items-center gap-3">
+            <div className="mt-8 pt-6 border-t border-white/10 flex flex-wrap items-center gap-3">
               <Link
                 href="/todo"
-                className="flex items-center gap-2 px-4 py-2.5 rounded-2xl bg-primary text-primary-foreground text-xs sm:text-sm font-bold shadow-md hover:shadow-lg hover:scale-105 active:scale-95 transition-all"
+                className="flex items-center gap-2 px-4 py-2.5 rounded-2xl bg-primary text-white text-xs sm:text-sm font-extrabold shadow-lg hover:shadow-primary/30 hover:scale-105 active:scale-95 transition-all"
               >
                 <Plus size={16} />
                 <span>{language === "ar" ? "إضافة مهمة دراسية" : "Add Homework Task"}</span>
@@ -145,17 +150,17 @@ export function Dashboard() {
 
               <Link
                 href="/subject"
-                className="flex items-center gap-2 px-4 py-2.5 rounded-2xl bg-white/70 dark:bg-white/10 hover:bg-white dark:hover:bg-white/20 text-foreground text-xs sm:text-sm font-bold border border-white/40 dark:border-white/10 backdrop-blur-md transition-all hover:scale-105 active:scale-95"
+                className="flex items-center gap-2 px-4 py-2.5 rounded-2xl bg-white/10 hover:bg-white/20 text-white text-xs sm:text-sm font-extrabold border border-white/15 backdrop-blur-md transition-all hover:scale-105 active:scale-95"
               >
-                <BookOpen size={16} className="text-blue-500" />
+                <BookOpen size={16} className="text-blue-400" />
                 <span>{language === "ar" ? "المواد الدراسية" : "Explore Subjects"}</span>
               </Link>
 
               <Link
                 href="/community"
-                className="flex items-center gap-2 px-4 py-2.5 rounded-2xl bg-white/70 dark:bg-white/10 hover:bg-white dark:hover:bg-white/20 text-foreground text-xs sm:text-sm font-bold border border-white/40 dark:border-white/10 backdrop-blur-md transition-all hover:scale-105 active:scale-95"
+                className="flex items-center gap-2 px-4 py-2.5 rounded-2xl bg-white/10 hover:bg-white/20 text-white text-xs sm:text-sm font-extrabold border border-white/15 backdrop-blur-md transition-all hover:scale-105 active:scale-95"
               >
-                <MessageSquare size={16} className="text-emerald-500" />
+                <MessageSquare size={16} className="text-emerald-400" />
                 <span>{language === "ar" ? "طرح سؤال مجتمعي" : "Ask Question"}</span>
               </Link>
             </div>

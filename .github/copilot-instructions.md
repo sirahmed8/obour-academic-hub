@@ -1,20 +1,13 @@
-# Copilot / VS Code — repository instructions
+# Copilot / VS Code — Repository Instructions
 
-## Multi-agent coordination (mandatory)
+## Multi-Agent Handoff & Coordination Protocol
 
-1. **Before any edit:** read [`AI_STATUS.md`](../AI_STATUS.md) at the repository root.
-2. **After you finish:** update [`AI_STATUS.md`](../AI_STATUS.md) with changed files, verification, remaining issues, and the recommended next step.
-3. **Protocol details:** [`AI_INSTRUCTIONS.md`](../AI_INSTRUCTIONS.md) and [`AGENTS.md`](../AGENTS.md).
+1. **First Step**: Read [`AGENT_INSTRUCTIONS.md`](../AGENT_INSTRUCTIONS.md) at the repository root before making any code, config, or documentation changes.
+2. **Mandatory Documentation Sync**: Whenever you add, update, or modify any page, component, feature, API route, or state handler, you **MUST** immediately update [`PROJECT_OVERVIEW.md`](../PROJECT_OVERVIEW.md).
+3. **Final Step**: Update [`AGENT_INSTRUCTIONS.md`](../AGENT_INSTRUCTIONS.md) with modified files, verification results, open risks, and recommended next steps.
 
-`AI_STATUS.md` is the single source of truth. Do not store live task state in this file — only point agents to `AI_STATUS.md`.
+## Critical Engineering Rules
 
-## Coding standards
-
-- Make the smallest change that solves the user's request.
-- Preserve unrelated changes from other agents.
-- Match existing TypeScript/React/Next.js patterns in `src/`.
-- Firebase auth: keep **`signInWithPopup`**; never use **`signInWithRedirect`** for login (`PROJECT_GUIDELINES.md`).
-
-## Verification
-
-When touching behavior, prefer running relevant checks: `npm run lint`, `npm test`, or `npm run build` as appropriate.
+- **Firebase Auth**: Use **`signInWithPopup`** only in `AuthContext.tsx` and `LoginScreen.tsx`. Never switch to `signInWithRedirect`.
+- **Logic & Backend Safety**: Do NOT break or alter any existing features, database queries, Firestore connections, API routes, or state hooks.
+- **Design System Alignment**: Follow [`DESIGN_SYSTEM.md`](../DESIGN_SYSTEM.md) for color tokens, glassmorphism presets, typography scale, and Framer Motion micro-interactions.

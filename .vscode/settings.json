@@ -6,13 +6,13 @@
   },
   "github.copilot.chat.codeGeneration.instructions": [
     {
-      "text": "Before any code change: read AI_STATUS.md at the repo root. After completing work: update AI_STATUS.md with files changed, verification, risks, and next step."
+      "text": "Before any code change: read AGENT_INSTRUCTIONS.md at the repo root. After completing work: update AGENT_INSTRUCTIONS.md with files changed, verification, risks, and next step."
     },
     {
       "file": "AI_INSTRUCTIONS.md"
     },
     {
-      "file": "AI_STATUS.md"
+      "file": "AGENT_INSTRUCTIONS.md"
     }
   ],
   "github.copilot.chat.codeGeneration.useInstructionFiles": true,

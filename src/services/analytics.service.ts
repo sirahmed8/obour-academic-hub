@@ -12,8 +12,11 @@ import {
   doc,
   increment,
   writeBatch,
+  onSnapshot,
+  Unsubscribe,
 } from "firebase/firestore";
 import { errorLogger } from "@/lib/errorLogger";
+import { toDate } from "@/lib/utils";
 
 type ActivityType =
   | "PAGE_VIEW"
@@ -102,7 +105,6 @@ class AnalyticsService {
         firebaseError?.code === "permission-denied" ||
         firebaseError?.message?.includes("permissions")
       ) {
-        // Only log to console in development
         if (process.env.NODE_ENV === "development") {
           errorLogger.log(
             "[Analytics Service] Permission denied for activity log. Check Firestore rules.",
@@ -147,7 +149,26 @@ class AnalyticsService {
       userId,
       type: "FILE_OPEN",
       details: fileName,
-      metadata: { fileUrl, subjectId },
+      metadata: { fileUrl, subjectId, action: "open" },
+      path: fileUrl,
+    });
+  }
+
+  /**
+   * Log File/Resource Download explicitly for file download tracking
+   */
+  logFileDownload(
+    userId: string,
+    fileName: string,
+    fileUrl: string,
+    subjectId?: string,
+    resourceId?: string
+  ) {
+    return this.logActivity({
+      userId,
+      type: "FILE_OPEN",
+      details: `[DOWNLOAD] ${fileName}`,
+      metadata: { fileUrl, subjectId, resourceId, isDownload: true },
       path: fileUrl,
     });
   }
@@ -181,12 +202,83 @@ class AnalyticsService {
         };
       }
     } catch (err) {
-      if (process.env.NODE_ENV === "development") {
-        console.error("Failed to fetch user_stats", err);
-      }
+      errorLogger.capture(err, { context: "AnalyticsService.getUserActivityStats", userId });
     }
 
     return { pageViews: 0, fileOpens: 0, subjectOpens: 0, totalActions: 0 };
+  }
+
+  /**
+   * Subscribe to user activity stats in real-time
+   */
+  subscribeToUserActivityStats(
+    userId: string,
+    onUpdate: (stats: {
+      pageViews: number;
+      fileOpens: number;
+      subjectOpens: number;
+      totalActions: number;
+    }) => void,
+    onError?: (error: Error) => void
+  ): Unsubscribe {
+    if (!db || !userId) return () => {};
+    return onSnapshot(
+      doc(db, "user_stats", userId),
+      (snapshot) => {
+        if (snapshot.exists()) {
+          const data = snapshot.data();
+          onUpdate({
+            pageViews: data.pageViews || 0,
+            fileOpens: data.fileOpens || 0,
+            subjectOpens: data.subjectOpens || 0,
+            totalActions: data.totalActions || 0,
+          });
+        } else {
+          onUpdate({ pageViews: 0, fileOpens: 0, subjectOpens: 0, totalActions: 0 });
+        }
+      },
+      (error) => {
+        errorLogger.capture(error, {
+          context: "AnalyticsService.subscribeToUserActivityStats",
+          userId,
+        });
+        if (onError) onError(error);
+      }
+    );
+  }
+
+  /**
+   * Subscribe to recent raw activity logs for admin monitoring (real-time stream)
+   */
+  subscribeToRecentActivities(
+    limitCount: number = 50,
+    onUpdate: (logs: Record<string, unknown>[]) => void,
+    onError?: (error: Error) => void
+  ): Unsubscribe {
+    if (!db) return () => {};
+    const q = query(
+      collection(db, "analytics_logs"),
+      orderBy("timestamp", "desc"),
+      limit(limitCount)
+    );
+    return onSnapshot(
+      q,
+      (snapshot) => {
+        const logs = snapshot.docs.map((d) => {
+          const data = d.data();
+          return {
+            id: d.id,
+            ...data,
+            timestamp: data.timestamp ? toDate(data.timestamp) : data.timestamp,
+          };
+        });
+        onUpdate(logs);
+      },
+      (error) => {
+        errorLogger.capture(error, { context: "AnalyticsService.subscribeToRecentActivities" });
+        if (onError) onError(error);
+      }
+    );
   }
 
   /**
@@ -194,28 +286,35 @@ class AnalyticsService {
    */
   async getDailyActivityData(userId: string) {
     if (!db) return [];
-    const fourteenDaysAgo = new Date();
-    fourteenDaysAgo.setHours(0, 0, 0, 0);
-    fourteenDaysAgo.setDate(fourteenDaysAgo.getDate() - 14);
+    try {
+      const fourteenDaysAgo = new Date();
+      fourteenDaysAgo.setHours(0, 0, 0, 0);
+      fourteenDaysAgo.setDate(fourteenDaysAgo.getDate() - 14);
 
-    const q = query(
-      collection(db, "analytics_logs"),
-      where("userId", "==", userId),
-      where("timestamp", ">=", Timestamp.fromDate(fourteenDaysAgo)),
-      orderBy("timestamp", "asc")
-    );
+      const q = query(
+        collection(db, "analytics_logs"),
+        where("userId", "==", userId),
+        where("timestamp", ">=", Timestamp.fromDate(fourteenDaysAgo)),
+        orderBy("timestamp", "asc")
+      );
 
-    const snapshot = await getDocs(q);
-    const dayCounts: Record<string, number> = {};
+      const snapshot = await getDocs(q);
+      const dayCounts: Record<string, number> = {};
 
-    snapshot.docs.forEach((doc) => {
-      const ts = doc.data().timestamp as Timestamp;
-      if (!ts) return;
-      const dateStr = ts.toDate().toLocaleDateString("en-US", { month: "short", day: "numeric" });
-      dayCounts[dateStr] = (dayCounts[dateStr] || 0) + 1;
-    });
+      snapshot.docs.forEach((doc) => {
+        const tsData = doc.data().timestamp;
+        if (!tsData) return;
+        const validDate = toDate(tsData);
+        if (isNaN(validDate.getTime())) return;
+        const dateStr = validDate.toLocaleDateString("en-US", { month: "short", day: "numeric" });
+        dayCounts[dateStr] = (dayCounts[dateStr] || 0) + 1;
+      });
 
-    return Object.entries(dayCounts).map(([name, value]) => ({ name, value }));
+      return Object.entries(dayCounts).map(([name, value]) => ({ name, value }));
+    } catch (error) {
+      errorLogger.capture(error, { context: "AnalyticsService.getDailyActivityData", userId });
+      return [];
+    }
   }
 
   /**
@@ -223,25 +322,30 @@ class AnalyticsService {
    */
   async getTopSubjects(userId: string) {
     if (!db) return [];
-    const q = query(
-      collection(db, "analytics_logs"),
-      where("userId", "==", userId),
-      where("type", "==", "SUBJECT_OPEN"),
-      limit(100)
-    );
+    try {
+      const q = query(
+        collection(db, "analytics_logs"),
+        where("userId", "==", userId),
+        where("type", "==", "SUBJECT_OPEN"),
+        limit(100)
+      );
 
-    const snapshot = await getDocs(q);
-    const subjectCounts: Record<string, number> = {};
+      const snapshot = await getDocs(q);
+      const subjectCounts: Record<string, number> = {};
 
-    snapshot.docs.forEach((doc) => {
-      const name = doc.data().details || "Unknown";
-      subjectCounts[name] = (subjectCounts[name] || 0) + 1;
-    });
+      snapshot.docs.forEach((doc) => {
+        const name = doc.data().details || "Unknown";
+        subjectCounts[name] = (subjectCounts[name] || 0) + 1;
+      });
 
-    return Object.entries(subjectCounts)
-      .map(([name, value]) => ({ name, value }))
-      .sort((a, b) => b.value - a.value)
-      .slice(0, 5);
+      return Object.entries(subjectCounts)
+        .map(([name, value]) => ({ name, value }))
+        .sort((a, b) => b.value - a.value)
+        .slice(0, 5);
+    } catch (error) {
+      errorLogger.capture(error, { context: "AnalyticsService.getTopSubjects", userId });
+      return [];
+    }
   }
 }
 
