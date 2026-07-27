@@ -197,7 +197,6 @@ export function TodoItem({ task, onToggle, onDelete, onEdit, onSubtaskToggle }: 
                   <Trash2 size={14} />
                 </motion.button>
               </div>
-
             </div>
 
             {/* Meta Tags */}

@@ -139,7 +139,6 @@ export function WhoIsOnline() {
                 )}
               </div>
             </div>
-
           </ScaleIn>
         ))}
       </StaggerChildren>

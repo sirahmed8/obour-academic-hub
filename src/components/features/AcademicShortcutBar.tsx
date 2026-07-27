@@ -68,7 +68,6 @@ export function AcademicShortcutBar() {
                 />
               </div>
 
-
               <div>
                 <h4 className="text-sm font-black text-foreground group-hover:text-primary transition-colors">
                   {item.title}
