@@ -104,7 +104,7 @@ export default function MindMapPage() {
                     ? "مثال: البرمجة الكائنية / خوارزميات الترتيب"
                     : "e.g. OOP Concepts / Sorting Algorithms"
                 }
-                className="w-full px-4 py-3 rounded-2xl bg-muted/50 border border-border outline-none focus:border-primary text-sm font-bold"
+                className="w-full px-4 py-3 rounded-2xl bg-muted/50 border border-border/80 outline-none focus:border-primary focus:ring-2 focus:ring-primary/40 focus:bg-background/80 hover:border-primary/40 transition-all duration-300 text-sm font-bold"
               />
             </div>
 
@@ -117,7 +117,7 @@ export default function MindMapPage() {
                 value={subjectName}
                 onChange={(e) => setSubjectName(e.target.value)}
                 placeholder={isRtl ? "مثال: علوم الحاسب" : "e.g. Computer Science"}
-                className="w-full px-4 py-3 rounded-2xl bg-muted/50 border border-border outline-none focus:border-primary text-sm font-bold"
+                className="w-full px-4 py-3 rounded-2xl bg-muted/50 border border-border/80 outline-none focus:border-primary focus:ring-2 focus:ring-primary/40 focus:bg-background/80 hover:border-primary/40 transition-all duration-300 text-sm font-bold"
               />
             </div>
           </div>

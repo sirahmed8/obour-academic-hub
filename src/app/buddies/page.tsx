@@ -72,10 +72,10 @@ export default function StudyBuddiesPage() {
       <StaggerChildren className="grid grid-cols-1 md:grid-cols-2 gap-6">
         {buddies.map((buddy) => (
           <ScaleIn key={buddy.id}>
-            <div className="p-6 rounded-3xl bg-card/60 border border-border/80 backdrop-blur-xl shadow-lg space-y-4 relative overflow-hidden">
+            <div className="p-6 rounded-3xl bg-card/60 border border-border/80 backdrop-blur-xl shadow-lg hover:border-primary/40 hover:shadow-primary/10 transition-all duration-500 space-y-4 relative overflow-hidden group">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-3">
-                  <div className="w-12 h-12 rounded-2xl bg-gradient-to-tr from-primary to-indigo-600 flex items-center justify-center text-white font-black text-lg shadow-md">
+                  <div className="w-12 h-12 rounded-2xl bg-gradient-to-tr from-primary to-indigo-600 flex items-center justify-center text-white font-black text-lg shadow-md group-hover:scale-110 transition-transform duration-300">
                     {buddy.name.charAt(0)}
                   </div>
                   <div>
@@ -86,7 +86,7 @@ export default function StudyBuddiesPage() {
                   </div>
                 </div>
 
-                <div className="px-3 py-1 rounded-full bg-emerald-500/10 text-emerald-500 font-extrabold text-xs border border-emerald-500/20">
+                <div className="px-3 py-1 rounded-full bg-emerald-500/10 text-emerald-500 font-extrabold text-xs border border-emerald-500/20 shadow-sm animate-pulse">
                   {buddy.matchScore}% {isRtl ? "توافق" : "Match"}
                 </div>
               </div>
@@ -108,7 +108,7 @@ export default function StudyBuddiesPage() {
 
               <Link
                 href={`/hagaz`}
-                className="w-full py-3 rounded-2xl bg-primary text-white font-extrabold text-xs transition hover:bg-primary/90 flex items-center justify-center gap-2 shadow-md"
+                className="w-full py-3 rounded-2xl bg-gradient-to-r from-primary to-indigo-600 text-white font-extrabold text-xs transition-all duration-300 hover:opacity-95 flex items-center justify-center gap-2 shadow-lg hover:shadow-primary/20 active:scale-98"
               >
                 <UserCheck size={16} />
                 <span>{isRtl ? "طلب جلسة مراجعة مشتركة" : "Request Study Session"}</span>

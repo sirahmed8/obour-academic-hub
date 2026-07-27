@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useLanguage } from "@/contexts";
 import { Calendar, Clock, CheckCircle2, BookOpen } from "lucide-react";
 import { FadeIn, ScaleIn, StaggerChildren } from "@/components/ui/Animations";
+import { motion } from "framer-motion";
 import { toast } from "sonner";
 
 interface LectureSlot {
@@ -113,11 +114,13 @@ export default function SchedulePage() {
           </div>
 
           {/* Attendance Rate Display */}
-          <div className="p-5 rounded-2xl bg-primary/10 border border-primary/20 flex flex-col items-center justify-center shrink-0">
-            <span className="text-xs font-bold text-muted-foreground">
+          <div className="p-5 rounded-2xl bg-gradient-to-tr from-primary/15 to-indigo-500/10 border border-primary/20 flex flex-col items-center justify-center shrink-0 shadow-lg relative overflow-hidden">
+            <span className="text-xs font-extrabold text-muted-foreground">
               {isRtl ? "نسبة الحضور الأسبوعية" : "Weekly Attendance"}
             </span>
-            <span className="text-3xl font-black text-primary mt-1">{attendanceRate}%</span>
+            <span className="text-4xl font-black text-primary mt-1 tracking-tight">
+              {attendanceRate}%
+            </span>
           </div>
         </div>
       </FadeIn>
@@ -126,9 +129,9 @@ export default function SchedulePage() {
       <StaggerChildren className="space-y-4">
         {schedule.map((slot) => (
           <ScaleIn key={slot.id}>
-            <div className="p-6 rounded-3xl bg-card/60 border border-border/80 backdrop-blur-xl shadow-lg flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+            <div className="p-6 rounded-3xl bg-card/60 border border-border/80 backdrop-blur-xl shadow-lg hover:border-primary/40 hover:shadow-primary/5 transition-all duration-300 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
               <div className="flex items-start gap-4">
-                <div className="p-3.5 rounded-2xl bg-primary/10 text-primary font-black shrink-0">
+                <div className="p-3.5 rounded-2xl bg-primary/10 text-primary font-black shrink-0 shadow-inner">
                   <BookOpen size={24} />
                 </div>
                 <div>
@@ -138,25 +141,27 @@ export default function SchedulePage() {
                   <p className="text-xs font-bold text-muted-foreground mt-0.5">
                     {isRtl ? slot.doctorAr : slot.doctorEn} • {slot.hall}
                   </p>
-                  <div className="flex items-center gap-3 text-xs font-bold text-primary mt-2">
-                    <span className="flex items-center gap-1">
-                      <Calendar size={14} />
-                      {isRtl ? slot.dayAr : slot.dayEn}
-                    </span>
-                    <span className="flex items-center gap-1">
-                      <Clock size={14} />
+
+                  <div className="flex items-center gap-3 mt-2 text-xs font-extrabold text-primary">
+                    <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-primary/10 border border-primary/20">
+                      <Clock size={12} />
                       {slot.time}
+                    </span>
+                    <span className="px-2.5 py-1 rounded-full bg-muted text-muted-foreground">
+                      {isRtl ? slot.dayAr : slot.dayEn}
                     </span>
                   </div>
                 </div>
               </div>
 
-              <button
+              <motion.button
                 type="button"
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
                 onClick={() => toggleAttendance(slot.id)}
-                className={`px-5 py-2.5 rounded-2xl font-extrabold text-xs transition flex items-center gap-2 ${
+                className={`px-5 py-2.5 rounded-2xl font-extrabold text-xs flex items-center justify-center gap-2 transition-all duration-300 shadow-md ${
                   slot.attended
-                    ? "bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30"
+                    ? "bg-emerald-500 text-white shadow-emerald-500/20"
                     : "bg-muted text-muted-foreground hover:bg-muted/80"
                 }`}
               >
@@ -168,9 +173,9 @@ export default function SchedulePage() {
                       : "Attended ✅"
                     : isRtl
                       ? "تسجيل الحضور"
-                      : "Mark Attended"}
+                      : "Mark Attendance"}
                 </span>
-              </button>
+              </motion.button>
             </div>
           </ScaleIn>
         ))}

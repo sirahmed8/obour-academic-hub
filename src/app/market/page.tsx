@@ -72,18 +72,18 @@ export default function MarketPage() {
       <StaggerChildren className="grid grid-cols-1 md:grid-cols-2 gap-6">
         {items.map((item) => (
           <ScaleIn key={item.id}>
-            <div className="p-6 rounded-3xl bg-card/60 border border-border/80 backdrop-blur-xl shadow-lg space-y-4 flex flex-col justify-between">
+            <div className="p-6 rounded-3xl bg-card/60 border border-border/80 backdrop-blur-xl shadow-lg hover:border-primary/40 hover:shadow-primary/10 transition-all duration-500 space-y-4 flex flex-col justify-between group">
               <div className="space-y-2">
                 <div className="flex items-center justify-between">
-                  <span className="px-3 py-1 rounded-full bg-primary/10 text-primary font-extrabold text-xs">
+                  <span className="px-3 py-1 rounded-full bg-primary/10 text-primary font-extrabold text-xs border border-primary/20">
                     {item.category}
                   </span>
-                  <span className="px-3 py-1 rounded-full bg-emerald-500/10 text-emerald-500 font-black text-sm border border-emerald-500/20">
+                  <span className="px-3 py-1 rounded-full bg-emerald-500/10 text-emerald-500 font-black text-sm border border-emerald-500/20 shadow-sm">
                     {item.price}
                   </span>
                 </div>
 
-                <h3 className="font-extrabold text-lg text-foreground">
+                <h3 className="font-extrabold text-lg text-foreground group-hover:text-primary transition-colors">
                   {isRtl ? item.titleAr : item.titleEn}
                 </h3>
                 <p className="text-xs font-bold text-muted-foreground">{item.condition}</p>
@@ -93,7 +93,7 @@ export default function MarketPage() {
                 <span className="text-xs font-bold text-muted-foreground">{item.seller}</span>
                 <Link
                   href="/community"
-                  className="px-4 py-2 rounded-xl bg-primary text-white font-extrabold text-xs hover:bg-primary/90 transition flex items-center gap-1.5 shadow-md"
+                  className="px-4 py-2 rounded-xl bg-gradient-to-r from-primary to-indigo-600 text-white font-extrabold text-xs hover:opacity-95 transition-all duration-300 flex items-center gap-1.5 shadow-md active:scale-95"
                 >
                   <MessageSquare size={14} />
                   <span>{isRtl ? "تواصل مع البائع" : "Chat Seller"}</span>

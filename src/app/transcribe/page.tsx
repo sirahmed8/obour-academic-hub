@@ -3,8 +3,8 @@
 import { useState } from "react";
 import { useLanguage } from "@/contexts";
 import { Mic, FileText, Sparkles, Download, RefreshCw } from "lucide-react";
-
 import { FadeIn, ScaleIn } from "@/components/ui/Animations";
+import { motion } from "framer-motion";
 import { toast } from "sonner";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
@@ -163,7 +163,7 @@ export default function TranscribePage() {
                 placeholder={
                   isRtl ? "مثال: المحاضرة 4 - المصادقة والأمان" : "e.g. Lecture 4 - Authentication"
                 }
-                className="w-full px-4 py-3 rounded-2xl bg-muted/50 border border-border outline-none focus:border-primary text-sm font-bold"
+                className="w-full px-4 py-3 rounded-2xl bg-muted/50 border border-border/80 outline-none focus:border-primary focus:ring-2 focus:ring-primary/40 focus:bg-background/80 hover:border-primary/40 transition-all duration-300 text-sm font-bold"
               />
             </div>
 
@@ -177,7 +177,7 @@ export default function TranscribePage() {
                 value={subjectName}
                 onChange={(e) => setSubjectName(e.target.value)}
                 placeholder={isRtl ? "مثال: هندسة البرمجيات" : "e.g. Software Engineering"}
-                className="w-full px-4 py-3 rounded-2xl bg-muted/50 border border-border outline-none focus:border-primary text-sm font-bold"
+                className="w-full px-4 py-3 rounded-2xl bg-muted/50 border border-border/80 outline-none focus:border-primary focus:ring-2 focus:ring-primary/40 focus:bg-background/80 hover:border-primary/40 transition-all duration-300 text-sm font-bold"
               />
             </div>
 
@@ -186,26 +186,28 @@ export default function TranscribePage() {
                 <label className="block text-xs font-bold text-foreground">
                   {isRtl ? "ملاحظات المحاضرة / تفريغ الصوت" : "Lecture Notes / Transcript"}
                 </label>
-                <button
+                <motion.button
                   type="button"
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
                   onClick={handleStartRecording}
-                  className={`px-3 py-1 rounded-full text-xs font-extrabold flex items-center gap-1 transition ${
+                  className={`px-3 py-1.5 rounded-full text-xs font-extrabold flex items-center gap-1.5 transition-all duration-300 shadow-md ${
                     isRecording
-                      ? "bg-red-500 text-white animate-pulse"
-                      : "bg-primary/10 text-primary hover:bg-primary/20"
+                      ? "bg-red-500 text-white animate-pulse shadow-red-500/30 ring-4 ring-red-500/20"
+                      : "bg-primary/10 text-primary hover:bg-primary/20 border border-primary/20"
                   }`}
                 >
-                  <Mic size={14} />
+                  <Mic size={14} className={isRecording ? "animate-spin" : ""} />
                   <span>
                     {isRecording
                       ? isRtl
-                        ? "جاري التسجيل..."
-                        : "Recording..."
+                        ? "جاري التسجيل... 🎙️"
+                        : "Recording... 🎙️"
                       : isRtl
                         ? "تسجيل ميكروفون"
                         : "Mic Record"}
                   </span>
-                </button>
+                </motion.button>
               </div>
               <textarea
                 rows={5}
@@ -216,7 +218,7 @@ export default function TranscribePage() {
                     ? "أدخل النص أو استخدم زر التسجيل المباشر..."
                     : "Paste notes or use live recording..."
                 }
-                className="w-full px-4 py-3 rounded-2xl bg-muted/50 border border-border outline-none focus:border-primary text-sm font-medium resize-none"
+                className="w-full px-4 py-3 rounded-2xl bg-muted/50 border border-border/80 outline-none focus:border-primary focus:ring-2 focus:ring-primary/40 focus:bg-background/80 hover:border-primary/40 transition-all duration-300 text-sm font-medium resize-none"
               />
             </div>
 

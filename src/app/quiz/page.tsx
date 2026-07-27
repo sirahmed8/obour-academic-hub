@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useLanguage } from "@/contexts";
 import { HelpCircle, CheckCircle2, XCircle, Sparkles, Trophy, RefreshCw } from "lucide-react";
 import { FadeIn, ScaleIn } from "@/components/ui/Animations";
+import { motion } from "framer-motion";
 import { toast } from "sonner";
 import { apiFetch } from "@/lib/api-client";
 import { CustomSelect } from "@/components/ui/CustomSelect";
@@ -238,6 +239,16 @@ export default function QuizPage() {
 
               return (
                 <div className="space-y-6">
+                  {/* Progress Line */}
+                  <div className="w-full h-2 rounded-full bg-muted/60 overflow-hidden">
+                    <motion.div
+                      initial={{ width: 0 }}
+                      animate={{ width: `${((currentIndex + 1) / quiz.questions.length) * 100}%` }}
+                      transition={{ duration: 0.4 }}
+                      className="h-full bg-gradient-to-r from-primary via-indigo-500 to-purple-600 rounded-full"
+                    />
+                  </div>
+
                   <h2 className="text-xl sm:text-2xl font-black text-foreground">
                     {isRtl ? q.questionAr : q.questionEn}
                   </h2>
@@ -251,31 +262,36 @@ export default function QuizPage() {
                       if (isSubmitted) {
                         if (isCorrect) {
                           btnStyle =
-                            "bg-emerald-500/20 border-emerald-500 text-emerald-600 dark:text-emerald-400 font-extrabold";
+                            "bg-emerald-500/20 border-emerald-500 text-emerald-600 dark:text-emerald-400 font-extrabold shadow-lg shadow-emerald-500/10";
                         } else if (isChosen) {
                           btnStyle =
-                            "bg-destructive/20 border-destructive text-destructive font-extrabold";
+                            "bg-destructive/20 border-destructive text-destructive font-extrabold shadow-lg shadow-destructive/10";
                         }
                       } else if (isChosen) {
                         btnStyle =
-                          "bg-primary/20 border-primary text-primary font-extrabold ring-2 ring-primary/30";
+                          "bg-primary/20 border-primary text-primary font-extrabold ring-2 ring-primary/30 shadow-lg shadow-primary/10";
                       }
 
                       return (
-                        <button
+                        <motion.button
                           key={optIdx}
                           type="button"
+                          whileHover={{ scale: 1.01 }}
+                          whileTap={{ scale: 0.99 }}
                           onClick={() => handleSelectOption(optIdx)}
-                          className={`w-full p-4 rounded-2xl border text-right sm:text-left transition-all font-bold text-sm flex items-center justify-between ${btnStyle}`}
+                          className={`w-full p-4 rounded-2xl border text-right sm:text-left transition-all duration-300 font-bold text-sm flex items-center justify-between ${btnStyle}`}
                         >
                           <span>{opt}</span>
                           {isSubmitted && isCorrect && (
-                            <CheckCircle2 className="text-emerald-500 shrink-0" size={20} />
+                            <CheckCircle2
+                              className="text-emerald-500 shrink-0 animate-bounce"
+                              size={20}
+                            />
                           )}
                           {isSubmitted && isChosen && !isCorrect && (
                             <XCircle className="text-destructive shrink-0" size={20} />
                           )}
-                        </button>
+                        </motion.button>
                       );
                     })}
                   </div>

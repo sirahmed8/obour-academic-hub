@@ -4,7 +4,7 @@ import { useState } from "react";
 import { useLanguage } from "@/contexts";
 import { MessageSquare, ThumbsUp, ShieldCheck } from "lucide-react";
 import { FadeIn, ScaleIn, StaggerChildren } from "@/components/ui/Animations";
-
+import { motion } from "framer-motion";
 import { toast } from "sonner";
 
 interface QAQuestion {
@@ -87,10 +87,10 @@ export default function QAForumPage() {
       <StaggerChildren className="space-y-4">
         {questions.map((q) => (
           <ScaleIn key={q.id}>
-            <div className="p-6 rounded-3xl bg-card/60 border border-border/80 backdrop-blur-xl shadow-lg space-y-4">
+            <div className="p-6 rounded-3xl bg-card/60 border border-border/80 backdrop-blur-xl shadow-lg hover:border-primary/40 hover:shadow-primary/5 transition-all duration-300 space-y-4">
               <div className="flex items-start justify-between gap-4">
                 <div>
-                  <span className="px-3 py-1 rounded-full bg-primary/10 text-primary font-bold text-xs">
+                  <span className="px-3 py-1 rounded-full bg-primary/10 text-primary font-extrabold text-xs border border-primary/20">
                     {q.subject}
                   </span>
                   <h3 className="font-extrabold text-lg text-foreground mt-2">
@@ -101,18 +101,20 @@ export default function QAForumPage() {
                   </p>
                 </div>
 
-                <button
+                <motion.button
                   type="button"
+                  whileHover={{ scale: 1.08 }}
+                  whileTap={{ scale: 0.92 }}
                   onClick={() => handleUpvote(q.id)}
-                  className="px-3 py-2 rounded-2xl bg-muted hover:bg-muted/80 font-black text-xs text-foreground flex items-center gap-1.5 shrink-0"
+                  className="px-4 py-2.5 rounded-2xl bg-primary/10 hover:bg-primary/20 border border-primary/20 font-black text-xs text-primary flex items-center gap-1.5 shrink-0 shadow-sm transition-all"
                 >
                   <ThumbsUp size={14} className="text-primary" />
                   <span>{q.upvotes}</span>
-                </button>
+                </motion.button>
               </div>
 
               {q.hasDoctorAnswer && (
-                <div className="p-4 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 space-y-1">
+                <div className="p-4 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 space-y-1 shadow-sm">
                   <div className="flex items-center gap-1.5 text-xs font-black text-emerald-600 dark:text-emerald-400">
                     <ShieldCheck size={16} />
                     <span>

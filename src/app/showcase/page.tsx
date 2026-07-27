@@ -4,7 +4,7 @@ import { useState } from "react";
 import { useLanguage } from "@/contexts";
 import { ExternalLink, ThumbsUp, Laptop } from "lucide-react";
 import { FadeIn, ScaleIn, StaggerChildren } from "@/components/ui/Animations";
-
+import { motion } from "framer-motion";
 import { toast } from "sonner";
 
 interface ShowcaseProject {
@@ -85,23 +85,25 @@ export default function ShowcasePage() {
       <StaggerChildren className="grid grid-cols-1 md:grid-cols-2 gap-6">
         {projects.map((project) => (
           <ScaleIn key={project.id}>
-            <div className="p-6 rounded-3xl bg-card/60 border border-border/80 backdrop-blur-xl shadow-lg space-y-4 flex flex-col justify-between">
+            <div className="p-6 rounded-3xl bg-card/60 border border-border/80 backdrop-blur-xl shadow-lg hover:border-primary/40 hover:shadow-primary/10 transition-all duration-500 space-y-4 flex flex-col justify-between group">
               <div className="space-y-3">
                 <div className="flex items-center justify-between">
-                  <span className="px-3 py-1 rounded-full bg-primary/10 text-primary font-bold text-xs">
+                  <span className="px-3 py-1 rounded-full bg-primary/10 text-primary font-extrabold text-xs border border-primary/20">
                     {project.dept}
                   </span>
-                  <button
+                  <motion.button
                     type="button"
+                    whileHover={{ scale: 1.08 }}
+                    whileTap={{ scale: 0.92 }}
                     onClick={() => handleLike(project.id)}
-                    className="px-3 py-1.5 rounded-full bg-red-500/10 text-red-500 font-extrabold text-xs flex items-center gap-1 border border-red-500/20"
+                    className="px-3 py-1.5 rounded-full bg-red-500/10 text-red-500 font-extrabold text-xs flex items-center gap-1 border border-red-500/20 shadow-sm"
                   >
                     <ThumbsUp size={14} />
                     <span>{project.likes}</span>
-                  </button>
+                  </motion.button>
                 </div>
 
-                <h3 className="font-extrabold text-lg text-foreground">
+                <h3 className="font-extrabold text-lg text-foreground group-hover:text-primary transition-colors">
                   {isRtl ? project.titleAr : project.titleEn}
                 </h3>
                 <p className="text-xs font-medium text-muted-foreground leading-relaxed">
@@ -126,7 +128,7 @@ export default function ShowcasePage() {
                   href={project.demoUrl}
                   target="_blank"
                   rel="noreferrer"
-                  className="px-4 py-2 rounded-xl bg-primary text-white font-extrabold text-xs hover:bg-primary/90 transition flex items-center gap-1.5 shadow-md"
+                  className="px-4 py-2 rounded-xl bg-gradient-to-r from-primary to-indigo-600 text-white font-extrabold text-xs hover:opacity-95 transition-all duration-300 flex items-center gap-1.5 shadow-md active:scale-95"
                 >
                   <span>{isRtl ? "معاينة المشروع" : "View Project"}</span>
                   <ExternalLink size={14} />
