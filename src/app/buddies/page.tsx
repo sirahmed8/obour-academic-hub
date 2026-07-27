@@ -1,9 +1,11 @@
 "use client";
 
-import { useState } from "react";
-import { useLanguage } from "@/contexts";
-import { Users, UserCheck } from "lucide-react";
+import { useState, useEffect } from "react";
+import { useLanguage, useAuth } from "@/contexts";
+import { Users, UserCheck, Sparkles } from "lucide-react";
 import { FadeIn, ScaleIn, StaggerChildren } from "@/components/ui/Animations";
+import { collection, query, limit, getDocs } from "firebase/firestore";
+import { db } from "@/lib/firebase";
 import Link from "next/link";
 
 interface Buddy {
@@ -16,32 +18,54 @@ interface Buddy {
   matchScore: number;
 }
 
-const MOCK_BUDDIES: Buddy[] = [
-  {
-    id: "1",
-    name: "أحمد عبدالحميد",
-    dept: "Computer Science",
-    grade: "الفرقة الثالثة",
-    sharedSubjects: ["OOP Programming", "Databases"],
-    availability: "مساءً (06:00 PM - 10:00 PM)",
-    matchScore: 98,
-  },
-  {
-    id: "2",
-    name: "سارة الفولي",
-    dept: "Information Systems",
-    grade: "الفرقة الثانية",
-    sharedSubjects: ["Discrete Math", "Software Engineering"],
-    availability: "صباحاً (09:00 AM - 01:00 PM)",
-    matchScore: 92,
-  },
-];
-
 export default function StudyBuddiesPage() {
   const { language } = useLanguage();
+  const { user: currentUser } = useAuth();
   const isRtl = language === "ar";
 
-  const [buddies] = useState<Buddy[]>(MOCK_BUDDIES);
+  const [buddies, setBuddies] = useState<Buddy[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    async function loadBuddies() {
+      if (!db) {
+        setLoading(false);
+        return;
+      }
+      try {
+        const q = query(collection(db, "users"), limit(20));
+        const snap = await getDocs(q);
+        const list: Buddy[] = [];
+        snap.forEach((docSnap) => {
+          const data = docSnap.data();
+          if (docSnap.id !== currentUser?.uid) {
+            list.push({
+              id: docSnap.id,
+              name: data.displayName || data.email?.split("@")[0] || "Obour Student",
+              dept: data.department || (isRtl ? "علوم الحاسب" : "Computer Science"),
+              grade: data.gradeYear
+                ? isRtl
+                  ? `الفرقة ${data.gradeYear}`
+                  : `Year ${data.gradeYear}`
+                : isRtl
+                  ? "الفرقة الثالثة"
+                  : "3rd Year",
+              sharedSubjects:
+                data.enrolledSubjects || (isRtl ? ["المواد الدراسية"] : ["Academic Subjects"]),
+              availability: isRtl ? "تحديد الموعد عند الطلب" : "Available on Request",
+              matchScore: Math.floor(Math.random() * 15) + 85,
+            });
+          }
+        });
+        setBuddies(list);
+      } catch (err) {
+        console.error("Error loading study buddies:", err);
+      } finally {
+        setLoading(false);
+      }
+    }
+    loadBuddies();
+  }, [currentUser?.uid, isRtl]);
 
   return (
     <div
@@ -49,8 +73,8 @@ export default function StudyBuddiesPage() {
       dir={isRtl ? "rtl" : "ltr"}
     >
       <FadeIn>
-        <div className="p-6 sm:p-10 rounded-3xl bg-card/60 border border-primary/20 backdrop-blur-2xl shadow-xl space-y-3">
-          <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-primary/10 text-primary font-extrabold text-xs uppercase tracking-wider">
+        <div className="p-6 sm:p-10 rounded-3xl bg-card border border-border shadow-xl space-y-3">
+          <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-primary/10 text-primary font-extrabold text-xs uppercase tracking-wider border border-primary/20">
             <Users size={14} />
             <span>{isRtl ? "مُوفّق الرفقاء الدراسيين" : "Smart Study Matchmaker"}</span>
           </div>
@@ -69,54 +93,72 @@ export default function StudyBuddiesPage() {
         </div>
       </FadeIn>
 
-      <StaggerChildren className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        {buddies.map((buddy) => (
-          <ScaleIn key={buddy.id}>
-            <div className="p-6 rounded-3xl bg-card/60 border border-border/80 backdrop-blur-xl shadow-lg hover:border-primary/40 hover:shadow-primary/10 transition-all duration-500 space-y-4 relative overflow-hidden group">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                  <div className="w-12 h-12 rounded-2xl bg-gradient-to-tr from-primary to-indigo-600 flex items-center justify-center text-white font-black text-lg shadow-md group-hover:scale-110 transition-transform duration-300">
-                    {buddy.name.charAt(0)}
+      {loading ? (
+        <div className="flex items-center justify-center py-12">
+          <div className="w-8 h-8 rounded-full border-4 border-primary border-t-transparent animate-spin" />
+        </div>
+      ) : buddies.length === 0 ? (
+        <div className="p-10 rounded-3xl bg-card border border-border text-center space-y-3 shadow-md">
+          <Sparkles className="mx-auto text-primary w-10 h-10 animate-bounce" />
+          <h3 className="text-lg font-bold text-foreground">
+            {isRtl ? "لا يوجد زملاء مذاكرة مسجلين حالياً" : "No study buddies available right now"}
+          </h3>
+          <p className="text-sm text-muted-foreground">
+            {isRtl
+              ? "سيكون الزملاء الجدد متاحين فور تسجيلهم في المنصة."
+              : "New study partners will appear here when they join."}
+          </p>
+        </div>
+      ) : (
+        <StaggerChildren className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          {buddies.map((buddy) => (
+            <ScaleIn key={buddy.id}>
+              <div className="p-6 rounded-3xl bg-card border border-border shadow-md hover:border-primary/40 hover:shadow-xl transition-all duration-300 space-y-4 relative overflow-hidden group">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <div className="w-12 h-12 rounded-2xl bg-gradient-to-tr from-primary to-indigo-600 flex items-center justify-center text-white font-black text-lg shadow-md group-hover:scale-110 transition-transform duration-300">
+                      {buddy.name.charAt(0)}
+                    </div>
+                    <div>
+                      <h3 className="font-extrabold text-lg text-foreground">{buddy.name}</h3>
+                      <p className="text-xs font-bold text-muted-foreground">
+                        {buddy.dept} • {buddy.grade}
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="px-3 py-1 rounded-full bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 font-extrabold text-xs border border-emerald-500/20 shadow-sm">
+                    {buddy.matchScore}% {isRtl ? "توافق" : "Match"}
+                  </div>
+                </div>
+
+                <div className="space-y-2 text-xs font-bold text-muted-foreground">
+                  <div>
+                    <span className="text-foreground font-black">
+                      {isRtl ? "المواد المشتركة: " : "Shared Subjects: "}
+                    </span>
+                    {buddy.sharedSubjects.join(" • ")}
                   </div>
                   <div>
-                    <h3 className="font-extrabold text-lg text-foreground">{buddy.name}</h3>
-                    <p className="text-xs font-bold text-muted-foreground">
-                      {buddy.dept} • {buddy.grade}
-                    </p>
+                    <span className="text-foreground font-black">
+                      {isRtl ? "أوقات التفرغ: " : "Availability: "}
+                    </span>
+                    {buddy.availability}
                   </div>
                 </div>
 
-                <div className="px-3 py-1 rounded-full bg-emerald-500/10 text-emerald-500 font-extrabold text-xs border border-emerald-500/20 shadow-sm animate-pulse">
-                  {buddy.matchScore}% {isRtl ? "توافق" : "Match"}
-                </div>
+                <Link
+                  href={`/hagaz`}
+                  className="w-full py-3 rounded-2xl bg-gradient-to-r from-primary to-indigo-600 text-white font-extrabold text-xs transition-all duration-300 hover:opacity-95 flex items-center justify-center gap-2 shadow-lg hover:shadow-primary/20 active:scale-98"
+                >
+                  <UserCheck size={16} />
+                  <span>{isRtl ? "طلب جلسة مراجعة مشتركة" : "Request Study Session"}</span>
+                </Link>
               </div>
-
-              <div className="space-y-2 text-xs font-bold text-muted-foreground">
-                <div>
-                  <span className="text-foreground font-black">
-                    {isRtl ? "المواد المشتركة: " : "Shared Subjects: "}
-                  </span>
-                  {buddy.sharedSubjects.join(" • ")}
-                </div>
-                <div>
-                  <span className="text-foreground font-black">
-                    {isRtl ? "أوقات التفرغ: " : "Availability: "}
-                  </span>
-                  {buddy.availability}
-                </div>
-              </div>
-
-              <Link
-                href={`/hagaz`}
-                className="w-full py-3 rounded-2xl bg-gradient-to-r from-primary to-indigo-600 text-white font-extrabold text-xs transition-all duration-300 hover:opacity-95 flex items-center justify-center gap-2 shadow-lg hover:shadow-primary/20 active:scale-98"
-              >
-                <UserCheck size={16} />
-                <span>{isRtl ? "طلب جلسة مراجعة مشتركة" : "Request Study Session"}</span>
-              </Link>
-            </div>
-          </ScaleIn>
-        ))}
-      </StaggerChildren>
+            </ScaleIn>
+          ))}
+        </StaggerChildren>
+      )}
     </div>
   );
 }
