@@ -30,9 +30,22 @@ export default function TranscribePage() {
     }
 
     try {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const SpeechRecognition =
-        (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
+      const win = window as unknown as Record<
+        string,
+        new () => {
+          lang: string;
+          continuous: boolean;
+          onstart: () => void;
+          onresult: (event: { resultIndex: number; results: Array<{ [key: number]: { transcript: string } }> }) => void;
+          onerror: () => void;
+          onend: () => void;
+          start: () => void;
+        }
+      >;
+
+      const SpeechRecognition = win.SpeechRecognition || win.webkitSpeechRecognition;
+      if (!SpeechRecognition) return;
+
       const recognition = new SpeechRecognition();
       recognition.lang = isRtl ? "ar-SA" : "en-US";
       recognition.continuous = true;
@@ -44,14 +57,14 @@ export default function TranscribePage() {
         );
       };
 
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      recognition.onresult = (event: any) => {
+      recognition.onresult = (event) => {
         let transcript = "";
         for (let i = event.resultIndex; i < event.results.length; i++) {
           transcript += event.results[i][0].transcript;
         }
         setRawText((prev) => prev + " " + transcript);
       };
+
 
       recognition.onerror = () => {
         setIsRecording(false);
