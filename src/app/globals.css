@@ -123,6 +123,41 @@
   a {
     touch-action: manipulation;
     -webkit-tap-highlight-color: transparent;
+    transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  /* Global Outline Animation for All Type Boxes (Inputs, Textareas, Selects) */
+  input:not([type="checkbox"]):not([type="radio"]),
+  textarea,
+  select {
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+  }
+
+  input:not([type="checkbox"]):not([type="radio"]):focus,
+  textarea:focus,
+  select:focus {
+    outline: none !important;
+    box-shadow:
+      0 0 0 3px rgba(99, 102, 241, 0.3),
+      0 0 20px rgba(99, 102, 241, 0.15) !important;
+    border-color: hsl(var(--primary)) !important;
+  }
+
+  /* Global Button Micro-Press Animation */
+  button:active,
+  a.button-active:active {
+    transform: scale(0.97) !important;
+  }
+
+  /* Global List Card Hover Lift Animation */
+  .list-card-hover {
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+  }
+
+  .list-card-hover:hover {
+    transform: translateY(-4px) !important;
+    box-shadow: 0 12px 30px -10px rgba(99, 102, 241, 0.18) !important;
+    border-color: rgba(99, 102, 241, 0.4) !important;
   }
 
   /* Solid Mode (Performance Mode) overrides */
