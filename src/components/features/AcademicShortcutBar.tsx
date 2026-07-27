@@ -59,14 +59,15 @@ export function AcademicShortcutBar() {
               className={`group relative flex flex-col justify-between p-4 rounded-3xl bg-gradient-to-br ${item.color} border backdrop-blur-xl transition-all duration-300 hover:scale-[1.03] hover:shadow-xl active:scale-95`}
             >
               <div className="flex items-center justify-between mb-3">
-                <div className="p-2.5 rounded-2xl bg-white/60 dark:bg-black/40 shadow-sm border border-white/40 dark:border-white/10">
+                <div className="p-2.5 rounded-2xl bg-white/60 dark:bg-black/40 shadow-sm border border-white/40 dark:border-white/10 group-hover:rotate-6 group-hover:scale-110 transition-transform duration-300">
                   <Icon size={20} />
                 </div>
                 <ArrowUpRight
                   size={18}
-                  className="opacity-0 group-hover:opacity-100 transition-opacity transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5"
+                  className="opacity-0 group-hover:opacity-100 transition-all duration-300 transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5"
                 />
               </div>
+
 
               <div>
                 <h4 className="text-sm font-black text-foreground group-hover:text-primary transition-colors">

@@ -180,19 +180,24 @@ export function TodoItem({ task, onToggle, onDelete, onEdit, onSubtaskToggle }: 
 
               {/* Actions */}
               <div className="flex flex-col gap-1 items-end opacity-0 group-hover:opacity-100 transition-opacity duration-200">
-                <button
+                <motion.button
+                  whileHover={{ scale: 1.15 }}
+                  whileTap={{ scale: 0.9 }}
                   onClick={() => onEdit(task)}
                   className="p-1.5 text-muted-foreground hover:text-primary hover:bg-primary/10 rounded-lg transition-colors"
                 >
                   <Edit2 size={14} />
-                </button>
-                <button
+                </motion.button>
+                <motion.button
+                  whileHover={{ scale: 1.15 }}
+                  whileTap={{ scale: 0.9 }}
                   onClick={() => onDelete(task.id)}
                   className="p-1.5 text-muted-foreground hover:text-red-500 hover:bg-red-500/10 rounded-lg transition-colors"
                 >
                   <Trash2 size={14} />
-                </button>
+                </motion.button>
               </div>
+
             </div>
 
             {/* Meta Tags */}

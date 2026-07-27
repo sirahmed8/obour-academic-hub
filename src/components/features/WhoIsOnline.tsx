@@ -106,23 +106,23 @@ export function WhoIsOnline() {
           <ScaleIn key={u.uid} className="group relative" title={`${u.displayName} (${u.email})`}>
             <div
               className={cn(
-                "flex items-center gap-2 p-1.5 pr-4 rounded-2xl border transition-all duration-300",
+                "flex items-center gap-2 p-1.5 pr-4 rounded-2xl border transition-all duration-300 hover:scale-105",
                 u.uid === currentUser?.uid
-                  ? "bg-primary/10 border-primary/20 ring-2 ring-primary/10"
-                  : "bg-card border-border hover:border-primary/30 hover:shadow-md"
+                  ? "bg-primary/10 border-primary/20 ring-2 ring-primary/15 shadow-md shadow-primary/5"
+                  : "bg-card/70 backdrop-blur-xl border-border/80 hover:border-primary/40 hover:shadow-lg"
               )}
             >
               <div className="relative">
                 {u.photoURL ? (
-                  <div className="relative w-8 h-8 rounded-xl overflow-hidden border border-border/50">
+                  <div className="relative w-8 h-8 rounded-xl overflow-hidden border border-border/50 shadow-sm">
                     <Image src={u.photoURL} alt={u.displayName} fill className="object-cover" />
                   </div>
                 ) : (
-                  <div className="w-8 h-8 rounded-xl bg-primary/10 flex items-center justify-center text-primary font-bold text-xs border border-primary/20">
+                  <div className="w-8 h-8 rounded-xl bg-gradient-to-tr from-primary/20 to-indigo-500/20 flex items-center justify-center text-primary font-black text-xs border border-primary/20 shadow-sm">
                     {u.displayName.charAt(0).toUpperCase()}
                   </div>
                 )}
-                <div className="absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 bg-green-500 rounded-full border-2 border-background shadow-sm" />
+                <div className="absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 bg-emerald-500 rounded-full border-2 border-background shadow-sm animate-pulse" />
               </div>
 
               <div className="flex flex-col">
@@ -139,6 +139,7 @@ export function WhoIsOnline() {
                 )}
               </div>
             </div>
+
           </ScaleIn>
         ))}
       </StaggerChildren>
