@@ -53,8 +53,8 @@ export function CustomSelect({
           "w-full flex items-center justify-between rounded-2xl border transition-all duration-300",
           compact ? "px-3 py-2 text-xs" : "px-4 py-3",
           isOpen
-            ? "border-primary/50 bg-background/80 backdrop-blur-xl shadow-lg ring-2 ring-primary/10"
-            : "border-border/40 bg-background/60 backdrop-blur-xl hover:bg-background/80"
+            ? "border-primary/50 bg-card shadow-lg ring-2 ring-primary/10"
+            : "border-border bg-card hover:bg-card/90"
         )}
       >
         <span
@@ -80,7 +80,7 @@ export function CustomSelect({
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: -8, scale: 0.98 }}
             transition={{ duration: 0.2, ease: [0.32, 0.72, 0, 1] }}
-            className="absolute z-50 w-full mt-2 bg-background/80 backdrop-blur-2xl border border-white/10 shadow-2xl rounded-2xl max-h-60 overflow-hidden"
+            className="absolute z-50 w-full mt-2 bg-card text-card-foreground border border-border shadow-2xl rounded-2xl max-h-60 overflow-hidden"
           >
             <div className="p-1.5 overflow-auto max-h-56 scrollbar-hide">
               {options.length === 0 ? (

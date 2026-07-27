@@ -9,7 +9,6 @@ import { FadeIn } from "@/components/ui/Animations";
 import { TacticalAdviceCard } from "@/components/features/TacticalAdviceCard";
 import { AcademicShortcutBar } from "@/components/features/AcademicShortcutBar";
 import { AcademicStreakWidget } from "@/components/features/AcademicStreakWidget";
-import { WhoIsOnline } from "@/components/features/WhoIsOnline";
 import { OnboardingOverlay, shouldShowOnboarding } from "@/components/features/OnboardingOverlay";
 import { FeatureTips } from "@/components/features/FeatureTips";
 import { motion, AnimatePresence } from "framer-motion";
@@ -71,7 +70,6 @@ export function Dashboard() {
                     {t("dashboard.bannerTitle")}
                   </span>
                 </div>
-                <WhoIsOnline />
               </div>
 
               {isAdmin && (

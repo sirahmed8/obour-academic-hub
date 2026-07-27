@@ -17,9 +17,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/Card";
 import { ConfirmationModal } from "@/components/ui/ConfirmationModal";
 import { toast } from "sonner";
 import { apiFetch } from "@/lib/api-client";
-import { GpaCalculatorWidget } from "@/components/features/GpaCalculatorWidget";
 import { GpaGoalPlannerWidget } from "@/components/features/GpaGoalPlannerWidget";
-import { AchievementCards } from "@/components/features/AchievementCards";
 
 import { useState, useEffect } from "react";
 import { cn, toDate } from "@/lib/utils";
@@ -213,14 +211,10 @@ export default function ProfilePage() {
         </Card>
       </div>
 
-      {/* GPA Calculator & Goal Planner Widgets */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <GpaCalculatorWidget />
+      {/* Goal Planner Widget */}
+      <div className="grid grid-cols-1 gap-6">
         <GpaGoalPlannerWidget />
       </div>
-
-      {/* Collectible Achievement Cards */}
-      <AchievementCards />
 
       {/* My Data Section */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">

@@ -617,9 +617,17 @@ const SidebarLink = memo(
     ariaLabel,
   }: SidebarLinkProps) => {
     const [isHovered, setIsHovered] = useState(false);
+    const linkRef = useRef<HTMLAnchorElement>(null);
+
+    useEffect(() => {
+      if (isActive && linkRef.current) {
+        linkRef.current.scrollIntoView({ behavior: "smooth", block: "nearest" });
+      }
+    }, [isActive]);
 
     return (
       <Link
+        ref={linkRef}
         href={path}
         onClick={onClose}
         prefetch={false}

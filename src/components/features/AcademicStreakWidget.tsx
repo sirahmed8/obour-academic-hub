@@ -50,10 +50,23 @@ export function AcademicStreakWidget() {
     }
   }, [user?.uid]);
 
-  // Academic Semester Progress calculation (e.g. 14 week semester)
-  const semesterWeeksTotal = 14;
-  const currentWeek = 8;
-  const semesterProgress = Math.round((currentWeek / semesterWeeksTotal) * 100);
+  // Real Academic Semester Progress calculation from calendar
+  const now = new Date();
+  const currentYear = now.getFullYear();
+  let start = new Date(currentYear, 1, 1);
+  let end = new Date(currentYear, 5, 15);
+  if (now.getMonth() >= 8) {
+    start = new Date(currentYear, 8, 1);
+    end = new Date(currentYear, 11, 31);
+  }
+  const totalDays = Math.max(1, (end.getTime() - start.getTime()) / (1000 * 3600 * 24));
+  const elapsedDays = Math.min(
+    totalDays,
+    Math.max(0, (now.getTime() - start.getTime()) / (1000 * 3600 * 24))
+  );
+  const semesterProgress = Math.min(100, Math.round((elapsedDays / totalDays) * 100));
+  const currentWeek = Math.min(16, Math.max(1, Math.ceil(elapsedDays / 7)));
+  const semesterWeeksTotal = 16;
 
   if (!mounted) return null;
 
