@@ -45,6 +45,5 @@
 - Maintain strict compliance with `a7medorabe7@gmail.com` author identity for Git commits.
 - Ensure all new inputs automatically inherit global outline animations from `globals.css`.
 
-
 - Maintain `signInWithPopup` authentication invariant in `src/contexts/AuthContext.tsx` and `src/components/features/LoginScreen.tsx`.
 - Preserve existing database queries, API contracts, and real-time Firestore synchronization patterns.
