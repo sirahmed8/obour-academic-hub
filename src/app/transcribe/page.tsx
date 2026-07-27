@@ -36,7 +36,10 @@ export default function TranscribePage() {
           lang: string;
           continuous: boolean;
           onstart: () => void;
-          onresult: (event: { resultIndex: number; results: Array<{ [key: number]: { transcript: string } }> }) => void;
+          onresult: (event: {
+            resultIndex: number;
+            results: Array<{ [key: number]: { transcript: string } }>;
+          }) => void;
           onerror: () => void;
           onend: () => void;
           start: () => void;
@@ -64,7 +67,6 @@ export default function TranscribePage() {
         }
         setRawText((prev) => prev + " " + transcript);
       };
-
 
       recognition.onerror = () => {
         setIsRecording(false);
