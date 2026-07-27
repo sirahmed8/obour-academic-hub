@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useLanguage } from "@/contexts";
 import { calculateGPA } from "@/lib/utils";
 import { Calculator, Plus, Trash2, Award } from "lucide-react";
+import { CustomSelect } from "@/components/ui/CustomSelect";
 
 interface CourseInput {
   id: string;
@@ -120,29 +121,25 @@ export function GpaCalculatorWidget() {
             />
 
             <div className="flex items-center gap-2">
-              <select
+              <CustomSelect
+                compact
                 value={c.grade}
-                onChange={(e) => updateCourse(c.id, "grade", e.target.value)}
-                className="px-3 py-1.5 rounded-xl bg-card border border-border text-xs font-extrabold text-foreground"
-              >
-                {GRADE_OPTIONS.map((opt) => (
-                  <option key={opt.letter} value={opt.letter}>
-                    {opt.letter} ({opt.points})
-                  </option>
-                ))}
-              </select>
+                onChange={(val) => updateCourse(c.id, "grade", val)}
+                options={GRADE_OPTIONS.map((opt) => ({
+                  value: opt.letter,
+                  label: `${opt.letter} (${opt.points})`,
+                }))}
+              />
 
-              <select
-                value={c.credits}
-                onChange={(e) => updateCourse(c.id, "credits", parseInt(e.target.value, 10))}
-                className="px-3 py-1.5 rounded-xl bg-card border border-border text-xs font-extrabold text-foreground"
-              >
-                {[1, 2, 3, 4, 6].map((hrs) => (
-                  <option key={hrs} value={hrs}>
-                    {hrs} {language === "ar" ? "ساعات" : "Hrs"}
-                  </option>
-                ))}
-              </select>
+              <CustomSelect
+                compact
+                value={String(c.credits)}
+                onChange={(val) => updateCourse(c.id, "credits", parseInt(val, 10))}
+                options={[1, 2, 3, 4, 6].map((hrs) => ({
+                  value: String(hrs),
+                  label: `${hrs} ${language === "ar" ? "ساعات" : "Hrs"}`,
+                }))}
+              />
 
               {courses.length > 1 && (
                 <button

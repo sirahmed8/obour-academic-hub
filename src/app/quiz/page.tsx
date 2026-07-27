@@ -6,6 +6,7 @@ import { HelpCircle, CheckCircle2, XCircle, Sparkles, Trophy, RefreshCw } from "
 import { FadeIn, ScaleIn } from "@/components/ui/Animations";
 import { toast } from "sonner";
 import { apiFetch } from "@/lib/api-client";
+import { CustomSelect } from "@/components/ui/CustomSelect";
 
 interface Question {
   id: string;
@@ -135,7 +136,7 @@ export default function QuizPage() {
                   value={subjectName}
                   onChange={(e) => setSubjectName(e.target.value)}
                   placeholder={isRtl ? "مثال: برمجة هيكلية / قواعد بيانات" : "e.g. OOP / Databases"}
-                  className="w-full px-4 py-3 rounded-2xl bg-muted/50 border border-border outline-none focus:border-primary text-sm font-bold"
+                  className="w-full px-4 py-3 rounded-2xl bg-muted/50 border border-border/80 outline-none focus:border-primary focus:ring-2 focus:ring-primary/40 focus:bg-background/80 hover:border-primary/40 transition-all duration-300 text-sm font-bold"
                 />
               </div>
 
@@ -152,7 +153,7 @@ export default function QuizPage() {
                       ? "مثال: المصفوفات / العلاقات في قواعد البيانات"
                       : "e.g. Arrays / SQL Joins"
                   }
-                  className="w-full px-4 py-3 rounded-2xl bg-muted/50 border border-border outline-none focus:border-primary text-sm font-bold"
+                  className="w-full px-4 py-3 rounded-2xl bg-muted/50 border border-border/80 outline-none focus:border-primary focus:ring-2 focus:ring-primary/40 focus:bg-background/80 hover:border-primary/40 transition-all duration-300 text-sm font-bold"
                 />
               </div>
 
@@ -161,30 +162,30 @@ export default function QuizPage() {
                   <label className="block text-xs font-bold text-foreground mb-1">
                     {isRtl ? "مستوى الصعوبة" : "Difficulty Level"}
                   </label>
-                  <select
+                  <CustomSelect
                     value={difficulty}
-                    onChange={(e) => setDifficulty(e.target.value as "easy" | "medium" | "hard")}
-                    className="w-full px-4 py-3 rounded-2xl bg-muted/50 border border-border outline-none focus:border-primary text-sm font-bold"
-                  >
-                    <option value="easy">{isRtl ? "سهل 🟢" : "Easy 🟢"}</option>
-                    <option value="medium">{isRtl ? "متوسط 🟡" : "Medium 🟡"}</option>
-                    <option value="hard">{isRtl ? "متقدم 🔴" : "Hard 🔴"}</option>
-                  </select>
+                    onChange={(val) => setDifficulty(val as "easy" | "medium" | "hard")}
+                    options={[
+                      { value: "easy", label: isRtl ? "سهل 🟢" : "Easy 🟢" },
+                      { value: "medium", label: isRtl ? "متوسط 🟡" : "Medium 🟡" },
+                      { value: "hard", label: isRtl ? "متقدم 🔴" : "Hard 🔴" },
+                    ]}
+                  />
                 </div>
 
                 <div>
                   <label className="block text-xs font-bold text-foreground mb-1">
                     {isRtl ? "عدد الأسئلة" : "Question Count"}
                   </label>
-                  <select
-                    value={questionCount}
-                    onChange={(e) => setQuestionCount(parseInt(e.target.value, 10))}
-                    className="w-full px-4 py-3 rounded-2xl bg-muted/50 border border-border outline-none focus:border-primary text-sm font-bold"
-                  >
-                    <option value={3}>3 {isRtl ? "أسئلة" : "Questions"}</option>
-                    <option value={5}>5 {isRtl ? "أسئلة" : "Questions"}</option>
-                    <option value={10}>10 {isRtl ? "أسئلة" : "Questions"}</option>
-                  </select>
+                  <CustomSelect
+                    value={String(questionCount)}
+                    onChange={(val) => setQuestionCount(parseInt(val, 10))}
+                    options={[
+                      { value: "3", label: isRtl ? "3 أسئلة" : "3 Questions" },
+                      { value: "5", label: isRtl ? "5 أسئلة" : "5 Questions" },
+                      { value: "10", label: isRtl ? "10 أسئلة" : "10 Questions" },
+                    ]}
+                  />
                 </div>
               </div>
             </div>

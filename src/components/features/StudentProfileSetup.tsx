@@ -20,6 +20,7 @@ import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { scaleIn, getMotionProps } from "@/lib/motion";
 import { useReducedMotion } from "@/hooks/useReducedMotion";
+import { CustomSelect } from "@/components/ui/CustomSelect";
 
 interface StudentProfileSetupProps {
   onComplete: () => void;
@@ -314,17 +315,14 @@ export function StudentProfileSetup({ onComplete }: StudentProfileSetupProps) {
                     <Building2 size={14} className="text-primary" />
                     <span>{language === "ar" ? "المعهد الدراسي" : "Institute"}</span>
                   </label>
-                  <select
+                  <CustomSelect
                     value={institute}
-                    onChange={(e) => setInstitute(e.target.value)}
-                    className="w-full px-4 py-3 rounded-2xl border border-border bg-background/50 font-medium text-xs sm:text-sm focus:border-primary focus:ring-2 focus:ring-primary/20"
-                  >
-                    {INSTITUTES.map((inst) => (
-                      <option key={inst.id} value={inst.id}>
-                        {language === "ar" ? inst.ar : inst.en}
-                      </option>
-                    ))}
-                  </select>
+                    onChange={(val) => setInstitute(val)}
+                    options={INSTITUTES.map((inst) => ({
+                      value: inst.id,
+                      label: language === "ar" ? inst.ar : inst.en,
+                    }))}
+                  />
                 </div>
 
                 {/* Grade Year Selector */}
@@ -333,17 +331,14 @@ export function StudentProfileSetup({ onComplete }: StudentProfileSetupProps) {
                     <GraduationCap size={14} className="text-primary" />
                     <span>{language === "ar" ? "الفرقة الدراسية" : "Grade Year"}</span>
                   </label>
-                  <select
+                  <CustomSelect
                     value={grade}
-                    onChange={(e) => setGrade(e.target.value)}
-                    className="w-full px-4 py-3 rounded-2xl border border-border bg-background/50 font-medium text-xs sm:text-sm focus:border-primary focus:ring-2 focus:ring-primary/20"
-                  >
-                    {GRADES.map((g) => (
-                      <option key={g.id} value={g.id}>
-                        {language === "ar" ? g.ar : g.en}
-                      </option>
-                    ))}
-                  </select>
+                    onChange={(val) => setGrade(val)}
+                    options={GRADES.map((g) => ({
+                      value: g.id,
+                      label: language === "ar" ? g.ar : g.en,
+                    }))}
+                  />
                 </div>
 
                 {/* Department Selector */}
@@ -352,17 +347,14 @@ export function StudentProfileSetup({ onComplete }: StudentProfileSetupProps) {
                     <BookOpen size={14} className="text-primary" />
                     <span>{language === "ar" ? "التخصص / الشعبة" : "Department"}</span>
                   </label>
-                  <select
+                  <CustomSelect
                     value={department}
-                    onChange={(e) => setDepartment(e.target.value)}
-                    className="w-full px-4 py-3 rounded-2xl border border-border bg-background/50 font-medium text-xs sm:text-sm focus:border-primary focus:ring-2 focus:ring-primary/20"
-                  >
-                    {DEPARTMENTS.map((dept) => (
-                      <option key={dept.id} value={dept.id}>
-                        {language === "ar" ? dept.ar : dept.en}
-                      </option>
-                    ))}
-                  </select>
+                    onChange={(val) => setDepartment(val)}
+                    options={DEPARTMENTS.map((dept) => ({
+                      value: dept.id,
+                      label: language === "ar" ? dept.ar : dept.en,
+                    }))}
+                  />
                 </div>
 
                 {/* Step 2 Actions */}

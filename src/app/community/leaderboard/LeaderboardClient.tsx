@@ -38,7 +38,10 @@ const LEAGUES = [
   },
 ];
 
-function getLeague(points: number) {
+function getLeague(points: number, rank?: number) {
+  if (rank === 1) return (points || 0) >= 1000 ? LEAGUES[0] : LEAGUES[1];
+  if (rank === 2) return (points || 0) >= 500 ? LEAGUES[1] : LEAGUES[2];
+  if (rank === 3) return (points || 0) >= 100 ? LEAGUES[2] : LEAGUES[3];
   return LEAGUES.find((league) => (points || 0) >= league.minPoints) || LEAGUES[3];
 }
 
@@ -115,7 +118,7 @@ export default function LeaderboardClient() {
                 const isFirst = rank === 1;
                 const isSecond = rank === 2;
                 const isThird = rank === 3;
-                const league = getLeague(user.points || 0);
+                const league = getLeague(user.points || 0, rank);
 
                 return (
                   <motion.div
@@ -222,9 +225,9 @@ export default function LeaderboardClient() {
                 </thead>
                 <tbody className="divide-y divide-border/30">
                   {users.map((user, index) => {
-                    const league = getLeague(user.points || 0);
-                    const isCurrentUser = currentUser?.uid === user.uid;
                     const rank = index + 1;
+                    const league = getLeague(user.points || 0, rank);
+                    const isCurrentUser = currentUser?.uid === user.uid;
 
                     return (
                       <tr
