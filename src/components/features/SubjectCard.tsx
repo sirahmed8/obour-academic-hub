@@ -7,7 +7,6 @@ import { useLanguage, useAuth } from "@/contexts";
 import { motion } from "framer-motion";
 import { cn } from "@/lib/utils";
 import { AnimatedIcon } from "@/components/ui/AnimatedIcon";
-import { CARD_BASE, CARD_HOVER } from "@/lib/ui-variants";
 import { BookOpen, User, ArrowUpRight, CheckCircle2 } from "lucide-react";
 
 import { getSubjectAnimation } from "@/lib/subjectIcons";
@@ -48,9 +47,7 @@ export const SubjectCard = React.memo(function SubjectCard({
         whileHover={{ y: -6, transition: { type: "spring", stiffness: 350, damping: 22 } }}
         whileTap={{ scale: 0.98 }}
         className={cn(
-          CARD_BASE,
-          CARD_HOVER,
-          "group relative overflow-hidden flex flex-col justify-between h-full p-6 sm:p-7 rounded-[2rem] focus-visible:ring-2 focus-visible:ring-primary border border-border/80 dark:border-white/10 backdrop-blur-xl bg-card/60 shadow-lg hover:shadow-2xl transition-all duration-300"
+          "group relative overflow-hidden flex flex-col justify-between h-full p-6 sm:p-7 rounded-[2rem] focus-visible:ring-2 focus-visible:ring-primary border border-border bg-card shadow-md hover:shadow-2xl transition-all duration-300"
         )}
       >
         {/* Subtle Ambient Background Glow on Hover */}

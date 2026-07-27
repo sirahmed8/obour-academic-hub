@@ -109,7 +109,7 @@ export function WhoIsOnline() {
                 "flex items-center gap-2 p-1.5 pr-4 rounded-2xl border transition-all duration-300 hover:scale-105",
                 u.uid === currentUser?.uid
                   ? "bg-primary/10 border-primary/20 ring-2 ring-primary/15 shadow-md shadow-primary/5"
-                  : "bg-card/70 backdrop-blur-xl border-border/80 hover:border-primary/40 hover:shadow-lg"
+                  : "bg-card border border-border hover:border-primary/40 hover:shadow-lg"
               )}
             >
               <div className="relative">
