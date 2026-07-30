@@ -1,12 +1,12 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { useLanguage } from "@/contexts";
-import { MessageSquare, ThumbsUp, ShieldCheck, Sparkles } from "lucide-react";
+import { useLanguage, useAuth } from "@/contexts";
+import { MessageSquare, ThumbsUp, ShieldCheck, Sparkles, Plus } from "lucide-react";
 import { FadeIn, ScaleIn, StaggerChildren } from "@/components/ui/Animations";
 import { motion } from "framer-motion";
 import { toast } from "sonner";
-import { collection, getDocs, query, limit } from "firebase/firestore";
+import { collection, getDocs, query, limit, addDoc, serverTimestamp } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 
 interface QAQuestion {
@@ -23,10 +23,15 @@ interface QAQuestion {
 
 export default function QAForumPage() {
   const { language } = useLanguage();
+  const { user } = useAuth();
   const isRtl = language === "ar";
 
   const [questions, setQuestions] = useState<QAQuestion[]>([]);
   const [loading, setLoading] = useState(true);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [newTitle, setNewTitle] = useState("");
+  const [newSubject, setNewSubject] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   useEffect(() => {
     async function loadQuestions() {
@@ -67,27 +72,91 @@ export default function QAForumPage() {
     toast.success(isRtl ? "تم تسجيل التصويت! 👍" : "Upvoted! 👍");
   };
 
+  const handleAskQuestion = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!newTitle.trim() || !newSubject.trim()) {
+      toast.error(isRtl ? "يرجى كتابة السؤال واختيار المادة" : "Please fill title and subject");
+      return;
+    }
+
+    setIsSubmitting(true);
+    try {
+      const payload = {
+        titleAr: newTitle,
+        titleEn: newTitle,
+        subject: newSubject,
+        authorName: user?.displayName || user?.email?.split("@")[0] || "Obour Student",
+        authorId: user?.uid || "guest",
+        upvotes: 0,
+        createdAt: serverTimestamp(),
+      };
+
+      if (db) {
+        const docRef = await addDoc(collection(db, "questions"), payload);
+        setQuestions([
+          {
+            id: docRef.id,
+            ...payload,
+            author: payload.authorName,
+            hasDoctorAnswer: false,
+          },
+          ...questions,
+        ]);
+      } else {
+        setQuestions([
+          {
+            id: "q-" + Date.now(),
+            ...payload,
+            author: payload.authorName,
+            hasDoctorAnswer: false,
+          },
+          ...questions,
+        ]);
+      }
+
+      toast.success(isRtl ? "🎉 تم نشر السؤال بنجاح!" : "🎉 Question posted successfully!");
+      setIsModalOpen(false);
+      setNewTitle("");
+      setNewSubject("");
+    } catch (err) {
+      console.error("Error posting question:", err);
+      toast.error(isRtl ? "فشل نشر السؤال" : "Failed to post question");
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
   return (
     <div
       className="p-4 sm:p-6 lg:p-10 space-y-8 w-full page-transition min-h-screen max-w-5xl mx-auto"
       dir={isRtl ? "rtl" : "ltr"}
     >
       <FadeIn>
-        <div className="p-6 sm:p-10 rounded-3xl bg-card border border-border shadow-xl space-y-3">
-          <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-primary/10 text-primary font-extrabold text-xs uppercase tracking-wider border border-primary/20">
-            <MessageSquare size={14} />
-            <span>{isRtl ? "منتدى الأسئلة الأكاديمية" : "Academic Q&A Forum"}</span>
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-6 p-6 sm:p-10 rounded-3xl bg-card border border-border shadow-xl">
+          <div className="space-y-3">
+            <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-primary/10 text-primary font-extrabold text-xs uppercase tracking-wider border border-primary/20">
+              <MessageSquare size={14} />
+              <span>{isRtl ? "منتدى الأسئلة الأكاديمية" : "Academic Q&A Forum"}</span>
+            </div>
+
+            <h1 className="text-3xl sm:text-5xl font-black text-foreground font-harman">
+              {isRtl ? "منتدى الاستفسارات والإجابات المعتمدة 💬" : "Q&A & Faculty Discussion"}
+            </h1>
+
+            <p className="text-muted-foreground text-sm sm:text-base font-medium max-w-2xl">
+              {isRtl
+                ? "طرح استفساراتك الأكاديمية ومراجعة إجابات أعضاء هيئة التدريس المعتمدة."
+                : "Post academic questions, upvote discussions, and review answers from professors."}
+            </p>
           </div>
 
-          <h1 className="text-3xl sm:text-5xl font-black text-foreground font-harman">
-            {isRtl ? "منتدى الاستفسارات والإجابات المعتمدة 💬" : "Q&A & Faculty Discussion"}
-          </h1>
-
-          <p className="text-muted-foreground text-sm sm:text-base font-medium max-w-2xl">
-            {isRtl
-              ? "طرح استفساراتك الأكاديمية ومراجعة إجابات أعضاء هيئة التدريس المعتمدة."
-              : "Post academic questions, upvote discussions, and review answers from professors."}
-          </p>
+          <button
+            onClick={() => setIsModalOpen(true)}
+            className="px-6 py-3.5 rounded-2xl bg-primary text-white font-extrabold text-sm hover:bg-primary/90 transition-all shadow-lg shadow-primary/20 flex items-center justify-center gap-2 shrink-0 hover:scale-105 active:scale-95"
+          >
+            <Plus size={18} />
+            <span>{isRtl ? "طرح سؤال جديد" : "Ask Question"}</span>
+          </button>
         </div>
       </FadeIn>
 
@@ -154,6 +223,84 @@ export default function QAForumPage() {
             </ScaleIn>
           ))}
         </StaggerChildren>
+      )}
+
+      {/* Ask Question Modal */}
+      {isModalOpen && (
+        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="bg-card border border-border rounded-3xl p-6 sm:p-8 max-w-md w-full shadow-2xl space-y-6 animate-scale-in">
+            <div className="flex items-center justify-between">
+              <h3 className="text-xl font-black text-foreground">
+                {isRtl ? "طرح سؤال أكاديمي جديد" : "Ask Academic Question"}
+              </h3>
+              <button
+                onClick={() => setIsModalOpen(false)}
+                className="text-muted-foreground hover:text-foreground text-sm font-bold"
+              >
+                ✕
+              </button>
+            </div>
+
+            <form onSubmit={handleAskQuestion} className="space-y-4 text-xs sm:text-sm">
+              <div>
+                <label className="block text-xs font-bold text-muted-foreground mb-1">
+                  {isRtl ? "المادة الدراسية" : "Subject Name"}
+                </label>
+                <input
+                  type="text"
+                  required
+                  placeholder={
+                    isRtl ? "مثال: قواعد بيانات / شبكات" : "e.g. Databases / Computer Networks"
+                  }
+                  value={newSubject}
+                  onChange={(e) => setNewSubject(e.target.value)}
+                  className="w-full px-4 py-2.5 rounded-xl border border-border bg-background text-foreground font-medium focus:ring-2 focus:ring-primary/40 outline-none"
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold text-muted-foreground mb-1">
+                  {isRtl ? "سؤالك الأكاديمي أو التفاصيل" : "Your Question / Inquiry Details"}
+                </label>
+                <textarea
+                  rows={4}
+                  required
+                  placeholder={
+                    isRtl
+                      ? "اكتب سؤالك بالتفصيل ليتسنى للأساتذة والزملاء الإجابة..."
+                      : "Describe your inquiry in detail for faculty and peers..."
+                  }
+                  value={newTitle}
+                  onChange={(e) => setNewTitle(e.target.value)}
+                  className="w-full px-4 py-2.5 rounded-xl border border-border bg-background text-foreground font-medium focus:ring-2 focus:ring-primary/40 outline-none resize-none"
+                />
+              </div>
+
+              <div className="flex gap-3 pt-2">
+                <button
+                  type="button"
+                  onClick={() => setIsModalOpen(false)}
+                  className="flex-1 py-3 rounded-xl border border-border font-bold text-muted-foreground hover:bg-muted"
+                >
+                  {isRtl ? "إلغاء" : "Cancel"}
+                </button>
+                <button
+                  type="submit"
+                  disabled={isSubmitting}
+                  className="flex-1 py-3 rounded-xl bg-primary text-white font-extrabold shadow-md hover:bg-primary/90 disabled:opacity-50"
+                >
+                  {isSubmitting
+                    ? isRtl
+                      ? "جاري النشر..."
+                      : "Posting..."
+                    : isRtl
+                      ? "نشر السؤال"
+                      : "Post Question"}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
       )}
     </div>
   );

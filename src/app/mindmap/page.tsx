@@ -110,8 +110,29 @@ export default function MindMapPage() {
 
             <div>
               <label className="block text-xs font-bold text-foreground mb-1">
-                {isRtl ? "اسم المادة (اختياري)" : "Subject Name (Optional)"}
+                {isRtl ? "المادة الدراسية (اختياري)" : "Subject Name (Optional)"}
               </label>
+              <div className="flex flex-wrap gap-1.5 mb-2">
+                {[
+                  { ar: "OOP", en: "OOP" },
+                  { ar: "شبكات", en: "Networks" },
+                  { ar: "قواعد بيانات", en: "Databases" },
+                  { ar: "هندسة برمجيات", en: "Software Eng." },
+                ].map((sub) => (
+                  <button
+                    key={sub.en}
+                    type="button"
+                    onClick={() => setSubjectName(isRtl ? sub.ar : sub.en)}
+                    className={`px-2.5 py-1 rounded-full text-[11px] font-extrabold transition-all border ${
+                      subjectName === (isRtl ? sub.ar : sub.en)
+                        ? "bg-primary text-white border-primary shadow-sm"
+                        : "bg-muted/60 text-muted-foreground border-border hover:bg-primary/10 hover:text-primary"
+                    }`}
+                  >
+                    {isRtl ? sub.ar : sub.en}
+                  </button>
+                ))}
+              </div>
               <input
                 type="text"
                 value={subjectName}

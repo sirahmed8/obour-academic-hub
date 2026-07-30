@@ -16,7 +16,7 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 import { FadeIn, ScaleIn, StaggerChildren } from "@/components/ui/Animations";
-import { collection, getDocs, query, limit } from "firebase/firestore";
+import { collection, getDocs, query, limit, addDoc, serverTimestamp } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 
 interface StudySlot {
@@ -40,6 +40,14 @@ export function HagazView() {
   const [myBookings, setMyBookings] = useState<string[]>([]);
   const [filterType, setFilterType] = useState<"all" | "group" | "battle" | "lab">("all");
   const [searchTerm, setSearchTerm] = useState("");
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [newTitle, setNewTitle] = useState("");
+  const [newSubject, setNewSubject] = useState("");
+  const [newDate, setNewDate] = useState("");
+  const [newTime, setNewTime] = useState("");
+  const [newSeats, setNewSeats] = useState(6);
+  const [newType, setNewType] = useState<"group" | "battle" | "lab">("group");
+  const [isCreating, setIsCreating] = useState(false);
 
   useEffect(() => {
     async function loadSessions() {
@@ -101,6 +109,65 @@ export function HagazView() {
     }
   };
 
+  const handleCreateSession = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!user) {
+      toast.error(language === "ar" ? "يرجى تسجيل الدخول أولاً" : "Please log in first");
+      return;
+    }
+    if (!newTitle.trim() || !newSubject.trim()) {
+      toast.error(
+        language === "ar" ? "يرجى ملء جميع الحقول المطلوبة" : "Please fill required fields"
+      );
+      return;
+    }
+
+    setIsCreating(true);
+    try {
+      const payload = {
+        titleAr: newTitle,
+        titleEn: newTitle,
+        subject: newSubject,
+        time: newTime || "04:00 PM - 06:00 PM",
+        date: newDate || new Date().toISOString().split("T")[0],
+        seats: Number(newSeats) || 6,
+        bookedSeats: 0,
+        type: newType,
+        mentor: user.displayName || user.email || "Student Peer",
+        createdBy: user.uid,
+        createdAt: serverTimestamp(),
+      };
+
+      if (db) {
+        const docRef = await addDoc(collection(db, "hagazSessions"), payload);
+        const createdSlot: StudySlot = {
+          id: docRef.id,
+          ...payload,
+        };
+        setSlots([createdSlot, ...slots]);
+      } else {
+        const fakeId = "slot-" + Date.now();
+        setSlots([{ id: fakeId, ...payload }, ...slots]);
+      }
+
+      toast.success(
+        language === "ar"
+          ? "🎉 تم إنشاء جلسة المذاكرة بنجاح!"
+          : "🎉 Study session created successfully!"
+      );
+      setIsModalOpen(false);
+      setNewTitle("");
+      setNewSubject("");
+      setNewDate("");
+      setNewTime("");
+    } catch (err) {
+      console.error("Error creating session:", err);
+      toast.error(language === "ar" ? "فشل إنشاء الجلسة" : "Failed to create session");
+    } finally {
+      setIsCreating(false);
+    }
+  };
+
   const filteredSlots = slots.filter((s) => {
     const title = language === "ar" ? s.titleAr : s.titleEn;
     const matchesSearch =
@@ -139,13 +206,22 @@ export function HagazView() {
             </div>
           </div>
 
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-3 shrink-0">
             <div className="flex items-center gap-2 px-4 py-2 rounded-2xl bg-muted/60 border border-border text-xs font-bold text-muted-foreground">
               <BookmarkCheck size={16} className="text-primary" />
               <span>
                 {myBookings.length} {language === "ar" ? "حجوزات نشطة" : "Active Bookings"}
               </span>
             </div>
+            <button
+              onClick={() => setIsModalOpen(true)}
+              className="px-6 py-3.5 rounded-2xl bg-primary text-white font-extrabold text-sm hover:bg-primary/90 transition-all shadow-lg shadow-primary/20 flex items-center justify-center gap-2 hover:scale-105 active:scale-95"
+            >
+              <Plus size={18} />
+              <span>
+                {language === "ar" ? "إنشاء جلسة مذاكرة جديدة" : "Create New Study Session"}
+              </span>
+            </button>
           </div>
         </div>
       </FadeIn>
@@ -323,6 +399,141 @@ export function HagazView() {
             );
           })}
         </StaggerChildren>
+      )}
+
+      {/* Create Session Modal */}
+      {isModalOpen && (
+        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="bg-card border border-border rounded-3xl p-6 sm:p-8 max-w-md w-full shadow-2xl space-y-6 animate-scale-in">
+            <div className="flex items-center justify-between">
+              <h3 className="text-xl font-black text-foreground">
+                {language === "ar" ? "إنشاء جلسة مذاكرة جديدة" : "Create Study Session"}
+              </h3>
+              <button
+                onClick={() => setIsModalOpen(false)}
+                className="text-muted-foreground hover:text-foreground text-sm font-bold"
+              >
+                ✕
+              </button>
+            </div>
+
+            <form onSubmit={handleCreateSession} className="space-y-4 text-xs sm:text-sm">
+              <div>
+                <label className="block text-xs font-bold text-muted-foreground mb-1">
+                  {language === "ar" ? "عنوان الجلسة" : "Session Title"}
+                </label>
+                <input
+                  type="text"
+                  required
+                  placeholder={
+                    language === "ar" ? "مثال: مراجعة شبكات عملي" : "e.g. Practical Networks Review"
+                  }
+                  value={newTitle}
+                  onChange={(e) => setNewTitle(e.target.value)}
+                  className="w-full px-4 py-2.5 rounded-xl border border-border bg-background text-foreground font-medium focus:ring-2 focus:ring-primary/40 outline-none"
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold text-muted-foreground mb-1">
+                  {language === "ar" ? "المادة الأكاديمية" : "Academic Subject"}
+                </label>
+                <input
+                  type="text"
+                  required
+                  placeholder={
+                    language === "ar" ? "مثال: Computer Networks" : "e.g. Computer Networks"
+                  }
+                  value={newSubject}
+                  onChange={(e) => setNewSubject(e.target.value)}
+                  className="w-full px-4 py-2.5 rounded-xl border border-border bg-background text-foreground font-medium focus:ring-2 focus:ring-primary/40 outline-none"
+                />
+              </div>
+
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-xs font-bold text-muted-foreground mb-1">
+                    {language === "ar" ? "التاريخ" : "Date"}
+                  </label>
+                  <input
+                    type="date"
+                    required
+                    value={newDate}
+                    onChange={(e) => setNewDate(e.target.value)}
+                    className="w-full px-3 py-2.5 rounded-xl border border-border bg-background text-foreground font-medium focus:ring-2 focus:ring-primary/40 outline-none"
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs font-bold text-muted-foreground mb-1">
+                    {language === "ar" ? "الوقت" : "Time Slot"}
+                  </label>
+                  <input
+                    type="text"
+                    placeholder="02:00 PM - 04:00 PM"
+                    value={newTime}
+                    onChange={(e) => setNewTime(e.target.value)}
+                    className="w-full px-3 py-2.5 rounded-xl border border-border bg-background text-foreground font-medium focus:ring-2 focus:ring-primary/40 outline-none"
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-xs font-bold text-muted-foreground mb-1">
+                    {language === "ar" ? "نوع الجلسة" : "Session Type"}
+                  </label>
+                  <select
+                    value={newType}
+                    onChange={(e) => setNewType(e.target.value as "group" | "battle" | "lab")}
+                    className="w-full px-3 py-2.5 rounded-xl border border-border bg-card text-foreground font-medium focus:ring-2 focus:ring-primary/40 outline-none"
+                  >
+                    <option value="group">{language === "ar" ? "جماعي" : "Group Revision"}</option>
+                    <option value="lab">{language === "ar" ? "معمل" : "Lab Practice"}</option>
+                    <option value="battle">
+                      {language === "ar" ? "تحدي 1v1" : "1v1 Blitz Battle"}
+                    </option>
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-xs font-bold text-muted-foreground mb-1">
+                    {language === "ar" ? "عدد المقاعد" : "Available Seats"}
+                  </label>
+                  <input
+                    type="number"
+                    min={1}
+                    max={50}
+                    value={newSeats}
+                    onChange={(e) => setNewSeats(Number(e.target.value))}
+                    className="w-full px-3 py-2.5 rounded-xl border border-border bg-background text-foreground font-medium focus:ring-2 focus:ring-primary/40 outline-none"
+                  />
+                </div>
+              </div>
+
+              <div className="flex gap-3 pt-3">
+                <button
+                  type="button"
+                  onClick={() => setIsModalOpen(false)}
+                  className="flex-1 py-3 rounded-xl border border-border font-bold text-muted-foreground hover:bg-muted"
+                >
+                  {language === "ar" ? "إلغاء" : "Cancel"}
+                </button>
+                <button
+                  type="submit"
+                  disabled={isCreating}
+                  className="flex-1 py-3 rounded-xl bg-primary text-white font-extrabold shadow-md hover:bg-primary/90 disabled:opacity-50"
+                >
+                  {isCreating
+                    ? language === "ar"
+                      ? "جاري الإنشاء..."
+                      : "Creating..."
+                    : language === "ar"
+                      ? "حفظ الجلسة"
+                      : "Save Session"}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
       )}
     </div>
   );

@@ -131,6 +131,50 @@ export default function SeasonCeremonyPage() {
             ))}
           </StaggerChildren>
         )}
+
+        {/* Ceremony How It Works & XP Rules */}
+        <FadeIn>
+          <div className="p-6 sm:p-8 rounded-3xl bg-card border border-border shadow-lg space-y-4 mt-8">
+            <h3 className="text-lg font-black text-foreground flex items-center gap-2 font-harman">
+              <Sparkles className="text-primary" size={20} />
+              <span>
+                {isRtl ? "كيف يتم احتساب النقاط وتكريم الموسم؟" : "How Season XP & Trophies Work"}
+              </span>
+            </h3>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-xs sm:text-sm">
+              <div className="p-4 rounded-2xl bg-muted/40 border border-border space-y-1">
+                <span className="font-extrabold text-primary">
+                  1. {isRtl ? "النشاط والأجوبة" : "Activity & Answers"}
+                </span>
+                <p className="text-muted-foreground font-medium">
+                  {isRtl
+                    ? "احصل على +50 XP عند حل الاختبارات التفاعلية أو الإجابة في المنتدى."
+                    : "Earn +50 XP by passing AI practice quizzes and posting verified answers."}
+                </p>
+              </div>
+              <div className="p-4 rounded-2xl bg-muted/40 border border-border space-y-1">
+                <span className="font-extrabold text-primary">
+                  2. {isRtl ? "السلسلة ومجموعات المذاكرة" : "Streaks & Hagaz Sessions"}
+                </span>
+                <p className="text-muted-foreground font-medium">
+                  {isRtl
+                    ? "حافظ على السلسلة اليومية وحضور جلسات المذاكرة لتحصيل المكافآت."
+                    : "Maintain daily study streaks and attend Hagaz slots to earn bonus trophies."}
+                </p>
+              </div>
+              <div className="p-4 rounded-2xl bg-muted/40 border border-border space-y-1">
+                <span className="font-extrabold text-primary">
+                  3. {isRtl ? "التكريم الختامي" : "Final Ceremony"}
+                </span>
+                <p className="text-muted-foreground font-medium">
+                  {isRtl
+                    ? "يتم تتويج الـ Top 3 في حفل ختام الموسم مع أوسمة معتمدة."
+                    : "Top 3 students on the leaderboard are crowned at semester conclusion."}
+                </p>
+              </div>
+            </div>
+          </div>
+        </FadeIn>
       </div>
     </div>
   );

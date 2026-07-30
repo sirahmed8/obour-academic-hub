@@ -1,12 +1,12 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { useLanguage } from "@/contexts";
-import { GraduationCap, Briefcase, Sparkles } from "lucide-react";
+import { useLanguage, useAuth } from "@/contexts";
+import { GraduationCap, Briefcase, Sparkles, Plus } from "lucide-react";
 import { FadeIn, ScaleIn, StaggerChildren } from "@/components/ui/Animations";
 import { motion } from "framer-motion";
 import { toast } from "sonner";
-import { collection, getDocs, query, limit } from "firebase/firestore";
+import { collection, getDocs, query, limit, addDoc, serverTimestamp } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 
 interface Internship {
@@ -21,10 +21,17 @@ interface Internship {
 
 export default function AlumniPage() {
   const { language } = useLanguage();
+  const { user } = useAuth();
   const isRtl = language === "ar";
 
   const [internships, setInternships] = useState<Internship[]>([]);
   const [loading, setLoading] = useState(true);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [newCompany, setNewCompany] = useState("");
+  const [newRole, setNewRole] = useState("");
+  const [newLocation, setNewLocation] = useState("");
+  const [newType, setNewType] = useState("Summer Internship");
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   useEffect(() => {
     async function loadInternships() {
@@ -58,29 +65,92 @@ export default function AlumniPage() {
     loadInternships();
   }, [isRtl]);
 
+  const handlePostInternship = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!newCompany.trim() || !newRole.trim()) {
+      toast.error(isRtl ? "يرجى كتابة اسم الشركة والمسار الوظيفي" : "Please fill company and role");
+      return;
+    }
+
+    setIsSubmitting(true);
+    try {
+      const payload = {
+        company: newCompany,
+        roleAr: newRole,
+        roleEn: newRole,
+        location: newLocation || (isRtl ? "القاهرة / عن بعد" : "Cairo / Remote"),
+        type: newType,
+        postedBy: user?.displayName || user?.email?.split("@")[0] || "Obour Alumnus",
+        createdAt: serverTimestamp(),
+      };
+
+      if (db) {
+        const docRef = await addDoc(collection(db, "internships"), payload);
+        setInternships([
+          {
+            id: docRef.id,
+            ...payload,
+          },
+          ...internships,
+        ]);
+      } else {
+        setInternships([
+          {
+            id: "intern-" + Date.now(),
+            ...payload,
+          },
+          ...internships,
+        ]);
+      }
+
+      toast.success(
+        isRtl ? "🎉 تم إدراج فرصة التدريب بنجاح!" : "🎉 Internship posted successfully!"
+      );
+      setIsModalOpen(false);
+      setNewCompany("");
+      setNewRole("");
+      setNewLocation("");
+    } catch (err) {
+      console.error("Error posting internship:", err);
+      toast.error(isRtl ? "فشل إدراج الفرصة" : "Failed to post internship");
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
   return (
     <div
       className="p-4 sm:p-6 lg:p-10 space-y-8 w-full page-transition min-h-screen max-w-5xl mx-auto"
       dir={isRtl ? "rtl" : "ltr"}
     >
       <FadeIn>
-        <div className="p-6 sm:p-10 rounded-3xl bg-card border border-border shadow-xl space-y-3">
-          <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-primary/10 text-primary font-extrabold text-xs uppercase tracking-wider border border-primary/20">
-            <GraduationCap size={14} />
-            <span>{isRtl ? "شبكة خريجي وتدريبات العبور" : "Alumni & Internship Network"}</span>
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-6 p-6 sm:p-10 rounded-3xl bg-card border border-border shadow-xl">
+          <div className="space-y-3">
+            <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-primary/10 text-primary font-extrabold text-xs uppercase tracking-wider border border-primary/20">
+              <GraduationCap size={14} />
+              <span>{isRtl ? "شبكة خريجي وتدريبات العبور" : "Alumni & Internship Network"}</span>
+            </div>
+
+            <h1 className="text-3xl sm:text-5xl font-black text-foreground font-harman">
+              {isRtl
+                ? "فرص التدريب الصيفي والإرشاد المهني 🎓"
+                : "Alumni Mentorship & Internship Board"}
+            </h1>
+
+            <p className="text-muted-foreground text-sm sm:text-base font-medium max-w-2xl">
+              {isRtl
+                ? "تواصل مع خريجي معهد العبور في سوق العمل واستكشف فرص التدريب الصيفي المعتمدة."
+                : "Connect with Obour alumni working in top tech firms and browse verified internships."}
+            </p>
           </div>
 
-          <h1 className="text-3xl sm:text-5xl font-black text-foreground font-harman">
-            {isRtl
-              ? "فرص التدريب الصيفي والإرشاد المهني 🎓"
-              : "Alumni Mentorship & Internship Board"}
-          </h1>
-
-          <p className="text-muted-foreground text-sm sm:text-base font-medium max-w-2xl">
-            {isRtl
-              ? "تواصل مع خريجي معهد العبور في سوق العمل واستكشف فرص التدريب الصيفي المعتمدة."
-              : "Connect with Obour alumni working in top tech firms and browse verified internships."}
-          </p>
+          <button
+            onClick={() => setIsModalOpen(true)}
+            className="px-6 py-3.5 rounded-2xl bg-primary text-white font-extrabold text-sm hover:bg-primary/90 transition-all shadow-lg shadow-primary/20 flex items-center justify-center gap-2 shrink-0 hover:scale-105 active:scale-95"
+          >
+            <Plus size={18} />
+            <span>{isRtl ? "إضافة فرصة تدريب" : "Post Internship"}</span>
+          </button>
         </div>
       </FadeIn>
 
@@ -140,6 +210,117 @@ export default function AlumniPage() {
             </ScaleIn>
           ))}
         </StaggerChildren>
+      )}
+
+      {/* Post Internship Modal */}
+      {isModalOpen && (
+        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="bg-card border border-border rounded-3xl p-6 sm:p-8 max-w-md w-full shadow-2xl space-y-6 animate-scale-in">
+            <div className="flex items-center justify-between">
+              <h3 className="text-xl font-black text-foreground">
+                {isRtl ? "إدراج فرصة تدريب / إرشاد مهني" : "Post Internship / Mentorship"}
+              </h3>
+              <button
+                onClick={() => setIsModalOpen(false)}
+                className="text-muted-foreground hover:text-foreground text-sm font-bold"
+              >
+                ✕
+              </button>
+            </div>
+
+            <form onSubmit={handlePostInternship} className="space-y-4 text-xs sm:text-sm">
+              <div>
+                <label className="block text-xs font-bold text-muted-foreground mb-1">
+                  {isRtl ? "اسم الشركة / المؤسسة" : "Company / Organization"}
+                </label>
+                <input
+                  type="text"
+                  required
+                  placeholder={
+                    isRtl ? "مثال: Fawry / Vodafone / MicroEngineering" : "e.g. Fawry / Vodafone"
+                  }
+                  value={newCompany}
+                  onChange={(e) => setNewCompany(e.target.value)}
+                  className="w-full px-4 py-2.5 rounded-xl border border-border bg-background text-foreground font-medium focus:ring-2 focus:ring-primary/40 outline-none"
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold text-muted-foreground mb-1">
+                  {isRtl ? "المسار الوظيفي / دور التدريب" : "Internship Role / Domain"}
+                </label>
+                <input
+                  type="text"
+                  required
+                  placeholder={
+                    isRtl
+                      ? "مثال: Frontend Intern / DevOps Trainee"
+                      : "e.g. Frontend Engineer Trainee"
+                  }
+                  value={newRole}
+                  onChange={(e) => setNewRole(e.target.value)}
+                  className="w-full px-4 py-2.5 rounded-xl border border-border bg-background text-foreground font-medium focus:ring-2 focus:ring-primary/40 outline-none"
+                />
+              </div>
+
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-xs font-bold text-muted-foreground mb-1">
+                    {isRtl ? "الموقع" : "Location"}
+                  </label>
+                  <input
+                    type="text"
+                    placeholder={isRtl ? "القاهرة / عن بعد" : "Cairo / Remote"}
+                    value={newLocation}
+                    onChange={(e) => setNewLocation(e.target.value)}
+                    className="w-full px-3 py-2.5 rounded-xl border border-border bg-background text-foreground font-medium focus:ring-2 focus:ring-primary/40 outline-none"
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs font-bold text-muted-foreground mb-1">
+                    {isRtl ? "نوع الفرصة" : "Type"}
+                  </label>
+                  <select
+                    value={newType}
+                    onChange={(e) => setNewType(e.target.value)}
+                    className="w-full px-3 py-2.5 rounded-xl border border-border bg-card text-foreground font-medium focus:ring-2 focus:ring-primary/40 outline-none"
+                  >
+                    <option value="Summer Internship">
+                      {isRtl ? "تدريب صيفي" : "Summer Internship"}
+                    </option>
+                    <option value="Mentorship">{isRtl ? "إرشاد مهني" : "Mentorship Slot"}</option>
+                    <option value="Junior Job">
+                      {isRtl ? "وظيفة مبتدئ" : "Junior Entry Level"}
+                    </option>
+                  </select>
+                </div>
+              </div>
+
+              <div className="flex gap-3 pt-2">
+                <button
+                  type="button"
+                  onClick={() => setIsModalOpen(false)}
+                  className="flex-1 py-3 rounded-xl border border-border font-bold text-muted-foreground hover:bg-muted"
+                >
+                  {isRtl ? "إلغاء" : "Cancel"}
+                </button>
+                <button
+                  type="submit"
+                  disabled={isSubmitting}
+                  className="flex-1 py-3 rounded-xl bg-primary text-white font-extrabold shadow-md hover:bg-primary/90 disabled:opacity-50"
+                >
+                  {isSubmitting
+                    ? isRtl
+                      ? "جاري النشر..."
+                      : "Posting..."
+                    : isRtl
+                      ? "نشر الفرصة"
+                      : "Post Opportunity"}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
       )}
     </div>
   );

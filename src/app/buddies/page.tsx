@@ -36,9 +36,29 @@ export default function StudyBuddiesPage() {
         const q = query(collection(db, "users"), limit(20));
         const snap = await getDocs(q);
         const list: Buddy[] = [];
+
+        // Get current user's enrolled subjects for real match score
+        const currentUserSnap = snap.docs.find((d) => d.id === currentUser?.uid);
+        const currentSubjects: string[] = currentUserSnap?.data()?.enrolledSubjects ?? [];
+
         snap.forEach((docSnap) => {
           const data = docSnap.data();
           if (docSnap.id !== currentUser?.uid) {
+            const otherSubjects: string[] = data.enrolledSubjects ?? [];
+
+            // Real match score: % of shared subjects out of union
+            let matchScore = 70; // baseline for same institute
+            if (currentSubjects.length > 0 && otherSubjects.length > 0) {
+              const shared = otherSubjects.filter((s: string) => currentSubjects.includes(s));
+              const union = new Set([...currentSubjects, ...otherSubjects]).size;
+              matchScore = Math.round(70 + (shared.length / union) * 30);
+            }
+
+            const shared =
+              currentSubjects.length > 0
+                ? otherSubjects.filter((s: string) => currentSubjects.includes(s))
+                : otherSubjects;
+
             list.push({
               id: docSnap.id,
               name: data.displayName || data.email?.split("@")[0] || "Obour Student",
@@ -51,12 +71,22 @@ export default function StudyBuddiesPage() {
                   ? "الفرقة الثالثة"
                   : "3rd Year",
               sharedSubjects:
-                data.enrolledSubjects || (isRtl ? ["المواد الدراسية"] : ["Academic Subjects"]),
-              availability: isRtl ? "تحديد الموعد عند الطلب" : "Available on Request",
-              matchScore: Math.floor(Math.random() * 15) + 85,
+                shared.length > 0
+                  ? shared
+                  : otherSubjects.length > 0
+                    ? otherSubjects.slice(0, 3)
+                    : isRtl
+                      ? ["مادة مشتركة"]
+                      : ["Enrolled Subject"],
+              availability:
+                data.studyAvailability ||
+                (isRtl ? "تحديد الموعد عند الطلب" : "Available on Request"),
+              matchScore,
             });
           }
         });
+        // Sort by match score descending
+        list.sort((a, b) => b.matchScore - a.matchScore);
         setBuddies(list);
       } catch (err) {
         console.error("Error loading study buddies:", err);

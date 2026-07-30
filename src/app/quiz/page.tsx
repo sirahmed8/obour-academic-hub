@@ -129,14 +129,37 @@ export default function QuizPage() {
             <div className="space-y-4">
               <div>
                 <label className="block text-xs font-bold text-foreground mb-1">
-                  {isRtl ? "اسم المادة الدراسية *" : "Subject Name *"}
+                  {isRtl ? "اختيار المادة الدراسية *" : "Select or Enter Subject Name *"}
                 </label>
+                <div className="flex flex-wrap gap-2 mb-3">
+                  {[
+                    { ar: "برمجة كائنية OOP", en: "Object Oriented Programming" },
+                    { ar: "قواعد البيانات", en: "Databases & SQL" },
+                    { ar: "شبكات الحاسب", en: "Computer Networks" },
+                    { ar: "هندسة البرمجيات", en: "Software Engineering" },
+                    { ar: "خوارزميات وهياكل بيانات", en: "Data Structures & Algorithms" },
+                    { ar: "ذكاء اصطناعي", en: "Artificial Intelligence" },
+                  ].map((sub) => (
+                    <button
+                      key={sub.en}
+                      type="button"
+                      onClick={() => setSubjectName(isRtl ? sub.ar : sub.en)}
+                      className={`px-3 py-1.5 rounded-full text-xs font-extrabold transition-all border ${
+                        subjectName === (isRtl ? sub.ar : sub.en)
+                          ? "bg-primary text-white border-primary shadow-md"
+                          : "bg-muted/60 text-muted-foreground border-border hover:bg-primary/10 hover:text-primary"
+                      }`}
+                    >
+                      {isRtl ? sub.ar : sub.en}
+                    </button>
+                  ))}
+                </div>
                 <input
                   type="text"
                   required
                   value={subjectName}
                   onChange={(e) => setSubjectName(e.target.value)}
-                  placeholder={isRtl ? "مثال: برمجة هيكلية / قواعد بيانات" : "e.g. OOP / Databases"}
+                  placeholder={isRtl ? "أو اكتب اسم مادة مخصصة..." : "Or type custom subject..."}
                   className="w-full px-4 py-3 rounded-2xl bg-muted/50 border border-border/80 outline-none focus:border-primary focus:ring-2 focus:ring-primary/40 focus:bg-background/80 hover:border-primary/40 transition-all duration-300 text-sm font-bold"
                 />
               </div>
