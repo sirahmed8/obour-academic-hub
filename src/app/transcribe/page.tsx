@@ -10,6 +10,23 @@ import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import { apiFetch } from "@/lib/api-client";
 
+interface SpeechRecognitionInstance {
+  lang: string;
+  continuous: boolean;
+  interimResults: boolean;
+  onstart: (() => void) | null;
+  onresult:
+    | ((event: {
+        resultIndex: number;
+        results: { [key: number]: { transcript: string }; isFinal: boolean }[];
+      }) => void)
+    | null;
+  onerror: ((event: { error: string }) => void) | null;
+  onend: (() => void) | null;
+  start: () => void;
+  stop: () => void;
+}
+
 export default function TranscribePage() {
   const { language } = useLanguage();
   const isRtl = language === "ar";
@@ -20,8 +37,7 @@ export default function TranscribePage() {
   const [isRecording, setIsRecording] = useState(false);
   const [loading, setLoading] = useState(false);
   const [summaryResult, setSummaryResult] = useState<string | null>(null);
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const recognitionRef = useRef<any>(null);
+  const recognitionRef = useRef<SpeechRecognitionInstance | null>(null);
   const isManualStopRef = useRef(false);
 
   const handleStartRecording = async () => {
@@ -49,13 +65,11 @@ export default function TranscribePage() {
     }
 
     try {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const SpeechRecognitionAPI =
-        (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
+      const win = window as unknown as Record<string, new () => SpeechRecognitionInstance>;
+      const SpeechRecognitionAPI = win.SpeechRecognition || win.webkitSpeechRecognition;
       if (!SpeechRecognitionAPI) return;
 
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const recognition: any = new SpeechRecognitionAPI();
+      const recognition = new SpeechRecognitionAPI();
       recognition.lang = isRtl ? "ar-EG" : "en-US";
       recognition.continuous = true;
       recognition.interimResults = true;

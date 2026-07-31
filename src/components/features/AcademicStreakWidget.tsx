@@ -2,14 +2,115 @@
 
 import { useState, useEffect } from "react";
 import { useAuth, useLanguage } from "@/contexts";
-import { Flame, Calendar, Award, Sparkles } from "lucide-react";
+import { Flame, Calendar, Award, Sparkles, Sun } from "lucide-react";
 import { motion } from "framer-motion";
+
+function getSemesterInfo() {
+  const now = new Date();
+  const y = now.getFullYear();
+
+  // Egypt academic calendar:
+  // Spring: Feb 1 – Jun 15
+  // Fall:   Sep 1 – Jan 31
+  // Summer: Jun 16 – Aug 31
+
+  const springStart = new Date(y, 1, 1); // Feb 1
+  const springEnd = new Date(y, 5, 15); // Jun 15
+  const fallStart = new Date(y, 8, 1); // Sep 1
+  const fallEnd = new Date(y + 1, 0, 31); // Jan 31 next year
+
+  let semesterName = "";
+  let semesterNameAr = "";
+  let start: Date;
+  let end: Date;
+  let isSummer = false;
+  let nextSemesterStart: Date | null = null;
+
+  if (now >= springStart && now <= springEnd) {
+    // Active spring semester
+    semesterName = "Spring Semester";
+    semesterNameAr = "الفصل الدراسي الثاني";
+    start = springStart;
+    end = springEnd;
+  } else if (now >= fallStart && now <= fallEnd) {
+    // Active fall semester
+    semesterName = "Fall Semester";
+    semesterNameAr = "الفصل الدراسي الأول";
+    start = fallStart;
+    end = fallEnd;
+  } else {
+    // Summer break
+    isSummer = true;
+    semesterName = "Summer Break";
+    semesterNameAr = "الإجازة الصيفية";
+    start = now;
+    end = now;
+    nextSemesterStart = new Date(y, 8, 1); // Sep 1
+    if (now >= nextSemesterStart) {
+      nextSemesterStart = new Date(y + 1, 8, 1);
+    }
+  }
+
+  if (isSummer) {
+    return {
+      isSummer: true,
+      semesterName,
+      semesterNameAr,
+      progress: 0,
+      currentWeek: 0,
+      totalWeeks: 0,
+      statusEn: "Summer Break 🌴",
+      statusAr: "إجازة صيفية 🌴",
+      daysUntilNextSemester: nextSemesterStart
+        ? Math.max(0, Math.ceil((nextSemesterStart.getTime() - now.getTime()) / (1000 * 3600 * 24)))
+        : 0,
+    };
+  }
+
+  const totalMs = end.getTime() - start.getTime();
+  const elapsedMs = Math.max(0, Math.min(totalMs, now.getTime() - start.getTime()));
+  const totalDays = totalMs / (1000 * 3600 * 24);
+  const elapsedDays = elapsedMs / (1000 * 3600 * 24);
+  const progress = Math.min(100, Math.round((elapsedDays / totalDays) * 100));
+  const currentWeek = Math.min(16, Math.max(1, Math.ceil(elapsedDays / 7)));
+
+  const statusEn =
+    currentWeek >= 14
+      ? "Exams Week 🎯"
+      : currentWeek >= 11
+        ? "Exams approaching 📝"
+        : currentWeek >= 7
+          ? "Midterms ahead 📋"
+          : "On track 📚";
+
+  const statusAr =
+    currentWeek >= 14
+      ? "أسبوع الامتحانات 🎯"
+      : currentWeek >= 11
+        ? "اقتربت الامتحانات 📝"
+        : currentWeek >= 7
+          ? "امتحانات منتصف الفصل 📋"
+          : "على المسار الصحيح 📚";
+
+  return {
+    isSummer: false,
+    semesterName,
+    semesterNameAr,
+    progress,
+    currentWeek,
+    totalWeeks: 16,
+    statusEn,
+    statusAr,
+    daysUntilNextSemester: 0,
+  };
+}
 
 export function AcademicStreakWidget() {
   const { user } = useAuth();
   const { language } = useLanguage();
+  const isAr = language === "ar";
   const [mounted, setMounted] = useState(false);
-  const [streakDays, setStreakDays] = useState(5); // Default study streak for Obour students
+  const [streakDays, setStreakDays] = useState(1);
 
   useEffect(() => {
     setMounted(true);
@@ -31,42 +132,28 @@ export function AcademicStreakWidget() {
         const yesterdayStr = yesterday.toISOString().split("T")[0];
 
         if (lastVisit === yesterdayStr) {
-          const nextStreak = currentStreak + 1;
-          localStorage.setItem(streakKey, String(nextStreak));
+          const next = currentStreak + 1;
+          localStorage.setItem(streakKey, String(next));
           localStorage.setItem(lastVisitKey, today);
-          setStreakDays(nextStreak);
+          setStreakDays(next);
         } else {
+          // Streak broken
           localStorage.setItem(streakKey, "1");
           localStorage.setItem(lastVisitKey, today);
           setStreakDays(1);
         }
       } else {
+        // First visit ever
         localStorage.setItem(streakKey, "1");
         localStorage.setItem(lastVisitKey, today);
         setStreakDays(1);
       }
     } catch {
-      setStreakDays(3);
+      setStreakDays(1);
     }
   }, [user?.uid]);
 
-  // Real Academic Semester Progress calculation from calendar
-  const now = new Date();
-  const currentYear = now.getFullYear();
-  let start = new Date(currentYear, 1, 1);
-  let end = new Date(currentYear, 5, 15);
-  if (now.getMonth() >= 8) {
-    start = new Date(currentYear, 8, 1);
-    end = new Date(currentYear, 11, 31);
-  }
-  const totalDays = Math.max(1, (end.getTime() - start.getTime()) / (1000 * 3600 * 24));
-  const elapsedDays = Math.min(
-    totalDays,
-    Math.max(0, (now.getTime() - start.getTime()) / (1000 * 3600 * 24))
-  );
-  const semesterProgress = Math.min(100, Math.round((elapsedDays / totalDays) * 100));
-  const currentWeek = Math.min(16, Math.max(1, Math.ceil(elapsedDays / 7)));
-  const semesterWeeksTotal = 16;
+  const sem = getSemesterInfo();
 
   if (!mounted) return null;
 
@@ -77,20 +164,30 @@ export function AcademicStreakWidget() {
         initial={{ opacity: 0, y: 15 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.4, delay: 0.1 }}
-        className="p-5 rounded-3xl bg-gradient-to-br from-amber-500/10 via-orange-500/5 to-transparent border border-amber-500/20 backdrop-blur-xl relative overflow-hidden flex items-center gap-4 shadow-sm group hover:border-amber-500/40 transition-all"
+        className="p-5 rounded-3xl bg-card border border-amber-500/25 shadow-sm flex items-center gap-4 hover:border-amber-500/50 transition-all"
       >
-        <div className="p-3.5 rounded-2xl bg-amber-500/20 text-amber-500 border border-amber-500/30 group-hover:scale-110 transition-transform">
+        <div className="p-3.5 rounded-2xl bg-amber-500/15 text-amber-500 border border-amber-500/25 shrink-0">
           <Flame size={26} className="animate-pulse" />
         </div>
         <div>
           <div className="flex items-center gap-1.5">
             <span className="text-2xl font-black text-foreground">{streakDays}</span>
             <span className="text-xs font-bold text-amber-500 uppercase tracking-wider">
-              {language === "ar" ? "أيام متتالية 🔥" : "Day Streak 🔥"}
+              {isAr ? "أيام متتالية 🔥" : "Day Streak 🔥"}
             </span>
           </div>
           <p className="text-xs text-muted-foreground font-medium mt-0.5">
-            {language === "ar" ? "تتابع دراسي ممتاز هذا الأسبوع" : "Great consecutive study habit!"}
+            {streakDays >= 7
+              ? isAr
+                ? "أسبوع كامل متتالي! رائع 🏆"
+                : "Full week streak! Amazing 🏆"
+              : streakDays >= 3
+                ? isAr
+                  ? "تتابع دراسي ممتاز هذا الأسبوع"
+                  : "Great consecutive study habit!"
+                : isAr
+                  ? "ابدأ سلسلتك اليومية اليوم"
+                  : "Start your daily streak today"}
           </p>
         </div>
       </motion.div>
@@ -100,47 +197,53 @@ export function AcademicStreakWidget() {
         initial={{ opacity: 0, y: 15 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.4, delay: 0.2 }}
-        className="p-5 rounded-3xl bg-gradient-to-br from-blue-500/10 via-indigo-500/5 to-transparent border border-blue-500/20 backdrop-blur-xl relative overflow-hidden flex flex-col justify-between shadow-sm group hover:border-blue-500/40 transition-all"
+        className="p-5 rounded-3xl bg-card border border-blue-500/25 shadow-sm flex flex-col justify-between hover:border-blue-500/50 transition-all"
       >
         <div className="flex items-center justify-between mb-2">
           <div className="flex items-center gap-2">
-            <div className="p-2 rounded-xl bg-blue-500/20 text-blue-500 border border-blue-500/30">
-              <Calendar size={18} />
+            <div className="p-2 rounded-xl bg-blue-500/15 text-blue-500 border border-blue-500/25">
+              {sem.isSummer ? <Sun size={18} /> : <Calendar size={18} />}
             </div>
             <span className="text-xs font-bold text-foreground">
-              {language === "ar" ? "تقدم الفصل الدراسي" : "Semester Progress"}
+              {isAr ? sem.semesterNameAr : sem.semesterName}
             </span>
           </div>
-          <span className="text-xs font-black text-blue-500">{semesterProgress}%</span>
+          {sem.isSummer ? (
+            <span className="text-xs font-black text-orange-400">☀️</span>
+          ) : (
+            <span className="text-xs font-black text-blue-500">{sem.progress}%</span>
+          )}
         </div>
 
-        <div className="w-full bg-blue-500/10 h-2.5 rounded-full overflow-hidden border border-blue-500/20 my-1">
-          <div
-            className="bg-gradient-to-r from-blue-500 to-indigo-500 h-full rounded-full transition-all duration-1000"
-            style={{ width: `${semesterProgress}%` }}
-          />
-        </div>
-
-        <div className="flex justify-between items-center text-[10px] text-muted-foreground font-medium mt-1">
-          <span>
-            {language === "ar"
-              ? `الأسبوع ${currentWeek} من ${semesterWeeksTotal}`
-              : `Week ${currentWeek} of ${semesterWeeksTotal}`}
-          </span>
-          <span>
-            {currentWeek >= 13
-              ? language === "ar"
-                ? "اقتربت الامتحانات 🎯"
-                : "Exams approaching 🎯"
-              : currentWeek >= 8
-                ? language === "ar"
-                  ? "منتصف الفصل 📝"
-                  : "Midterms ahead 📝"
-                : language === "ar"
-                  ? "على المسار الصحيح 📚"
-                  : "On track 📚"}
-          </span>
-        </div>
+        {sem.isSummer ? (
+          <div className="space-y-1">
+            <p className="text-xs text-muted-foreground font-medium">
+              {isAr
+                ? `${sem.daysUntilNextSemester} يوم حتى بداية الفصل الجديد`
+                : `${sem.daysUntilNextSemester} days until next semester`}
+            </p>
+            <p className="text-xs font-bold text-orange-400">
+              {isAr ? "استمتع بإجازتك الصيفية 🌴" : "Enjoy your summer break 🌴"}
+            </p>
+          </div>
+        ) : (
+          <>
+            <div className="w-full bg-blue-500/10 h-2.5 rounded-full overflow-hidden border border-blue-500/20 my-1">
+              <div
+                className="bg-blue-500 h-full rounded-full transition-all duration-1000"
+                style={{ width: `${sem.progress}%` }}
+              />
+            </div>
+            <div className="flex justify-between items-center text-[10px] text-muted-foreground font-medium mt-1">
+              <span>
+                {isAr
+                  ? `الأسبوع ${sem.currentWeek} من ${sem.totalWeeks}`
+                  : `Week ${sem.currentWeek} of ${sem.totalWeeks}`}
+              </span>
+              <span>{isAr ? sem.statusAr : sem.statusEn}</span>
+            </div>
+          </>
+        )}
       </motion.div>
 
       {/* 3. Daily Academic Quote Card */}
@@ -148,18 +251,18 @@ export function AcademicStreakWidget() {
         initial={{ opacity: 0, y: 15 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.4, delay: 0.3 }}
-        className="p-5 rounded-3xl bg-gradient-to-br from-purple-500/10 via-pink-500/5 to-transparent border border-purple-500/20 backdrop-blur-xl relative overflow-hidden flex items-center gap-4 shadow-sm group hover:border-purple-500/40 transition-all"
+        className="p-5 rounded-3xl bg-card border border-purple-500/25 shadow-sm flex items-center gap-4 hover:border-purple-500/50 transition-all"
       >
-        <div className="p-3.5 rounded-2xl bg-purple-500/20 text-purple-500 border border-purple-500/30 group-hover:scale-110 transition-transform">
+        <div className="p-3.5 rounded-2xl bg-purple-500/15 text-purple-500 border border-purple-500/25 shrink-0">
           <Sparkles size={24} />
         </div>
         <div>
           <span className="text-[10px] font-black uppercase tracking-wider text-purple-500 flex items-center gap-1">
             <Award size={12} />
-            {language === "ar" ? "حكمة اليوم الأكاديمية" : "Daily Academic Quote"}
+            {isAr ? "حكمة اليوم الأكاديمية" : "Daily Academic Quote"}
           </span>
           <p className="text-xs font-bold text-foreground leading-snug mt-1 line-clamp-2">
-            {language === "ar"
+            {isAr
               ? "«الاستمرار في المذاكرة اليومية الصغيرة يصنع التميز الكلي مع الأيام.»"
               : "“Small daily study progress yields massive academic excellence.”"}
           </p>

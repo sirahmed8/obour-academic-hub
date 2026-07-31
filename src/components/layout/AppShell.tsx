@@ -121,11 +121,28 @@ export function AppShell({ children }: { children: React.ReactNode }) {
 
   // Check if profile is incomplete using useMemo (no effect)
   const showProfileSetup = useMemo(() => {
-    if (profileSetupDismissed) return false;
+    if (!user) return false;
     // HARD FIX: Explicitly check owner/admin email to bypass modal
     if (user?.email === process.env.NEXT_PUBLIC_OWNER_EMAIL) return false;
     if (user?.role === "owner" || user?.role === "admin") return false;
-    return user && (!user.studentCode || user.studentCode.length !== 6);
+
+    // Check all required profile fields
+    const isProfileIncomplete =
+      !user.studentCode ||
+      user.studentCode.length < 5 ||
+      !user.academicYear ||
+      !user.department ||
+      !user.institute;
+
+    // If profile is incomplete, clear the dismissal flag so the modal reappears
+    if (isProfileIncomplete && typeof window !== "undefined") {
+      localStorage.removeItem("profileSetupDismissed");
+    }
+
+    if (isProfileIncomplete) return true;
+
+    // Profile is complete — respect the dismissed flag
+    return !profileSetupDismissed;
   }, [user, profileSetupDismissed]);
 
   // The AppShell is now only rendered when we want a protected, sidebar-enabled view.

@@ -15,12 +15,14 @@ import {
   Award,
   BarChart2,
   Target,
+  Sparkles,
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
-import { collection, query, orderBy, limit, onSnapshot } from "firebase/firestore";
+import { collection, query, orderBy, limit, onSnapshot, getDocs } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import { cn } from "@/lib/utils";
 import { UserProfileModal } from "@/components/ui/UserProfileModal";
+import { ScaleIn, StaggerChildren } from "@/components/ui/Animations";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 interface LeaderEntry {
@@ -34,6 +36,15 @@ interface LeaderEntry {
   resourceCount: number;
   battleWins: number;
   rank: number;
+}
+
+interface HallOfFameUser {
+  rank: number;
+  name: string;
+  uid: string;
+  dept: string;
+  xp: number;
+  badge: string;
 }
 
 // ─── Category Tabs ────────────────────────────────────────────────────────────
@@ -293,12 +304,51 @@ function LeaderRow({
 export default function CommunityLeaderboardPage() {
   const { user } = useAuth();
   const { language } = useLanguage();
+  const isAr = language === "ar";
   const [entries, setEntries] = useState<LeaderEntry[]>([]);
   const [selectedUserUid, setSelectedUserUid] = useState<string | null>(null);
+
+  // ─── Season Ceremony State ───────────────────────────────────────────────────
+  const [champions, setChampions] = useState<HallOfFameUser[]>([]);
+  const [ceremonyLoading, setCeremonyLoading] = useState(true);
+
+  useEffect(() => {
+    if (!db) {
+      setCeremonyLoading(false);
+      return;
+    }
+    getDocs(query(collection(db, "users"), orderBy("points", "desc"), limit(10)))
+      .then((snap) => {
+        const badges = [
+          isAr ? "كأس التخرج الذهبي 🏆" : "Golden Graduation Trophy 🏆",
+          isAr ? "بطل التركيز 🥇" : "Focus Master 🥇",
+          isAr ? "رائد المجتمع الأكاديمي 🥈" : "Community Pioneer 🥈",
+          isAr ? "نجم الفصل الدراسي ⭐" : "Semester Star ⭐",
+          isAr ? "مثابر ممتاز 💪" : "Top Perseverer 💪",
+        ];
+        const list: HallOfFameUser[] = [];
+        let r = 1;
+        snap.forEach((docSnap) => {
+          const data = docSnap.data();
+          if (!data.displayName && !data.name) return;
+          list.push({
+            rank: r,
+            uid: docSnap.id,
+            name: data.displayName || data.name || (isAr ? "طالب مميز" : "Top Scholar"),
+            dept: data.department || (isAr ? "غير محدد" : "Undeclared"),
+            xp: data.points || 0,
+            badge: badges[r - 1] || (isAr ? "وسام التميز" : "Excellence Badge"),
+          });
+          r++;
+        });
+        setChampions(list);
+      })
+      .catch(() => {})
+      .finally(() => setCeremonyLoading(false));
+  }, [isAr]);
   const [loading, setLoading] = useState(true);
   const [activeCategory, setActiveCategory] = useState<CategoryId>("xp");
   const [totalUsers, setTotalUsers] = useState(0);
-  const isAr = language === "ar";
 
   useEffect(() => {
     if (!db) return;
@@ -356,7 +406,6 @@ export default function CommunityLeaderboardPage() {
         {/* ── Header ──────────────────────────────────────────────── */}
         <FadeIn>
           <div className="relative overflow-hidden rounded-3xl bg-[#0f172a] border border-amber-500/30 p-6 shadow-2xl text-white dark:bg-[#090d16]">
-            <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,theme(colors.amber.500/8),transparent_70%)]" />
             <div className="relative z-10">
               <div className="flex items-center gap-3 mb-2">
                 <div className="p-3 bg-amber-500/20 rounded-2xl border border-amber-500/30">
@@ -685,6 +734,111 @@ export default function CommunityLeaderboardPage() {
             {/* Who's Online */}
             <FadeIn delay={0.16}>
               <WhoIsOnline />
+            </FadeIn>
+
+            {/* ── Season Ceremony Hall of Fame ─────────────────────── */}
+            <FadeIn delay={0.2}>
+              <div className="rounded-3xl bg-[#0f172a] border border-amber-500/30 shadow-2xl overflow-hidden text-white dark:bg-[#090d16]">
+                {/* Ceremony Header */}
+                <div className="p-5 border-b border-white/10">
+                  <div className="flex items-center gap-3">
+                    <div className="p-2.5 bg-amber-500/20 rounded-2xl border border-amber-500/30">
+                      <Crown className="w-5 h-5 text-amber-400" />
+                    </div>
+                    <div>
+                      <h2 className="text-base font-black text-white">
+                        {isAr ? "🏆 حفل تكريم الموسم" : "🏆 Season Ceremony"}
+                      </h2>
+                      <p className="text-xs text-white/50 font-medium">
+                        {isAr ? "أبطال هذا الفصل الدراسي" : "This semester's champions"}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Champions */}
+                <div className="p-4">
+                  {ceremonyLoading ? (
+                    <div className="flex items-center justify-center py-8">
+                      <div className="w-7 h-7 border-2 border-amber-400/40 border-t-amber-400 rounded-full animate-spin" />
+                    </div>
+                  ) : champions.length === 0 ? (
+                    <div className="py-8 text-center space-y-2">
+                      <Sparkles className="mx-auto text-amber-400 w-8 h-8 animate-bounce" />
+                      <p className="text-sm font-bold text-white/70">
+                        {isAr ? "سيتم إعلان المتفوقين قريباً" : "Champions will be announced soon"}
+                      </p>
+                    </div>
+                  ) : (
+                    <StaggerChildren className="space-y-2">
+                      {champions.map((champ, i) => (
+                        <ScaleIn key={champ.uid}>
+                          <button
+                            type="button"
+                            onClick={() => setSelectedUserUid(champ.uid)}
+                            className="w-full flex items-center gap-3 p-3 rounded-2xl bg-white/5 hover:bg-white/10 border border-white/10 hover:border-amber-500/30 transition-all text-left"
+                          >
+                            <div
+                              className={cn(
+                                "w-8 h-8 rounded-full flex items-center justify-center text-sm font-black shrink-0",
+                                i === 0
+                                  ? "bg-amber-500 text-black"
+                                  : i === 1
+                                    ? "bg-slate-400 text-black"
+                                    : i === 2
+                                      ? "bg-amber-700 text-white"
+                                      : "bg-white/10 text-white/70"
+                              )}
+                            >
+                              #{champ.rank}
+                            </div>
+                            <div className="flex-1 min-w-0">
+                              <p className="text-sm font-black text-white truncate">{champ.name}</p>
+                              <p className="text-[10px] text-white/50 font-medium">{champ.dept}</p>
+                            </div>
+                            <div className="text-right shrink-0">
+                              <p className="text-xs font-black text-amber-400">
+                                {champ.xp.toLocaleString()} XP
+                              </p>
+                              <p className="text-[9px] text-white/40 font-medium">{champ.badge}</p>
+                            </div>
+                          </button>
+                        </ScaleIn>
+                      ))}
+                    </StaggerChildren>
+                  )}
+
+                  {/* XP Rules */}
+                  <div className="mt-4 pt-4 border-t border-white/10 grid grid-cols-3 gap-2">
+                    {[
+                      {
+                        emoji: "🎯",
+                        label: isAr ? "+50 XP" : "+50 XP",
+                        desc: isAr ? "اختبارات" : "Quizzes",
+                      },
+                      {
+                        emoji: "🔥",
+                        label: isAr ? "+30 XP" : "+30 XP",
+                        desc: isAr ? "سلسلة يومية" : "Daily streak",
+                      },
+                      {
+                        emoji: "📖",
+                        label: isAr ? "+20 XP" : "+20 XP",
+                        desc: isAr ? "ملفات" : "Resources",
+                      },
+                    ].map((r) => (
+                      <div
+                        key={r.desc}
+                        className="p-2 rounded-xl bg-white/5 border border-white/10 text-center"
+                      >
+                        <p className="text-base">{r.emoji}</p>
+                        <p className="text-xs font-black text-amber-400">{r.label}</p>
+                        <p className="text-[9px] text-white/50">{r.desc}</p>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
             </FadeIn>
           </div>
         </div>
