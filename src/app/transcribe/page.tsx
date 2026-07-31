@@ -24,10 +24,25 @@ export default function TranscribePage() {
   const recognitionRef = useRef<any>(null);
   const isManualStopRef = useRef(false);
 
-  const handleStartRecording = () => {
+  const handleStartRecording = async () => {
     if (!("webkitSpeechRecognition" in window || "SpeechRecognition" in window)) {
       toast.error(
         isRtl ? "متصفحك لا يدعم التسجيل الصوتي المباشر" : "Browser speech recognition not supported"
+      );
+      return;
+    }
+
+    // Request microphone permission explicitly
+    try {
+      if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
+        await navigator.mediaDevices.getUserMedia({ audio: true });
+      }
+    } catch (err) {
+      console.error("Microphone permission denied:", err);
+      toast.error(
+        isRtl
+          ? "يرجى السماح بالوصول للميكروفون في المتصفح 🎙️"
+          : "Please allow microphone access in your browser 🎙️"
       );
       return;
     }
@@ -68,34 +83,49 @@ export default function TranscribePage() {
       };
 
       recognition.onresult = (event) => {
-        let transcript = "";
+        let finalChunk = "";
         for (let i = event.resultIndex; i < event.results.length; i++) {
-          transcript += event.results[i][0].transcript;
+          finalChunk += event.results[i][0].transcript;
         }
-        if (transcript.trim()) {
-          setRawText((prev) => (prev ? prev + " " + transcript : transcript));
+        if (finalChunk.trim()) {
+          setRawText((prev) => {
+            if (!prev.includes(finalChunk.trim())) {
+              return prev ? prev + " " + finalChunk.trim() : finalChunk.trim();
+            }
+            return prev;
+          });
         }
       };
 
       recognition.onerror = (event) => {
-        setIsRecording(false);
-        recognitionRef.current = null;
         if (event.error === "not-allowed") {
+          setIsRecording(false);
+          recognitionRef.current = null;
           toast.error(
             isRtl
               ? "يرجى تفعيل صلاحية الميكروفون في المتصفح 🎙️"
               : "Please allow microphone access in your browser 🎙️"
           );
         } else if (event.error !== "no-speech") {
-          toast.error(isRtl ? "حدث خطأ في التقاط الصوت" : "Audio capture error");
+          console.warn("Speech recognition warning:", event.error);
         }
       };
 
       recognition.onend = () => {
-        setIsRecording(false);
-        recognitionRef.current = null;
         if (isManualStopRef.current) {
+          setIsRecording(false);
+          recognitionRef.current = null;
           toast.success(isRtl ? "انتهى التسجيل ✅" : "Recording stopped ✅");
+        } else if (recognitionRef.current) {
+          // Restart automatically if not manually stopped
+          try {
+            recognitionRef.current.start();
+          } catch {
+            setIsRecording(false);
+            recognitionRef.current = null;
+          }
+        } else {
+          setIsRecording(false);
         }
       };
 

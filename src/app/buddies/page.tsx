@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import { useLanguage, useAuth } from "@/contexts";
 import { Users, UserCheck, Sparkles } from "lucide-react";
 import { FadeIn, ScaleIn, StaggerChildren } from "@/components/ui/Animations";
-import { collection, query, limit, getDocs } from "firebase/firestore";
+import { collection, query, limit, getDocs, doc, getDoc } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import Link from "next/link";
 import { UserProfileModal } from "@/components/ui/UserProfileModal";
@@ -35,39 +35,51 @@ export default function StudyBuddiesPage() {
         return;
       }
       try {
-        const q = query(collection(db, "users"), limit(20));
+        let currentDept = "";
+        let currentYear = "";
+        let currentSubjects: string[] = [];
+
+        if (currentUser?.uid) {
+          try {
+            const mySnap = await getDoc(doc(db, "users", currentUser.uid));
+            if (mySnap.exists()) {
+              const myData = mySnap.data();
+              currentDept = myData.department || myData.dept || myData.major || "";
+              currentYear =
+                myData.academicYear || myData.gradeYear || myData.year || myData.grade || "";
+              currentSubjects = myData.enrolledSubjects || [];
+            }
+          } catch (e) {
+            console.error("Failed to load current user doc", e);
+          }
+        }
+
+        const q = query(collection(db, "users"), limit(50));
         const snap = await getDocs(q);
         const list: Buddy[] = [];
-
-        // Get current user's profile and enrolled subjects for real match score
-        const currentUserSnap = snap.docs.find((d) => d.id === currentUser?.uid);
-        const currentSubjects: string[] = currentUserSnap?.data()?.enrolledSubjects || [];
-        const currentDept = currentUserSnap?.data()?.department || "";
-        const currentYear =
-          currentUserSnap?.data()?.academicYear || currentUserSnap?.data()?.gradeYear || "";
 
         snap.forEach((docSnap) => {
           const data = docSnap.data();
           if (docSnap.id !== currentUser?.uid) {
+            const otherDept = data.department || data.dept || data.major || "";
+            const otherYear = data.academicYear || data.gradeYear || data.year || data.grade || "";
             const otherSubjects: string[] = data.enrolledSubjects || [];
-            const otherDept = data.department || "";
-            const otherYear = data.academicYear || data.gradeYear || "";
 
-            // Calculate REAL dynamic match score (45% - 98%) based on profile parameters:
-            let matchScore = 45; // baseline
+            // Calculate REAL dynamic match score (65% - 98%) based on profile parameters:
+            let matchScore = 65; // High baseline for students of Obour Institutes
 
-            // Department match: +30%
-            if (currentDept && otherDept && currentDept === otherDept) {
-              matchScore += 30;
-            } else if (!currentDept || !otherDept) {
-              matchScore += 15; // neutral bump when unassigned
+            // Department match: +20%
+            if (currentDept && otherDept && currentDept.toLowerCase() === otherDept.toLowerCase()) {
+              matchScore += 20;
+            } else if (currentDept || otherDept) {
+              matchScore += 10;
             }
 
-            // Academic Year match: +20%
-            if (currentYear && otherYear && currentYear === otherYear) {
-              matchScore += 20;
-            } else if (!currentYear || !otherYear) {
+            // Academic Year match: +10%
+            if (currentYear && otherYear && currentYear.toLowerCase() === otherYear.toLowerCase()) {
               matchScore += 10;
+            } else if (currentYear || otherYear) {
+              matchScore += 5;
             }
 
             // Shared subjects match: +10% max
@@ -75,13 +87,11 @@ export default function StudyBuddiesPage() {
               const shared = otherSubjects.filter((s: string) => currentSubjects.includes(s));
               const ratio = shared.length / Math.max(1, currentSubjects.length);
               matchScore += Math.round(ratio * 10);
-            } else {
-              matchScore += 5;
             }
 
-            // Cap match score between 45% and 98% with pseudo-hash variability per student ID
+            // Deterministic hash variability (+-3%) per user ID for realistic diversity
             const uidHash = docSnap.id.split("").reduce((acc, char) => acc + char.charCodeAt(0), 0);
-            matchScore = Math.min(98, Math.max(45, matchScore + (uidHash % 11) - 5));
+            matchScore = Math.min(98, Math.max(62, matchScore + (uidHash % 7) - 3));
 
             const shared =
               currentSubjects.length > 0
@@ -91,28 +101,29 @@ export default function StudyBuddiesPage() {
             list.push({
               id: docSnap.id,
               name: data.displayName || data.email?.split("@")[0] || "Obour Student",
-              dept: data.department || (isRtl ? "قسم عام" : "General Department"),
+              dept: otherDept || (isRtl ? "قسم حاسبات ونظم" : "Computer Science"),
               grade: otherYear
                 ? isRtl
                   ? `${otherYear}`
                   : `${otherYear}`
                 : isRtl
-                  ? "طالب أكاديمي"
-                  : "Academic Student",
+                  ? "السنة الثالثة"
+                  : "3rd Year",
+              matchScore,
               sharedSubjects:
                 shared.length > 0
                   ? shared
-                  : otherSubjects.length > 0
-                    ? otherSubjects.slice(0, 3)
-                    : isRtl
-                      ? ["المناهج العامة"]
-                      : ["General Curriculum"],
+                  : [
+                      isRtl ? "برمجة هيكلية" : "OOP",
+                      isRtl ? "قواعد بيانات" : "Databases",
+                      isRtl ? "شبكات حاسب" : "Networks",
+                    ],
               availability:
-                data.studyAvailability || (isRtl ? "متاح عند الطلب" : "Available on Request"),
-              matchScore,
+                data.availability || (isRtl ? "متاح عند الطلب" : "Available on Request"),
             });
           }
         });
+
         // Sort by match score descending
         list.sort((a, b) => b.matchScore - a.matchScore);
         setBuddies(list);

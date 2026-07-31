@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useLanguage } from "@/contexts";
 import { ChatSession } from "@/types";
 import { cn } from "@/lib/utils";
@@ -9,6 +9,8 @@ import Image from "next/image";
 import { motion, AnimatePresence } from "framer-motion";
 import { ScaleIn } from "@/components/ui/Animations";
 import { LoadingTable } from "@/components/ui/Loading";
+import { rtdb } from "@/lib/firebase";
+import { ref, onValue, off } from "firebase/database";
 
 interface ChatListProps {
   sessions: ChatSession[];
@@ -31,6 +33,29 @@ export function ChatList({
 }: ChatListProps) {
   const { language, t } = useLanguage();
   const [imageError, setImageError] = useState<Record<string, boolean>>({});
+  const [presenceMap, setPresenceMap] = useState<Record<string, boolean>>({});
+
+  useEffect(() => {
+    if (!rtdb) return;
+    const presenceRef = ref(rtdb, "presence");
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const handleValue = (snapshot: any) => {
+      const map: Record<string, boolean> = {};
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      snapshot.forEach((child: any) => {
+        const val = child.val();
+        if (val && val.status === "online") {
+          map[child.key] = true;
+        }
+      });
+      setPresenceMap(map);
+    };
+
+    onValue(presenceRef, handleValue);
+    return () => {
+      off(presenceRef, "value", handleValue);
+    };
+  }, []);
 
   const formatTime = (
     timestamp: { toDate?: () => Date; seconds?: number } | Date | number | null | undefined
@@ -127,8 +152,10 @@ export function ChatList({
                     <div
                       className={cn(
                         "absolute -bottom-1 -right-1 w-3 h-3 rounded-full border-2 border-card transition-colors",
-                        session.isOnline || session.status === "online"
-                          ? "bg-emerald-500"
+                        presenceMap[session.userId] ||
+                          session.isOnline ||
+                          session.status === "online"
+                          ? "bg-emerald-500 shadow-sm shadow-emerald-500/50 animate-pulse"
                           : "bg-muted-foreground/40"
                       )}
                     />

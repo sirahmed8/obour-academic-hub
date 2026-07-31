@@ -128,6 +128,14 @@ export function ChatbotPanel({
     localStorage.setItem("chatbot-height", String(finalHeight));
   }, []);
 
+  const isOwnerOrAdmin = user?.role === "owner" || user?.role === "admin";
+
+  React.useEffect(() => {
+    if (isOwnerOrAdmin && mode === "live") {
+      setMode("bot");
+    }
+  }, [isOwnerOrAdmin, mode, setMode]);
+
   if (!mounted) return null;
 
   return (
@@ -227,9 +235,14 @@ export function ChatbotPanel({
         </div>
       </div>
 
-      {/* Mode Switcher Bar — 3 tabs: AI | Live | Community */}
+      {/* Mode Switcher Bar — 2 tabs for admin/owner (AI | Community), 3 tabs for student (AI | Support | Community) */}
       <div className="px-3 py-2 border-b border-border/40 bg-muted/20 shrink-0">
-        <div className="grid grid-cols-3 gap-1 p-1 bg-background/80 backdrop-blur-md rounded-2xl border border-border/40 shadow-inner relative">
+        <div
+          className={cn(
+            "grid gap-1 p-1 bg-background/80 backdrop-blur-md rounded-2xl border border-border/40 shadow-inner relative",
+            isOwnerOrAdmin ? "grid-cols-2" : "grid-cols-3"
+          )}
+        >
           <button
             type="button"
             onClick={() => setMode("bot")}
@@ -251,26 +264,28 @@ export function ChatbotPanel({
             </span>
           </button>
 
-          <button
-            type="button"
-            onClick={() => setMode("live")}
-            className={cn(
-              "relative py-2 px-2 rounded-xl text-xs font-black transition-colors flex items-center justify-center gap-1.5 select-none overflow-hidden",
-              mode === "live" ? "text-white" : "text-muted-foreground hover:text-foreground"
-            )}
-          >
-            {mode === "live" && (
-              <motion.div
-                layoutId="activeModeTabPill"
-                className="absolute inset-0 bg-gradient-to-r from-emerald-600 to-teal-600 rounded-xl shadow-md shadow-emerald-500/25 z-0"
-                transition={{ type: "spring", stiffness: 450, damping: 35 }}
-              />
-            )}
-            <span className="relative z-10 text-sm pointer-events-none">🎧</span>
-            <span className="relative z-10 pointer-events-none hidden sm:inline">
-              {language === "ar" ? "الدعم" : "Support"}
-            </span>
-          </button>
+          {!isOwnerOrAdmin && (
+            <button
+              type="button"
+              onClick={() => setMode("live")}
+              className={cn(
+                "relative py-2 px-2 rounded-xl text-xs font-black transition-colors flex items-center justify-center gap-1.5 select-none overflow-hidden",
+                mode === "live" ? "text-white" : "text-muted-foreground hover:text-foreground"
+              )}
+            >
+              {mode === "live" && (
+                <motion.div
+                  layoutId="activeModeTabPill"
+                  className="absolute inset-0 bg-gradient-to-r from-emerald-600 to-teal-600 rounded-xl shadow-md shadow-emerald-500/25 z-0"
+                  transition={{ type: "spring", stiffness: 450, damping: 35 }}
+                />
+              )}
+              <span className="relative z-10 text-sm pointer-events-none">🎧</span>
+              <span className="relative z-10 pointer-events-none hidden sm:inline">
+                {language === "ar" ? "الدعم" : "Support"}
+              </span>
+            </button>
+          )}
 
           <button
             type="button"

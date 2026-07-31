@@ -355,7 +355,7 @@ export default function CommunityLeaderboardPage() {
       <div className="max-w-7xl mx-auto px-4 py-6 space-y-6">
         {/* ── Header ──────────────────────────────────────────────── */}
         <FadeIn>
-          <div className="relative overflow-hidden rounded-3xl bg-card border border-border p-6 shadow-2xl dark:bg-card">
+          <div className="relative overflow-hidden rounded-3xl bg-[#0f172a] border border-amber-500/30 p-6 shadow-2xl text-white dark:bg-[#090d16]">
             <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,theme(colors.amber.500/8),transparent_70%)]" />
             <div className="relative z-10">
               <div className="flex items-center gap-3 mb-2">

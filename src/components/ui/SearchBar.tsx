@@ -339,8 +339,8 @@ export function SearchBar() {
               className="relative w-full max-w-lg bg-card border border-border rounded-2xl shadow-2xl overflow-hidden z-10"
             >
               {/* Search Input Bar */}
-              <div className="flex items-center px-4 border-b border-border bg-muted/20">
-                <Search className="w-5 h-5 text-muted-foreground me-3" />
+              <div className="flex items-center gap-3 px-5 py-4 border-b border-border/80 bg-card/95">
+                <Search className="w-5 h-5 text-primary flex-shrink-0" />
                 <input
                   ref={inputRef}
                   autoFocus
@@ -355,13 +355,13 @@ export function SearchBar() {
                       ? "اكتب للبحث عن مادة، قسم، أداة دراسية..."
                       : "Type a command or search academic resources..."
                   }
-                  className="no-focus-ring flex-1 h-13 py-3 bg-transparent border-0 outline-none ring-0 shadow-none text-sm placeholder:text-muted-foreground/60 text-foreground focus:ring-0 focus:outline-none"
+                  className="no-focus-ring flex-1 bg-transparent border-none outline-none ring-0 shadow-none text-base font-medium placeholder:text-muted-foreground/50 text-foreground focus:ring-0 focus:outline-none leading-normal p-0 m-0"
                 />
                 {query && (
                   <button
                     type="button"
                     onClick={() => setQuery("")}
-                    className="p-1.5 hover:bg-muted rounded-lg text-muted-foreground"
+                    className="p-1.5 hover:bg-muted/80 rounded-xl text-muted-foreground transition-colors"
                   >
                     <X className="w-4 h-4" />
                   </button>
