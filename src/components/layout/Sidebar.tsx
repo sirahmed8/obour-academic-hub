@@ -24,6 +24,7 @@ import {
   AlertCircle,
   Activity,
   Users,
+  Trophy,
   LucideIcon,
 } from "lucide-react";
 
@@ -197,13 +198,13 @@ export const Sidebar = memo(function Sidebar({ isOpen, onClose }: SidebarProps) 
         ],
       },
       {
-        label: language === "ar" ? "🤝 المجتمع" : "🤝 Community",
+        label: language === "ar" ? "🏆 الساحة" : "🏆 Arena",
         items: [
           {
-            name: t("nav.community"),
+            name: language === "ar" ? "🏆 لوحة الصدارة" : "🏆 Leaderboard",
             path: "/community",
             icon: exploreAnim,
-            fallback: Users,
+            fallback: Trophy,
             useAnimation: true,
           },
           {

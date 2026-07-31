@@ -7,6 +7,16 @@ import { ChatInput } from "./ChatInput";
 import { ChatMessage, User } from "@/types";
 import { cn } from "@/lib/utils";
 import { ChatbotMode } from "./useAIChatbot";
+import dynamic from "next/dynamic";
+
+const GlobalChat = dynamic(() => import("@/components/chat/GlobalChat").then((m) => m.GlobalChat), {
+  ssr: false,
+  loading: () => (
+    <div className="flex-1 flex items-center justify-center text-xs text-muted-foreground">
+      Loading chat...
+    </div>
+  ),
+});
 
 interface ChatbotPanelProps {
   handleDeleteMessage: (messageId: string) => Promise<void>;
@@ -217,14 +227,14 @@ export function ChatbotPanel({
         </div>
       </div>
 
-      {/* Mode Switcher Bar */}
+      {/* Mode Switcher Bar — 3 tabs: AI | Live | Community */}
       <div className="px-3 py-2 border-b border-border/40 bg-muted/20 shrink-0">
-        <div className="grid grid-cols-2 gap-1.5 p-1 bg-background/80 backdrop-blur-md rounded-2xl border border-border/40 shadow-inner relative">
+        <div className="grid grid-cols-3 gap-1 p-1 bg-background/80 backdrop-blur-md rounded-2xl border border-border/40 shadow-inner relative">
           <button
             type="button"
             onClick={() => setMode("bot")}
             className={cn(
-              "relative py-2 px-3 rounded-xl text-xs font-black transition-colors flex items-center justify-center gap-2 select-none overflow-hidden",
+              "relative py-2 px-2 rounded-xl text-xs font-black transition-colors flex items-center justify-center gap-1.5 select-none overflow-hidden",
               mode === "bot" ? "text-white" : "text-muted-foreground hover:text-foreground"
             )}
           >
@@ -236,8 +246,8 @@ export function ChatbotPanel({
               />
             )}
             <span className="relative z-10 text-sm pointer-events-none">🤖</span>
-            <span className="relative z-10 pointer-events-none">
-              {language === "ar" ? "المساعد الذكي (AI)" : "AI Assistant"}
+            <span className="relative z-10 pointer-events-none hidden sm:inline">
+              {language === "ar" ? "الذكي" : "AI"}
             </span>
           </button>
 
@@ -245,7 +255,7 @@ export function ChatbotPanel({
             type="button"
             onClick={() => setMode("live")}
             className={cn(
-              "relative py-2 px-3 rounded-xl text-xs font-black transition-colors flex items-center justify-center gap-2 select-none overflow-hidden",
+              "relative py-2 px-2 rounded-xl text-xs font-black transition-colors flex items-center justify-center gap-1.5 select-none overflow-hidden",
               mode === "live" ? "text-white" : "text-muted-foreground hover:text-foreground"
             )}
           >
@@ -257,52 +267,82 @@ export function ChatbotPanel({
               />
             )}
             <span className="relative z-10 text-sm pointer-events-none">🎧</span>
-            <span className="relative z-10 pointer-events-none">
-              {language === "ar" ? "الدعم المباشر" : "Live Support"}
+            <span className="relative z-10 pointer-events-none hidden sm:inline">
+              {language === "ar" ? "الدعم" : "Support"}
+            </span>
+          </button>
+
+          <button
+            type="button"
+            onClick={() => setMode("community")}
+            className={cn(
+              "relative py-2 px-2 rounded-xl text-xs font-black transition-colors flex items-center justify-center gap-1.5 select-none overflow-hidden",
+              mode === "community" ? "text-white" : "text-muted-foreground hover:text-foreground"
+            )}
+          >
+            {mode === "community" && (
+              <motion.div
+                layoutId="activeModeTabPill"
+                className="absolute inset-0 bg-gradient-to-r from-blue-600 to-cyan-600 rounded-xl shadow-md shadow-blue-500/25 z-0"
+                transition={{ type: "spring", stiffness: 450, damping: 35 }}
+              />
+            )}
+            <span className="relative z-10 text-sm pointer-events-none">💬</span>
+            <span className="relative z-10 pointer-events-none hidden sm:inline">
+              {language === "ar" ? "المجتمع" : "Chat"}
             </span>
           </button>
         </div>
       </div>
 
-      <ChatMessages
-        messages={messages}
-        user={user}
-        onReply={setReplyTo}
-        onReact={handleReaction}
-        onDelete={handleDeleteMessage}
-        isGeneratingWelcome={mode === "bot" && isGeneratingWelcome}
-      />
+      {/* Content Area */}
+      {mode === "community" ? (
+        <div className="flex-1 min-h-0 overflow-hidden">
+          <GlobalChat isEmbedded={true} />
+        </div>
+      ) : (
+        <>
+          <ChatMessages
+            messages={messages}
+            user={user}
+            onReply={setReplyTo}
+            onReact={handleReaction}
+            onDelete={handleDeleteMessage}
+            isGeneratingWelcome={mode === "bot" && isGeneratingWelcome}
+          />
 
-      {isGenerating && mode === "bot" && (
-        <div className="flex items-center gap-2 px-4 py-2 text-xs text-muted-foreground">
-          <div className="flex gap-1">
-            <div
-              className="h-1.5 w-1.5 animate-bounce rounded-full bg-purple-500"
-              style={{ animationDelay: "0ms" }}
-            />
-            <div
-              className="h-1.5 w-1.5 animate-bounce rounded-full bg-purple-500"
-              style={{ animationDelay: "150ms" }}
-            />
-            <div
-              className="h-1.5 w-1.5 animate-bounce rounded-full bg-purple-500"
-              style={{ animationDelay: "300ms" }}
+          {isGenerating && mode === "bot" && (
+            <div className="flex items-center gap-2 px-4 py-2 text-xs text-muted-foreground">
+              <div className="flex gap-1">
+                <div
+                  className="h-1.5 w-1.5 animate-bounce rounded-full bg-purple-500"
+                  style={{ animationDelay: "0ms" }}
+                />
+                <div
+                  className="h-1.5 w-1.5 animate-bounce rounded-full bg-purple-500"
+                  style={{ animationDelay: "150ms" }}
+                />
+                <div
+                  className="h-1.5 w-1.5 animate-bounce rounded-full bg-purple-500"
+                  style={{ animationDelay: "300ms" }}
+                />
+              </div>
+              {language === "ar" ? "يفكر الآن..." : "Thinking..."}
+            </div>
+          )}
+
+          <div className="pb-[env(safe-area-inset-bottom)]">
+            <ChatInput
+              input={input}
+              setInput={setInput}
+              handleSend={handleSend}
+              replyTo={replyTo}
+              setReplyTo={setReplyTo}
+              disabled={isGenerating}
             />
           </div>
-          {language === "ar" ? "يفكر الآن..." : "Thinking..."}
-        </div>
+        </>
       )}
-
-      <div className="pb-[env(safe-area-inset-bottom)]">
-        <ChatInput
-          input={input}
-          setInput={setInput}
-          handleSend={handleSend}
-          replyTo={replyTo}
-          setReplyTo={setReplyTo}
-          disabled={isGenerating}
-        />
-      </div>
     </motion.div>
   );
 }

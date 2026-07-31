@@ -1,6 +1,6 @@
 # Agent Handoff & Single Source of Truth
 
-> **LIVE SYSTEM STATUS**: Checkpoint 7 Polish Complete. Sidebar categorized, MindMap subject chips dynamic, GPA planner user-editable, mic stop button fixed, streak label contextual. ESLint: 0 errors. Prettier: clean. Build: 60/60 routes.
+> **LIVE SYSTEM STATUS**: Checkpoint 8 Leaderboard & Chat Integration Complete. `/community` transformed into Leaderboard & Arena with Podium + League Divisions; Global Chat added as 3rd mode in Chatbot drawer; UserProfileModal created; Onboarding flow enforces academic profile completeness for new Google users.
 
 ---
 
@@ -22,18 +22,16 @@
 3. **Global Micro-Animation Architecture**:
    - Added global outline focus halo animation in `src/app/globals.css` for all textboxes, textareas, and select boxes.
    - Button micro-press active scale feedback (`active:scale-97`) and list card hover lifts (`.list-card-hover`).
-4. **Leaderboard League Badges**:
-   - Ranks #1, #2, and #3 reliably display Gold (🥇/💎), Silver (🥈), and Bronze (🥉) badges.
-5. **Sidebar Category Grouping** (Checkpoint 7):
-   - `src/components/layout/Sidebar.tsx` now groups nav items into 6 categories: Home, 📚 Academics, 🤖 AI Tools, 🤝 Community, 🏆 Showcase, ⚙️ Personal — with subtle section headers.
-6. **MindMap Dynamic Subject Chips** (Checkpoint 7):
-   - `src/app/mindmap/page.tsx` loads subject chips from user's Firestore `users/{uid}/subjects` subcollection. Falls back to empty (no hardcoded fake chips).
-7. **GPA Goal Planner Real Data** (Checkpoint 7):
-   - `src/components/features/GpaGoalPlannerWidget.tsx` now exposes editable credit hour inputs (completed/remaining) with localStorage persistence. Warns when target GPA is unachievable.
-8. **Mic Stop Button Fix** (Checkpoint 7):
-   - `src/app/transcribe/page.tsx` now stores recognition instance in a `useRef`, shows a red pulsing "Stop Recording" button when active, and calls `recognition.stop()` on click.
-9. **Streak Label Contextual Fix** (Checkpoint 7):
-   - `src/components/features/AcademicStreakWidget.tsx` now shows "On track 📚" (weeks 1–7), "Midterms ahead 📝" (weeks 8–12), or "Exams approaching 🎯" (weeks 13+).
+4. **Leaderboard & Competitions Hub Overhaul** (Checkpoint 8):
+   - `src/app/community/page.tsx` transformed into a full competition hub with Champions Podium (Top 3), League Divisions (Diamond, Gold, Silver, Bronze), category leaderboards (XP, Streaks, Resources, Battles), and Weekly Challenges.
+5. **Community Chat in AI Chatbot Drawer** (Checkpoint 8):
+   - `src/components/features/chatbot/ChatbotPanel.tsx` & `useAIChatbot.ts` updated with 3 mode tabs: AI Assistant 🤖, Live Support 🎧, and Global Community Chat 💬 (`GlobalChat.tsx`).
+6. **Public User Profile Modal** (Checkpoint 8):
+   - `src/components/ui/UserProfileModal.tsx` created: presents student code, department, institute, league tier, XP progress bar, study streak, resources, and battle wins.
+7. **Google Sign-In Registration Loop Fix** (Checkpoint 8):
+   - `src/components/layout/AppShell.tsx` updated `showProfileSetup` to verify all required profile fields (studentCode, academicYear, department, institute) for new users, ignoring previous session dismissal flags if profile is incomplete.
+8. **Sidebar Arena Renaming** (Checkpoint 8):
+   - `src/components/layout/Sidebar.tsx` updated community group to `🏆 Arena` / `🏆 Leaderboard`.
 
 ---
 

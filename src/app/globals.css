@@ -160,23 +160,22 @@
     border-color: rgba(99, 102, 241, 0.4) !important;
   }
 
-  /* Solid Mode (Performance Mode) overrides */
+  /* Solid Mode (Performance Mode) overrides - disables expensive blur backdrop filters without destroying box-shadows or input focus rings */
   body.solid-mode *,
   body.solid-mode *::before,
   body.solid-mode *::after {
     backdrop-filter: none !important;
     -webkit-backdrop-filter: none !important;
-    animation-duration: 0.01ms !important;
-    animation-delay: 0.01ms !important;
-    transition-duration: 0.01ms !important;
-    box-shadow: none !important;
   }
 
-  body.solid-mode [data-radix-popper-content-wrapper] *,
-  body.solid-mode [data-state="open"],
-  body.solid-mode [data-state="closed"] {
-    animation: none !important;
-    transition: none !important;
+  /* Force input focus ring visibility even in solid mode */
+  body.solid-mode input:not([type="checkbox"]):not([type="radio"]):focus,
+  body.solid-mode textarea:focus,
+  body.solid-mode select:focus {
+    box-shadow:
+      0 0 0 3px rgba(99, 102, 241, 0.35),
+      0 0 20px rgba(99, 102, 241, 0.2) !important;
+    border-color: hsl(var(--primary)) !important;
   }
 
   body.solid-mode .glass-premium,

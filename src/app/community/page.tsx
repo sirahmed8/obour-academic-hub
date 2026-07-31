@@ -1,215 +1,680 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import Link from "next/link";
-import { useLanguage } from "@/contexts";
-import { WhoIsOnline } from "@/components/features/WhoIsOnline";
+import { useState, useEffect, useMemo } from "react";
+import { useAuth, useLanguage } from "@/contexts";
 import { FadeIn } from "@/components/ui/Animations";
-import { GlobalChat } from "@/components/chat/GlobalChat";
-import { Users, Trophy, Crown, Medal, Sparkles, MessageCircle, ArrowUpRight } from "lucide-react";
-import { motion } from "framer-motion";
+import { WhoIsOnline } from "@/components/features/WhoIsOnline";
+import {
+  Trophy,
+  Crown,
+  Flame,
+  BookOpen,
+  Swords,
+  Zap,
+  Users,
+  Award,
+  BarChart2,
+  Target,
+} from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
 import { collection, query, orderBy, limit, onSnapshot } from "firebase/firestore";
 import { db } from "@/lib/firebase";
+import { cn } from "@/lib/utils";
 
-// ── Leaderboard Sidebar ──
-function LeaderboardSidebar() {
-  const { language } = useLanguage();
-  const [topStudents, setTopStudents] = useState<{ name: string; points: number; rank: number }[]>(
-    []
-  );
+// ─── Types ────────────────────────────────────────────────────────────────────
+interface LeaderEntry {
+  uid: string;
+  name: string;
+  avatar?: string;
+  department?: string;
+  academicYear?: string;
+  points: number;
+  streakDays: number;
+  resourceCount: number;
+  battleWins: number;
+  rank: number;
+}
 
-  useEffect(() => {
-    if (!db) return;
-    const q = query(collection(db, "users"), orderBy("points", "desc"), limit(20));
-    const unsubscribe = onSnapshot(
-      q,
-      (snapshot) => {
-        const students = snapshot.docs
-          .map((doc) => {
-            const data = doc.data();
-            const name = data.displayName || data.email || "Unknown";
-            const points = data.points || 0;
-            return { name, points };
-          })
-          .filter((s) => s.points > 0);
-        const ranked = students.slice(0, 15).map((s, idx) => ({ ...s, rank: idx + 1 }));
-        setTopStudents(ranked);
-      },
-      (error) => {
-        console.error("LeaderboardSidebar snapshot error:", error);
-      }
-    );
-    return () => unsubscribe();
-  }, []);
+// ─── Category Tabs ────────────────────────────────────────────────────────────
+const CATEGORIES = [
+  {
+    id: "xp",
+    label: "XP Points",
+    labelAr: "نقاط الخبرة",
+    icon: Zap,
+    color: "from-purple-600 to-indigo-600",
+    accent: "purple",
+  },
+  {
+    id: "streak",
+    label: "Streaks 🔥",
+    labelAr: "السلاسل 🔥",
+    icon: Flame,
+    color: "from-orange-600 to-red-600",
+    accent: "orange",
+  },
+  {
+    id: "resources",
+    label: "Resources",
+    labelAr: "الموارد",
+    icon: BookOpen,
+    color: "from-emerald-600 to-teal-600",
+    accent: "emerald",
+  },
+  {
+    id: "battles",
+    label: "Battles ⚔️",
+    labelAr: "المعارك ⚔️",
+    icon: Swords,
+    color: "from-blue-600 to-cyan-600",
+    accent: "blue",
+  },
+] as const;
 
-  const rankIcons = [
-    <Crown key="1" className="w-4 h-4 text-amber-400" />,
-    <Medal key="2" className="w-4 h-4 text-gray-400" />,
-    <Medal key="3" className="w-4 h-4 text-amber-700" />,
+type CategoryId = (typeof CATEGORIES)[number]["id"];
+
+// ─── League Divisions ─────────────────────────────────────────────────────────
+const LEAGUES = [
+  {
+    name: "Diamond",
+    nameAr: "الماس",
+    color: "text-cyan-300",
+    bg: "bg-cyan-500/10",
+    border: "border-cyan-500/30",
+    min: 5000,
+    emoji: "💎",
+  },
+  {
+    name: "Gold",
+    nameAr: "ذهب",
+    color: "text-amber-400",
+    bg: "bg-amber-500/10",
+    border: "border-amber-500/30",
+    min: 2000,
+    emoji: "🥇",
+  },
+  {
+    name: "Silver",
+    nameAr: "فضة",
+    color: "text-slate-300",
+    bg: "bg-slate-500/10",
+    border: "border-slate-500/30",
+    min: 1000,
+    emoji: "🥈",
+  },
+  {
+    name: "Bronze",
+    nameAr: "برونز",
+    color: "text-orange-400",
+    bg: "bg-orange-500/10",
+    border: "border-orange-500/30",
+    min: 0,
+    emoji: "🥉",
+  },
+];
+
+function getLeague(points: number) {
+  return LEAGUES.find((l) => points >= l.min) ?? LEAGUES[LEAGUES.length - 1];
+}
+
+// ─── Podium Component ─────────────────────────────────────────────────────────
+function Podium({ entries }: { entries: LeaderEntry[] }) {
+  const top3 = entries.slice(0, 3);
+  // podium order: 2nd, 1st, 3rd
+  const podiumOrder = [top3[1], top3[0], top3[2]].filter(Boolean);
+  const heights = [top3[1] ? "h-20" : "h-0", "h-28", top3[2] ? "h-14" : "h-0"];
+  const positions = [2, 1, 3];
+  const rankColors = [
+    "from-slate-400 to-slate-300",
+    "from-amber-500 to-yellow-400",
+    "from-orange-600 to-amber-500",
   ];
+  const crowns = ["🥈", "🥇", "🥉"];
 
   return (
-    <div className="bg-card/40 backdrop-blur-2xl rounded-3xl border border-primary/20 overflow-hidden shadow-xl">
-      {/* Header */}
-      <div className="flex items-center justify-between p-4 border-b border-border/40 bg-card/60">
-        <div className="flex items-center gap-3">
-          <div className="p-2.5 bg-amber-500/10 rounded-2xl border border-amber-500/20">
-            <Trophy size={20} className="text-amber-500" />
+    <div className="flex items-end justify-center gap-3 pt-4 pb-2 px-2">
+      {podiumOrder.map((entry, idx) => (
+        <motion.div
+          key={entry?.uid ?? idx}
+          initial={{ opacity: 0, y: 40 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: idx * 0.12, type: "spring", stiffness: 300, damping: 22 }}
+          className="flex flex-col items-center gap-2"
+        >
+          {/* Avatar */}
+          <div className="relative">
+            <div
+              className={cn(
+                "rounded-full flex items-center justify-center bg-gradient-to-br text-white font-black text-sm border-2 shadow-lg",
+                idx === 1
+                  ? "w-16 h-16 border-amber-400 shadow-amber-400/30"
+                  : idx === 0
+                    ? "w-14 h-14 border-slate-400 shadow-slate-400/20"
+                    : "w-12 h-12 border-orange-500 shadow-orange-500/20",
+                rankColors[idx]
+              )}
+            >
+              {entry?.name?.[0]?.toUpperCase() ?? "?"}
+            </div>
+            <span className="absolute -top-2 -right-1 text-base">{crowns[idx]}</span>
           </div>
-          <div>
-            <h3 className="text-sm font-black text-foreground">
-              {language === "ar" ? "لوحة الشرف للأسبوع" : "Weekly Leaderboard"}
-            </h3>
+          {/* Name */}
+          <div className="text-center">
+            <p className="text-xs font-bold text-foreground truncate max-w-[72px]">
+              {entry?.name?.split(" ")[0] ?? "—"}
+            </p>
             <p className="text-[10px] text-muted-foreground font-semibold">
-              {language === "ar" ? "أعلى الطلاب تفاعلاً ونقاطاً" : "Top active scholars"}
+              {(entry?.points ?? 0).toLocaleString()} XP
             </p>
           </div>
-        </div>
-
-        <span className="px-2.5 py-1 rounded-full text-[10px] font-black bg-amber-500/10 text-amber-500 border border-amber-500/20 uppercase tracking-widest">
-          TOP 15
-        </span>
-      </div>
-
-      {/* Students List */}
-      <div className="p-3 space-y-2 max-h-[360px] overflow-y-auto custom-scrollbar">
-        {topStudents.map((student, idx) => (
-          <motion.div
-            key={idx}
-            initial={{ opacity: 0, x: -10 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ delay: idx * 0.04 }}
-            className={`flex items-center gap-3 p-2.5 rounded-2xl transition-all ${
-              idx === 0
-                ? "bg-amber-500/10 border border-amber-500/30 shadow-sm"
-                : "hover:bg-muted/40 border border-transparent"
-            }`}
+          {/* Podium block */}
+          <div
+            className={cn(
+              "w-16 rounded-t-xl flex items-center justify-center transition-all duration-500",
+              heights[idx],
+              idx === 1
+                ? "bg-gradient-to-b from-amber-500/80 to-amber-700/60 border-t-2 border-amber-400"
+                : idx === 0
+                  ? "bg-gradient-to-b from-slate-400/60 to-slate-600/40 border-t-2 border-slate-400"
+                  : "bg-gradient-to-b from-orange-600/60 to-orange-800/40 border-t-2 border-orange-600"
+            )}
           >
-            <div
-              className={`w-7 h-7 rounded-xl flex items-center justify-center text-xs font-black shrink-0 ${
-                idx === 0
-                  ? "bg-amber-500/20 text-amber-500 border border-amber-500/30"
-                  : idx === 1
-                    ? "bg-gray-500/20 text-gray-400 border border-gray-500/30"
-                    : idx === 2
-                      ? "bg-amber-700/20 text-amber-700 border border-amber-700/30"
-                      : "bg-muted/60 text-muted-foreground"
-              }`}
-            >
-              {idx < 3 ? rankIcons[idx] : student.rank}
-            </div>
-            <div className="flex-1 min-w-0">
-              <p className="text-xs sm:text-sm font-bold text-foreground truncate">
-                {student.name}
-              </p>
-            </div>
-            <span className="text-xs font-black text-primary tabular-nums bg-primary/10 px-2 py-0.5 rounded-full border border-primary/20">
-              {student.points.toLocaleString()} {language === "ar" ? "ن" : "pts"}
-            </span>
-          </motion.div>
-        ))}
-      </div>
-
-      {/* View Full Leaderboard Link */}
-      <div className="p-3 pt-2">
-        <Link
-          href="/community/leaderboard"
-          className="flex items-center justify-center gap-2 w-full py-2.5 bg-primary/10 hover:bg-primary/20 text-primary text-xs font-bold rounded-2xl border border-primary/20 transition-all hover:scale-[1.02] active:scale-95 shadow-sm"
-        >
-          <span>{language === "ar" ? "عرض الترتيب الشامل" : "View Full Leaderboard"}</span>
-          <ArrowUpRight size={14} />
-        </Link>
-      </div>
-
-      {/* Quick Tip */}
-      <div className="p-3 border-t border-border/30">
-        <div className="bg-primary/5 rounded-2xl p-3 border border-primary/10">
-          <div className="flex items-center gap-1.5 mb-1">
-            <Sparkles size={14} className="text-amber-500 animate-pulse" />
-            <span className="text-[10px] font-black uppercase tracking-wider text-primary">
-              {language === "ar" ? "كيف تجمع النقاط؟" : "How to Earn Points"}
-            </span>
+            <span className="text-white font-black text-xl">#{positions[idx]}</span>
           </div>
-          <p className="text-[11px] text-muted-foreground font-medium leading-relaxed">
-            {language === "ar"
-              ? "شارِك بالرسائل والملاحظات وحِل المهام اليومية لرفع ترتيبك الأكاديمي!"
-              : "Post notes, chat with peers, and complete tasks to climb the rank!"}
-          </p>
-        </div>
-      </div>
+        </motion.div>
+      ))}
     </div>
   );
 }
 
-// ── Main Community Page ──
-export default function CommunityPage() {
-  const { language, t } = useLanguage();
+// ─── Leaderboard Row ──────────────────────────────────────────────────────────
+function LeaderRow({
+  entry,
+  category,
+  currentUid,
+  delay = 0,
+}: {
+  entry: LeaderEntry;
+  category: CategoryId;
+  currentUid?: string;
+  delay?: number;
+}) {
+  const isSelf = entry.uid === currentUid;
+  const league = getLeague(entry.points);
+  const value =
+    category === "xp"
+      ? `${entry.points.toLocaleString()} XP`
+      : category === "streak"
+        ? `${entry.streakDays} days`
+        : category === "resources"
+          ? `${entry.resourceCount} files`
+          : `${entry.battleWins} wins`;
+
+  const medal = entry.rank === 1 ? "🥇" : entry.rank === 2 ? "🥈" : entry.rank === 3 ? "🥉" : null;
 
   return (
-    <div className="p-4 sm:p-6 lg:p-10 space-y-6 w-full page-transition min-h-screen max-w-7xl mx-auto">
-      {/* Header Banner */}
-      <FadeIn>
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 p-6 sm:p-8 rounded-3xl bg-card/60 border border-primary/20 backdrop-blur-2xl shadow-xl">
-          <div className="flex items-center gap-4">
-            <div className="p-3.5 rounded-2xl bg-primary/10 text-primary border border-primary/20 shrink-0">
-              <Users size={32} />
-            </div>
-            <div>
-              <div className="flex items-center gap-2">
-                <h1 className="text-2xl sm:text-3xl lg:text-4xl font-black tracking-tight text-foreground">
-                  {t("nav.community")}
-                </h1>
-                <span className="px-3 py-1 rounded-full text-xs font-black bg-emerald-500/10 text-emerald-500 border border-emerald-500/20 animate-pulse">
-                  {language === "ar" ? "مباشر 🟢" : "Live 🟢"}
-                </span>
-              </div>
-              <p className="text-muted-foreground text-xs sm:text-sm font-medium mt-1">
-                {language === "ar"
-                  ? "تواصل مع زملائك الطلاب، وشارك الاستفسارات، وتنافس في لوحة الشرف"
-                  : "Connect with classmates, share study queries, and climb the leaderboard"}
-              </p>
-            </div>
-          </div>
+    <motion.div
+      initial={{ opacity: 0, x: -16 }}
+      animate={{ opacity: 1, x: 0 }}
+      transition={{ delay, duration: 0.35, type: "spring", stiffness: 280, damping: 25 }}
+      className={cn(
+        "flex items-center gap-3 px-4 py-3 rounded-2xl border transition-all",
+        isSelf
+          ? "bg-primary/10 border-primary/30 ring-1 ring-primary/20 shadow-lg shadow-primary/10"
+          : "bg-card/40 border-border/30 hover:bg-card/60 hover:border-border/50"
+      )}
+    >
+      {/* Rank */}
+      <div className="w-8 text-center flex-shrink-0">
+        {medal ? (
+          <span className="text-xl">{medal}</span>
+        ) : (
+          <span className="text-sm font-black text-muted-foreground">#{entry.rank}</span>
+        )}
+      </div>
 
-          <div className="flex items-center gap-3">
-            <Link
-              href="/community/chat"
-              className="flex items-center gap-2 px-4 py-2.5 rounded-2xl bg-primary text-primary-foreground text-xs font-bold shadow-md hover:scale-105 active:scale-95 transition-all"
-            >
-              <MessageCircle size={16} />
-              <span>{language === "ar" ? "شاشة الدردشة الكاملة" : "Full Chat Mode"}</span>
-            </Link>
-
-            <Link
-              href="/community/leaderboard"
-              className="flex items-center gap-2 px-4 py-2.5 rounded-2xl bg-white/70 dark:bg-white/10 hover:bg-white dark:hover:bg-white/20 text-foreground text-xs font-bold border border-white/40 dark:border-white/10 backdrop-blur-md transition-all hover:scale-105 active:scale-95"
-            >
-              <Trophy size={16} className="text-amber-500" />
-              <span>{language === "ar" ? "جدول الترتيب" : "Leaderboard"}</span>
-            </Link>
-          </div>
-        </div>
-      </FadeIn>
-
-      {/* Main Layout: Chat + Sidebar */}
+      {/* Avatar */}
       <div
-        className={`flex flex-col lg:flex-row gap-6 lg:h-[calc(100vh-14rem)] ${
-          language === "ar" ? "lg:flex-row-reverse" : ""
-        }`}
+        className={cn(
+          "w-9 h-9 rounded-full flex items-center justify-center text-white font-black text-sm flex-shrink-0",
+          `bg-gradient-to-br ${CATEGORIES.find((c) => c.id === category)?.color ?? "from-purple-600 to-indigo-600"}`
+        )}
       >
-        {/* Main: Global Chat */}
-        <div className="flex-1 h-[520px] lg:h-auto lg:min-h-0">
-          <GlobalChat isEmbedded={true} />
-        </div>
+        {entry.name?.[0]?.toUpperCase() ?? "?"}
+      </div>
 
-        {/* Sidebar: Leaderboard + Who's Online */}
-        <div
-          className={`w-full lg:w-80 xl:w-96 space-y-6 shrink-0 lg:overflow-y-auto lg:max-h-full ${
-            language === "ar" ? "order-first lg:order-none" : ""
-          }`}
+      {/* Info */}
+      <div className="flex-1 min-w-0">
+        <p
+          className={cn("text-sm font-bold truncate", isSelf ? "text-primary" : "text-foreground")}
         >
-          <WhoIsOnline />
-          <LeaderboardSidebar />
+          {entry.name}
+          {isSelf && <span className="ml-1 text-[10px] font-black text-primary/70">(You)</span>}
+        </p>
+        <p className="text-[11px] text-muted-foreground truncate">
+          {entry.department ?? ""}
+          {entry.academicYear ? ` • ${entry.academicYear}` : ""}
+        </p>
+      </div>
+
+      {/* League badge */}
+      <div
+        className={cn(
+          "hidden sm:flex items-center gap-1 px-2 py-1 rounded-xl text-[10px] font-black border",
+          league.bg,
+          league.border,
+          league.color
+        )}
+      >
+        <span>{league.emoji}</span>
+        <span>{league.name}</span>
+      </div>
+
+      {/* Value */}
+      <div className="text-right flex-shrink-0">
+        <p className="text-sm font-black text-foreground">{value}</p>
+      </div>
+    </motion.div>
+  );
+}
+
+// ─── Main Page ─────────────────────────────────────────────────────────────────
+export default function CommunityLeaderboardPage() {
+  const { user } = useAuth();
+  const { language } = useLanguage();
+  const [entries, setEntries] = useState<LeaderEntry[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [activeCategory, setActiveCategory] = useState<CategoryId>("xp");
+  const [totalUsers, setTotalUsers] = useState(0);
+  const isAr = language === "ar";
+
+  useEffect(() => {
+    if (!db) return;
+    const q = query(collection(db, "users"), orderBy("points", "desc"), limit(100));
+    const unsub = onSnapshot(q, (snap) => {
+      setTotalUsers(snap.size);
+      const all: LeaderEntry[] = snap.docs.map((d, idx) => {
+        const data = d.data();
+        return {
+          uid: d.id,
+          name: data.displayName || data.email || "Unknown",
+          avatar: data.photoURL,
+          department: data.department,
+          academicYear: data.academicYear,
+          points: data.points ?? 0,
+          streakDays: data.streakDays ?? 0,
+          resourceCount: data.resourceCount ?? 0,
+          battleWins: data.battleWins ?? 0,
+          rank: idx + 1,
+        };
+      });
+      setEntries(all);
+      setLoading(false);
+    });
+    return () => unsub();
+  }, []);
+
+  // Sort by active category
+  const sorted = useMemo(() => {
+    const copy = [...entries];
+    const key: keyof LeaderEntry =
+      activeCategory === "xp"
+        ? "points"
+        : activeCategory === "streak"
+          ? "streakDays"
+          : activeCategory === "resources"
+            ? "resourceCount"
+            : "battleWins";
+    copy.sort((a, b) => (b[key] as number) - (a[key] as number));
+    return copy.slice(0, 50).map((e, i) => ({ ...e, rank: i + 1 }));
+  }, [entries, activeCategory]);
+
+  // Current user's rank in the current category
+  const myRank = sorted.findIndex((e) => e.uid === user?.uid) + 1;
+  const myEntry = sorted.find((e) => e.uid === user?.uid);
+
+  // Stats
+  const totalXP = entries.reduce((s, e) => s + e.points, 0);
+  const avgXP = entries.length ? Math.round(totalXP / entries.length) : 0;
+  const topStreak = Math.max(...entries.map((e) => e.streakDays), 0);
+
+  return (
+    <div className="min-h-screen bg-background">
+      <div className="max-w-7xl mx-auto px-4 py-6 space-y-6">
+        {/* ── Header ──────────────────────────────────────────────── */}
+        <FadeIn>
+          <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-amber-500/15 via-purple-600/10 to-blue-600/15 border border-amber-500/20 p-6 shadow-2xl">
+            <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,theme(colors.amber.500/8),transparent_70%)]" />
+            <div className="relative z-10">
+              <div className="flex items-center gap-3 mb-2">
+                <div className="p-3 bg-amber-500/20 rounded-2xl border border-amber-500/30">
+                  <Trophy className="w-6 h-6 text-amber-400" />
+                </div>
+                <div>
+                  <h1 className="text-2xl font-black text-foreground">
+                    {isAr ? "لوحة الصدارة" : "Leaderboard & Arena"}
+                  </h1>
+                  <p className="text-sm text-muted-foreground font-medium">
+                    {isAr
+                      ? "تنافس واصعد في الترتيب"
+                      : "Compete, level up, and dominate the rankings"}
+                  </p>
+                </div>
+              </div>
+
+              {/* Quick Stats */}
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mt-4">
+                {[
+                  {
+                    label: isAr ? "طلاب" : "Students",
+                    value: totalUsers,
+                    icon: Users,
+                    color: "text-blue-400",
+                  },
+                  {
+                    label: isAr ? "متوسط XP" : "Avg XP",
+                    value: avgXP.toLocaleString(),
+                    icon: Zap,
+                    color: "text-purple-400",
+                  },
+                  {
+                    label: isAr ? "أعلى سلسلة" : "Top Streak",
+                    value: `${topStreak}d`,
+                    icon: Flame,
+                    color: "text-orange-400",
+                  },
+                  {
+                    label: isAr ? "ترتيبك" : "Your Rank",
+                    value: myRank > 0 ? `#${myRank}` : "—",
+                    icon: Target,
+                    color: "text-emerald-400",
+                  },
+                ].map((stat, i) => (
+                  <motion.div
+                    key={stat.label}
+                    initial={{ opacity: 0, scale: 0.9 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    transition={{ delay: i * 0.07, type: "spring", stiffness: 300, damping: 22 }}
+                    className="bg-card/50 backdrop-blur-sm rounded-2xl border border-border/40 p-3 flex items-center gap-2"
+                  >
+                    <stat.icon className={cn("w-4 h-4 flex-shrink-0", stat.color)} />
+                    <div>
+                      <p className="text-base font-black text-foreground leading-none">
+                        {stat.value}
+                      </p>
+                      <p className="text-[10px] text-muted-foreground font-medium mt-0.5">
+                        {stat.label}
+                      </p>
+                    </div>
+                  </motion.div>
+                ))}
+              </div>
+            </div>
+          </div>
+        </FadeIn>
+
+        <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
+          {/* ── Left Column: Podium + Main Leaderboard ───────────── */}
+          <div className="xl:col-span-2 space-y-5">
+            {/* Podium */}
+            <FadeIn delay={0.05}>
+              <div className="bg-card/40 backdrop-blur-2xl rounded-3xl border border-border/40 shadow-xl overflow-hidden">
+                <div className="flex items-center justify-between px-4 pt-4 pb-2">
+                  <div className="flex items-center gap-2">
+                    <Crown className="w-5 h-5 text-amber-400" />
+                    <h2 className="text-sm font-black text-foreground">
+                      {isAr ? "منصة التتويج" : "Champions Podium"}
+                    </h2>
+                  </div>
+                  <span className="text-[10px] font-bold text-muted-foreground bg-muted/40 px-2 py-1 rounded-full">
+                    {isAr ? "الأسبوع الحالي" : "This Week"}
+                  </span>
+                </div>
+
+                {loading ? (
+                  <div className="h-48 flex items-center justify-center">
+                    <div className="w-8 h-8 border-2 border-amber-500/50 border-t-amber-500 rounded-full animate-spin" />
+                  </div>
+                ) : (
+                  <Podium entries={sorted} />
+                )}
+              </div>
+            </FadeIn>
+
+            {/* Category Switcher */}
+            <FadeIn delay={0.1}>
+              <div className="flex gap-2 flex-wrap">
+                {CATEGORIES.map((cat) => (
+                  <button
+                    key={cat.id}
+                    onClick={() => setActiveCategory(cat.id)}
+                    className={cn(
+                      "flex items-center gap-1.5 px-3 py-2 rounded-2xl text-xs font-black border transition-all duration-200",
+                      activeCategory === cat.id
+                        ? `bg-gradient-to-r ${cat.color} text-white border-transparent shadow-lg`
+                        : "bg-card/40 text-muted-foreground border-border/40 hover:text-foreground hover:border-border/60"
+                    )}
+                  >
+                    <cat.icon className="w-3.5 h-3.5" />
+                    {isAr ? cat.labelAr : cat.label}
+                  </button>
+                ))}
+              </div>
+            </FadeIn>
+
+            {/* My Rank Banner */}
+            {myEntry && (
+              <FadeIn delay={0.12}>
+                <div className="bg-primary/10 border border-primary/30 rounded-2xl px-4 py-3 flex items-center gap-3 shadow-sm">
+                  <div className="w-8 h-8 rounded-full bg-gradient-to-br from-primary to-purple-600 flex items-center justify-center text-white font-black text-sm">
+                    {user?.displayName?.[0]?.toUpperCase() ?? "?"}
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-black text-primary">
+                      {isAr ? "مكانتك الحالية" : "Your Current Standing"}
+                    </p>
+                    <p className="text-xs text-muted-foreground">
+                      Rank <span className="font-black text-foreground">#{myRank}</span> •{" "}
+                      {myEntry.points.toLocaleString()} XP • {myEntry.streakDays} day streak
+                    </p>
+                  </div>
+                  <div className="text-2xl">{getLeague(myEntry.points).emoji}</div>
+                </div>
+              </FadeIn>
+            )}
+
+            {/* Leaderboard List */}
+            <FadeIn delay={0.15}>
+              <div className="bg-card/40 backdrop-blur-2xl rounded-3xl border border-border/40 shadow-xl overflow-hidden">
+                <div className="px-4 py-3 border-b border-border/40 flex items-center gap-2">
+                  <BarChart2 className="w-4 h-4 text-muted-foreground" />
+                  <h2 className="text-sm font-black text-foreground">
+                    {isAr ? "الترتيب الكامل" : "Full Rankings"}
+                  </h2>
+                  <span className="ml-auto text-[10px] text-muted-foreground">
+                    Top {Math.min(sorted.length, 50)}
+                  </span>
+                </div>
+
+                <div className="p-3 space-y-2 max-h-[600px] overflow-y-auto scrollbar-thin">
+                  <AnimatePresence mode="popLayout">
+                    {loading ? (
+                      Array.from({ length: 10 }).map((_, i) => (
+                        <div
+                          key={i}
+                          className="h-[60px] rounded-2xl bg-muted/30 animate-pulse"
+                          style={{ animationDelay: `${i * 60}ms` }}
+                        />
+                      ))
+                    ) : sorted.length === 0 ? (
+                      <div className="text-center py-16 text-muted-foreground">
+                        <Trophy className="w-10 h-10 mx-auto mb-3 opacity-30" />
+                        <p className="text-sm font-medium">No rankings yet</p>
+                      </div>
+                    ) : (
+                      sorted.map((entry, idx) => (
+                        <LeaderRow
+                          key={entry.uid}
+                          entry={entry}
+                          category={activeCategory}
+                          currentUid={user?.uid}
+                          delay={idx * 0.03}
+                        />
+                      ))
+                    )}
+                  </AnimatePresence>
+                </div>
+              </div>
+            </FadeIn>
+          </div>
+
+          {/* ── Right Column: Leagues + Online + Challenges ──────── */}
+          <div className="space-y-5">
+            {/* League Divisions */}
+            <FadeIn delay={0.08}>
+              <div className="bg-card/40 backdrop-blur-2xl rounded-3xl border border-border/40 shadow-xl overflow-hidden">
+                <div className="px-4 py-3 border-b border-border/40 flex items-center gap-2">
+                  <Award className="w-4 h-4 text-muted-foreground" />
+                  <h2 className="text-sm font-black text-foreground">
+                    {isAr ? "الدوريات" : "League Divisions"}
+                  </h2>
+                </div>
+                <div className="p-3 space-y-2">
+                  {LEAGUES.map((league, i) => {
+                    const count = entries.filter(
+                      (e) => getLeague(e.points).name === league.name
+                    ).length;
+                    const userInLeague = myEntry && getLeague(myEntry.points).name === league.name;
+                    return (
+                      <motion.div
+                        key={league.name}
+                        initial={{ opacity: 0, x: 16 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        transition={{
+                          delay: i * 0.08,
+                          type: "spring",
+                          stiffness: 300,
+                          damping: 25,
+                        }}
+                        className={cn(
+                          "flex items-center gap-3 p-3 rounded-2xl border transition-all",
+                          league.bg,
+                          league.border,
+                          userInLeague ? "ring-1 ring-primary/40" : ""
+                        )}
+                      >
+                        <span className="text-xl">{league.emoji}</span>
+                        <div className="flex-1 min-w-0">
+                          <p className={cn("text-sm font-black", league.color)}>{league.name}</p>
+                          <p className="text-[11px] text-muted-foreground">
+                            {league.min.toLocaleString()}+ XP
+                          </p>
+                        </div>
+                        <div className="flex items-center gap-1">
+                          <Users className="w-3 h-3 text-muted-foreground" />
+                          <span className="text-xs font-bold text-muted-foreground">{count}</span>
+                        </div>
+                        {userInLeague && (
+                          <span className="text-[10px] font-black text-primary bg-primary/10 px-2 py-0.5 rounded-full border border-primary/20">
+                            You
+                          </span>
+                        )}
+                      </motion.div>
+                    );
+                  })}
+                </div>
+              </div>
+            </FadeIn>
+
+            {/* Weekly Challenges */}
+            <FadeIn delay={0.12}>
+              <div className="bg-card/40 backdrop-blur-2xl rounded-3xl border border-border/40 shadow-xl overflow-hidden">
+                <div className="px-4 py-3 border-b border-border/40 flex items-center gap-2">
+                  <Target className="w-4 h-4 text-muted-foreground" />
+                  <h2 className="text-sm font-black text-foreground">
+                    {isAr ? "تحديات الأسبوع" : "Weekly Challenges"}
+                  </h2>
+                </div>
+                <div className="p-3 space-y-3">
+                  {[
+                    {
+                      emoji: "📚",
+                      title: "Upload 3 resources",
+                      desc: "Share notes or slides",
+                      xp: "+150 XP",
+                      progress: 1,
+                      total: 3,
+                      color: "bg-emerald-500",
+                    },
+                    {
+                      emoji: "🔥",
+                      title: "5-day study streak",
+                      desc: "Study every day this week",
+                      xp: "+200 XP",
+                      progress: 3,
+                      total: 5,
+                      color: "bg-orange-500",
+                    },
+                    {
+                      emoji: "⚔️",
+                      title: "Win 2 study battles",
+                      desc: "Defeat opponents in 1v1",
+                      xp: "+300 XP",
+                      progress: 0,
+                      total: 2,
+                      color: "bg-blue-500",
+                    },
+                    {
+                      emoji: "🧠",
+                      title: "Complete a quiz",
+                      desc: "Score 80%+ on any quiz",
+                      xp: "+100 XP",
+                      progress: 0,
+                      total: 1,
+                      color: "bg-purple-500",
+                    },
+                  ].map((challenge, i) => (
+                    <motion.div
+                      key={i}
+                      initial={{ opacity: 0, y: 12 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ delay: i * 0.08, type: "spring", stiffness: 300, damping: 25 }}
+                      className="bg-background/50 rounded-2xl p-3 border border-border/30"
+                    >
+                      <div className="flex items-start gap-2 mb-2">
+                        <span className="text-base">{challenge.emoji}</span>
+                        <div className="flex-1 min-w-0">
+                          <p className="text-xs font-black text-foreground">{challenge.title}</p>
+                          <p className="text-[10px] text-muted-foreground">{challenge.desc}</p>
+                        </div>
+                        <span className="text-[10px] font-black text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded-full border border-emerald-500/20 flex-shrink-0">
+                          {challenge.xp}
+                        </span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <div className="flex-1 bg-muted/40 rounded-full h-1.5 overflow-hidden">
+                          <motion.div
+                            initial={{ width: 0 }}
+                            animate={{ width: `${(challenge.progress / challenge.total) * 100}%` }}
+                            transition={{ delay: 0.5 + i * 0.1, duration: 0.6 }}
+                            className={cn("h-full rounded-full", challenge.color)}
+                          />
+                        </div>
+                        <span className="text-[10px] text-muted-foreground font-semibold">
+                          {challenge.progress}/{challenge.total}
+                        </span>
+                      </div>
+                    </motion.div>
+                  ))}
+                </div>
+              </div>
+            </FadeIn>
+
+            {/* Who's Online */}
+            <FadeIn delay={0.16}>
+              <WhoIsOnline />
+            </FadeIn>
+          </div>
         </div>
       </div>
     </div>

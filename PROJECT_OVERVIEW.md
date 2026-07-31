@@ -72,12 +72,9 @@
 - **Academic Task Manager (`/todo`)**:
   - Interactive Todo list with priority filters, search, due date pickers, and progress tracking.
   - **AI Task Assistant Modal (`AITaskAssistantModal`)**: AI-powered task generator and breakdown tool (`/api/ai/generate-todos`, `/api/ai/suggest-breakdown`).
-- **Community Hub & Chat (`/community`, `/community/chat`)**:
-  - Channel-based real-time chat (Global Chat, Subject Specific Rooms) powered by Firestore `chat_messages`.
-  - Rich text formatting, link detection, and bad-words profanity filtering (`src/lib/profanityFilter.ts`).
-- **Student Leaderboard (`/community/leaderboard`)**:
-  - Real-time XP & activity ranking showing top-performing students across institutes.
-  - Periodic automated updates via cron (`/api/cron/sync-leaderboard`).
+- **Student Leaderboard & Competition Hub (`/community`, `/community/leaderboard`)**:
+  - Overhauled competition dashboard with Champions Podium (Top 3), League Divisions (Diamond 💎, Gold 🥇, Silver 🥈, Bronze 🥉), category-specific leaderboards (XP, Streaks, Resources, Battles), weekly challenges, and real-time student standings.
+  - **Public User Profile Modal (`UserProfileModal.tsx`)**: Reusable profile popup showing student ID, department, league tier, XP progress, streaks, uploaded resources, and battle wins.
 - **Student Profile & Setup (`/profile`)**:
   - Interactive student profile with photo, email, and 6-digit student code display.
   - **Weighted GPA & Grade Calculator Widget (`GpaCalculatorWidget.tsx`)**: Real-time 4.0 scale weighted GPA calculation widget (`A+` to `F`), course addition/removal, credit weighting, and instant grade point updates.
@@ -88,7 +85,7 @@
 ### C. Global Widgets & AI Assistant
 
 - **Global AI Chatbot Floating Drawer (`AIChatbot`)**:
-  - Floating drawer with smooth 60fps drag resizing and tabbed views (AI Assistant vs Live Support).
+  - Floating drawer with smooth 60fps drag resizing and 3 interactive tabs: AI Assistant 🤖, Live Support 🎧, and Global Community Chat 💬 (`GlobalChat.tsx`).
   - Contextual AI answers powered by real-time Firestore subject data, study resources, and student tasks (`src/lib/aiService.ts`).
 - **Focus Timer Widget (`FocusTimer`)**:
   - Pomodoro timer widget for structured study sessions with sound effects and completion tracking.

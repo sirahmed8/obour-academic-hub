@@ -21,7 +21,7 @@ type CoreMessage = {
   content: string | Array<{ type: "text"; text: string } | { type: "image"; image: string | URL }>;
 };
 
-export type ChatbotMode = "live" | "bot";
+export type ChatbotMode = "live" | "bot" | "community";
 
 export type ChatbotAttachment = {
   url: string;
