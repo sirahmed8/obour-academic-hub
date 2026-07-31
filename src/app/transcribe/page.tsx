@@ -32,13 +32,14 @@ export default function TranscribePage() {
       return;
     }
 
-    // Request microphone permission explicitly
+    // Request microphone permission explicitly, then release the stream
     try {
       if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
-        await navigator.mediaDevices.getUserMedia({ audio: true });
+        const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+        // Close all tracks immediately — SpeechRecognition manages its own mic access
+        stream.getTracks().forEach((track) => track.stop());
       }
-    } catch (err) {
-      console.error("Microphone permission denied:", err);
+    } catch {
       toast.error(
         isRtl
           ? "يرجى السماح بالوصول للميكروفون في المتصفح 🎙️"
@@ -48,28 +49,13 @@ export default function TranscribePage() {
     }
 
     try {
-      const win = window as unknown as Record<
-        string,
-        new () => {
-          lang: string;
-          continuous: boolean;
-          interimResults: boolean;
-          onstart: () => void;
-          onresult: (event: {
-            resultIndex: number;
-            results: Array<{ [key: number]: { transcript: string } }>;
-          }) => void;
-          onerror: (event: { error: string }) => void;
-          onend: () => void;
-          start: () => void;
-          stop: () => void;
-        }
-      >;
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const SpeechRecognitionAPI =
+        (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
+      if (!SpeechRecognitionAPI) return;
 
-      const SpeechRecognition = win.SpeechRecognition || win.webkitSpeechRecognition;
-      if (!SpeechRecognition) return;
-
-      const recognition = new SpeechRecognition();
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const recognition: any = new SpeechRecognitionAPI();
       recognition.lang = isRtl ? "ar-EG" : "en-US";
       recognition.continuous = true;
       recognition.interimResults = true;
@@ -82,22 +68,26 @@ export default function TranscribePage() {
         );
       };
 
-      recognition.onresult = (event) => {
-        let finalChunk = "";
+      recognition.onresult = (event: {
+        resultIndex: number;
+        results: { [key: number]: { transcript: string }; isFinal: boolean }[];
+      }) => {
+        let chunk = "";
         for (let i = event.resultIndex; i < event.results.length; i++) {
-          finalChunk += event.results[i][0].transcript;
+          chunk += event.results[i][0].transcript;
         }
-        if (finalChunk.trim()) {
+        if (chunk.trim()) {
           setRawText((prev) => {
-            if (!prev.includes(finalChunk.trim())) {
-              return prev ? prev + " " + finalChunk.trim() : finalChunk.trim();
+            const trimmed = chunk.trim();
+            if (!prev.includes(trimmed)) {
+              return prev ? prev + " " + trimmed : trimmed;
             }
             return prev;
           });
         }
       };
 
-      recognition.onerror = (event) => {
+      recognition.onerror = (event: { error: string }) => {
         if (event.error === "not-allowed") {
           setIsRecording(false);
           recognitionRef.current = null;
@@ -106,7 +96,7 @@ export default function TranscribePage() {
               ? "يرجى تفعيل صلاحية الميكروفون في المتصفح 🎙️"
               : "Please allow microphone access in your browser 🎙️"
           );
-        } else if (event.error !== "no-speech") {
+        } else if (event.error !== "no-speech" && event.error !== "aborted") {
           console.warn("Speech recognition warning:", event.error);
         }
       };
@@ -116,16 +106,14 @@ export default function TranscribePage() {
           setIsRecording(false);
           recognitionRef.current = null;
           toast.success(isRtl ? "انتهى التسجيل ✅" : "Recording stopped ✅");
-        } else if (recognitionRef.current) {
-          // Restart automatically if not manually stopped
+        } else {
+          // Auto-restart if not manually stopped
           try {
-            recognitionRef.current.start();
+            recognition.start();
           } catch {
             setIsRecording(false);
             recognitionRef.current = null;
           }
-        } else {
-          setIsRecording(false);
         }
       };
 

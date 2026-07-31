@@ -363,10 +363,10 @@ export default function CommunityLeaderboardPage() {
                   <Trophy className="w-6 h-6 text-amber-400" />
                 </div>
                 <div>
-                  <h1 className="text-2xl font-black text-foreground">
+                  <h1 className="text-2xl font-black text-white">
                     {isAr ? "لوحة الصدارة" : "Leaderboard & Arena"}
                   </h1>
-                  <p className="text-sm text-muted-foreground font-medium">
+                  <p className="text-sm text-white/60 font-medium">
                     {isAr
                       ? "تنافس واصعد في الترتيب"
                       : "Compete, level up, and dominate the rankings"}
@@ -407,16 +407,12 @@ export default function CommunityLeaderboardPage() {
                     initial={{ opacity: 0, scale: 0.9 }}
                     animate={{ opacity: 1, scale: 1 }}
                     transition={{ delay: i * 0.07, type: "spring", stiffness: 300, damping: 22 }}
-                    className="bg-card/50 backdrop-blur-sm rounded-2xl border border-border/40 p-3 flex items-center gap-2"
+                    className="bg-white/10 backdrop-blur-sm rounded-2xl border border-white/10 p-3 flex items-center gap-2"
                   >
                     <stat.icon className={cn("w-4 h-4 flex-shrink-0", stat.color)} />
                     <div>
-                      <p className="text-base font-black text-foreground leading-none">
-                        {stat.value}
-                      </p>
-                      <p className="text-[10px] text-muted-foreground font-medium mt-0.5">
-                        {stat.label}
-                      </p>
+                      <p className="text-base font-black text-white leading-none">{stat.value}</p>
+                      <p className="text-[10px] text-white/60 font-medium mt-0.5">{stat.label}</p>
                     </div>
                   </motion.div>
                 ))}

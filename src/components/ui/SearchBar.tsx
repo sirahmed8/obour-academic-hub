@@ -305,7 +305,7 @@ export function SearchBar() {
           setIsOpen(true);
           setQuery("");
         }}
-        className="flex items-center justify-between w-full max-w-md h-10 px-3 transition-all duration-300 rounded-xl border bg-muted/30 border-transparent hover:bg-muted/50 text-muted-foreground hover:text-foreground group"
+        className="flex items-center justify-between w-full max-w-md h-10 px-4 transition-all duration-300 rounded-xl border bg-muted/30 border-border/60 hover:bg-muted/50 hover:border-primary/40 text-muted-foreground hover:text-foreground group"
       >
         <div className="flex items-center gap-2">
           <Search className="w-4 h-4 text-muted-foreground group-hover:text-primary transition-colors" />
@@ -339,7 +339,7 @@ export function SearchBar() {
               className="relative w-full max-w-lg bg-card border border-border rounded-2xl shadow-2xl overflow-hidden z-10"
             >
               {/* Search Input Bar */}
-              <div className="flex items-center gap-3 px-5 py-4 border-b border-border/80 bg-card/95">
+              <div className="flex items-center gap-3 px-5 h-14 border-b border-border/80 bg-card/95">
                 <Search className="w-5 h-5 text-primary flex-shrink-0" />
                 <input
                   ref={inputRef}
@@ -355,7 +355,7 @@ export function SearchBar() {
                       ? "اكتب للبحث عن مادة، قسم، أداة دراسية..."
                       : "Type a command or search academic resources..."
                   }
-                  className="no-focus-ring flex-1 bg-transparent border-none outline-none ring-0 shadow-none text-base font-medium placeholder:text-muted-foreground/50 text-foreground focus:ring-0 focus:outline-none leading-normal p-0 m-0"
+                  className="no-focus-ring flex-1 min-h-0 h-auto bg-transparent border-none outline-none ring-0 shadow-none text-base font-medium placeholder:text-muted-foreground/50 text-foreground focus:ring-0 focus:outline-none p-0 m-0 leading-6"
                 />
                 {query && (
                   <button

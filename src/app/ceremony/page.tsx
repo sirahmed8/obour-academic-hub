@@ -69,11 +69,11 @@ export default function SeasonCeremonyPage() {
             <span>{isRtl ? "حفل ختام الفصل الدراسي" : "End-of-Semester Ceremony"}</span>
           </div>
 
-          <h1 className="text-4xl sm:text-6xl font-black text-foreground tracking-tight font-harman">
+          <h1 className="text-4xl sm:text-6xl font-black text-white tracking-tight font-harman">
             {isRtl ? "🏆 حفل تكريم المتفوقين في معهد العبور" : "🏆 Obour Academic Season Ceremony"}
           </h1>
 
-          <p className="text-muted-foreground text-sm sm:text-base max-w-2xl mx-auto font-medium leading-relaxed">
+          <p className="text-white/70 text-sm sm:text-base max-w-2xl mx-auto font-medium leading-relaxed">
             {isRtl
               ? "نحتفل بجميع الطلاب المتفوقين وأبطال السلسلة الدراسية الذين حققوا أعلى الإنجازات الأكاديمية والخدمية للمجتمع."
               : "Celebrating top student performers, streak champions, and academic contributors of the semester."}

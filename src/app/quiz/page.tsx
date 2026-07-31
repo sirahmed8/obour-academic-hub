@@ -1,13 +1,15 @@
 "use client";
 
-import { useState } from "react";
-import { useLanguage } from "@/contexts";
+import { useState, useEffect } from "react";
+import { useLanguage, useAuth } from "@/contexts";
 import { HelpCircle, CheckCircle2, XCircle, Sparkles, Trophy, RefreshCw } from "lucide-react";
 import { FadeIn, ScaleIn } from "@/components/ui/Animations";
 import { motion } from "framer-motion";
 import { toast } from "sonner";
 import { apiFetch } from "@/lib/api-client";
 import { CustomSelect } from "@/components/ui/CustomSelect";
+import { collection, getDocs } from "firebase/firestore";
+import { db } from "@/lib/firebase";
 
 interface Question {
   id: string;
@@ -26,12 +28,14 @@ interface Quiz {
 
 export default function QuizPage() {
   const { language } = useLanguage();
+  const { user } = useAuth();
   const isRtl = language === "ar";
 
   const [subjectName, setSubjectName] = useState("");
   const [topic, setTopic] = useState("");
   const [difficulty, setDifficulty] = useState<"easy" | "medium" | "hard">("medium");
   const [questionCount, setQuestionCount] = useState(5);
+  const [enrolledSubjects, setEnrolledSubjects] = useState<string[]>([]);
 
   const [loading, setLoading] = useState(false);
   const [quiz, setQuiz] = useState<Quiz | null>(null);
@@ -40,6 +44,22 @@ export default function QuizPage() {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [selectedAnswers, setSelectedAnswers] = useState<Record<number, number>>({});
   const [isSubmitted, setIsSubmitted] = useState(false);
+
+  // Load enrolled subjects from Firestore
+  useEffect(() => {
+    if (!user?.uid || !db) return;
+    getDocs(collection(db, `users/${user.uid}/subjects`))
+      .then((snap) => {
+        const names: string[] = [];
+        snap.forEach((doc) => {
+          const data = doc.data();
+          const name = (data.name || data.title || doc.id) as string;
+          if (name) names.push(name);
+        });
+        setEnrolledSubjects(names.slice(0, 10));
+      })
+      .catch(() => {});
+  }, [user?.uid]);
 
   const handleGenerateQuiz = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -131,29 +151,24 @@ export default function QuizPage() {
                 <label className="block text-xs font-bold text-foreground mb-1">
                   {isRtl ? "اختيار المادة الدراسية *" : "Select or Enter Subject Name *"}
                 </label>
-                <div className="flex flex-wrap gap-2 mb-3">
-                  {[
-                    { ar: "برمجة كائنية OOP", en: "Object Oriented Programming" },
-                    { ar: "قواعد البيانات", en: "Databases & SQL" },
-                    { ar: "شبكات الحاسب", en: "Computer Networks" },
-                    { ar: "هندسة البرمجيات", en: "Software Engineering" },
-                    { ar: "خوارزميات وهياكل بيانات", en: "Data Structures & Algorithms" },
-                    { ar: "ذكاء اصطناعي", en: "Artificial Intelligence" },
-                  ].map((sub) => (
-                    <button
-                      key={sub.en}
-                      type="button"
-                      onClick={() => setSubjectName(isRtl ? sub.ar : sub.en)}
-                      className={`px-3 py-1.5 rounded-full text-xs font-extrabold transition-all border ${
-                        subjectName === (isRtl ? sub.ar : sub.en)
-                          ? "bg-primary text-white border-primary shadow-md"
-                          : "bg-muted/60 text-muted-foreground border-border hover:bg-primary/10 hover:text-primary"
-                      }`}
-                    >
-                      {isRtl ? sub.ar : sub.en}
-                    </button>
-                  ))}
-                </div>
+                {enrolledSubjects.length > 0 && (
+                  <div className="flex flex-wrap gap-2 mb-3">
+                    {enrolledSubjects.map((sub) => (
+                      <button
+                        key={sub}
+                        type="button"
+                        onClick={() => setSubjectName(sub)}
+                        className={`px-3 py-1.5 rounded-full text-xs font-extrabold transition-all border ${
+                          subjectName === sub
+                            ? "bg-primary text-white border-primary shadow-md"
+                            : "bg-muted/60 text-muted-foreground border-border hover:bg-primary/10 hover:text-primary"
+                        }`}
+                      >
+                        {sub}
+                      </button>
+                    ))}
+                  </div>
+                )}
                 <input
                   type="text"
                   required
