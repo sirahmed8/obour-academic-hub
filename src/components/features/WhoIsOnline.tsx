@@ -12,9 +12,12 @@ import { Users } from "lucide-react";
 import { cn } from "@/lib/utils";
 import Image from "next/image";
 
+import { UserProfileModal } from "@/components/ui/UserProfileModal";
+
 export function WhoIsOnline() {
   const [onlineUsers, setOnlineUsers] = useState<UserPresence[]>([]);
-  const { user: currentUser, isOwner, isAdmin, loading } = useAuth();
+  const [selectedUserUid, setSelectedUserUid] = useState<string | null>(null);
+  const { user: currentUser, loading } = useAuth();
   const { t } = useLanguage();
 
   useEffect(() => {
@@ -68,80 +71,73 @@ export function WhoIsOnline() {
     return () => {
       off(presenceRef, "value", handleValue);
     };
-  }, [currentUser?.uid, isAdmin]);
+  }, [currentUser?.uid]);
 
   if (loading || !currentUser || onlineUsers.length === 0) return null;
 
-  // Owners see the full list below the count, Admins only see the count pill
-  if (!isOwner) {
-    return (
-      <div className="flex items-center gap-1.5 px-3 py-1 bg-green-500/10 text-green-600 dark:text-green-400 rounded-full text-xs font-bold border border-green-500/20 w-fit">
-        <span className="relative flex h-2 w-2">
-          <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
-          <span className="relative inline-flex rounded-full h-2 w-2 bg-green-500"></span>
-        </span>
-        {onlineUsers.length} {t("dashboard.onlineCount")}
-      </div>
-    );
-  }
-
-  // Owners see the full list below the count
   return (
-    <div className="space-y-4">
-      <div className="flex items-center justify-between">
-        <h2 className="text-xl font-bold text-foreground flex items-center gap-2">
-          <Users className="text-primary w-5 h-5" />
-          {t("dashboard.whosOnline")}
-        </h2>
-        <div className="flex items-center gap-1.5 px-3 py-1 bg-green-500/10 text-green-600 dark:text-green-400 rounded-full text-xs font-bold border border-green-500/20">
-          <span className="relative flex h-2 w-2">
-            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
-            <span className="relative inline-flex rounded-full h-2 w-2 bg-green-500"></span>
-          </span>
-          {onlineUsers.length} {t("dashboard.onlineCount")}
+    <>
+      <div className="space-y-4">
+        <div className="flex items-center justify-between">
+          <h2 className="text-xl font-bold text-foreground flex items-center gap-2 font-harman">
+            <Users className="text-primary w-5 h-5" />
+            {t("dashboard.whosOnline")}
+          </h2>
+          <div className="flex items-center gap-1.5 px-3 py-1 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 rounded-full text-xs font-bold border border-emerald-500/20">
+            <span className="relative flex h-2 w-2">
+              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+              <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+            </span>
+            {onlineUsers.length} {t("dashboard.onlineCount")}
+          </div>
         </div>
-      </div>
-      <StaggerChildren className="flex flex-wrap gap-3">
-        {onlineUsers.map((u) => (
-          <ScaleIn key={u.uid} className="group relative" title={`${u.displayName} (${u.email})`}>
-            <div
-              className={cn(
-                "flex items-center gap-2 p-1.5 pr-4 rounded-2xl border transition-all duration-300 hover:scale-105",
-                u.uid === currentUser?.uid
-                  ? "bg-primary/10 border-primary/20 ring-2 ring-primary/15 shadow-md shadow-primary/5"
-                  : "bg-card border border-border hover:border-primary/40 hover:shadow-lg"
-              )}
-            >
-              <div className="relative">
-                {u.photoURL ? (
-                  <div className="relative w-8 h-8 rounded-xl overflow-hidden border border-border/50 shadow-sm">
-                    <Image src={u.photoURL} alt={u.displayName} fill className="object-cover" />
-                  </div>
-                ) : (
-                  <div className="w-8 h-8 rounded-xl bg-gradient-to-tr from-primary/20 to-indigo-500/20 flex items-center justify-center text-primary font-black text-xs border border-primary/20 shadow-sm">
-                    {u.displayName.charAt(0).toUpperCase()}
-                  </div>
+        <StaggerChildren className="flex flex-wrap gap-2.5">
+          {onlineUsers.map((u) => (
+            <ScaleIn key={u.uid} className="group relative" title={`${u.displayName} (${u.email})`}>
+              <button
+                type="button"
+                onClick={() => setSelectedUserUid(u.uid)}
+                className={cn(
+                  "flex items-center gap-2 p-1.5 pr-3.5 rounded-2xl border transition-all duration-300 hover:scale-105 cursor-pointer text-left",
+                  u.uid === currentUser?.uid
+                    ? "bg-primary/10 border-primary/20 ring-2 ring-primary/15 shadow-md shadow-primary/5"
+                    : "bg-card border border-border hover:border-primary/40 hover:shadow-lg dark:bg-card"
                 )}
-                <div className="absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 bg-emerald-500 rounded-full border-2 border-background shadow-sm animate-pulse" />
-              </div>
+              >
+                <div className="relative">
+                  {u.photoURL ? (
+                    <div className="relative w-8 h-8 rounded-xl overflow-hidden border border-border/50 shadow-sm">
+                      <Image src={u.photoURL} alt={u.displayName} fill className="object-cover" />
+                    </div>
+                  ) : (
+                    <div className="w-8 h-8 rounded-xl bg-gradient-to-tr from-primary/20 to-indigo-500/20 flex items-center justify-center text-primary font-black text-xs border border-primary/20 shadow-sm">
+                      {u.displayName.charAt(0).toUpperCase()}
+                    </div>
+                  )}
+                  <div className="absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 bg-emerald-500 rounded-full border-2 border-background shadow-sm animate-pulse" />
+                </div>
 
-              <div className="flex flex-col">
-                <span className="text-xs font-bold text-foreground leading-none">
-                  {u.uid === currentUser?.uid ? t("dashboard.you") : u.displayName.split(" ")[0]}
-                </span>
-                {u.currentPath && (
-                  <span
-                    className="text-[10px] text-muted-foreground mt-0.5 max-w-[150px] truncate leading-none"
-                    title={u.currentPath}
-                  >
-                    {u.currentPath}
+                <div className="flex flex-col min-w-0">
+                  <span className="text-xs font-bold text-foreground leading-none truncate">
+                    {u.uid === currentUser?.uid ? t("dashboard.you") : u.displayName.split(" ")[0]}
                   </span>
-                )}
-              </div>
-            </div>
-          </ScaleIn>
-        ))}
-      </StaggerChildren>
-    </div>
+                  {u.currentPath && (
+                    <span
+                      className="text-[10px] text-muted-foreground mt-0.5 max-w-[120px] truncate leading-none opacity-80"
+                      title={u.currentPath}
+                    >
+                      {u.currentPath}
+                    </span>
+                  )}
+                </div>
+              </button>
+            </ScaleIn>
+          ))}
+        </StaggerChildren>
+      </div>
+
+      {/* User Profile Modal */}
+      <UserProfileModal uid={selectedUserUid} onClose={() => setSelectedUserUid(null)} />
+    </>
   );
 }

@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useMemo, useCallback } from "react";
+import { usePathname } from "next/navigation";
 import Link from "next/link";
 import { useAuth, useLanguage, useSolidMode } from "@/contexts";
 import { Sidebar } from "./Sidebar";
@@ -105,6 +106,15 @@ export function AppShell({ children }: { children: React.ReactNode }) {
 
   // Enable global keyboard shortcuts
   useGlobalKeyboard();
+
+  const pathname = usePathname();
+
+  // Automatically scroll to top whenever the route changes
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      window.scrollTo({ top: 0, left: 0, behavior: "instant" });
+    }
+  }, [pathname]);
 
   // Log Page View using centralized hook
   usePageTracking();

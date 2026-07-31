@@ -185,6 +185,8 @@ export interface ChatSession {
   isTyping?: boolean;
   isPinned?: boolean;
   userImage?: string; // Profile picture URL
+  status?: string;
+  isOnline?: boolean;
 }
 
 export interface TodoTask {

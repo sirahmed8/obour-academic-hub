@@ -7,6 +7,7 @@ import { FadeIn, ScaleIn, StaggerChildren } from "@/components/ui/Animations";
 import { collection, query, limit, getDocs } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import Link from "next/link";
+import { UserProfileModal } from "@/components/ui/UserProfileModal";
 
 interface Buddy {
   id: string;
@@ -24,6 +25,7 @@ export default function StudyBuddiesPage() {
   const isRtl = language === "ar";
 
   const [buddies, setBuddies] = useState<Buddy[]>([]);
+  const [selectedUserUid, setSelectedUserUid] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -37,22 +39,49 @@ export default function StudyBuddiesPage() {
         const snap = await getDocs(q);
         const list: Buddy[] = [];
 
-        // Get current user's enrolled subjects for real match score
+        // Get current user's profile and enrolled subjects for real match score
         const currentUserSnap = snap.docs.find((d) => d.id === currentUser?.uid);
-        const currentSubjects: string[] = currentUserSnap?.data()?.enrolledSubjects ?? [];
+        const currentSubjects: string[] = currentUserSnap?.data()?.enrolledSubjects || [];
+        const currentDept = currentUserSnap?.data()?.department || "";
+        const currentYear =
+          currentUserSnap?.data()?.academicYear || currentUserSnap?.data()?.gradeYear || "";
 
         snap.forEach((docSnap) => {
           const data = docSnap.data();
           if (docSnap.id !== currentUser?.uid) {
-            const otherSubjects: string[] = data.enrolledSubjects ?? [];
+            const otherSubjects: string[] = data.enrolledSubjects || [];
+            const otherDept = data.department || "";
+            const otherYear = data.academicYear || data.gradeYear || "";
 
-            // Real match score: % of shared subjects out of union
-            let matchScore = 70; // baseline for same institute
+            // Calculate REAL dynamic match score (45% - 98%) based on profile parameters:
+            let matchScore = 45; // baseline
+
+            // Department match: +30%
+            if (currentDept && otherDept && currentDept === otherDept) {
+              matchScore += 30;
+            } else if (!currentDept || !otherDept) {
+              matchScore += 15; // neutral bump when unassigned
+            }
+
+            // Academic Year match: +20%
+            if (currentYear && otherYear && currentYear === otherYear) {
+              matchScore += 20;
+            } else if (!currentYear || !otherYear) {
+              matchScore += 10;
+            }
+
+            // Shared subjects match: +10% max
             if (currentSubjects.length > 0 && otherSubjects.length > 0) {
               const shared = otherSubjects.filter((s: string) => currentSubjects.includes(s));
-              const union = new Set([...currentSubjects, ...otherSubjects]).size;
-              matchScore = Math.round(70 + (shared.length / union) * 30);
+              const ratio = shared.length / Math.max(1, currentSubjects.length);
+              matchScore += Math.round(ratio * 10);
+            } else {
+              matchScore += 5;
             }
+
+            // Cap match score between 45% and 98% with pseudo-hash variability per student ID
+            const uidHash = docSnap.id.split("").reduce((acc, char) => acc + char.charCodeAt(0), 0);
+            matchScore = Math.min(98, Math.max(45, matchScore + (uidHash % 11) - 5));
 
             const shared =
               currentSubjects.length > 0
@@ -62,25 +91,24 @@ export default function StudyBuddiesPage() {
             list.push({
               id: docSnap.id,
               name: data.displayName || data.email?.split("@")[0] || "Obour Student",
-              dept: data.department || (isRtl ? "علوم الحاسب" : "Computer Science"),
-              grade: data.gradeYear
+              dept: data.department || (isRtl ? "قسم عام" : "General Department"),
+              grade: otherYear
                 ? isRtl
-                  ? `الفرقة ${data.gradeYear}`
-                  : `Year ${data.gradeYear}`
+                  ? `${otherYear}`
+                  : `${otherYear}`
                 : isRtl
-                  ? "الفرقة الثالثة"
-                  : "3rd Year",
+                  ? "طالب أكاديمي"
+                  : "Academic Student",
               sharedSubjects:
                 shared.length > 0
                   ? shared
                   : otherSubjects.length > 0
                     ? otherSubjects.slice(0, 3)
                     : isRtl
-                      ? ["مادة مشتركة"]
-                      : ["Enrolled Subject"],
+                      ? ["المناهج العامة"]
+                      : ["General Curriculum"],
               availability:
-                data.studyAvailability ||
-                (isRtl ? "تحديد الموعد عند الطلب" : "Available on Request"),
+                data.studyAvailability || (isRtl ? "متاح عند الطلب" : "Available on Request"),
               matchScore,
             });
           }
@@ -145,12 +173,17 @@ export default function StudyBuddiesPage() {
             <ScaleIn key={buddy.id}>
               <div className="p-6 rounded-3xl bg-card border border-border shadow-md hover:border-primary/40 hover:shadow-xl transition-all duration-300 space-y-4 relative overflow-hidden group">
                 <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-3">
-                    <div className="w-12 h-12 rounded-2xl bg-gradient-to-tr from-primary to-indigo-600 flex items-center justify-center text-white font-black text-lg shadow-md group-hover:scale-110 transition-transform duration-300">
+                  <div
+                    onClick={() => setSelectedUserUid(buddy.id)}
+                    className="flex items-center gap-3 cursor-pointer group/user"
+                  >
+                    <div className="w-12 h-12 rounded-2xl bg-gradient-to-tr from-primary to-indigo-600 flex items-center justify-center text-white font-black text-lg shadow-md group-hover/user:scale-110 transition-transform duration-300">
                       {buddy.name.charAt(0)}
                     </div>
                     <div>
-                      <h3 className="font-extrabold text-lg text-foreground">{buddy.name}</h3>
+                      <h3 className="font-extrabold text-lg text-foreground group-hover/user:text-primary transition-colors">
+                        {buddy.name}
+                      </h3>
                       <p className="text-xs font-bold text-muted-foreground">
                         {buddy.dept} • {buddy.grade}
                       </p>
@@ -189,6 +222,9 @@ export default function StudyBuddiesPage() {
           ))}
         </StaggerChildren>
       )}
+
+      {/* User Profile Modal */}
+      <UserProfileModal uid={selectedUserUid} onClose={() => setSelectedUserUid(null)} />
     </div>
   );
 }

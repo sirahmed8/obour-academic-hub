@@ -63,7 +63,7 @@ export default function SeasonCeremonyPage() {
     <div className="p-4 sm:p-6 lg:p-10 space-y-8 w-full page-transition min-h-screen max-w-7xl mx-auto">
       {/* Hero Banner */}
       <FadeIn>
-        <div className="relative rounded-3xl sm:rounded-4xl overflow-hidden bg-gradient-to-tr from-amber-500/20 via-primary/20 to-purple-600/20 border border-amber-500/30 p-8 sm:p-12 shadow-2xl text-center space-y-4">
+        <div className="relative rounded-3xl sm:rounded-4xl overflow-hidden bg-card border border-border p-8 sm:p-12 shadow-2xl text-center space-y-4 dark:bg-card">
           <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-amber-500/20 text-amber-400 font-extrabold text-xs uppercase tracking-widest border border-amber-500/30">
             <Sparkles size={14} className="animate-spin" />
             <span>{isRtl ? "حفل ختام الفصل الدراسي" : "End-of-Semester Ceremony"}</span>

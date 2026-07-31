@@ -133,9 +133,9 @@
     transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
   }
 
-  input:not([type="checkbox"]):not([type="radio"]):focus,
-  textarea:focus,
-  select:focus {
+  input:not([type="checkbox"]):not([type="radio"]):not(.no-focus-ring):focus,
+  textarea:not(.no-focus-ring):focus,
+  select:not(.no-focus-ring):focus {
     outline: none !important;
     box-shadow:
       0 0 0 3px rgba(99, 102, 241, 0.3),
@@ -169,9 +169,9 @@
   }
 
   /* Force input focus ring visibility even in solid mode */
-  body.solid-mode input:not([type="checkbox"]):not([type="radio"]):focus,
-  body.solid-mode textarea:focus,
-  body.solid-mode select:focus {
+  body.solid-mode input:not([type="checkbox"]):not([type="radio"]):not(.no-focus-ring):focus,
+  body.solid-mode textarea:not(.no-focus-ring):focus,
+  body.solid-mode select:not(.no-focus-ring):focus {
     box-shadow:
       0 0 0 3px rgba(99, 102, 241, 0.35),
       0 0 20px rgba(99, 102, 241, 0.2) !important;

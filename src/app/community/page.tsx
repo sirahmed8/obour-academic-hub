@@ -20,6 +20,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { collection, query, orderBy, limit, onSnapshot } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import { cn } from "@/lib/utils";
+import { UserProfileModal } from "@/components/ui/UserProfileModal";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 interface LeaderEntry {
@@ -118,7 +119,13 @@ function getLeague(points: number) {
 }
 
 // ─── Podium Component ─────────────────────────────────────────────────────────
-function Podium({ entries }: { entries: LeaderEntry[] }) {
+function Podium({
+  entries,
+  onSelectUser,
+}: {
+  entries: LeaderEntry[];
+  onSelectUser?: (uid: string) => void;
+}) {
   const top3 = entries.slice(0, 3);
   // podium order: 2nd, 1st, 3rd
   const podiumOrder = [top3[1], top3[0], top3[2]].filter(Boolean);
@@ -139,13 +146,14 @@ function Podium({ entries }: { entries: LeaderEntry[] }) {
           initial={{ opacity: 0, y: 40 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: idx * 0.12, type: "spring", stiffness: 300, damping: 22 }}
-          className="flex flex-col items-center gap-2"
+          onClick={() => entry?.uid && onSelectUser?.(entry.uid)}
+          className="flex flex-col items-center gap-2 cursor-pointer group"
         >
           {/* Avatar */}
           <div className="relative">
             <div
               className={cn(
-                "rounded-full flex items-center justify-center bg-gradient-to-br text-white font-black text-sm border-2 shadow-lg",
+                "rounded-full flex items-center justify-center bg-gradient-to-br text-white font-black text-sm border-2 shadow-lg group-hover:scale-110 transition-transform duration-300",
                 idx === 1
                   ? "w-16 h-16 border-amber-400 shadow-amber-400/30"
                   : idx === 0
@@ -160,7 +168,7 @@ function Podium({ entries }: { entries: LeaderEntry[] }) {
           </div>
           {/* Name */}
           <div className="text-center">
-            <p className="text-xs font-bold text-foreground truncate max-w-[72px]">
+            <p className="text-xs font-bold text-foreground truncate max-w-[72px] group-hover:text-primary transition-colors">
               {entry?.name?.split(" ")[0] ?? "—"}
             </p>
             <p className="text-[10px] text-muted-foreground font-semibold">
@@ -193,11 +201,13 @@ function LeaderRow({
   category,
   currentUid,
   delay = 0,
+  onSelectUser,
 }: {
   entry: LeaderEntry;
   category: CategoryId;
   currentUid?: string;
   delay?: number;
+  onSelectUser?: (uid: string) => void;
 }) {
   const isSelf = entry.uid === currentUid;
   const league = getLeague(entry.points);
@@ -217,8 +227,9 @@ function LeaderRow({
       initial={{ opacity: 0, x: -16 }}
       animate={{ opacity: 1, x: 0 }}
       transition={{ delay, duration: 0.35, type: "spring", stiffness: 280, damping: 25 }}
+      onClick={() => onSelectUser?.(entry.uid)}
       className={cn(
-        "flex items-center gap-3 px-4 py-3 rounded-2xl border transition-all",
+        "flex items-center gap-3 px-4 py-3 rounded-2xl border transition-all cursor-pointer",
         isSelf
           ? "bg-primary/10 border-primary/30 ring-1 ring-primary/20 shadow-lg shadow-primary/10"
           : "bg-card/40 border-border/30 hover:bg-card/60 hover:border-border/50"
@@ -283,6 +294,7 @@ export default function CommunityLeaderboardPage() {
   const { user } = useAuth();
   const { language } = useLanguage();
   const [entries, setEntries] = useState<LeaderEntry[]>([]);
+  const [selectedUserUid, setSelectedUserUid] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [activeCategory, setActiveCategory] = useState<CategoryId>("xp");
   const [totalUsers, setTotalUsers] = useState(0);
@@ -343,7 +355,7 @@ export default function CommunityLeaderboardPage() {
       <div className="max-w-7xl mx-auto px-4 py-6 space-y-6">
         {/* ── Header ──────────────────────────────────────────────── */}
         <FadeIn>
-          <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-amber-500/15 via-purple-600/10 to-blue-600/15 border border-amber-500/20 p-6 shadow-2xl">
+          <div className="relative overflow-hidden rounded-3xl bg-card border border-border p-6 shadow-2xl dark:bg-card">
             <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,theme(colors.amber.500/8),transparent_70%)]" />
             <div className="relative z-10">
               <div className="flex items-center gap-3 mb-2">
@@ -436,7 +448,7 @@ export default function CommunityLeaderboardPage() {
                     <div className="w-8 h-8 border-2 border-amber-500/50 border-t-amber-500 rounded-full animate-spin" />
                   </div>
                 ) : (
-                  <Podium entries={sorted} />
+                  <Podium entries={sorted} onSelectUser={(uid) => setSelectedUserUid(uid)} />
                 )}
               </div>
             </FadeIn>
@@ -465,7 +477,10 @@ export default function CommunityLeaderboardPage() {
             {/* My Rank Banner */}
             {myEntry && (
               <FadeIn delay={0.12}>
-                <div className="bg-primary/10 border border-primary/30 rounded-2xl px-4 py-3 flex items-center gap-3 shadow-sm">
+                <div
+                  onClick={() => user?.uid && setSelectedUserUid(user.uid)}
+                  className="bg-primary/10 border border-primary/30 rounded-2xl px-4 py-3 flex items-center gap-3 shadow-sm cursor-pointer hover:bg-primary/15 transition-colors"
+                >
                   <div className="w-8 h-8 rounded-full bg-gradient-to-br from-primary to-purple-600 flex items-center justify-center text-white font-black text-sm">
                     {user?.displayName?.[0]?.toUpperCase() ?? "?"}
                   </div>
@@ -519,6 +534,7 @@ export default function CommunityLeaderboardPage() {
                           category={activeCategory}
                           currentUid={user?.uid}
                           delay={idx * 0.03}
+                          onSelectUser={(uid) => setSelectedUserUid(uid)}
                         />
                       ))
                     )}
@@ -677,6 +693,9 @@ export default function CommunityLeaderboardPage() {
           </div>
         </div>
       </div>
+
+      {/* User Profile Modal */}
+      <UserProfileModal uid={selectedUserUid} onClose={() => setSelectedUserUid(null)} />
     </div>
   );
 }

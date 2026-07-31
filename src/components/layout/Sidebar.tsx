@@ -25,6 +25,18 @@ import {
   Activity,
   Users,
   Trophy,
+  BookOpen,
+  FileText,
+  HelpCircle,
+  FileQuestion,
+  Network,
+  Mic,
+  Swords,
+  Rocket,
+  ShoppingBag,
+  GraduationCap,
+  Award,
+  Compass,
   LucideIcon,
 } from "lucide-react";
 
@@ -145,21 +157,21 @@ export const Sidebar = memo(function Sidebar({ isOpen, onClose }: SidebarProps) 
             name: t("nav.subjects"),
             path: "/subject",
             icon: archiveAnim,
-            fallback: Archive,
+            fallback: BookOpen,
             useAnimation: true,
           },
           {
             name: language === "ar" ? "بنك الامتحانات" : "Past Exams Bank",
             path: "/exams",
             icon: archiveAnim,
-            fallback: Archive,
+            fallback: FileText,
             useAnimation: true,
           },
           {
             name: language === "ar" ? "أسئلة الأساتذة" : "Doctor Q&A",
             path: "/qa",
-            icon: checkBoxAnim,
-            fallback: CheckSquare,
+            icon: alertCircleAnim,
+            fallback: HelpCircle,
             useAnimation: true,
           },
           {
@@ -178,21 +190,21 @@ export const Sidebar = memo(function Sidebar({ isOpen, onClose }: SidebarProps) 
             name: language === "ar" ? "مولد الاختبارات" : "AI Quiz Generator",
             path: "/quiz",
             icon: checkBoxAnim,
-            fallback: CheckSquare,
+            fallback: FileQuestion,
             useAnimation: true,
           },
           {
             name: language === "ar" ? "الخرائط الذهنية" : "AI Mind Map",
             path: "/mindmap",
             icon: activityAnim,
-            fallback: Activity,
+            fallback: Network,
             useAnimation: true,
           },
           {
             name: language === "ar" ? "تحويل المحاضرات" : "Lecture Transcriber",
             path: "/transcribe",
-            icon: exploreAnim,
-            fallback: Users,
+            icon: editAnim,
+            fallback: Mic,
             useAnimation: true,
           },
         ],
@@ -210,7 +222,7 @@ export const Sidebar = memo(function Sidebar({ isOpen, onClose }: SidebarProps) 
           {
             name: language === "ar" ? "رفقاء الدراسة" : "Study Buddies",
             path: "/buddies",
-            icon: exploreAnim,
+            icon: userPlusAnim,
             fallback: Users,
             useAnimation: true,
           },
@@ -218,7 +230,7 @@ export const Sidebar = memo(function Sidebar({ isOpen, onClose }: SidebarProps) 
             name: language === "ar" ? "حجز السكاشن (Hagaz)" : "Study Hagaz & Battles",
             path: "/hagaz",
             icon: activityAnim,
-            fallback: Activity,
+            fallback: Swords,
             useAnimation: true,
           },
         ],
@@ -230,28 +242,28 @@ export const Sidebar = memo(function Sidebar({ isOpen, onClose }: SidebarProps) 
             name: language === "ar" ? "معرض المشاريع" : "Student Showcase",
             path: "/showcase",
             icon: homeAnim,
-            fallback: Home,
+            fallback: Rocket,
             useAnimation: true,
           },
           {
             name: language === "ar" ? "سوق المستلزمات" : "Gear Market",
             path: "/market",
-            icon: activityAnim,
-            fallback: Activity,
+            icon: archiveAnim,
+            fallback: ShoppingBag,
             useAnimation: true,
           },
           {
             name: language === "ar" ? "شبكة الخريجين" : "Alumni & Internships",
             path: "/alumni",
             icon: exploreAnim,
-            fallback: Users,
+            fallback: GraduationCap,
             useAnimation: true,
           },
           {
             name: language === "ar" ? "حفل التكريم" : "Season Ceremony",
             path: "/ceremony",
             icon: settingsAnim,
-            fallback: Settings,
+            fallback: Award,
             useAnimation: true,
           },
         ],
@@ -263,7 +275,7 @@ export const Sidebar = memo(function Sidebar({ isOpen, onClose }: SidebarProps) 
             name: language === "ar" ? "دليل الطالب والقواعد" : "Guide & Rules",
             path: "/guide",
             icon: alertCircleAnim,
-            fallback: AlertCircle,
+            fallback: Compass,
             useAnimation: true,
           },
           {
@@ -674,7 +686,10 @@ const SidebarLink = memo(
 
     useEffect(() => {
       if (isActive && linkRef.current) {
-        linkRef.current.scrollIntoView({ behavior: "smooth", block: "nearest" });
+        const timer = setTimeout(() => {
+          linkRef.current?.scrollIntoView({ behavior: "smooth", block: "center" });
+        }, 120);
+        return () => clearTimeout(timer);
       }
     }, [isActive]);
 

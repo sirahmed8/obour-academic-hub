@@ -52,7 +52,7 @@ export default function AdminResourcesPage() {
           value={resourcesPage.form.subjectId}
         />
 
-        <div className="grid grid-cols-1 gap-8 xl:grid-cols-2">
+        <div className="flex flex-col gap-8 w-full">
           <ResourceAddForm
             form={resourcesPage.form}
             language={resourcesPage.language}

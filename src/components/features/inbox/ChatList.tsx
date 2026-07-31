@@ -124,7 +124,14 @@ export function ChatList({
                       onError={() => setImageError((prev) => ({ ...prev, [session.userId]: true }))}
                       className="rounded-xl shadow-sm group-hover:scale-105 transition-transform object-cover h-12 w-12 bg-muted/20"
                     />
-                    <div className="absolute -bottom-1 -right-1 w-3 h-3 bg-green-500 rounded-full border-2 border-card" />
+                    <div
+                      className={cn(
+                        "absolute -bottom-1 -right-1 w-3 h-3 rounded-full border-2 border-card transition-colors",
+                        session.isOnline || session.status === "online"
+                          ? "bg-emerald-500"
+                          : "bg-muted-foreground/40"
+                      )}
+                    />
                   </div>
 
                   <div className="flex-1 min-w-0 flex flex-col justify-center">

@@ -20,9 +20,9 @@ export default function TranscribePage() {
   const [isRecording, setIsRecording] = useState(false);
   const [loading, setLoading] = useState(false);
   const [summaryResult, setSummaryResult] = useState<string | null>(null);
-  // Store recognition instance so we can stop it
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const recognitionRef = useRef<any>(null);
+  const isManualStopRef = useRef(false);
 
   const handleStartRecording = () => {
     if (!("webkitSpeechRecognition" in window || "SpeechRecognition" in window)) {
@@ -38,14 +38,16 @@ export default function TranscribePage() {
         new () => {
           lang: string;
           continuous: boolean;
+          interimResults: boolean;
           onstart: () => void;
           onresult: (event: {
             resultIndex: number;
             results: Array<{ [key: number]: { transcript: string } }>;
           }) => void;
-          onerror: () => void;
+          onerror: (event: { error: string }) => void;
           onend: () => void;
           start: () => void;
+          stop: () => void;
         }
       >;
 
@@ -53,8 +55,10 @@ export default function TranscribePage() {
       if (!SpeechRecognition) return;
 
       const recognition = new SpeechRecognition();
-      recognition.lang = isRtl ? "ar-SA" : "en-US";
+      recognition.lang = isRtl ? "ar-EG" : "en-US";
       recognition.continuous = true;
+      recognition.interimResults = true;
+      isManualStopRef.current = false;
 
       recognition.onstart = () => {
         setIsRecording(true);
@@ -68,30 +72,50 @@ export default function TranscribePage() {
         for (let i = event.resultIndex; i < event.results.length; i++) {
           transcript += event.results[i][0].transcript;
         }
-        setRawText((prev) => prev + " " + transcript);
+        if (transcript.trim()) {
+          setRawText((prev) => (prev ? prev + " " + transcript : transcript));
+        }
       };
 
-      recognition.onerror = () => {
+      recognition.onerror = (event) => {
         setIsRecording(false);
         recognitionRef.current = null;
+        if (event.error === "not-allowed") {
+          toast.error(
+            isRtl
+              ? "يرجى تفعيل صلاحية الميكروفون في المتصفح 🎙️"
+              : "Please allow microphone access in your browser 🎙️"
+          );
+        } else if (event.error !== "no-speech") {
+          toast.error(isRtl ? "حدث خطأ في التقاط الصوت" : "Audio capture error");
+        }
       };
 
       recognition.onend = () => {
         setIsRecording(false);
         recognitionRef.current = null;
-        toast.success(isRtl ? "انتهى التسجيل ✅" : "Recording stopped ✅");
+        if (isManualStopRef.current) {
+          toast.success(isRtl ? "انتهى التسجيل ✅" : "Recording stopped ✅");
+        }
       };
 
       recognition.start();
       recognitionRef.current = recognition;
-    } catch {
+    } catch (err) {
+      console.error("Speech recognition error:", err);
       setIsRecording(false);
+      toast.error(isRtl ? "تعذر بدء الميكروفون" : "Could not start microphone");
     }
   };
 
   const handleStopRecording = () => {
+    isManualStopRef.current = true;
     if (recognitionRef.current) {
-      recognitionRef.current.stop();
+      try {
+        recognitionRef.current.stop();
+      } catch {
+        // ignore
+      }
       recognitionRef.current = null;
     }
     setIsRecording(false);
