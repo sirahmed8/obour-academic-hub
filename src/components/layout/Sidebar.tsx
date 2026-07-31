@@ -122,123 +122,158 @@ export const Sidebar = memo(function Sidebar({ isOpen, onClose }: SidebarProps) 
     return normPathname === normItemPath || normPathname.startsWith(normItemPath + "/");
   };
 
-  const navItems = useMemo<SidebarItem[]>(
+  // Categorized nav groups
+  const navGroups = useMemo<NavGroup[]>(
     () => [
-      { name: t("nav.home"), path: "/main", icon: homeAnim, fallback: Home, useAnimation: true },
       {
-        name: t("nav.subjects"),
-        path: "/subject",
-        icon: archiveAnim,
-        fallback: Archive,
-        useAnimation: true,
+        label: null, // Home has no label
+        items: [
+          {
+            name: t("nav.home"),
+            path: "/main",
+            icon: homeAnim,
+            fallback: Home,
+            useAnimation: true,
+          },
+        ],
       },
       {
-        name: language === "ar" ? "حجز السكاشن (Hagaz)" : "Study Hagaz & Battles",
-        path: "/hagaz",
-        icon: activityAnim,
-        fallback: Activity,
-        useAnimation: true,
+        label: language === "ar" ? "📚 الأكاديميات" : "📚 Academics",
+        items: [
+          {
+            name: t("nav.subjects"),
+            path: "/subject",
+            icon: archiveAnim,
+            fallback: Archive,
+            useAnimation: true,
+          },
+          {
+            name: language === "ar" ? "بنك الامتحانات" : "Past Exams Bank",
+            path: "/exams",
+            icon: archiveAnim,
+            fallback: Archive,
+            useAnimation: true,
+          },
+          {
+            name: language === "ar" ? "أسئلة الأساتذة" : "Doctor Q&A",
+            path: "/qa",
+            icon: checkBoxAnim,
+            fallback: CheckSquare,
+            useAnimation: true,
+          },
+          {
+            name: t("nav.todo"),
+            path: "/todo",
+            icon: checkBoxAnim,
+            fallback: CheckSquare,
+            useAnimation: true,
+          },
+        ],
       },
       {
-        name: t("nav.community"),
-        path: "/community",
-        icon: exploreAnim,
-        fallback: Users,
-        useAnimation: true,
+        label: language === "ar" ? "🤖 أدوات الذكاء الاصطناعي" : "🤖 AI Tools",
+        items: [
+          {
+            name: language === "ar" ? "مولد الاختبارات" : "AI Quiz Generator",
+            path: "/quiz",
+            icon: checkBoxAnim,
+            fallback: CheckSquare,
+            useAnimation: true,
+          },
+          {
+            name: language === "ar" ? "الخرائط الذهنية" : "AI Mind Map",
+            path: "/mindmap",
+            icon: activityAnim,
+            fallback: Activity,
+            useAnimation: true,
+          },
+          {
+            name: language === "ar" ? "تحويل المحاضرات" : "Lecture Transcriber",
+            path: "/transcribe",
+            icon: exploreAnim,
+            fallback: Users,
+            useAnimation: true,
+          },
+        ],
       },
       {
-        name: t("nav.todo"),
-        path: "/todo",
-        icon: checkBoxAnim,
-        fallback: CheckSquare,
-        useAnimation: true,
+        label: language === "ar" ? "🤝 المجتمع" : "🤝 Community",
+        items: [
+          {
+            name: t("nav.community"),
+            path: "/community",
+            icon: exploreAnim,
+            fallback: Users,
+            useAnimation: true,
+          },
+          {
+            name: language === "ar" ? "رفقاء الدراسة" : "Study Buddies",
+            path: "/buddies",
+            icon: exploreAnim,
+            fallback: Users,
+            useAnimation: true,
+          },
+          {
+            name: language === "ar" ? "حجز السكاشن (Hagaz)" : "Study Hagaz & Battles",
+            path: "/hagaz",
+            icon: activityAnim,
+            fallback: Activity,
+            useAnimation: true,
+          },
+        ],
       },
       {
-        name: language === "ar" ? "مولد الاختبارات (Quiz)" : "AI Quiz Generator",
-        path: "/quiz",
-        icon: checkBoxAnim,
-        fallback: CheckSquare,
-        useAnimation: true,
+        label: language === "ar" ? "🏆 العرض والتواصل" : "🏆 Showcase",
+        items: [
+          {
+            name: language === "ar" ? "معرض المشاريع" : "Student Showcase",
+            path: "/showcase",
+            icon: homeAnim,
+            fallback: Home,
+            useAnimation: true,
+          },
+          {
+            name: language === "ar" ? "سوق المستلزمات" : "Gear Market",
+            path: "/market",
+            icon: activityAnim,
+            fallback: Activity,
+            useAnimation: true,
+          },
+          {
+            name: language === "ar" ? "شبكة الخريجين" : "Alumni & Internships",
+            path: "/alumni",
+            icon: exploreAnim,
+            fallback: Users,
+            useAnimation: true,
+          },
+          {
+            name: language === "ar" ? "حفل التكريم" : "Season Ceremony",
+            path: "/ceremony",
+            icon: settingsAnim,
+            fallback: Settings,
+            useAnimation: true,
+          },
+        ],
       },
       {
-        name: language === "ar" ? "تحويل الصوتيات (Transcribe)" : "Lecture Transcriber",
-        path: "/transcribe",
-        icon: exploreAnim,
-        fallback: Users,
-        useAnimation: true,
-      },
-      {
-        name: language === "ar" ? "الخرائط الذهنية (MindMap)" : "AI Mind Map",
-        path: "/mindmap",
-        icon: activityAnim,
-        fallback: Activity,
-        useAnimation: true,
-      },
-      {
-        name: language === "ar" ? "رفقاء الدراسة (Buddies)" : "Study Buddies",
-        path: "/buddies",
-        icon: exploreAnim,
-        fallback: Users,
-        useAnimation: true,
-      },
-      {
-        name: language === "ar" ? "أسئلة الأساتذة (Q&A)" : "Doctor Q&A Forum",
-        path: "/qa",
-        icon: checkBoxAnim,
-        fallback: CheckSquare,
-        useAnimation: true,
-      },
-      {
-        name: language === "ar" ? "بنك الامتحانات (Exams)" : "Past Exams Bank",
-        path: "/exams",
-        icon: archiveAnim,
-        fallback: Archive,
-        useAnimation: true,
-      },
-      {
-        name: language === "ar" ? "معرض المشاريع (Showcase)" : "Student Showcase",
-        path: "/showcase",
-        icon: homeAnim,
-        fallback: Home,
-        useAnimation: true,
-      },
-      {
-        name: language === "ar" ? "سوق المستلزمات (Market)" : "Gear Market",
-        path: "/market",
-        icon: activityAnim,
-        fallback: Activity,
-        useAnimation: true,
-      },
-      {
-        name: language === "ar" ? "شبكة الخريجين (Alumni)" : "Alumni & Internships",
-        path: "/alumni",
-        icon: exploreAnim,
-        fallback: Users,
-        useAnimation: true,
-      },
-
-      {
-        name: language === "ar" ? "حفل التكريم (Ceremony)" : "Season Ceremony",
-        path: "/ceremony",
-        icon: settingsAnim,
-        fallback: Settings,
-        useAnimation: true,
-      },
-      {
-        name: language === "ar" ? "دليل الطالب والقواعد" : "Guide & Rules",
-        path: "/guide",
-        icon: alertCircleAnim,
-        fallback: AlertCircle,
-        useAnimation: true,
-      },
-
-      {
-        name: t("nav.notifications"),
-        path: "/notifications",
-        icon: notificationAnim,
-        fallback: Bell,
-        useAnimation: true,
-        badge: unreadCount > 0 ? unreadCount : undefined,
+        label: language === "ar" ? "⚙️ الإعدادات" : "⚙️ Personal",
+        items: [
+          {
+            name: language === "ar" ? "دليل الطالب والقواعد" : "Guide & Rules",
+            path: "/guide",
+            icon: alertCircleAnim,
+            fallback: AlertCircle,
+            useAnimation: true,
+          },
+          {
+            name: t("nav.notifications"),
+            path: "/notifications",
+            icon: notificationAnim,
+            fallback: Bell,
+            useAnimation: true,
+            badge: unreadCount > 0 ? unreadCount : undefined,
+          },
+        ],
       },
     ],
     [t, unreadCount, language]
@@ -464,21 +499,32 @@ export const Sidebar = memo(function Sidebar({ isOpen, onClose }: SidebarProps) 
           >
             <div className="pb-4">
               <nav ref={navRef} onScroll={handleScroll} className="space-y-1 px-2">
-                {/* Main Nav */}
-                <div className="space-y-2">
-                  {navItems.map((item) => (
-                    <SidebarLink
-                      key={item.path}
-                      name={item.name}
-                      path={item.path}
-                      icon={item.icon}
-                      fallback={item.fallback}
-                      useAnimation={item.useAnimation}
-                      badge={item.badge}
-                      iconName={item.iconName}
-                      isActive={isActivePath(item.path)}
-                      onClose={onClose}
-                    />
+                {/* Main Nav — Categorized Groups */}
+                <div className="space-y-1">
+                  {navGroups.map((group, gIdx) => (
+                    <div key={gIdx} className={gIdx > 0 ? "pt-1" : ""}>
+                      {group.label && (
+                        <p className="text-[10px] font-extrabold text-muted-foreground/60 uppercase tracking-widest px-3 pt-3 pb-1 select-none">
+                          {group.label}
+                        </p>
+                      )}
+                      <div className="space-y-0.5">
+                        {group.items.map((item) => (
+                          <SidebarLink
+                            key={item.path}
+                            name={item.name}
+                            path={item.path}
+                            icon={item.icon}
+                            fallback={item.fallback}
+                            useAnimation={item.useAnimation}
+                            badge={item.badge}
+                            iconName={item.iconName}
+                            isActive={isActivePath(item.path)}
+                            onClose={onClose}
+                          />
+                        ))}
+                      </div>
+                    </div>
                   ))}
                 </div>
 
@@ -586,6 +632,12 @@ interface SidebarItem {
   badge?: number;
   iconName?: string;
   requiredPermission?: UserPermission;
+}
+
+// Grouped nav category
+interface NavGroup {
+  label: string | null;
+  items: SidebarItem[];
 }
 
 // Extracted Component to prevent re-renders on parent state change

@@ -1,8 +1,8 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { useLanguage } from "@/contexts";
-import { Mic, FileText, Sparkles, Download, RefreshCw } from "lucide-react";
+import { Mic, MicOff, FileText, Sparkles, Download, RefreshCw } from "lucide-react";
 import { FadeIn, ScaleIn } from "@/components/ui/Animations";
 import { motion } from "framer-motion";
 import { toast } from "sonner";
@@ -20,6 +20,9 @@ export default function TranscribePage() {
   const [isRecording, setIsRecording] = useState(false);
   const [loading, setLoading] = useState(false);
   const [summaryResult, setSummaryResult] = useState<string | null>(null);
+  // Store recognition instance so we can stop it
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const recognitionRef = useRef<any>(null);
 
   const handleStartRecording = () => {
     if (!("webkitSpeechRecognition" in window || "SpeechRecognition" in window)) {
@@ -70,16 +73,28 @@ export default function TranscribePage() {
 
       recognition.onerror = () => {
         setIsRecording(false);
+        recognitionRef.current = null;
       };
 
       recognition.onend = () => {
         setIsRecording(false);
+        recognitionRef.current = null;
+        toast.success(isRtl ? "انتهى التسجيل ✅" : "Recording stopped ✅");
       };
 
       recognition.start();
+      recognitionRef.current = recognition;
     } catch {
       setIsRecording(false);
     }
+  };
+
+  const handleStopRecording = () => {
+    if (recognitionRef.current) {
+      recognitionRef.current.stop();
+      recognitionRef.current = null;
+    }
+    setIsRecording(false);
   };
 
   const handleTranscribe = async (e: React.FormEvent) => {
@@ -186,28 +201,36 @@ export default function TranscribePage() {
                 <label className="block text-xs font-bold text-foreground">
                   {isRtl ? "ملاحظات المحاضرة / تفريغ الصوت" : "Lecture Notes / Transcript"}
                 </label>
-                <motion.button
-                  type="button"
-                  whileHover={{ scale: 1.05 }}
-                  whileTap={{ scale: 0.95 }}
-                  onClick={handleStartRecording}
-                  className={`px-3 py-1.5 rounded-full text-xs font-extrabold flex items-center gap-1.5 transition-all duration-300 shadow-md ${
-                    isRecording
-                      ? "bg-red-500 text-white animate-pulse shadow-red-500/30 ring-4 ring-red-500/20"
-                      : "bg-primary/10 text-primary hover:bg-primary/20 border border-primary/20"
-                  }`}
-                >
-                  <Mic size={14} className={isRecording ? "animate-spin" : ""} />
-                  <span>
-                    {isRecording
-                      ? isRtl
-                        ? "جاري التسجيل... 🎙️"
-                        : "Recording... 🎙️"
-                      : isRtl
-                        ? "تسجيل ميكروفون"
-                        : "Mic Record"}
-                  </span>
-                </motion.button>
+                <div className="flex items-center gap-2">
+                  {/* Start / Stop Mic Button */}
+                  <motion.button
+                    type="button"
+                    whileHover={{ scale: 1.05 }}
+                    whileTap={{ scale: 0.95 }}
+                    onClick={isRecording ? handleStopRecording : handleStartRecording}
+                    className={`px-3 py-1.5 rounded-full text-xs font-extrabold flex items-center gap-1.5 transition-all duration-300 shadow-md ${
+                      isRecording
+                        ? "bg-red-500 text-white shadow-red-500/30 ring-4 ring-red-500/20"
+                        : "bg-primary/10 text-primary hover:bg-primary/20 border border-primary/20"
+                    }`}
+                  >
+                    {isRecording ? (
+                      <>
+                        <span className="relative flex h-2.5 w-2.5">
+                          <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-white opacity-75" />
+                          <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-white" />
+                        </span>
+                        <MicOff size={14} />
+                        <span>{isRtl ? "إيقاف التسجيل" : "Stop Recording"}</span>
+                      </>
+                    ) : (
+                      <>
+                        <Mic size={14} />
+                        <span>{isRtl ? "تسجيل ميكروفون" : "Mic Record"}</span>
+                      </>
+                    )}
+                  </motion.button>
+                </div>
               </div>
               <textarea
                 rows={5}

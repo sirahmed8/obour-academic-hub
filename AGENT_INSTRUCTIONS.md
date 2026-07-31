@@ -1,6 +1,6 @@
 # Agent Handoff & Single Source of Truth
 
-> **LIVE SYSTEM STATUS**: 1000x Platform Overhaul Complete across all pages & features! Clean code quality, 100% Passed Vitest Test Suite (131/131 Passed), 0 ESLint Errors/Warnings. Prettier 100% compliant. Hardcoded static mock data purged from all pages. Global animation engine and solid card opacities deployed live.
+> **LIVE SYSTEM STATUS**: Checkpoint 7 Polish Complete. Sidebar categorized, MindMap subject chips dynamic, GPA planner user-editable, mic stop button fixed, streak label contextual. ESLint: 0 errors. Prettier: clean. Build: 60/60 routes.
 
 ---
 
@@ -24,6 +24,16 @@
    - Button micro-press active scale feedback (`active:scale-97`) and list card hover lifts (`.list-card-hover`).
 4. **Leaderboard League Badges**:
    - Ranks #1, #2, and #3 reliably display Gold (🥇/💎), Silver (🥈), and Bronze (🥉) badges.
+5. **Sidebar Category Grouping** (Checkpoint 7):
+   - `src/components/layout/Sidebar.tsx` now groups nav items into 6 categories: Home, 📚 Academics, 🤖 AI Tools, 🤝 Community, 🏆 Showcase, ⚙️ Personal — with subtle section headers.
+6. **MindMap Dynamic Subject Chips** (Checkpoint 7):
+   - `src/app/mindmap/page.tsx` loads subject chips from user's Firestore `users/{uid}/subjects` subcollection. Falls back to empty (no hardcoded fake chips).
+7. **GPA Goal Planner Real Data** (Checkpoint 7):
+   - `src/components/features/GpaGoalPlannerWidget.tsx` now exposes editable credit hour inputs (completed/remaining) with localStorage persistence. Warns when target GPA is unachievable.
+8. **Mic Stop Button Fix** (Checkpoint 7):
+   - `src/app/transcribe/page.tsx` now stores recognition instance in a `useRef`, shows a red pulsing "Stop Recording" button when active, and calls `recognition.stop()` on click.
+9. **Streak Label Contextual Fix** (Checkpoint 7):
+   - `src/components/features/AcademicStreakWidget.tsx` now shows "On track 📚" (weeks 1–7), "Midterms ahead 📝" (weeks 8–12), or "Exams approaching 🎯" (weeks 13+).
 
 ---
 
@@ -47,3 +57,5 @@
 
 - Maintain `signInWithPopup` authentication invariant in `src/contexts/AuthContext.tsx` and `src/components/features/LoginScreen.tsx`.
 - Preserve existing database queries, API contracts, and real-time Firestore synchronization patterns.
+- MindMap subject chips now come from Firestore — never add hardcoded chip arrays back.
+- GPA planner credit values are user-controlled via localStorage key `"gpa_planner"`.

@@ -1,8 +1,10 @@
 "use client";
 
-import { useState } from "react";
-import { useLanguage } from "@/contexts";
+import { useState, useEffect } from "react";
+import { useLanguage, useAuth } from "@/contexts";
 import { GitFork, Sparkles, RefreshCw, Layers, ChevronRight } from "lucide-react";
+import { collection, getDocs } from "firebase/firestore";
+import { db } from "@/lib/firebase";
 
 import { FadeIn, ScaleIn } from "@/components/ui/Animations";
 import { toast } from "sonner";
@@ -20,12 +22,30 @@ interface MindMapData {
 
 export default function MindMapPage() {
   const { language } = useLanguage();
+  const { user } = useAuth();
   const isRtl = language === "ar";
 
   const [topic, setTopic] = useState("");
   const [subjectName, setSubjectName] = useState("");
   const [loading, setLoading] = useState(false);
   const [mindmap, setMindmap] = useState<MindMapData | null>(null);
+  const [enrolledSubjects, setEnrolledSubjects] = useState<string[]>([]);
+
+  // Load enrolled subjects from Firestore
+  useEffect(() => {
+    if (!user?.uid || !db) return;
+    getDocs(collection(db, `users/${user.uid}/subjects`))
+      .then((snap) => {
+        const names: string[] = [];
+        snap.forEach((doc) => {
+          const data = doc.data();
+          const name = (data.name || data.title || doc.id) as string;
+          if (name) names.push(name);
+        });
+        setEnrolledSubjects(names.slice(0, 8)); // max 8 chips
+      })
+      .catch(() => {});
+  }, [user?.uid]);
 
   const handleGenerateMindmap = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -112,27 +132,24 @@ export default function MindMapPage() {
               <label className="block text-xs font-bold text-foreground mb-1">
                 {isRtl ? "المادة الدراسية (اختياري)" : "Subject Name (Optional)"}
               </label>
-              <div className="flex flex-wrap gap-1.5 mb-2">
-                {[
-                  { ar: "OOP", en: "OOP" },
-                  { ar: "شبكات", en: "Networks" },
-                  { ar: "قواعد بيانات", en: "Databases" },
-                  { ar: "هندسة برمجيات", en: "Software Eng." },
-                ].map((sub) => (
-                  <button
-                    key={sub.en}
-                    type="button"
-                    onClick={() => setSubjectName(isRtl ? sub.ar : sub.en)}
-                    className={`px-2.5 py-1 rounded-full text-[11px] font-extrabold transition-all border ${
-                      subjectName === (isRtl ? sub.ar : sub.en)
-                        ? "bg-primary text-white border-primary shadow-sm"
-                        : "bg-muted/60 text-muted-foreground border-border hover:bg-primary/10 hover:text-primary"
-                    }`}
-                  >
-                    {isRtl ? sub.ar : sub.en}
-                  </button>
-                ))}
-              </div>
+              {enrolledSubjects.length > 0 && (
+                <div className="flex flex-wrap gap-1.5 mb-2">
+                  {enrolledSubjects.map((sub) => (
+                    <button
+                      key={sub}
+                      type="button"
+                      onClick={() => setSubjectName(sub)}
+                      className={`px-2.5 py-1 rounded-full text-[11px] font-extrabold transition-all border ${
+                        subjectName === sub
+                          ? "bg-primary text-white border-primary shadow-sm"
+                          : "bg-muted/60 text-muted-foreground border-border hover:bg-primary/10 hover:text-primary"
+                      }`}
+                    >
+                      {sub}
+                    </button>
+                  ))}
+                </div>
+              )}
               <input
                 type="text"
                 value={subjectName}

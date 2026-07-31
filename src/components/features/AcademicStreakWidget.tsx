@@ -127,7 +127,19 @@ export function AcademicStreakWidget() {
               ? `الأسبوع ${currentWeek} من ${semesterWeeksTotal}`
               : `Week ${currentWeek} of ${semesterWeeksTotal}`}
           </span>
-          <span>{language === "ar" ? "اقتربت الامتحانات 🎯" : "Exams approaching 🎯"}</span>
+          <span>
+            {currentWeek >= 13
+              ? language === "ar"
+                ? "اقتربت الامتحانات 🎯"
+                : "Exams approaching 🎯"
+              : currentWeek >= 8
+                ? language === "ar"
+                  ? "منتصف الفصل 📝"
+                  : "Midterms ahead 📝"
+                : language === "ar"
+                  ? "على المسار الصحيح 📚"
+                  : "On track 📚"}
+          </span>
         </div>
       </motion.div>
 
