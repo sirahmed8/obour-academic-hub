@@ -56,7 +56,7 @@ export default function ObourPlusSubscriptionPage() {
           </div>
 
           <h1 className="text-4xl sm:text-6xl font-black text-white tracking-tight font-harman leading-tight">
-            {isAr ? "👑 العبور بلس | Obour Hub VIP" : "👑 Obour Hub VIP Pass"}
+            {isAr ? "العبور بلس | Obour Hub VIP" : "Obour Hub VIP Pass"}
           </h1>
 
           <p className="text-white/70 text-sm sm:text-base max-w-3xl mx-auto font-medium leading-relaxed">

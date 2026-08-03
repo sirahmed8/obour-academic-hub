@@ -234,9 +234,9 @@ export const Sidebar = memo(function Sidebar({ isOpen, onClose }: SidebarProps) 
             useAnimation: true,
           },
           {
-            name: language === "ar" ? "العبور بلس 👑" : "Obour VIP Pass 👑",
+            name: language === "ar" ? "العبور بلس" : "Obour VIP Pass",
             path: "/plus",
-            icon: settingsAnim,
+            icon: exploreAnim,
             fallback: Crown,
             useAnimation: true,
           },
