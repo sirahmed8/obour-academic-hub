@@ -1,7 +1,7 @@
 "use client";
 
 import Image from "next/image";
-import { Pencil, Shield, User as UserIcon } from "lucide-react";
+import { Crown, Pencil, Shield, User as UserIcon } from "lucide-react";
 import { AnimatedCheckbox } from "@/components/ui/AnimatedCheckbox";
 import { cn } from "@/lib/utils";
 import { User, UserPermission } from "@/types";
@@ -28,6 +28,7 @@ interface UserTableRowProps {
   onKickClick: (user: User) => void;
   onUnbanClick: (user: User) => void;
   onDeleteClick: (user: User) => void;
+  onToggleVip: (user: User) => Promise<void>;
   user: User;
 }
 
@@ -47,6 +48,7 @@ export function UserTableRow({
   onKickClick,
   onUnbanClick,
   onDeleteClick,
+  onToggleVip,
   user,
 }: UserTableRowProps) {
   return (
@@ -119,6 +121,35 @@ export function UserTableRow({
         {(user.role !== "owner" || currentUser?.role === "owner") && (
           <div className="flex flex-col gap-2">
             <div className="flex flex-wrap items-center gap-1.5">
+              {canEditUser(user) && user.role === "student" && (
+                <button
+                  onClick={() => onToggleVip(user)}
+                  title={
+                    language === "ar"
+                      ? user.isVip
+                        ? "إلغاء بلس 👑"
+                        : "منح بلس 👑"
+                      : user.isVip
+                        ? "Revoke VIP 👑"
+                        : "Grant VIP 👑"
+                  }
+                  className={cn(
+                    "flex items-center gap-1 rounded-lg px-2.5 py-1 text-[10px] font-bold transition-all active:scale-95",
+                    user.isVip
+                      ? "bg-amber-100 text-amber-700 hover:bg-amber-200 dark:bg-amber-900/30 dark:text-amber-400 dark:hover:bg-amber-900/50"
+                      : "bg-amber-50/50 text-amber-600 hover:bg-amber-100 dark:bg-amber-900/20 dark:text-amber-500 dark:hover:bg-amber-900/40"
+                  )}
+                >
+                  <Crown size={10} />
+                  {user.isVip
+                    ? language === "ar"
+                      ? "إلغاء بلس"
+                      : "Revoke VIP"
+                    : language === "ar"
+                      ? "منح بلس"
+                      : "Grant VIP"}
+                </button>
+              )}
               <button
                 onClick={() => setChangeRoleModal({ isOpen: true, user })}
                 className="rounded-lg bg-indigo-50/50 px-2.5 py-1 text-[10px] font-bold text-indigo-600 transition-all hover:bg-indigo-100 active:scale-95 dark:bg-indigo-900/20 dark:text-indigo-400 dark:hover:bg-indigo-900/40"

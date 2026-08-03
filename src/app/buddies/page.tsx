@@ -1,8 +1,8 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { useLanguage, useAuth } from "@/contexts";
-import { Users, UserCheck, Sparkles } from "lucide-react";
+import { Users, UserCheck, Sparkles, Search, X } from "lucide-react";
 import { FadeIn, ScaleIn, StaggerChildren } from "@/components/ui/Animations";
 import { collection, query, limit, getDocs, doc, getDoc } from "firebase/firestore";
 import { db } from "@/lib/firebase";
@@ -27,6 +27,8 @@ export default function StudyBuddiesPage() {
   const [buddies, setBuddies] = useState<Buddy[]>([]);
   const [selectedUserUid, setSelectedUserUid] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [matchFilter, setMatchFilter] = useState<"all" | "high">("all");
 
   useEffect(() => {
     async function loadBuddies() {
@@ -136,6 +138,19 @@ export default function StudyBuddiesPage() {
     loadBuddies();
   }, [currentUser?.uid, isRtl]);
 
+  const filteredBuddies = useMemo(() => {
+    return buddies.filter((b) => {
+      const matchesMatch = matchFilter === "all" || b.matchScore >= 80;
+      const q = searchQuery.toLowerCase().trim();
+      const matchesSearch =
+        !q ||
+        b.name.toLowerCase().includes(q) ||
+        b.dept.toLowerCase().includes(q) ||
+        b.sharedSubjects.some((s) => s.toLowerCase().includes(q));
+      return matchesMatch && matchesSearch;
+    });
+  }, [buddies, matchFilter, searchQuery]);
+
   return (
     <div
       className="p-4 sm:p-6 lg:p-10 space-y-8 w-full page-transition min-h-screen max-w-5xl mx-auto"
@@ -162,25 +177,85 @@ export default function StudyBuddiesPage() {
         </div>
       </FadeIn>
 
+      {/* Search & Filter Bar */}
+      <FadeIn delay={0.05}>
+        <div className="flex flex-col sm:flex-row gap-3">
+          <div className="relative flex-1">
+            <Search className="absolute start-4 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+            <input
+              type="text"
+              placeholder={
+                isRtl
+                  ? "ابحث باسم الزميل، القسم، أو المادة..."
+                  : "Search partner by name, department, or subject..."
+              }
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="w-full ps-10 pe-10 py-3 rounded-2xl border border-border bg-card text-foreground text-sm font-medium focus:ring-2 focus:ring-primary/40 outline-none transition-all"
+            />
+            {searchQuery && (
+              <button
+                onClick={() => setSearchQuery("")}
+                className="absolute end-4 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
+              >
+                <X size={16} />
+              </button>
+            )}
+          </div>
+          <div className="flex gap-2">
+            <button
+              onClick={() => setMatchFilter("all")}
+              className={`px-4 py-2.5 rounded-2xl text-xs font-bold border transition-all ${
+                matchFilter === "all"
+                  ? "bg-primary text-white border-transparent shadow-md"
+                  : "bg-card text-muted-foreground border-border hover:text-foreground hover:border-primary/30 dark:bg-card"
+              }`}
+            >
+              {isRtl ? "جميع الزملاء" : "All Partners"}
+            </button>
+            <button
+              onClick={() => setMatchFilter("high")}
+              className={`px-4 py-2.5 rounded-2xl text-xs font-bold border transition-all ${
+                matchFilter === "high"
+                  ? "bg-primary text-white border-transparent shadow-md"
+                  : "bg-card text-muted-foreground border-border hover:text-foreground hover:border-primary/30 dark:bg-card"
+              }`}
+            >
+              {isRtl ? "توافق ممتاز 80%+" : "Top Match (80%+)"}
+            </button>
+          </div>
+        </div>
+      </FadeIn>
+
       {loading ? (
         <div className="flex items-center justify-center py-12">
           <div className="w-8 h-8 rounded-full border-4 border-primary border-t-transparent animate-spin" />
         </div>
-      ) : buddies.length === 0 ? (
+      ) : filteredBuddies.length === 0 ? (
         <div className="p-10 rounded-3xl bg-card border border-border text-center space-y-3 shadow-md">
           <Sparkles className="mx-auto text-primary w-10 h-10 animate-bounce" />
           <h3 className="text-lg font-bold text-foreground">
-            {isRtl ? "لا يوجد زملاء مذاكرة مسجلين حالياً" : "No study buddies available right now"}
+            {searchQuery || matchFilter !== "all"
+              ? isRtl
+                ? "لا يوجد زملاء مطابقون للبحث"
+                : "No matching study partners found"
+              : isRtl
+                ? "لا يوجد زملاء مذاكرة مسجلين حالياً"
+                : "No study buddies available right now"}
           </h3>
           <p className="text-sm text-muted-foreground">
-            {isRtl
-              ? "سيكون الزملاء الجدد متاحين فور تسجيلهم في المنصة."
-              : "New study partners will appear here when they join."}
+            {searchQuery || matchFilter !== "all"
+              ? isRtl
+                ? "جرب البحث عن مادة أخرى أو تغيير فلتر التوافق."
+                : "Try adjusting your search query or compatibility filter."
+              : isRtl
+                ? "سيكون الزملاء الجدد متاحين فور تسجيلهم في المنصة."
+                : "New study partners will appear here when they join."}
           </p>
         </div>
       ) : (
         <StaggerChildren className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          {buddies.map((buddy) => (
+          {filteredBuddies.map((buddy) => (
             <ScaleIn key={buddy.id}>
               <div className="p-6 rounded-3xl bg-card border border-border shadow-md hover:border-primary/40 hover:shadow-xl hover-lift transition-all duration-300 space-y-4 relative overflow-hidden group dark:bg-card">
                 <div className="flex items-center justify-between">

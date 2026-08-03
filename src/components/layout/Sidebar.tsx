@@ -35,7 +35,7 @@ import {
   Rocket,
   ShoppingBag,
   GraduationCap,
-  Award,
+  Crown,
   Compass,
   LucideIcon,
 } from "lucide-react";
@@ -210,10 +210,10 @@ export const Sidebar = memo(function Sidebar({ isOpen, onClose }: SidebarProps) 
         ],
       },
       {
-        label: language === "ar" ? "🏆 الساحة" : "🏆 Arena",
+        label: language === "ar" ? "الساحة الأكاديمية" : "Academic Arena",
         items: [
           {
-            name: language === "ar" ? "🏆 لوحة الصدارة" : "🏆 Leaderboard",
+            name: language === "ar" ? "لوحة الصدارة والتكريم" : "Leaderboard & Ceremony",
             path: "/community",
             icon: exploreAnim,
             fallback: Trophy,
@@ -233,10 +233,17 @@ export const Sidebar = memo(function Sidebar({ isOpen, onClose }: SidebarProps) 
             fallback: Swords,
             useAnimation: true,
           },
+          {
+            name: language === "ar" ? "العبور بلس 👑" : "Obour VIP Pass 👑",
+            path: "/plus",
+            icon: settingsAnim,
+            fallback: Crown,
+            useAnimation: true,
+          },
         ],
       },
       {
-        label: language === "ar" ? "🏆 العرض والتواصل" : "🏆 Showcase",
+        label: language === "ar" ? "العرض والتواصل" : "Showcase & Networking",
         items: [
           {
             name: language === "ar" ? "معرض المشاريع" : "Student Showcase",
@@ -257,13 +264,6 @@ export const Sidebar = memo(function Sidebar({ isOpen, onClose }: SidebarProps) 
             path: "/alumni",
             icon: exploreAnim,
             fallback: GraduationCap,
-            useAnimation: true,
-          },
-          {
-            name: language === "ar" ? "حفل التكريم" : "Season Ceremony",
-            path: "/ceremony",
-            icon: settingsAnim,
-            fallback: Award,
             useAnimation: true,
           },
         ],

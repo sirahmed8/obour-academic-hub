@@ -77,6 +77,8 @@ export default function QuizPage() {
           topic,
           difficulty,
           questionCount,
+          isVip: user?.isVip ?? false,
+          isOwner: user?.role === "owner" || user?.email === process.env.NEXT_PUBLIC_OWNER_EMAIL,
         },
       });
 

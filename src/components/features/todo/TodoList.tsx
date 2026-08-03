@@ -235,10 +235,13 @@ export function TodoList() {
           completed: newStatus,
         });
 
-        // Update user points: +10 for completed, -10 for uncompleted
+        // Update user points: 2x XP for VIP Pass users (+20), +10 for regular, -10 for uncompleted
+        const isVipUser = user.isVip || user.role === "owner" || user.role === "admin";
+        const xpAmount = isVipUser ? 20 : 10;
+
         try {
           await updateDoc(doc(db!, "users", user.uid), {
-            points: increment(newStatus ? 10 : -10),
+            points: increment(newStatus ? xpAmount : -10),
           });
         } catch (err) {
           console.error("Failed to update user points for task completion:", err);
@@ -285,7 +288,15 @@ export function TodoList() {
             // Ignore if confetti fails
           }
 
-          toast.success(language === "ar" ? "عمل رائع! +10 نقاط 🎉" : "Great job! +10 points 🎉");
+          toast.success(
+            isVipUser
+              ? language === "ar"
+                ? "عمل رائع! +20 نقطة (⚡ مضاعف العبور بلس 2x مفعل!) 👑"
+                : "Great job! +20 points (⚡ 2x VIP Multiplier Active!) 👑"
+              : language === "ar"
+                ? "عمل رائع! +10 نقاط 🎉"
+                : "Great job! +10 points 🎉"
+          );
         }
       } catch {
         toast.error("Failed to update task");
@@ -306,10 +317,13 @@ export function TodoList() {
           completed: willBeCompleted,
         });
 
+        const isVipUser = user.isVip || user.role === "owner" || user.role === "admin";
+        const xpAmount = isVipUser ? 20 : 10;
+
         if (willBeCompleted && !wasCompleted) {
           try {
             await updateDoc(doc(db!, "users", user.uid), {
-              points: increment(10),
+              points: increment(xpAmount),
             });
           } catch (err) {
             console.error("Failed to update points:", err);
@@ -347,7 +361,15 @@ export function TodoList() {
             // Ignore failure
           }
 
-          toast.success(language === "ar" ? "عمل رائع! +10 نقاط 🎉" : "Great job! +10 points 🎉");
+          toast.success(
+            isVipUser
+              ? language === "ar"
+                ? "عمل رائع! +20 نقطة (⚡ مضاعف العبور بلس 2x مفعل!) 👑"
+                : "Great job! +20 points (⚡ 2x VIP Multiplier Active!) 👑"
+              : language === "ar"
+                ? "عمل رائع! +10 نقاط 🎉"
+                : "Great job! +10 points 🎉"
+          );
         } else if (!willBeCompleted && wasCompleted) {
           try {
             await updateDoc(doc(db!, "users", user.uid), {
@@ -407,6 +429,27 @@ export function TodoList() {
     }
     setDeleteConfirm({ open: false, taskId: null });
   }, [user, deleteConfirm.taskId, language]);
+
+  const handleClearCompleted = useCallback(async () => {
+    if (!user || !db) return;
+    const completedTasks = tasks.filter((t) => t.completed);
+    if (completedTasks.length === 0) return;
+
+    try {
+      await Promise.all(
+        completedTasks.map((t) => deleteDoc(doc(db!, `users/${user.uid}/tasks`, t.id)))
+      );
+      toast.success(
+        language === "ar"
+          ? `تم مسح ${completedTasks.length} مهمة مكتملة`
+          : `Cleared ${completedTasks.length} completed tasks`
+      );
+    } catch {
+      toast.error(
+        language === "ar" ? "فشل مسح المهام المكتملة" : "Failed to clear completed tasks"
+      );
+    }
+  }, [user, tasks, language]);
 
   const handleSaveTask = useCallback(async () => {
     setIsModalOpen(false);
@@ -987,25 +1030,36 @@ export function TodoList() {
               }}
               className="mt-8 pt-4 border-t border-border/40 overflow-hidden"
             >
-              <button
-                onClick={() => setShowCompleted(!showCompleted)}
-                className="group flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-all mb-4 px-2"
-              >
-                <div
-                  className={cn(
-                    "transition-transform duration-300 ease-out",
-                    showCompleted ? "rotate-90" : ""
-                  )}
+              <div className="flex items-center justify-between mb-4 px-2">
+                <button
+                  onClick={() => setShowCompleted(!showCompleted)}
+                  className="group flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-all"
                 >
-                  <ChevronRight size={16} />
-                </div>
-                <span className="font-medium">
-                  {language === "ar" ? "المهام المكتملة" : "Completed Tasks"}
-                </span>
-                <span className="bg-muted px-2 py-0.5 rounded-full text-[10px] font-bold">
-                  {filteredTasks.filter((t) => t.completed).length}
-                </span>
-              </button>
+                  <div
+                    className={cn(
+                      "transition-transform duration-300 ease-out",
+                      showCompleted ? "rotate-90" : ""
+                    )}
+                  >
+                    <ChevronRight size={16} />
+                  </div>
+                  <span className="font-medium">
+                    {language === "ar" ? "المهام المكتملة" : "Completed Tasks"}
+                  </span>
+                  <span className="bg-muted px-2 py-0.5 rounded-full text-[10px] font-bold">
+                    {filteredTasks.filter((t) => t.completed).length}
+                  </span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={handleClearCompleted}
+                  className="inline-flex items-center gap-1 text-xs font-bold text-muted-foreground hover:text-red-500 hover:bg-red-500/10 px-2.5 py-1 rounded-lg transition-all"
+                >
+                  <Trash2 size={12} />
+                  <span>{language === "ar" ? "مسح المكتملة" : "Clear Completed"}</span>
+                </button>
+              </div>
 
               <AnimatePresence>
                 {showCompleted && (

@@ -1,7 +1,7 @@
 "use client";
 
 import Image from "next/image";
-import { Pencil, User as UserIcon } from "lucide-react";
+import { Crown, Pencil, User as UserIcon } from "lucide-react";
 import { AnimatedCheckbox } from "@/components/ui/AnimatedCheckbox";
 import { ScaleIn } from "@/components/ui/Animations";
 import { cn } from "@/lib/utils";
@@ -29,6 +29,7 @@ interface UserMobileCardProps {
   onKickClick: (user: User) => void;
   onUnbanClick: (user: User) => void;
   onDeleteClick: (user: User) => void;
+  onToggleVip: (user: User) => Promise<void>;
   user: User;
 }
 
@@ -48,6 +49,7 @@ export function UserMobileCard({
   onKickClick,
   onUnbanClick,
   onDeleteClick,
+  onToggleVip,
   user,
 }: UserMobileCardProps) {
   return (
@@ -111,6 +113,26 @@ export function UserMobileCard({
       {(user.role !== "owner" || currentUser?.role === "owner") && (
         <div className="space-y-3 px-8">
           <div className="flex flex-wrap items-center gap-1.5">
+            {canEditUser(user) && user.role === "student" && (
+              <button
+                onClick={() => onToggleVip(user)}
+                className={cn(
+                  "flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-semibold transition-all active:scale-95",
+                  user.isVip
+                    ? "bg-amber-100 text-amber-700 hover:bg-amber-200 dark:bg-amber-900/30 dark:text-amber-400"
+                    : "bg-amber-50/50 text-amber-600 hover:bg-amber-100 dark:bg-amber-900/20 dark:text-amber-500"
+                )}
+              >
+                <Crown size={14} />
+                {user.isVip
+                  ? language === "ar"
+                    ? "إلغاء بلس"
+                    : "Revoke VIP"
+                  : language === "ar"
+                    ? "منح بلس"
+                    : "Grant VIP"}
+              </button>
+            )}
             <button
               onClick={() => setChangeRoleModal({ isOpen: true, user })}
               className="rounded-lg bg-indigo-50/50 px-3 py-1.5 text-xs font-semibold text-indigo-600 transition-all hover:bg-indigo-100 active:scale-95 dark:bg-indigo-900/20 dark:text-indigo-400 dark:hover:bg-indigo-900/40"

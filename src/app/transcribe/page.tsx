@@ -1,8 +1,9 @@
 "use client";
 
 import { useState, useRef } from "react";
-import { useLanguage } from "@/contexts";
-import { Mic, MicOff, FileText, Sparkles, Download, RefreshCw } from "lucide-react";
+import Link from "next/link";
+import { useAuth, useLanguage } from "@/contexts";
+import { Mic, MicOff, FileText, Sparkles, Download, RefreshCw, Crown } from "lucide-react";
 import { FadeIn, ScaleIn } from "@/components/ui/Animations";
 import { motion } from "framer-motion";
 import { toast } from "sonner";
@@ -28,6 +29,7 @@ interface SpeechRecognitionInstance {
 }
 
 export default function TranscribePage() {
+  const { user } = useAuth();
   const { language } = useLanguage();
   const isRtl = language === "ar";
 
@@ -195,10 +197,28 @@ export default function TranscribePage() {
       dir={isRtl ? "rtl" : "ltr"}
     >
       <FadeIn>
-        <div className="p-6 sm:p-10 rounded-3xl bg-card border border-border shadow-xl space-y-3 dark:bg-card">
-          <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-primary/10 text-primary font-extrabold text-xs uppercase tracking-wider border border-primary/20">
-            <Mic size={14} />
-            <span>{isRtl ? "محول الصوتيات والتلاخيص" : "Audio Transcriber & Summarizer"}</span>
+        <div className="p-6 sm:p-10 rounded-3xl bg-card border border-border shadow-xl space-y-4 dark:bg-card relative overflow-hidden">
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-primary/10 text-primary font-extrabold text-xs uppercase tracking-wider border border-primary/20">
+              <Mic size={14} />
+              <span>{isRtl ? "محول الصوتيات والتلاخيص" : "Audio Transcriber & Summarizer"}</span>
+            </div>
+
+            <Link
+              href="/plus"
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-amber-500/20 text-amber-500 hover:bg-amber-500/30 border border-amber-500/30 font-extrabold text-xs transition-all"
+            >
+              <Crown size={14} className="text-amber-400" />
+              <span>
+                {user?.isVip || user?.role === "owner"
+                  ? isRtl
+                    ? "غير محدود 👑 PRO"
+                    : "Unlimited 👑 PRO"
+                  : isRtl
+                    ? "ترقية للبث المباشر ⚡"
+                    : "Upgrade to Pro ⚡"}
+              </span>
+            </Link>
           </div>
 
           <h1 className="text-3xl sm:text-5xl font-black text-foreground font-harman">

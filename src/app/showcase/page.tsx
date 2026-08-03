@@ -1,14 +1,36 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { useLanguage, useAuth } from "@/contexts";
-import { ExternalLink, ThumbsUp, Laptop, Sparkles, Plus } from "lucide-react";
+import { ExternalLink, ThumbsUp, Laptop, Sparkles, Plus, Search, X } from "lucide-react";
 import { FadeIn, ScaleIn, StaggerChildren } from "@/components/ui/Animations";
 import { motion } from "framer-motion";
 import { toast } from "sonner";
 import { collection, getDocs, query, limit, addDoc, serverTimestamp } from "firebase/firestore";
 import { db } from "@/lib/firebase";
+import { z } from "zod";
+import { sanitizeString } from "@/lib/zod-schemas";
 
+// ── Zod schema ────────────────────────────────────────────────────────────────
+const showcaseProjectSchema = z.object({
+  title: z
+    .string()
+    .min(3, "Title must be at least 3 characters")
+    .max(200)
+    .transform(sanitizeString),
+  description: z
+    .string()
+    .min(10, "Description must be at least 10 characters")
+    .max(1000)
+    .transform(sanitizeString),
+  department: z.string().min(2).max(100).transform(sanitizeString).optional(),
+  tags: z.string().max(200).optional(),
+  demoUrl: z.string().url("Must be a valid URL").optional().or(z.literal("")).or(z.literal("#")),
+});
+
+type ShowcaseFormData = z.infer<typeof showcaseProjectSchema>;
+
+// ── Types ─────────────────────────────────────────────────────────────────────
 interface ShowcaseProject {
   id: string;
   titleAr: string;
@@ -22,21 +44,30 @@ interface ShowcaseProject {
   tags: string[];
 }
 
+// ── Component ─────────────────────────────────────────────────────────────────
 export default function ShowcasePage() {
   const { language } = useLanguage();
   const { user } = useAuth();
   const isRtl = language === "ar";
 
+  // Data
   const [projects, setProjects] = useState<ShowcaseProject[]>([]);
   const [loading, setLoading] = useState(true);
+
+  // Filters
+  const [searchQuery, setSearchQuery] = useState("");
+
+  // Modal state
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [newTitle, setNewTitle] = useState("");
   const [newDesc, setNewDesc] = useState("");
   const [newDept, setNewDept] = useState("");
   const [newDemoUrl, setNewDemoUrl] = useState("");
   const [newTags, setNewTags] = useState("");
+  const [formErrors, setFormErrors] = useState<Partial<Record<keyof ShowcaseFormData, string>>>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
 
+  // ── Load from Firestore ──────────────────────────────────────────────────
   useEffect(() => {
     async function loadProjects() {
       if (!db) {
@@ -76,30 +107,69 @@ export default function ShowcasePage() {
     loadProjects();
   }, [isRtl]);
 
+  // ── Derived / filtered list ───────────────────────────────────────────────
+  const filteredProjects = useMemo(() => {
+    const q = searchQuery.toLowerCase().trim();
+    if (!q) return projects;
+    return projects.filter(
+      (p) =>
+        p.titleEn.toLowerCase().includes(q) ||
+        p.titleAr.toLowerCase().includes(q) ||
+        p.author.toLowerCase().includes(q)
+    );
+  }, [projects, searchQuery]);
+
+  // ── Actions ───────────────────────────────────────────────────────────────
   const handleLike = (id: string) => {
     setProjects(projects.map((p) => (p.id === id ? { ...p, likes: p.likes + 1 } : p)));
     toast.success(isRtl ? "تم الإعجاب بالمشروع! ❤️" : "Project liked! ❤️");
   };
 
+  const resetForm = () => {
+    setNewTitle("");
+    setNewDesc("");
+    setNewDept("");
+    setNewDemoUrl("");
+    setNewTags("");
+    setFormErrors({});
+  };
+
   const handleSubmitProject = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!newTitle.trim() || !newDesc.trim()) {
-      toast.error(isRtl ? "يرجى كتابة عنوان ووصف المشروع" : "Please fill title and description");
+    setFormErrors({});
+
+    const parsed = showcaseProjectSchema.safeParse({
+      title: newTitle,
+      description: newDesc,
+      department: newDept || undefined,
+      tags: newTags || undefined,
+      demoUrl: newDemoUrl || undefined,
+    });
+
+    if (!parsed.success) {
+      const errs: Partial<Record<keyof ShowcaseFormData, string>> = {};
+      parsed.error.issues.forEach((err) => {
+        const key = err.path[0] as keyof ShowcaseFormData;
+        errs[key] = err.message;
+      });
+      setFormErrors(errs);
+      toast.error(isRtl ? "يرجى تصحيح الأخطاء في النموذج" : "Please fix form errors");
       return;
     }
 
+    const data = parsed.data;
     setIsSubmitting(true);
     try {
-      const parsedTags = newTags ? newTags.split(",").map((t) => t.trim()) : ["Obour", "Tech"];
+      const parsedTags = data.tags ? data.tags.split(",").map((t) => t.trim()) : ["Obour", "Tech"];
       const payload = {
-        titleAr: newTitle,
-        titleEn: newTitle,
-        descAr: newDesc,
-        descEn: newDesc,
+        titleAr: data.title,
+        titleEn: data.title,
+        descAr: data.description,
+        descEn: data.description,
         authorName: user?.displayName || user?.email?.split("@")[0] || "Obour Student",
-        department: newDept || (isRtl ? "علوم الحاسب" : "Computer Science"),
+        department: data.department || (isRtl ? "علوم الحاسب" : "Computer Science"),
         likes: 0,
-        demoUrl: newDemoUrl || "#",
+        demoUrl: data.demoUrl || "#",
         tags: parsedTags,
         createdAt: serverTimestamp(),
       };
@@ -131,10 +201,7 @@ export default function ShowcasePage() {
         isRtl ? "🎉 تم إضافة مشروعك إلى المعرض بنجاح!" : "🎉 Project submitted successfully!"
       );
       setIsModalOpen(false);
-      setNewTitle("");
-      setNewDesc("");
-      setNewDemoUrl("");
-      setNewTags("");
+      resetForm();
     } catch (err) {
       console.error("Error submitting project:", err);
       toast.error(isRtl ? "فشل إضافة المشروع" : "Failed to submit project");
@@ -148,6 +215,7 @@ export default function ShowcasePage() {
       className="p-4 sm:p-6 lg:p-10 space-y-8 w-full page-transition min-h-screen max-w-5xl mx-auto"
       dir={isRtl ? "rtl" : "ltr"}
     >
+      {/* ── Hero Header ─────────────────────────────────────────────────── */}
       <FadeIn>
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-6 p-6 sm:p-10 rounded-3xl bg-card border border-border shadow-xl">
           <div className="space-y-3">
@@ -179,25 +247,84 @@ export default function ShowcasePage() {
         </div>
       </FadeIn>
 
+      {/* ── Search Bar ──────────────────────────────────────────────────── */}
+      <FadeIn>
+        <div className="p-4 rounded-2xl bg-card border border-border shadow-sm">
+          <div className="relative">
+            <Search
+              size={16}
+              className="absolute top-1/2 -translate-y-1/2 start-3 text-muted-foreground pointer-events-none"
+            />
+            <input
+              type="text"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              placeholder={
+                isRtl
+                  ? "ابحث بعنوان المشروع أو اسم الطالب..."
+                  : "Search by project title or student name..."
+              }
+              className="w-full ps-9 pe-9 py-2.5 rounded-xl border border-border bg-background text-foreground font-medium text-sm focus:ring-2 focus:ring-primary/40 outline-none"
+            />
+            {searchQuery && (
+              <button
+                onClick={() => setSearchQuery("")}
+                className="absolute top-1/2 -translate-y-1/2 end-3 text-muted-foreground hover:text-foreground"
+              >
+                <X size={14} />
+              </button>
+            )}
+          </div>
+        </div>
+      </FadeIn>
+
+      {/* ── Projects Grid ────────────────────────────────────────────────── */}
       {loading ? (
         <div className="flex items-center justify-center py-12">
           <div className="w-8 h-8 rounded-full border-4 border-primary border-t-transparent animate-spin" />
         </div>
-      ) : projects.length === 0 ? (
-        <div className="p-10 rounded-3xl bg-card border border-border text-center space-y-3 shadow-md">
+      ) : filteredProjects.length === 0 ? (
+        <div className="p-10 rounded-3xl bg-card border border-border text-center space-y-4 shadow-md">
           <Sparkles className="mx-auto text-primary w-10 h-10 animate-bounce" />
           <h3 className="text-lg font-bold text-foreground">
-            {isRtl ? "لا توجد مشاريع معروضة حالياً" : "No student projects showcased yet"}
+            {searchQuery
+              ? isRtl
+                ? "لا توجد مشاريع مطابقة"
+                : "No matching projects found"
+              : isRtl
+                ? "لا توجد مشاريع معروضة حالياً"
+                : "No student projects showcased yet"}
           </h3>
           <p className="text-sm text-muted-foreground">
-            {isRtl
-              ? "ستظهر مشاريع وابتكارات التخرج الجديدة فور نشرها من الطلاب."
-              : "New graduation projects and engineering prototypes will appear here."}
+            {searchQuery
+              ? isRtl
+                ? "جرب البحث بكلمة أخرى."
+                : "Try a different search term."
+              : isRtl
+                ? "ستظهر مشاريع وابتكارات التخرج الجديدة فور نشرها من الطلاب."
+                : "New graduation projects and engineering prototypes will appear here."}
           </p>
+          {searchQuery ? (
+            <button
+              onClick={() => setSearchQuery("")}
+              className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-primary text-white font-extrabold text-sm hover:bg-primary/90 transition-all"
+            >
+              <X size={14} />
+              {isRtl ? "مسح البحث" : "Clear Search"}
+            </button>
+          ) : (
+            <button
+              onClick={() => setIsModalOpen(true)}
+              className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-primary text-white font-extrabold text-sm hover:bg-primary/90 transition-all"
+            >
+              <Plus size={14} />
+              {isRtl ? "نشر أول مشروع" : "Submit First Project"}
+            </button>
+          )}
         </div>
       ) : (
         <StaggerChildren className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          {projects.map((project) => (
+          {filteredProjects.map((project) => (
             <ScaleIn key={project.id}>
               <div className="p-6 rounded-3xl bg-card border border-border shadow-md hover:border-primary/40 hover:shadow-xl transition-all duration-300 space-y-4 flex flex-col justify-between group">
                 <div className="space-y-3">
@@ -254,16 +381,19 @@ export default function ShowcasePage() {
         </StaggerChildren>
       )}
 
-      {/* Submit Project Modal */}
+      {/* ── Submit Project Modal ─────────────────────────────────────────── */}
       {isModalOpen && (
         <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="bg-card border border-border rounded-3xl p-6 sm:p-8 max-w-md w-full shadow-2xl space-y-6 animate-scale-in">
+          <div className="bg-card border border-border rounded-3xl p-6 sm:p-8 max-w-md w-full shadow-2xl space-y-6 animate-scale-in max-h-[90vh] overflow-y-auto">
             <div className="flex items-center justify-between">
               <h3 className="text-xl font-black text-foreground">
                 {isRtl ? "نشر مشروع تخرج أو ابتكار جديد" : "Submit Student Project"}
               </h3>
               <button
-                onClick={() => setIsModalOpen(false)}
+                onClick={() => {
+                  setIsModalOpen(false);
+                  resetForm();
+                }}
                 className="text-muted-foreground hover:text-foreground text-sm font-bold"
               >
                 ✕
@@ -271,9 +401,11 @@ export default function ShowcasePage() {
             </div>
 
             <form onSubmit={handleSubmitProject} className="space-y-4 text-xs sm:text-sm">
+              {/* Title */}
               <div>
                 <label className="block text-xs font-bold text-muted-foreground mb-1">
                   {isRtl ? "عنوان المشروع" : "Project Title"}
+                  <span className="text-red-500 ms-0.5">*</span>
                 </label>
                 <input
                   type="text"
@@ -285,11 +417,16 @@ export default function ShowcasePage() {
                   onChange={(e) => setNewTitle(e.target.value)}
                   className="w-full px-4 py-2.5 rounded-xl border border-border bg-background text-foreground font-medium focus:ring-2 focus:ring-primary/40 outline-none"
                 />
+                {formErrors.title && (
+                  <p className="text-xs text-red-500 mt-1 font-medium">{formErrors.title}</p>
+                )}
               </div>
 
+              {/* Description */}
               <div>
                 <label className="block text-xs font-bold text-muted-foreground mb-1">
                   {isRtl ? "وصف المشروع" : "Project Description"}
+                  <span className="text-red-500 ms-0.5">*</span>
                 </label>
                 <textarea
                   rows={3}
@@ -303,8 +440,12 @@ export default function ShowcasePage() {
                   onChange={(e) => setNewDesc(e.target.value)}
                   className="w-full px-4 py-2.5 rounded-xl border border-border bg-background text-foreground font-medium focus:ring-2 focus:ring-primary/40 outline-none resize-none"
                 />
+                {formErrors.description && (
+                  <p className="text-xs text-red-500 mt-1 font-medium">{formErrors.description}</p>
+                )}
               </div>
 
+              {/* Department + Tags */}
               <div className="grid grid-cols-2 gap-3">
                 <div>
                   <label className="block text-xs font-bold text-muted-foreground mb-1">
@@ -317,6 +458,9 @@ export default function ShowcasePage() {
                     onChange={(e) => setNewDept(e.target.value)}
                     className="w-full px-3 py-2.5 rounded-xl border border-border bg-background text-foreground font-medium focus:ring-2 focus:ring-primary/40 outline-none"
                   />
+                  {formErrors.department && (
+                    <p className="text-xs text-red-500 mt-1 font-medium">{formErrors.department}</p>
+                  )}
                 </div>
                 <div>
                   <label className="block text-xs font-bold text-muted-foreground mb-1">
@@ -332,6 +476,7 @@ export default function ShowcasePage() {
                 </div>
               </div>
 
+              {/* Demo URL */}
               <div>
                 <label className="block text-xs font-bold text-muted-foreground mb-1">
                   {isRtl ? "رابط المعاينة المباشرة أو GitHub" : "Demo or GitHub URL"}
@@ -343,12 +488,19 @@ export default function ShowcasePage() {
                   onChange={(e) => setNewDemoUrl(e.target.value)}
                   className="w-full px-4 py-2.5 rounded-xl border border-border bg-background text-foreground font-medium focus:ring-2 focus:ring-primary/40 outline-none"
                 />
+                {formErrors.demoUrl && (
+                  <p className="text-xs text-red-500 mt-1 font-medium">{formErrors.demoUrl}</p>
+                )}
               </div>
 
+              {/* Actions */}
               <div className="flex gap-3 pt-2">
                 <button
                   type="button"
-                  onClick={() => setIsModalOpen(false)}
+                  onClick={() => {
+                    setIsModalOpen(false);
+                    resetForm();
+                  }}
                   className="flex-1 py-3 rounded-xl border border-border font-bold text-muted-foreground hover:bg-muted"
                 >
                   {isRtl ? "إلغاء" : "Cancel"}

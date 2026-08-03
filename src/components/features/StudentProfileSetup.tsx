@@ -131,10 +131,11 @@ export function StudentProfileSetup({ onComplete }: StudentProfileSetupProps) {
 
     setLoading(true);
     try {
-      const updates: Partial<typeof user> = {
+      const updates: Record<string, unknown> = {
         institute,
         academicYear: grade,
         department,
+        onboardingCompleted: true,
       };
 
       if (!isNameLocked) updates.displayName = displayName.trim();

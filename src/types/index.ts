@@ -44,6 +44,10 @@ export interface User {
   academicYear?: string;
   department?: string;
   streakDays?: number;
+  onboardingCompleted?: boolean;
+  isVip?: boolean;
+  subscriptionTier?: "free" | "vip";
+  vipExpiresAt?: string;
 }
 
 export interface Notification {

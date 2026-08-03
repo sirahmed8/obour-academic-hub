@@ -400,6 +400,8 @@ export default function CommunityLeaderboardPage() {
   const avgXP = entries.length ? Math.round(totalXP / entries.length) : 0;
   const topStreak = Math.max(...entries.map((e) => e.streakDays), 0);
 
+  const [viewTab, setViewTab] = useState<"leaderboard" | "ceremony">("leaderboard");
+
   return (
     <div className="min-h-screen bg-background">
       <div className="max-w-7xl mx-auto px-4 py-6 space-y-6">
@@ -407,19 +409,47 @@ export default function CommunityLeaderboardPage() {
         <FadeIn>
           <div className="relative overflow-hidden rounded-3xl bg-[#0f172a] border border-amber-500/30 p-6 shadow-2xl text-white dark:bg-[#090d16]">
             <div className="relative z-10">
-              <div className="flex items-center gap-3 mb-2">
-                <div className="p-3 bg-amber-500/20 rounded-2xl border border-amber-500/30">
-                  <Trophy className="w-6 h-6 text-amber-400" />
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                <div className="flex items-center gap-3">
+                  <div className="p-3 bg-amber-500/20 rounded-2xl border border-amber-500/30">
+                    <Crown className="w-6 h-6 text-amber-400" />
+                  </div>
+                  <div>
+                    <h1 className="text-2xl font-black text-white">
+                      {isAr ? "لوحة الصدارة وحفل تكريم الموسم" : "Leaderboard & Season Ceremony"}
+                    </h1>
+                    <p className="text-sm text-white/60 font-medium">
+                      {isAr
+                        ? "تنافس واصعد في الترتيب واستعرض أبطال الموسم"
+                        : "Compete, level up, and celebrate the semester's champions"}
+                    </p>
+                  </div>
                 </div>
-                <div>
-                  <h1 className="text-2xl font-black text-white">
-                    {isAr ? "لوحة الصدارة" : "Leaderboard & Arena"}
-                  </h1>
-                  <p className="text-sm text-white/60 font-medium">
-                    {isAr
-                      ? "تنافس واصعد في الترتيب"
-                      : "Compete, level up, and dominate the rankings"}
-                  </p>
+
+                {/* Unified Tab Selector */}
+                <div className="flex gap-1.5 p-1 bg-white/10 backdrop-blur-md rounded-2xl border border-white/10 shrink-0">
+                  <button
+                    onClick={() => setViewTab("leaderboard")}
+                    className={cn(
+                      "px-4 py-2 rounded-xl text-xs font-extrabold transition-all",
+                      viewTab === "leaderboard"
+                        ? "bg-amber-500 text-black shadow-lg"
+                        : "text-white/70 hover:text-white hover:bg-white/5"
+                    )}
+                  >
+                    {isAr ? "📊 لوحة الصدارة" : "📊 Leaderboard"}
+                  </button>
+                  <button
+                    onClick={() => setViewTab("ceremony")}
+                    className={cn(
+                      "px-4 py-2 rounded-xl text-xs font-extrabold transition-all",
+                      viewTab === "ceremony"
+                        ? "bg-amber-500 text-black shadow-lg"
+                        : "text-white/70 hover:text-white hover:bg-white/5"
+                    )}
+                  >
+                    {isAr ? "🎓 حفل تكريم الموسم" : "🎓 Season Ceremony"}
+                  </button>
                 </div>
               </div>
 
@@ -747,7 +777,7 @@ export default function CommunityLeaderboardPage() {
                     </div>
                     <div>
                       <h2 className="text-base font-black text-white">
-                        {isAr ? "🏆 حفل تكريم الموسم" : "🏆 Season Ceremony"}
+                        {isAr ? "حفل تكريم الموسم" : "Season Ceremony"}
                       </h2>
                       <p className="text-xs text-white/50 font-medium">
                         {isAr ? "أبطال هذا الفصل الدراسي" : "This semester's champions"}

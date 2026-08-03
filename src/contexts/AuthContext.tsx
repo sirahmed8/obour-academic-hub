@@ -51,6 +51,8 @@ const getEmergencyOwnerUser = (firebaseUser: FirebaseUser, existingData?: Partia
     "view_audit_logs",
   ],
   photoURL: existingData?.photoURL || firebaseUser.photoURL || undefined,
+  isVip: true,
+  subscriptionTier: "vip",
   createdAt: normalizeDate(existingData?.createdAt || "2026"),
   lastLogin: new Date().toISOString(),
   notificationSettings: existingData?.notificationSettings || { push: false, email: false },
@@ -127,12 +129,20 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         (snapshot) => {
           const profileData = snapshot.data();
           if (profileData) {
+            const isOwnerOrAdmin =
+              profileData.role === "owner" ||
+              profileData.role === "admin" ||
+              firebaseUser.email ===
+                (process.env.NEXT_PUBLIC_OWNER_EMAIL || "a7medorabe7@gmail.com");
+
             const profile = {
               uid: snapshot.id,
               email: firebaseUser.email || "",
               displayName: firebaseUser.displayName || "",
               photoURL: firebaseUser.photoURL || undefined,
               ...profileData,
+              isVip: isOwnerOrAdmin ? true : !!profileData.isVip,
+              subscriptionTier: isOwnerOrAdmin ? "vip" : profileData.subscriptionTier || "free",
               // Force Date Normalization to string
               createdAt: normalizeDate(profileData.createdAt),
               lastLogin: normalizeDate(profileData.lastLogin),

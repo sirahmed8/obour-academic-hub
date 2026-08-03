@@ -126,20 +126,26 @@ export function AppShell({ children }: { children: React.ReactNode }) {
     if (user?.email === process.env.NEXT_PUBLIC_OWNER_EMAIL) return false;
     if (user?.role === "owner" || user?.role === "admin") return false;
 
-    // Check all required profile fields
+    // Check all required profile fields (including onboarding completion flag for legacy/old users)
     const isProfileIncomplete =
       !user.studentCode ||
-      user.studentCode.length < 5 ||
+      user.studentCode.trim().length < 5 ||
       !user.academicYear ||
       !user.department ||
-      !user.institute;
+      !user.institute ||
+      user.onboardingCompleted === false;
 
-    // If profile is incomplete, clear the dismissal flag so the modal reappears
-    if (isProfileIncomplete && typeof window !== "undefined") {
-      localStorage.removeItem("profileSetupDismissed");
+    // If profile is incomplete, clear dismissal flag so modal unconditionally reappears on every visit
+    if (isProfileIncomplete) {
+      if (typeof window !== "undefined") {
+        try {
+          localStorage.removeItem("profileSetupDismissed");
+        } catch {
+          /* ignore */
+        }
+      }
+      return true;
     }
-
-    if (isProfileIncomplete) return true;
 
     // Profile is complete — respect the dismissed flag
     return !profileSetupDismissed;

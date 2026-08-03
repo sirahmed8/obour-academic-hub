@@ -22,7 +22,13 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const { subjectName, topic, questionCount, difficulty } = parsed.data;
+    let { questionCount } = parsed.data;
+    const { subjectName, topic, difficulty } = parsed.data;
+
+    // Enforce 5-question cap for non-VIP users
+    if (!body.isVip && !body.isOwner && questionCount > 5) {
+      questionCount = 5;
+    }
 
     const prompt = `You are an academic exam generator for Obour Academic Institute.
 Generate a structured academic quiz for the subject "${subjectName}"${topic ? `, focusing on the topic: "${topic}"` : ""}.

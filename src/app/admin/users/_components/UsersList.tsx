@@ -35,6 +35,7 @@ interface UsersListProps {
   onKickClick: (user: User) => void;
   onUnbanClick: (user: User) => void;
   onDeleteClick: (user: User) => void;
+  onToggleVip: (user: User) => Promise<void>;
 }
 
 export function UsersList({
@@ -59,6 +60,7 @@ export function UsersList({
   onKickClick,
   onUnbanClick,
   onDeleteClick,
+  onToggleVip,
 }: UsersListProps) {
   const selectableUsers = filteredUsers.filter((user) => user.uid !== currentUser?.uid);
 
@@ -114,6 +116,7 @@ export function UsersList({
                   onKickClick={onKickClick}
                   onUnbanClick={onUnbanClick}
                   onDeleteClick={onDeleteClick}
+                  onToggleVip={onToggleVip}
                   user={user}
                 />
               ))}
@@ -139,6 +142,7 @@ export function UsersList({
                     onKickClick={onKickClick}
                     onUnbanClick={onUnbanClick}
                     onDeleteClick={onDeleteClick}
+                    onToggleVip={onToggleVip}
                     user={user}
                   />
                 ))}

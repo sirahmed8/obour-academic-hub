@@ -130,6 +130,47 @@ export function LoginScreen({ embedded = false }: { embedded?: boolean }) {
                 <span>{t("login.continueGoogle")}</span>
               </motion.button>
 
+              {/* Terms of Service & Privacy Policy agreement disclaimer */}
+              <p className="text-[11px] text-white/50 text-center font-medium leading-relaxed px-2 mt-2">
+                {language === "ar" ? (
+                  <>
+                    بالمتابعة، فإنك توافق على{" "}
+                    <Link
+                      href="/legal/terms"
+                      className="text-white/80 hover:text-primary underline underline-offset-2 transition-colors font-semibold"
+                    >
+                      شروط خدمة منصة معاهد العبور
+                    </Link>{" "}
+                    و{" "}
+                    <Link
+                      href="/legal/privacy"
+                      className="text-white/80 hover:text-primary underline underline-offset-2 transition-colors font-semibold"
+                    >
+                      سياسة الخصوصية
+                    </Link>
+                    .
+                  </>
+                ) : (
+                  <>
+                    By continuing, you agree to Obour Institutes Platform{" "}
+                    <Link
+                      href="/legal/terms"
+                      className="text-white/80 hover:text-primary underline underline-offset-2 transition-colors font-semibold"
+                    >
+                      Terms of Service
+                    </Link>{" "}
+                    and{" "}
+                    <Link
+                      href="/legal/privacy"
+                      className="text-white/80 hover:text-primary underline underline-offset-2 transition-colors font-semibold"
+                    >
+                      Privacy Policy
+                    </Link>
+                    .
+                  </>
+                )}
+              </p>
+
               {/* Trust Badges */}
               <div className="flex items-center gap-3 text-[10px] text-white/50 justify-center font-semibold uppercase tracking-wider">
                 {[

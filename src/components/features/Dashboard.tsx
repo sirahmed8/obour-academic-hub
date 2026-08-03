@@ -34,12 +34,54 @@ export function Dashboard() {
   const [mounted, setMounted] = useState(false);
   const [showOnboarding, setShowOnboarding] = useState(false);
 
+  // Quick Stats — fetched client-side after mount
+  const [taskCount, setTaskCount] = useState(0);
+  const [streakCount, setStreakCount] = useState(0);
+  const [daysUntilExam, setDaysUntilExam] = useState<number | null>(null);
+
   useEffect(() => {
     setMounted(true);
     if (shouldShowOnboarding()) {
       setShowOnboarding(true);
     }
-  }, []);
+
+    try {
+      // Task count from todo-items key
+      const rawTodos = localStorage.getItem("todo-items");
+      if (rawTodos) {
+        const parsed = JSON.parse(rawTodos);
+        if (Array.isArray(parsed)) {
+          // Count all active tasks
+          setTaskCount(parsed.length);
+        }
+      }
+    } catch {
+      /* ignore */
+    }
+
+    try {
+      // Streak — prefer per-user key, fall back to generic study-streak key
+      const uid = user?.uid;
+      const streakRaw = uid
+        ? (localStorage.getItem(`obour_streak_${uid}`) ?? localStorage.getItem("study-streak"))
+        : localStorage.getItem("study-streak");
+      setStreakCount(streakRaw ? parseInt(streakRaw, 10) || 0 : 0);
+    } catch {
+      /* ignore */
+    }
+
+    try {
+      // Next exam hint — read from schedule or fallback
+      const rawExam = localStorage.getItem("next-exam-date");
+      if (rawExam) {
+        const examDate = new Date(rawExam);
+        const diff = Math.ceil((examDate.getTime() - Date.now()) / (1000 * 60 * 60 * 24));
+        if (diff >= 0) setDaysUntilExam(diff);
+      }
+    } catch {
+      /* ignore */
+    }
+  }, [user?.uid]);
 
   return (
     <>
@@ -161,6 +203,37 @@ export function Dashboard() {
                 <MessageSquare size={16} className="text-emerald-400" />
                 <span>{language === "ar" ? "طرح سؤال مجتمعي" : "Ask Question"}</span>
               </Link>
+            </div>
+
+            {/* Quick Stats Pills */}
+            <div className="flex flex-wrap gap-3 mt-4">
+              <div className="flex items-center gap-2 bg-white/10 px-3 py-1.5 rounded-xl text-xs text-white font-bold border border-white/10 backdrop-blur-sm">
+                <span>📋</span>
+                <span>
+                  {language === "ar" ? `${taskCount} مهمة اليوم` : `${taskCount} Tasks Today`}
+                </span>
+              </div>
+              <div className="flex items-center gap-2 bg-white/10 px-3 py-1.5 rounded-xl text-xs text-white font-bold border border-white/10 backdrop-blur-sm">
+                <span>🔥</span>
+                <span>
+                  {language === "ar" ? `${streakCount} يوم متتالي` : `${streakCount} Day Streak`}
+                </span>
+              </div>
+              {daysUntilExam !== null ? (
+                <div className="flex items-center gap-2 bg-white/10 px-3 py-1.5 rounded-xl text-xs text-white font-bold border border-white/10 backdrop-blur-sm">
+                  <span>🎯</span>
+                  <span>
+                    {language === "ar"
+                      ? `امتحان بعد ${daysUntilExam} يوم`
+                      : `Exam in ${daysUntilExam} days`}
+                  </span>
+                </div>
+              ) : (
+                <div className="flex items-center gap-2 bg-white/10 px-3 py-1.5 rounded-xl text-xs text-white font-bold border border-white/10 backdrop-blur-sm">
+                  <span>🎯</span>
+                  <span>{language === "ar" ? "لا امتحانات قريبة" : "No Exam Scheduled"}</span>
+                </div>
+              )}
             </div>
           </div>
         </motion.div>

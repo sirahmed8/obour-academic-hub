@@ -1,6 +1,7 @@
 "use client";
 
 import { useAuth, useLanguage } from "@/contexts";
+import Link from "next/link";
 import Image from "next/image";
 import {
   User,
@@ -12,6 +13,8 @@ import {
   Trash2,
   RotateCcw,
   Trophy,
+  Crown,
+  Sparkles,
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/Card";
 import { ConfirmationModal } from "@/components/ui/ConfirmationModal";
@@ -123,8 +126,25 @@ export default function ProfilePage() {
 
         <div className="text-center md:text-left space-y-3 flex-1">
           <div>
-            <h1 className="text-3xl sm:text-4xl font-black text-foreground tracking-tight flex items-center justify-center md:justify-start gap-2">
+            <h1 className="text-3xl sm:text-4xl font-black text-foreground tracking-tight flex flex-wrap items-center justify-center md:justify-start gap-2">
               <span>{user.displayName}</span>
+              {user.isVip || user.role === "owner" ? (
+                <Link
+                  href="/plus"
+                  className="inline-flex items-center gap-1 text-xs px-3 py-1 rounded-full bg-gradient-to-r from-amber-500 to-yellow-400 text-black font-extrabold shadow-md hover:scale-105 transition-all"
+                >
+                  <Crown size={14} />
+                  <span>{language === "ar" ? "العبور بلس 👑 VIP" : "Obour VIP Pass 👑"}</span>
+                </Link>
+              ) : (
+                <Link
+                  href="/plus"
+                  className="inline-flex items-center gap-1 text-xs px-2.5 py-1 rounded-full bg-amber-500/10 text-amber-500 hover:bg-amber-500/20 border border-amber-500/30 font-extrabold transition-all"
+                >
+                  <Sparkles size={12} />
+                  <span>{language === "ar" ? "ترقية إلى PRO ⚡" : "Upgrade to PRO ⚡"}</span>
+                </Link>
+              )}
               <span className="text-xs px-2.5 py-1 rounded-full bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20 font-bold">
                 {language === "ar" ? "طالب مسجل 🟢" : "Active Student 🟢"}
               </span>
@@ -215,6 +235,135 @@ export default function ProfilePage() {
       <div className="grid grid-cols-1 gap-6">
         <GpaGoalPlannerWidget />
       </div>
+
+      {/* Points & XP Section */}
+      {(() => {
+        const points = user.points ?? 0;
+
+        // League thresholds matching community/page.tsx
+        const LEAGUES = [
+          {
+            name: "Diamond",
+            nameAr: "\u0627\u0644\u0645\u0627\u0633",
+            emoji: "💎",
+            min: 5000,
+            next: Infinity,
+            color: "text-cyan-400",
+            bg: "bg-cyan-500/10",
+            border: "border-cyan-500/30",
+            bar: "bg-cyan-400",
+          },
+          {
+            name: "Gold",
+            nameAr: "\u0630\u0647\u0628",
+            emoji: "🥇",
+            min: 2000,
+            next: 5000,
+            color: "text-amber-400",
+            bg: "bg-amber-500/10",
+            border: "border-amber-500/30",
+            bar: "bg-amber-400",
+          },
+          {
+            name: "Silver",
+            nameAr: "\u0641\u0636\u0629",
+            emoji: "🥈",
+            min: 1000,
+            next: 2000,
+            color: "text-slate-300",
+            bg: "bg-slate-500/10",
+            border: "border-slate-400/30",
+            bar: "bg-slate-300",
+          },
+          {
+            name: "Bronze",
+            nameAr: "\u0628\u0631\u0648\u0646\u0632",
+            emoji: "🥉",
+            min: 0,
+            next: 1000,
+            color: "text-orange-400",
+            bg: "bg-orange-500/10",
+            border: "border-orange-500/30",
+            bar: "bg-orange-400",
+          },
+        ];
+
+        const league = LEAGUES.find((l) => points >= l.min) ?? LEAGUES[LEAGUES.length - 1];
+        const isTopLeague = league.next === Infinity;
+        const progressPct = isTopLeague
+          ? 100
+          : Math.min(100, Math.round(((points - league.min) / (league.next - league.min)) * 100));
+        const leagueName = language === "ar" ? league.nameAr : league.name;
+
+        return (
+          <div className="bg-card border border-border rounded-4xl p-6 shadow-md dark:bg-card space-y-4">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <div className={`p-2.5 rounded-2xl ${league.bg} ${league.border} border`}>
+                  <Trophy className={`w-5 h-5 ${league.color}`} />
+                </div>
+                <div>
+                  <h2 className="text-base font-black text-foreground">
+                    {language === "ar"
+                      ? "\u0646\u0642\u0627\u0637 XP \u0648\u0627\u0644\u062f\u0648\u0631\u064a"
+                      : "Points & XP League"}
+                  </h2>
+                  <p className="text-xs text-muted-foreground font-medium">
+                    {language === "ar"
+                      ? "\u062a\u0642\u062f\u0645\u0643 \u0641\u064a \u062f\u0648\u0631\u064a \u0627\u0644\u0645\u062a\u0635\u062f\u0631\u064a\u0646"
+                      : "Your progress in the leaderboard"}
+                  </p>
+                </div>
+              </div>
+
+              {/* League badge */}
+              <div
+                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-black ${league.bg} ${league.color} border ${league.border}`}
+              >
+                <span>{league.emoji}</span>
+                <span>{leagueName}</span>
+              </div>
+            </div>
+
+            {/* Points display */}
+            <div className="flex items-end gap-2">
+              <span className="text-4xl font-black text-foreground tabular-nums">
+                {points.toLocaleString()}
+              </span>
+              <span className="text-sm text-muted-foreground font-semibold mb-1">
+                {language === "ar" ? "نقطة XP" : "XP Points"}
+              </span>
+            </div>
+
+            {/* Progress bar */}
+            <div className="space-y-1.5">
+              <div className="flex justify-between text-[11px] font-semibold text-muted-foreground">
+                <span>{league.min.toLocaleString()} pts</span>
+                {isTopLeague ? (
+                  <span className={`${league.color} font-black`}>
+                    {language === "ar" ? "أعلى مستوى! 🏆" : "Max League! 🏆"}
+                  </span>
+                ) : (
+                  <span>{league.next.toLocaleString()} pts</span>
+                )}
+              </div>
+              <div className="w-full bg-muted h-3 rounded-full overflow-hidden border border-border">
+                <div
+                  className={`h-full rounded-full transition-all duration-700 ${league.bar}`}
+                  style={{ width: `${progressPct}%` }}
+                />
+              </div>
+              {!isTopLeague && (
+                <p className="text-[11px] text-muted-foreground font-medium text-right">
+                  {language === "ar"
+                    ? `${(league.next - points).toLocaleString()} نقطة للوصول لـ ${LEAGUES.find((l) => l.min === league.next)?.nameAr ?? ""}`
+                    : `${(league.next - points).toLocaleString()} pts to ${LEAGUES.find((l) => l.min === league.next)?.name ?? "next"} league`}
+                </p>
+              )}
+            </div>
+          </div>
+        );
+      })()}
 
       {/* My Data Section */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">

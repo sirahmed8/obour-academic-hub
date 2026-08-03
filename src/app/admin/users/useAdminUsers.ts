@@ -70,6 +70,7 @@ export interface AdminUsersController {
   filteredUsers: User[];
   handleBulkRoleChange: (newRole: "student" | "admin" | "owner") => Promise<void>;
   handleEditUser: () => Promise<void>;
+  handleToggleVipUser: (user: User) => Promise<void>;
   handleExportCSV: () => void;
   handleLoadMore: () => void;
   changeRoleModal: ChangeRoleModalState;
@@ -184,6 +185,28 @@ export function useAdminUsers(): AdminUsersController {
     } catch (error) {
       console.error(error);
       toast.error(language === "ar" ? "فشل إرسال التنبيه" : "Failed to send alert");
+    }
+  };
+
+  const handleToggleVipUser = async (user: User) => {
+    const nextVip = !user.isVip;
+    try {
+      await userService.update(user.uid, {
+        isVip: nextVip,
+        subscriptionTier: nextVip ? "vip" : "free",
+      });
+      toast.success(
+        language === "ar"
+          ? nextVip
+            ? "👑 تم تفعيل العبور بلس للمستخدم بنجاح!"
+            : "تم إلغاء تفعيل العبور بلس"
+          : nextVip
+            ? "👑 VIP Pass activated for user!"
+            : "VIP Pass deactivated for user"
+      );
+    } catch (err) {
+      console.error("Failed to toggle VIP status:", err);
+      toast.error(language === "ar" ? "فشل تغيير حالة الاشتراك" : "Failed to change VIP status");
     }
   };
 
@@ -450,6 +473,7 @@ export function useAdminUsers(): AdminUsersController {
     filteredUsers,
     handleBulkRoleChange,
     handleEditUser,
+    handleToggleVipUser,
     handleExportCSV,
     handleLoadMore,
     changeRoleModal,

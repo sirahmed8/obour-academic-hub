@@ -83,8 +83,16 @@
   - **AI Quiz Generator (`/quiz`)**: Instant quiz creation with difficulty levels, question count selection, instant score calculation, `canvas-confetti` celebration, +15 XP toast reward, and step-by-step solution explanations.
   - **Academic Timetable & Attendance (`/schedule`)**: Interactive lecture timetable with Day Filter Pills (Sunday through Thursday), attendance tracking, and attendance percentage calculator.
   - **AI MindMap Visualizer (`/mindmap`)**: Instant concept tree generator simplifying complex academic subjects into structured hierarchical nodes.
-- **Student Marketplace (`/market`) & Alumni Network (`/alumni`)**:
-  - Peer academic gear exchange and alumni internship/mentorship board with solid card surfaces and seller/mentor chat buttons.
+- **Student Project Showcase (`/showcase`) & Alumni Search Board (`/alumni`)**:
+  - **Project Showcase (`/showcase`)**: Real-time project search bar (title, author, department, tags), Zod input validation (`showcaseSchema`), duplicate like prevention with active heart indicator, and high-contrast solid cards.
+  - **Alumni & Internship Board (`/alumni`)**: Real-time search bar, opportunity type filter pills (Summer Internships, Mentorship, Junior Jobs), Zod input validation (`internshipSchema`), and solid cards.
+- **Student Guide & Platform Map (`/guide`)**:
+  - Interactive 9-feature platform map grid, solid card styling, and interactive FAQ accordion with smooth open/close toggles.
+- **Student Gear Marketplace (`/market`)**:
+  - Peer academic gear exchange with Zod input validation (`marketItemSchema`), category filter pills (Books, Electronics, Tools), real-time title search, and humanized `timeAgo` timestamp formatting.
+- **Profile Page XP Progress Bar (`/profile`) & Dashboard Quick Stats (`/main`)**:
+  - Profile page with XP progress bar toward next league threshold, league division badges (Bronze 🥉, Silver 🥈, Gold 🥇, Diamond 💎), and level tracking.
+  - Main Dashboard with client-side Quick Stats pills bar showing Today's Tasks count, Study Streak days, and Next Exam countdown hint.
 - **Student Leaderboard & Competition Hub (`/community`, `/community/leaderboard`)**:
   - Overhauled competition dashboard with Champions Podium (Top 3), League Divisions (Diamond 💎, Gold 🥇, Silver 🥈, Bronze 🥉), category-specific leaderboards (XP, Streaks, Resources, Battles), weekly challenges, and real-time student standings.
   - **Public User Profile Modal (`UserProfileModal.tsx`)**: Reusable profile popup showing student ID, department, league tier, XP progress, streaks, uploaded resources, and battle wins.

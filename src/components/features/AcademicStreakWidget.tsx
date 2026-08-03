@@ -4,6 +4,9 @@ import { useState, useEffect } from "react";
 import { useAuth, useLanguage } from "@/contexts";
 import { Flame, Calendar, Award, Sparkles, Sun } from "lucide-react";
 import { motion } from "framer-motion";
+import { collection, query, where, orderBy, getDocs, Timestamp } from "firebase/firestore";
+import { db } from "@/lib/firebase";
+import { toDate } from "@/lib/utils";
 
 function getSemesterInfo() {
   const now = new Date();
@@ -111,6 +114,8 @@ export function AcademicStreakWidget() {
   const isAr = language === "ar";
   const [mounted, setMounted] = useState(false);
   const [streakDays, setStreakDays] = useState(1);
+  // heatmap: map of YYYY-MM-DD -> count
+  const [heatmap, setHeatmap] = useState<Record<string, number>>({});
 
   useEffect(() => {
     setMounted(true);
@@ -151,6 +156,40 @@ export function AcademicStreakWidget() {
     } catch {
       setStreakDays(1);
     }
+  }, [user?.uid]);
+
+  // Fetch last-30-day activity from Firestore for the heatmap
+  useEffect(() => {
+    if (!user?.uid || !db) return;
+    const uid = user.uid;
+
+    const thirtyDaysAgo = new Date();
+    thirtyDaysAgo.setHours(0, 0, 0, 0);
+    thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 29);
+
+    const q = query(
+      collection(db, "analytics_logs"),
+      where("userId", "==", uid),
+      where("timestamp", ">=", Timestamp.fromDate(thirtyDaysAgo)),
+      orderBy("timestamp", "asc")
+    );
+
+    getDocs(q)
+      .then((snapshot) => {
+        const dayCounts: Record<string, number> = {};
+        snapshot.docs.forEach((docSnap) => {
+          const ts = docSnap.data().timestamp;
+          if (!ts) return;
+          const validDate = toDate(ts);
+          if (isNaN(validDate.getTime())) return;
+          const key = validDate.toISOString().split("T")[0];
+          dayCounts[key] = (dayCounts[key] || 0) + 1;
+        });
+        setHeatmap(dayCounts);
+      })
+      .catch(() => {
+        /* silently ignore */
+      });
   }, [user?.uid]);
 
   const sem = getSemesterInfo();
@@ -266,6 +305,58 @@ export function AcademicStreakWidget() {
               ? "«الاستمرار في المذاكرة اليومية الصغيرة يصنع التميز الكلي مع الأيام.»"
               : "“Small daily study progress yields massive academic excellence.”"}
           </p>
+        </div>
+      </motion.div>
+
+      {/* Study Calendar Heatmap — last 30 days */}
+      <motion.div
+        initial={{ opacity: 0, y: 15 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.4, delay: 0.4 }}
+        className="p-5 rounded-3xl bg-card border border-border shadow-sm"
+      >
+        <div className="flex items-center gap-2 mb-3">
+          <div className="p-2 rounded-xl bg-green-500/15 text-green-500 border border-green-500/25">
+            <Calendar size={16} />
+          </div>
+          <span className="text-xs font-black uppercase tracking-wider text-foreground">
+            {isAr ? "تقويم الدراسة — 30 يوماً الأخيرة" : "Study Calendar — Last 30 Days"}
+          </span>
+        </div>
+        <div
+          className="grid gap-1"
+          style={{ gridTemplateColumns: "repeat(6, 1fr)" }}
+          title={isAr ? "نشاط يومي" : "Daily activity"}
+        >
+          {Array.from({ length: 30 }, (_, i) => {
+            const d = new Date();
+            d.setDate(d.getDate() - (29 - i));
+            const key = d.toISOString().split("T")[0];
+            const count = heatmap[key] ?? 0;
+            const colorClass =
+              count === 0
+                ? "bg-muted border-border"
+                : count <= 2
+                  ? "bg-green-300/60 border-green-400/40"
+                  : count <= 5
+                    ? "bg-green-500/70 border-green-500/50"
+                    : "bg-green-600 border-green-700/60";
+            const label = `${key}: ${count} ${isAr ? "نشاط" : "actions"}`;
+            return (
+              <div
+                key={key}
+                title={label}
+                className={`h-5 w-full rounded border ${colorClass} transition-colors cursor-default`}
+              />
+            );
+          })}
+        </div>
+        <div className="flex items-center gap-1.5 mt-2.5 justify-end">
+          <span className="text-[10px] text-muted-foreground">{isAr ? "أقل" : "Less"}</span>
+          {["bg-muted", "bg-green-300/60", "bg-green-500/70", "bg-green-600"].map((c) => (
+            <div key={c} className={`h-3 w-3 rounded-sm ${c}`} />
+          ))}
+          <span className="text-[10px] text-muted-foreground">{isAr ? "أكثر" : "More"}</span>
         </div>
       </motion.div>
     </div>

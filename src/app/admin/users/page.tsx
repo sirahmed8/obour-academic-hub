@@ -44,6 +44,7 @@ export default function AdminUsersPage() {
           onKickClick={usersPage.handleKickUser}
           onUnbanClick={usersPage.handleUnbanUser}
           onDeleteClick={usersPage.handleDeleteUser}
+          onToggleVip={usersPage.handleToggleVipUser}
         />
 
         <ConfirmationModal
