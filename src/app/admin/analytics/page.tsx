@@ -68,7 +68,7 @@ const UserRolesChart = dynamic(() => import("./_components/UserRolesChart"), {
 import { cn, toDate } from "@/lib/utils";
 import { toast } from "sonner";
 
-interface TopPlayer {
+interface TopStudent {
   uid: string;
   name: string;
   email: string;
@@ -93,7 +93,7 @@ interface AnalyticsData {
   userGrowth: { name: string; users: number }[];
   vipUsers: number;
   freeUsers: number;
-  topPlayers: TopPlayer[];
+  topPlayers: TopStudent[];
   todayLogins: number;
   newUsersThisWeek: number;
 }
@@ -122,7 +122,7 @@ export default function AdminAnalyticsPage() {
   const [loading, setLoading] = useState(true);
   const [showResetModal, setShowResetModal] = useState(false);
   const [activeTab, setActiveTab] = useState<
-    "overview" | "subjects" | "users" | "audit" | "players"
+    "overview" | "subjects" | "users" | "audit" | "students"
   >("overview");
   const { language } = useLanguage();
 
@@ -180,7 +180,7 @@ export default function AdminAnalyticsPage() {
             const now = new Date();
             const weekAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
             const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-            const topPlayersArr: TopPlayer[] = [];
+            const topPlayersArr: TopStudent[] = [];
 
             snapshot.docs.forEach((d) => {
               const u = d.data() as User;
@@ -211,7 +211,7 @@ export default function AdminAnalyticsPage() {
                 if (date >= weekAgo) newThisWeek++;
               }
 
-              // Top players
+              // Top students by points
               if ((u.points ?? 0) > 0) {
                 topPlayersArr.push({
                   uid: d.id,
@@ -580,8 +580,8 @@ export default function AdminAnalyticsPage() {
                 icon: ShieldCheck,
               },
               {
-                id: "players",
-                label: language === "ar" ? "المتصدرون" : "Top Players",
+                id: "students",
+                label: language === "ar" ? "أوائل الطلاب" : "Top Students",
                 icon: Trophy,
               },
             ].map((tab) => {
@@ -893,7 +893,7 @@ export default function AdminAnalyticsPage() {
             </div>
           )}
 
-          {activeTab === "players" && (
+          {activeTab === "students" && (
             <div className="space-y-6 animate-in slide-in-from-bottom-4 duration-500">
               {/* Header row: VIP vs Free */}
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
@@ -937,10 +937,10 @@ export default function AdminAnalyticsPage() {
                   <Trophy className="text-amber-500" size={22} />
                   <div>
                     <h2 className="text-lg font-black text-foreground">
-                      {language === "ar" ? "أفضل 10 لاعبين على المنصة" : "Top 10 Platform Players"}
+                      {language === "ar" ? "أوائل 10 طلاب على المنصة" : "Top 10 Students"}
                     </h2>
                     <p className="text-xs text-muted-foreground mt-0.5">
-                      {language === "ar" ? "مرتبون حسب إجمالي النقاط" : "Ranked by total points"}
+                      {language === "ar" ? "مرتبون حسب إجمالي النقاط" : "Ranked by total XP points"}
                     </p>
                   </div>
                 </div>
@@ -950,14 +950,14 @@ export default function AdminAnalyticsPage() {
                       <Trophy size={40} className="opacity-20" />
                       <p className="font-semibold italic text-sm">
                         {language === "ar"
-                          ? "لا يوجد لاعبون بنقاط بعد"
-                          : "No players with points yet"}
+                          ? "لا يوجد طلاب بنقاط بعد"
+                          : "No students with points yet"}
                       </p>
                     </div>
                   ) : (
-                    data.topPlayers.map((player, idx) => (
+                    data.topPlayers.map((student, idx) => (
                       <div
-                        key={player.uid}
+                        key={student.uid}
                         className="flex items-center gap-4 px-6 py-4 hover:bg-muted/30 transition-colors"
                       >
                         {/* Rank badge */}
@@ -977,16 +977,16 @@ export default function AdminAnalyticsPage() {
                         </div>
                         {/* Avatar */}
                         <div className="w-10 h-10 rounded-xl bg-muted border border-border overflow-hidden shrink-0">
-                          {player.avatar ? (
+                          {student.avatar ? (
                             // eslint-disable-next-line @next/next/no-img-element
                             <img
-                              src={player.avatar}
-                              alt={player.name}
+                              src={student.avatar}
+                              alt={student.name}
                               className="w-full h-full object-cover"
                             />
                           ) : (
                             <div className="w-full h-full flex items-center justify-center text-sm font-black text-muted-foreground">
-                              {player.name.charAt(0).toUpperCase()}
+                              {student.name.charAt(0).toUpperCase()}
                             </div>
                           )}
                         </div>
@@ -994,30 +994,30 @@ export default function AdminAnalyticsPage() {
                         <div className="flex-1 min-w-0">
                           <div className="flex items-center gap-2">
                             <p className="font-bold text-sm text-foreground truncate">
-                              {player.name}
+                              {student.name}
                             </p>
-                            {player.isVip && (
+                            {student.isVip && (
                               <Crown size={12} className="text-amber-500 shrink-0" />
                             )}
-                            {player.role === "owner" && (
+                            {student.role === "owner" && (
                               <span className="text-[9px] px-1.5 py-0.5 rounded-full bg-primary/10 text-primary font-bold border border-primary/20">
                                 OWNER
                               </span>
                             )}
-                            {player.role === "admin" && (
+                            {student.role === "admin" && (
                               <span className="text-[9px] px-1.5 py-0.5 rounded-full bg-purple-500/10 text-purple-600 font-bold border border-purple-500/20">
                                 ADMIN
                               </span>
                             )}
                           </div>
                           <p className="text-[10px] text-muted-foreground truncate">
-                            {player.email}
+                            {student.email}
                           </p>
                         </div>
                         {/* Points */}
                         <div className="text-right shrink-0">
                           <p className="font-black text-lg text-foreground">
-                            {player.points.toLocaleString()}
+                            {student.points.toLocaleString()}
                           </p>
                           <p className="text-[10px] text-muted-foreground font-medium">
                             {language === "ar" ? "نقطة" : "pts"}
