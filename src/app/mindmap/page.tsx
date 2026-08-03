@@ -81,8 +81,8 @@ export default function MindMapPage() {
       dir={isRtl ? "rtl" : "ltr"}
     >
       <FadeIn>
-        <div className="p-6 sm:p-10 rounded-3xl bg-card/60 border border-primary/20 backdrop-blur-2xl shadow-xl space-y-3">
-          <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-primary/10 text-primary font-extrabold text-xs uppercase tracking-wider">
+        <div className="p-6 sm:p-10 rounded-3xl bg-card border border-border shadow-xl space-y-3 dark:bg-card">
+          <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-primary/10 text-primary font-extrabold text-xs uppercase tracking-wider border border-primary/20">
             <GitFork size={14} />
             <span>
               {isRtl ? "مولد الخرائط الذهنية بالذكاء الاصطناعي" : "AI Mind Map Generator"}
@@ -107,7 +107,7 @@ export default function MindMapPage() {
       <ScaleIn>
         <form
           onSubmit={handleGenerateMindmap}
-          className="p-6 rounded-3xl bg-card/60 border border-border/80 backdrop-blur-xl shadow-lg space-y-4"
+          className="p-6 sm:p-8 rounded-3xl bg-card border border-border shadow-md space-y-4 dark:bg-card"
         >
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
@@ -183,7 +183,7 @@ export default function MindMapPage() {
       {/* Rendered Mind Map Display */}
       {mindmap && (
         <ScaleIn>
-          <div className="p-8 rounded-3xl bg-card/60 border border-primary/20 backdrop-blur-2xl shadow-xl space-y-6">
+          <div className="p-6 sm:p-8 rounded-3xl bg-card border border-border shadow-xl space-y-6 dark:bg-card">
             <div className="flex items-center justify-between border-b border-border/50 pb-4">
               <h2 className="text-xl font-black text-foreground flex items-center gap-2">
                 <Layers className="text-primary" />

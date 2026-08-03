@@ -80,7 +80,7 @@ function SubjectBrowser() {
     <div className="p-4 sm:p-6 lg:p-10 space-y-8 w-full page-transition aurora-bg min-h-screen max-w-7xl mx-auto">
       {/* Header */}
       <FadeIn>
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 p-6 sm:p-8 rounded-3xl bg-card/60 border border-primary/20 backdrop-blur-2xl shadow-xl">
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 p-6 sm:p-8 rounded-3xl bg-card border border-border dark:bg-card shadow-md backdrop-blur-xl">
           <div className="flex items-center gap-4">
             <div className="p-3.5 rounded-2xl bg-primary/10 text-primary border border-primary/20 shrink-0">
               <BookOpen size={32} />
@@ -120,7 +120,7 @@ function SubjectBrowser() {
         <div className="flex flex-col md:flex-row items-stretch md:items-center gap-4">
           {/* Search Input */}
           <div className="relative flex-1" id="search-container">
-            <div className="flex items-center w-full px-4 py-3.5 rounded-2xl bg-card/60 backdrop-blur-xl border border-primary/20 focus-within:ring-2 focus-within:ring-primary/20 focus-within:border-primary/50 transition-all shadow-sm">
+            <div className="flex items-center w-full px-4 py-3.5 rounded-2xl bg-card border border-border dark:bg-card shadow-sm focus-within:ring-2 focus-within:ring-primary/20 focus-within:border-primary/50 transition-all">
               <Search className="text-muted-foreground me-3 shrink-0" size={20} />
               <input
                 type="text"
@@ -154,10 +154,10 @@ function SubjectBrowser() {
               <button
                 key={cat.id}
                 onClick={() => setSelectedCategory(cat.id)}
-                className={`px-4 py-2.5 rounded-2xl text-xs sm:text-sm font-bold whitespace-nowrap transition-all ${
+                className={`px-4 py-2.5 rounded-2xl text-xs sm:text-sm font-bold whitespace-nowrap transition-all active:scale-97 ${
                   selectedCategory === cat.id
                     ? "bg-primary text-primary-foreground shadow-md shadow-primary/20 scale-[1.02]"
-                    : "bg-card/40 hover:bg-muted text-muted-foreground hover:text-foreground border border-border/50"
+                    : "bg-card hover:bg-muted text-muted-foreground hover:text-foreground border border-border dark:bg-card"
                 }`}
               >
                 {cat.label}

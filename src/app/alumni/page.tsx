@@ -174,7 +174,7 @@ export default function AlumniPage() {
         <StaggerChildren className="grid grid-cols-1 md:grid-cols-2 gap-6">
           {internships.map((job) => (
             <ScaleIn key={job.id}>
-              <div className="p-6 rounded-3xl bg-card border border-border shadow-md hover:border-primary/40 hover:shadow-xl transition-all duration-300 space-y-4 flex flex-col justify-between group">
+              <div className="p-6 rounded-3xl bg-card border border-border shadow-md hover:border-primary/40 hover:shadow-xl hover-lift transition-all duration-300 space-y-4 flex flex-col justify-between group dark:bg-card">
                 <div className="space-y-2">
                   <div className="flex items-center justify-between">
                     <span className="px-3 py-1 rounded-full bg-primary/10 text-primary font-extrabold text-xs border border-primary/20">
@@ -195,13 +195,13 @@ export default function AlumniPage() {
                 <motion.button
                   type="button"
                   whileHover={{ scale: 1.02 }}
-                  whileTap={{ scale: 0.98 }}
+                  whileTap={{ scale: 0.96 }}
                   onClick={() =>
                     toast.success(
                       isRtl ? "تم إرسال طلب التقديم للإرشاد المهني!" : "Application sent!"
                     )
                   }
-                  className="w-full py-3 rounded-2xl bg-gradient-to-r from-primary to-indigo-600 text-white font-extrabold text-xs transition-all duration-300 hover:opacity-95 flex items-center justify-center gap-2 shadow-lg hover:shadow-primary/20"
+                  className="w-full py-3 rounded-2xl bg-gradient-to-r from-primary to-indigo-600 text-white font-extrabold text-xs transition-all duration-300 hover:opacity-95 flex items-center justify-center gap-2 shadow-lg hover:shadow-primary/20 active:scale-97"
                 >
                   <Briefcase size={16} />
                   <span>{isRtl ? "التقديم وتواصل مع الخريج" : "Apply & Connect"}</span>

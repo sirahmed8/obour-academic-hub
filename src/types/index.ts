@@ -209,6 +209,7 @@ export interface TodoTask {
   }[];
   orderIndex: number;
   createdAt: string | { seconds: number; nanoseconds: number };
+  status?: "todo" | "in-progress" | "done";
 }
 export interface UserPresence {
   uid: string;

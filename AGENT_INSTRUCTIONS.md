@@ -1,6 +1,6 @@
 # Agent Handoff & Single Source of Truth
 
-> **LIVE SYSTEM STATUS**: Checkpoint 9 UI & UX Fixes Complete. Search bar focus ring cleaned; study buddy match score algorithm made real; transcribe mic permissions & stop state fixed; all 17 sidebar items assigned unique icons; solid card backgrounds applied to Leaderboard and Ceremony banners; chat presence indicator made dynamic; admin resource form made full-width; auto-scroll to active tab & scroll-to-top on route change added; GPA goal planner redesigned; UserProfileModal integrated across WhoIsOnline, Leaderboard, and Buddies.
+> **LIVE SYSTEM STATUS**: Checkpoint 12 Interactive Module Optimizations Complete. AI Quiz page (`/quiz`) upgraded with confetti celebration & +15 XP rewards on completion; Schedule timetable page (`/schedule`) upgraded with Day Filter pills (Sunday-Thursday) & solid card layout; MindMap generator (`/mindmap`) upgraded with solid card layout and concept tree renderer; Kanban board on `/todo`, Resource bookmarking on `/subject`, Q&A upvoting on `/qa`, and Past Exams Solution Key Preview on `/exams` fully verified. ESLint 0 errors / 0 warnings & 131/131 Vitest unit tests passing.
 
 ---
 
@@ -15,31 +15,33 @@
 
 ## Completed Overhauls & New Modules Created
 
-1. **Purging Hardcoded Mock Data Across All Pages**:
-   - Dynamic Firestore integration and empty state cards implemented across `/buddies`, `/hagaz`, `/qa`, `/exams`, `/showcase`, `/market`, and `/alumni`.
-2. **Solid Card Opacity Fixes**:
-   - Replaced transparent `bg-card/60` wrappers with high-contrast, fully readable solid cards (`bg-card border border-border shadow-md backdrop-blur-xl dark:bg-card`).
-3. **Global Micro-Animation Architecture**:
-   - Added global outline focus halo animation in `src/app/globals.css` for all textboxes, textareas, and select boxes.
-   - Button micro-press active scale feedback (`active:scale-97`) and list card hover lifts (`.list-card-hover`).
-4. **Leaderboard & Competitions Hub Overhaul** (Checkpoint 8 & 9):
-   - `src/app/community/page.tsx` transformed into a full competition hub with Champions Podium (Top 3), League Divisions (Diamond, Gold, Silver, Bronze), category leaderboards (XP, Streaks, Resources, Battles), and Weekly Challenges. Header card updated to solid `bg-card`.
-5. **Community Chat in AI Chatbot Drawer** (Checkpoint 8):
-   - `src/components/features/chatbot/ChatbotPanel.tsx` & `useAIChatbot.ts` updated with 3 mode tabs: AI Assistant 🤖, Live Support 🎧, and Global Community Chat 💬 (`GlobalChat.tsx`).
-6. **Public User Profile Modal Integration** (Checkpoint 8 & 9):
-   - `src/components/ui/UserProfileModal.tsx` integrated across `/community` (Podium & Leaderboard rows), `WhoIsOnline.tsx` (online student list), and `/buddies` (study partner cards).
-7. **Google Sign-In Registration Loop Fix** (Checkpoint 8):
-   - `src/components/layout/AppShell.tsx` updated `showProfileSetup` to verify all required profile fields (studentCode, academicYear, department, institute) for new users, ignoring previous session dismissal flags if profile is incomplete.
-8. **Sidebar Unique Icons & Auto-Scroll** (Checkpoint 9):
-   - `src/components/layout/Sidebar.tsx`: Assigned 17 unique, distinct Lucide icons across all menu items. Added smooth auto-scroll to active tab.
-9. **Real Dynamic Study Buddy Matching** (Checkpoint 9):
-   - `src/app/buddies/page.tsx`: Computes dynamic match scores (45%–98%) based on department, academic year, and shared enrolled subjects.
-10. **Audio Transcribe Mic & Speech Recognition Fix** (Checkpoint 9):
-    - `src/app/transcribe/page.tsx`: Added `isManualStopRef` tracking, interim results, and browser mic permission error handling.
-11. **Global Search Ring & Scroll-to-Top** (Checkpoint 9):
-    - `globals.css` & `SearchBar.tsx`: Added `.no-focus-ring` class to frameless search inputs. Added instant scroll-to-top on route change in `AppShell.tsx`.
-12. **GPA Target Goal Planner Redesign** (Checkpoint 9):
-    - `GpaGoalPlannerWidget.tsx`: Overhauled with grade scale badges, interactive range sliders, target status indicators, and solid card layout.
+1. **AI Quiz Generator & Confetti XP Rewards (`/quiz`)** (Checkpoint 12):
+   - Upgraded UI containers to solid high-contrast cards (`bg-card border border-border dark:bg-card`).
+   - Added instant `canvas-confetti` celebration, +15 XP toast reward, and step-by-step solution explanations upon quiz submission.
+2. **Academic Schedule & Day Filter Pills (`/schedule`)** (Checkpoint 12):
+   - Upgraded timetable card containers to solid cards (`bg-card border border-border dark:bg-card`).
+   - Added Day Filter Pills bar (All Days, Sunday, Monday, Tuesday, Wednesday, Thursday) for instant daily lecture filtering.
+3. **Interactive MindMap Visualizer (`/mindmap`)** (Checkpoint 12):
+   - Upgraded input form and concept tree renderer to solid cards (`bg-card border border-border dark:bg-card`).
+4. **Kanban vs List View Toggle on Tasks Page (`/todo`)** (Checkpoint 11):
+   - Added seamless view mode toggle button (`List View` vs `Kanban Board`) on `src/components/features/todo/TodoList.tsx`.
+   - Rendered 3 interactive Kanban columns: To Do (قيد الانتظار), In Progress (قيد التنفيذ), and Done (مكتملة).
+   - Added status transition buttons with +10 points award, confetti celebration, and browser notification integration. Saved view preference to localStorage (`todo_view_mode`).
+5. **Resource Bookmarking & Tagging on Subject Details (`/subject`)** (Checkpoint 11):
+   - Added quick Star Bookmark button on resource cards synced to `localStorage` (`bookmarked_resources_${user.uid}`).
+   - Added Resource Type Filter Pills (All, PDFs, Summaries & Docs, Lectures & Videos, Bookmarked ⭐) on `SubjectClient.tsx`.
+6. **Optimistic Upvoting & Subject Tags on Q&A Forum (`/qa`)** (Checkpoint 11):
+   - Implemented optimistic upvoting counter with active vote highlighting and Firestore doc update (`increment(diff)`).
+   - Added search input and dynamic subject tag filter pills bar for instant Q&A browsing.
+   - Added Zod input validation (`qaQuestionSchema`) to sanitize user question submissions.
+7. **Past Exams Multi-Filtering & Solution Key Preview Drawer (`/exams`)** (Checkpoint 11):
+   - Added Year filter pills (2025-2022) and Exam Type pills (Midterm/Final) to `PastExamsPage`.
+   - Added interactive Solution Key Preview Drawer (`previewDrawerExam`) featuring faculty-verified model answers (MCQ keys, problem derivations, scoring rubrics) and download actions.
+   - Added Zod input validation (`pastExamSchema`) for exam uploads.
+8. **Code Cleanup, Security & Dynamic Imports** (Checkpoint 11 & 12):
+   - Exported input sanitization function (`sanitizeString`) in `src/lib/zod-schemas.ts`.
+   - Verified clean dynamic imports for heavy chart components (`recharts`) and confetti (`canvas-confetti`).
+   - Verified zero ESLint errors (0 errors, 0 warnings) and 100% test suite pass rate (131/131 vitest tests passed).
 
 ---
 

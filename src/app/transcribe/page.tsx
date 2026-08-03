@@ -195,8 +195,8 @@ export default function TranscribePage() {
       dir={isRtl ? "rtl" : "ltr"}
     >
       <FadeIn>
-        <div className="p-6 sm:p-10 rounded-3xl bg-card/60 border border-primary/20 backdrop-blur-2xl shadow-xl space-y-3">
-          <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-primary/10 text-primary font-extrabold text-xs uppercase tracking-wider">
+        <div className="p-6 sm:p-10 rounded-3xl bg-card border border-border shadow-xl space-y-3 dark:bg-card">
+          <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-primary/10 text-primary font-extrabold text-xs uppercase tracking-wider border border-primary/20">
             <Mic size={14} />
             <span>{isRtl ? "محول الصوتيات والتلاخيص" : "Audio Transcriber & Summarizer"}</span>
           </div>
@@ -220,7 +220,7 @@ export default function TranscribePage() {
         <ScaleIn>
           <form
             onSubmit={handleTranscribe}
-            className="p-6 rounded-3xl bg-card/60 border border-border/80 backdrop-blur-xl shadow-lg space-y-4"
+            className="p-6 sm:p-8 rounded-3xl bg-card border border-border shadow-md space-y-4 dark:bg-card"
           >
             <div>
               <label className="block text-xs font-bold text-foreground mb-1">
@@ -325,24 +325,47 @@ export default function TranscribePage() {
 
         {/* Display Generated Summary */}
         <ScaleIn>
-          <div className="p-6 rounded-3xl bg-card/60 border border-primary/20 backdrop-blur-2xl shadow-xl min-h-[350px] flex flex-col justify-between">
+          <div className="p-6 rounded-3xl bg-card border border-border shadow-xl min-h-[350px] flex flex-col justify-between dark:bg-card">
             {summaryResult ? (
               <div className="space-y-4">
                 <div className="flex items-center justify-between border-b border-border/50 pb-3">
                   <span className="text-xs font-black text-primary uppercase">
                     {isRtl ? "التلخيص النهائي" : "Generated Summary"}
                   </span>
-                  <button
-                    type="button"
-                    onClick={() => {
-                      navigator.clipboard.writeText(summaryResult);
-                      toast.success(isRtl ? "تم نسخ الملخص!" : "Summary copied!");
-                    }}
-                    className="p-2 rounded-xl bg-muted hover:bg-muted/80 text-foreground font-bold text-xs flex items-center gap-1"
-                  >
-                    <Download size={14} />
-                    <span>{isRtl ? "نسخ" : "Copy"}</span>
-                  </button>
+                  <div className="flex items-center gap-2">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        navigator.clipboard.writeText(summaryResult);
+                        toast.success(isRtl ? "تم نسخ الملخص!" : "Summary copied!");
+                      }}
+                      className="px-3 py-1.5 rounded-xl bg-muted hover:bg-muted/80 text-foreground font-bold text-xs flex items-center gap-1 transition active:scale-95"
+                    >
+                      <span>{isRtl ? "نسخ" : "Copy"}</span>
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={() => {
+                        const blob = new Blob([summaryResult], {
+                          type: "text/markdown;charset=utf-8;",
+                        });
+                        const url = URL.createObjectURL(blob);
+                        const a = document.createElement("a");
+                        a.href = url;
+                        a.download = `${lectureTitle || "lecture"}-summary.md`;
+                        a.click();
+                        URL.revokeObjectURL(url);
+                        toast.success(
+                          isRtl ? "تم تصدير ملف الملخص! 📄" : "Summary exported as .md! 📄"
+                        );
+                      }}
+                      className="px-3 py-1.5 rounded-xl bg-primary text-white font-extrabold text-xs flex items-center gap-1 transition shadow-md hover:bg-primary/90 active:scale-95"
+                    >
+                      <Download size={14} />
+                      <span>{isRtl ? "تصدير .MD" : "Export .MD"}</span>
+                    </button>
+                  </div>
                 </div>
 
                 <div className="prose dark:prose-invert text-xs sm:text-sm max-h-[400px] overflow-y-auto pr-2">

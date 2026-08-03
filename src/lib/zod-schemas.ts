@@ -108,3 +108,33 @@ export const fileDownloadSchema = z.object({
 });
 
 export type FileDownloadRequest = z.infer<typeof fileDownloadSchema>;
+
+export function sanitizeString(val: string): string {
+  return val
+    .replace(/<script\b[^>]*>([\s\S]*?)<\/script>/gim, "")
+    .replace(/on\w+="[^"]*"/gim, "")
+    .replace(/on\w+='[^']*'/gim, "")
+    .replace(/javascript:[^"']*/gim, "")
+    .trim();
+}
+
+export const qaQuestionSchema = z.object({
+  title: z
+    .string()
+    .min(3, "Title must be at least 3 characters")
+    .max(300)
+    .transform(sanitizeString),
+  subject: z.string().min(2, "Subject is required").max(100).transform(sanitizeString),
+});
+
+export const pastExamSchema = z.object({
+  title: z
+    .string()
+    .min(3, "Title must be at least 3 characters")
+    .max(300)
+    .transform(sanitizeString),
+  subject: z.string().min(2, "Subject is required").max(100).transform(sanitizeString),
+  year: z.string().regex(/^\d{4}$/, "Invalid year"),
+  type: z.enum(["Midterm", "Final"]),
+  downloadUrl: z.string().url("Invalid URL").optional().or(z.literal("#")),
+});

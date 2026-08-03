@@ -64,6 +64,7 @@ export default function SchedulePage() {
   const isRtl = language === "ar";
 
   const [schedule, setSchedule] = useState<LectureSlot[]>(INITIAL_SCHEDULE);
+  const [selectedDay, setSelectedDay] = useState<string>("all");
 
   const toggleAttendance = (id: string) => {
     setSchedule(
@@ -86,8 +87,14 @@ export default function SchedulePage() {
     );
   };
 
+  const filteredSchedule = schedule.filter((s) => {
+    if (selectedDay === "all") return true;
+    return s.dayEn.toLowerCase() === selectedDay.toLowerCase();
+  });
+
   const attendedCount = schedule.filter((s) => s.attended).length;
-  const attendanceRate = Math.round((attendedCount / schedule.length) * 100);
+  const attendanceRate =
+    schedule.length > 0 ? Math.round((attendedCount / schedule.length) * 100) : 0;
 
   return (
     <div
@@ -95,9 +102,9 @@ export default function SchedulePage() {
       dir={isRtl ? "rtl" : "ltr"}
     >
       <FadeIn>
-        <div className="p-6 sm:p-10 rounded-3xl bg-card/60 border border-primary/20 backdrop-blur-2xl shadow-xl space-y-3 flex flex-col sm:flex-row sm:items-center justify-between gap-6">
+        <div className="p-6 sm:p-10 rounded-3xl bg-card border border-border shadow-xl space-y-3 flex flex-col sm:flex-row sm:items-center justify-between gap-6 dark:bg-card">
           <div>
-            <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-primary/10 text-primary font-extrabold text-xs uppercase tracking-wider">
+            <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-primary/10 text-primary font-extrabold text-xs uppercase tracking-wider border border-primary/20">
               <Calendar size={14} />
               <span>{isRtl ? "جدول المحاضرات والنسبة الدراسية" : "Timetable & Attendance"}</span>
             </div>
@@ -114,7 +121,7 @@ export default function SchedulePage() {
           </div>
 
           {/* Attendance Rate Display */}
-          <div className="p-5 rounded-2xl bg-gradient-to-tr from-primary/15 to-indigo-500/10 border border-primary/20 flex flex-col items-center justify-center shrink-0 shadow-lg relative overflow-hidden">
+          <div className="p-5 rounded-2xl bg-card border border-border flex flex-col items-center justify-center shrink-0 shadow-lg relative overflow-hidden dark:bg-card">
             <span className="text-xs font-extrabold text-muted-foreground">
               {isRtl ? "نسبة الحضور الأسبوعية" : "Weekly Attendance"}
             </span>
@@ -125,13 +132,39 @@ export default function SchedulePage() {
         </div>
       </FadeIn>
 
+      {/* Day Filter Pills */}
+      <ScaleIn>
+        <div className="flex items-center gap-2 overflow-x-auto pb-1 scrollbar-hide">
+          {[
+            { id: "all", labelAr: "جميع الأيام", labelEn: "All Days" },
+            { id: "sunday", labelAr: "الأحد", labelEn: "Sunday" },
+            { id: "monday", labelAr: "الإثنين", labelEn: "Monday" },
+            { id: "tuesday", labelAr: "الثلاثاء", labelEn: "Tuesday" },
+            { id: "wednesday", labelAr: "الأربعاء", labelEn: "Wednesday" },
+            { id: "thursday", labelAr: "الخميس", labelEn: "Thursday" },
+          ].map((d) => (
+            <button
+              key={d.id}
+              onClick={() => setSelectedDay(d.id)}
+              className={`px-4 py-2 rounded-xl text-xs font-black transition-all border whitespace-nowrap active:scale-95 ${
+                selectedDay === d.id
+                  ? "bg-primary text-white border-primary shadow-md shadow-primary/20"
+                  : "bg-card border-border text-muted-foreground hover:text-foreground hover:bg-muted dark:bg-card"
+              }`}
+            >
+              {isRtl ? d.labelAr : d.labelEn}
+            </button>
+          ))}
+        </div>
+      </ScaleIn>
+
       {/* Schedule List */}
       <StaggerChildren className="space-y-4">
-        {schedule.map((slot) => (
+        {filteredSchedule.map((slot) => (
           <ScaleIn key={slot.id}>
-            <div className="p-6 rounded-3xl bg-card/60 border border-border/80 backdrop-blur-xl shadow-lg hover:border-primary/40 hover:shadow-primary/5 transition-all duration-300 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+            <div className="p-6 rounded-3xl bg-card border border-border shadow-md hover:border-primary/40 hover:shadow-xl hover-lift transition-all duration-300 flex flex-col sm:flex-row sm:items-center justify-between gap-4 dark:bg-card">
               <div className="flex items-start gap-4">
-                <div className="p-3.5 rounded-2xl bg-primary/10 text-primary font-black shrink-0 shadow-inner">
+                <div className="p-3.5 rounded-2xl bg-primary/10 text-primary font-black shrink-0 shadow-inner border border-primary/20">
                   <BookOpen size={24} />
                 </div>
                 <div>

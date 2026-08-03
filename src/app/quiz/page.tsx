@@ -119,8 +119,8 @@ export default function QuizPage() {
     >
       {/* Header Banner */}
       <FadeIn>
-        <div className="p-6 sm:p-10 rounded-3xl bg-card/60 border border-primary/20 backdrop-blur-2xl shadow-xl space-y-3 relative overflow-hidden">
-          <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-primary/10 text-primary font-extrabold text-xs uppercase tracking-wider">
+        <div className="p-6 sm:p-10 rounded-3xl bg-card border border-border shadow-xl space-y-3 relative overflow-hidden dark:bg-card">
+          <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-primary/10 text-primary font-extrabold text-xs uppercase tracking-wider border border-primary/20">
             <HelpCircle size={14} />
             <span>{isRtl ? "مولد الاختبارات الذكي" : "AI Quiz Generator"}</span>
           </div>
@@ -364,8 +364,18 @@ export default function QuizPage() {
                 currentIndex === quiz.questions.length - 1 ? (
                   <button
                     type="button"
-                    onClick={() => setIsSubmitted(true)}
-                    className="px-6 py-3 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-black text-xs transition shadow-lg flex items-center gap-1.5"
+                    onClick={() => {
+                      setIsSubmitted(true);
+                      import("canvas-confetti").then((m) => {
+                        m.default({ particleCount: 80, spread: 70, origin: { y: 0.6 } });
+                      });
+                      toast.success(
+                        isRtl
+                          ? "🎉 تم تسليم الاختبار وحساب +15 نقطة XP!"
+                          : "🎉 Quiz submitted! +15 XP earned!"
+                      );
+                    }}
+                    className="px-6 py-3 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-black text-xs transition shadow-lg flex items-center gap-1.5 active:scale-95"
                   >
                     <CheckCircle2 size={16} />
                     <span>{isRtl ? "إنهاء وتسليم الاختبار" : "Submit Quiz"}</span>

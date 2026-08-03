@@ -56,7 +56,7 @@ export function AcademicShortcutBar() {
           >
             <Link
               href={item.href}
-              className={`group relative flex flex-col justify-between p-4 rounded-3xl bg-gradient-to-br ${item.color} border backdrop-blur-xl transition-all duration-300 hover:scale-[1.03] hover:shadow-xl active:scale-95`}
+              className={`group relative flex flex-col justify-between p-4.5 rounded-3xl bg-card border border-border dark:bg-card shadow-md hover:shadow-xl hover-lift active:scale-97 transition-all duration-300`}
             >
               <div className="flex items-center justify-between mb-3">
                 <div className="p-2.5 rounded-2xl bg-white/60 dark:bg-black/40 shadow-sm border border-white/40 dark:border-white/10 group-hover:rotate-6 group-hover:scale-110 transition-transform duration-300">

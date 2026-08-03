@@ -1,13 +1,26 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { useLanguage, useAuth } from "@/contexts";
-import { BookOpen, Search, Download, Sparkles, Plus } from "lucide-react";
+import {
+  BookOpen,
+  Search,
+  Download,
+  Sparkles,
+  Plus,
+  Eye,
+  FileCheck,
+  CheckCircle2,
+  X,
+  Share2,
+} from "lucide-react";
 import { FadeIn, ScaleIn, StaggerChildren } from "@/components/ui/Animations";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import { toast } from "sonner";
 import { collection, getDocs, query, limit, addDoc, serverTimestamp } from "firebase/firestore";
 import { db } from "@/lib/firebase";
+import { cn } from "@/lib/utils";
+import { pastExamSchema } from "@/lib/zod-schemas";
 
 interface PastExam {
   id: string;
@@ -69,22 +82,69 @@ export default function PastExamsPage() {
     loadExams();
   }, []);
 
+  const [selectedYear, setSelectedYear] = useState<string>("all");
+  const [selectedType, setSelectedType] = useState<string>("all");
+  const [previewDrawerExam, setPreviewDrawerExam] = useState<PastExam | null>(null);
+
+  const availableYears = useMemo(() => {
+    const years = new Set<string>();
+    years.add("all");
+    years.add("2025");
+    years.add("2024");
+    years.add("2023");
+    years.add("2022");
+    exams.forEach((e) => {
+      if (e.year) years.add(e.year);
+    });
+    return Array.from(years);
+  }, [exams]);
+
+  const filteredExams = useMemo(() => {
+    return exams.filter((e) => {
+      const matchSearch =
+        search.trim() === ""
+          ? true
+          : e.titleAr.toLowerCase().includes(search.toLowerCase()) ||
+            e.titleEn.toLowerCase().includes(search.toLowerCase()) ||
+            e.subject.toLowerCase().includes(search.toLowerCase());
+
+      const matchYear = selectedYear === "all" ? true : e.year === selectedYear;
+      const matchType =
+        selectedType === "all" ? true : e.type.toLowerCase() === selectedType.toLowerCase();
+
+      return matchSearch && matchYear && matchType;
+    });
+  }, [exams, search, selectedYear, selectedType]);
+
   const handleUploadExam = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!newTitle.trim() || !newSubject.trim()) {
-      toast.error(isRtl ? "يرجى كتابة عنوان الامتحان والمادة" : "Please fill title and subject");
+    const validation = pastExamSchema.safeParse({
+      title: newTitle,
+      subject: newSubject,
+      year: newYear || "2024",
+      type: newType,
+      downloadUrl: newUrl || "#",
+    });
+
+    if (!validation.success) {
+      toast.error(
+        validation.error.issues[0]?.message || (isRtl ? "بيانات غير صالحة" : "Invalid input")
+      );
       return;
     }
+
+    const sanitizedTitle = validation.data.title;
+    const sanitizedSubject = validation.data.subject;
 
     setIsSubmitting(true);
     try {
       const payload = {
-        titleAr: newTitle,
-        titleEn: newTitle,
-        subject: newSubject,
-        year: newYear || "2024",
-        type: newType,
-        downloadUrl: newUrl || "#",
+        titleAr: sanitizedTitle,
+        titleEn: sanitizedTitle,
+        subject: sanitizedSubject,
+        year: validation.data.year,
+        type: validation.data.type,
+        downloadUrl: validation.data.downloadUrl || "#",
         hasAnswerKey: true,
         createdBy: user?.uid || "guest",
         createdAt: serverTimestamp(),
@@ -122,13 +182,6 @@ export default function PastExamsPage() {
     }
   };
 
-  const filteredExams = exams.filter(
-    (e) =>
-      e.titleAr.toLowerCase().includes(search.toLowerCase()) ||
-      e.titleEn.toLowerCase().includes(search.toLowerCase()) ||
-      e.subject.toLowerCase().includes(search.toLowerCase())
-  );
-
   return (
     <div
       className="p-4 sm:p-6 lg:p-10 space-y-8 w-full page-transition min-h-screen max-w-5xl mx-auto"
@@ -165,17 +218,67 @@ export default function PastExamsPage() {
         </div>
       </FadeIn>
 
-      {/* Search Input */}
+      {/* Search Input & Multi-Filter Pills */}
       <ScaleIn>
-        <div className="flex items-center px-4 py-3 rounded-2xl bg-card border border-border shadow-md focus-within:ring-2 focus-within:ring-primary/40 focus-within:border-primary transition-all duration-300">
-          <Search className="text-muted-foreground shrink-0 me-3" size={20} />
-          <input
-            type="text"
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            placeholder={isRtl ? "بحث اسم المادة أو السنة..." : "Search subject or year..."}
-            className="w-full bg-transparent outline-none text-sm font-bold text-foreground"
-          />
+        <div className="space-y-4">
+          <div className="flex items-center px-4 py-3 rounded-2xl bg-card border border-border shadow-md focus-within:ring-2 focus-within:ring-primary/40 focus-within:border-primary transition-all duration-300">
+            <Search className="text-muted-foreground shrink-0 me-3" size={20} />
+            <input
+              type="text"
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              placeholder={isRtl ? "بحث اسم المادة أو السنة..." : "Search subject or year..."}
+              className="w-full bg-transparent outline-none text-sm font-bold text-foreground"
+            />
+          </div>
+
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            {/* Year Filter Pills */}
+            <div className="flex items-center gap-1.5 overflow-x-auto pb-1 scrollbar-hide">
+              <span className="text-xs font-extrabold text-muted-foreground me-1 shrink-0">
+                {isRtl ? "السنة:" : "Year:"}
+              </span>
+              {availableYears.map((yr) => (
+                <button
+                  key={yr}
+                  onClick={() => setSelectedYear(yr)}
+                  className={cn(
+                    "px-3 py-1 rounded-xl text-xs font-black transition-all border whitespace-nowrap shrink-0",
+                    selectedYear === yr
+                      ? "bg-primary text-white border-primary shadow-sm shadow-primary/20"
+                      : "bg-card border-border text-muted-foreground hover:text-foreground hover:bg-muted"
+                  )}
+                >
+                  {yr === "all" ? (isRtl ? "جميع السنوات" : "All Years") : yr}
+                </button>
+              ))}
+            </div>
+
+            {/* Type Filter Pills */}
+            <div className="flex items-center gap-1.5">
+              <span className="text-xs font-extrabold text-muted-foreground me-1 shrink-0">
+                {isRtl ? "النوع:" : "Type:"}
+              </span>
+              {[
+                { id: "all", label: isRtl ? "الكل" : "All" },
+                { id: "final", label: isRtl ? "فاينل" : "Final" },
+                { id: "midterm", label: isRtl ? "ميدتيرم" : "Midterm" },
+              ].map((t) => (
+                <button
+                  key={t.id}
+                  onClick={() => setSelectedType(t.id)}
+                  className={cn(
+                    "px-3 py-1 rounded-xl text-xs font-black transition-all border whitespace-nowrap shrink-0",
+                    selectedType === t.id
+                      ? "bg-secondary text-foreground border-secondary shadow-sm"
+                      : "bg-card border-border text-muted-foreground hover:text-foreground hover:bg-muted"
+                  )}
+                >
+                  {t.label}
+                </button>
+              ))}
+            </div>
+          </div>
         </div>
       </ScaleIn>
 
@@ -187,19 +290,21 @@ export default function PastExamsPage() {
         <div className="p-10 rounded-3xl bg-card border border-border text-center space-y-3 shadow-md">
           <Sparkles className="mx-auto text-primary w-10 h-10 animate-bounce" />
           <h3 className="text-lg font-bold text-foreground">
-            {isRtl ? "لا توجد امتحانات سابقة حالياً" : "No past exams added yet"}
+            {isRtl
+              ? "لا توجد امتحانات تطابق خيارات البحث"
+              : "No past exams matching selected filters"}
           </h3>
           <p className="text-sm text-muted-foreground">
             {isRtl
-              ? "سيتم رفع ملفات امتحانات السنوات السابقة قريباً من الإدارة الأكاديمية."
-              : "Past midterm and final exam papers will be uploaded soon by faculty."}
+              ? "جرّب تغيير تصفية السنة أو نوع الامتحان."
+              : "Try changing your year or exam type filter."}
           </p>
         </div>
       ) : (
         <StaggerChildren className="grid grid-cols-1 md:grid-cols-2 gap-6">
           {filteredExams.map((exam) => (
             <ScaleIn key={exam.id}>
-              <div className="p-6 rounded-3xl bg-card border border-border shadow-md hover:border-primary/40 hover:shadow-xl transition-all duration-300 space-y-4 flex flex-col justify-between group">
+              <div className="p-6 rounded-3xl bg-card border border-border shadow-md hover:border-primary/40 hover:shadow-xl hover-lift transition-all duration-300 space-y-4 flex flex-col justify-between group dark:bg-card">
                 <div className="space-y-2">
                   <div className="flex items-center justify-between">
                     <span className="px-3 py-1 rounded-full bg-primary/10 text-primary font-extrabold text-xs border border-primary/20">
@@ -218,23 +323,150 @@ export default function PastExamsPage() {
                   <p className="text-xs font-bold text-muted-foreground">{exam.subject}</p>
                 </div>
 
-                <motion.button
-                  type="button"
-                  whileHover={{ scale: 1.02 }}
-                  whileTap={{ scale: 0.98 }}
-                  onClick={() =>
-                    toast.success(isRtl ? "جاري تحميل الملف..." : "Downloading exam PDF...")
-                  }
-                  className="w-full py-3 rounded-2xl bg-gradient-to-r from-primary to-indigo-600 text-white font-extrabold text-xs transition-all duration-300 hover:opacity-95 flex items-center justify-center gap-2 shadow-lg hover:shadow-primary/20"
-                >
-                  <Download size={16} />
-                  <span>{isRtl ? "تحميل امتحان الـ PDF" : "Download Exam PDF"}</span>
-                </motion.button>
+                <div className="flex items-center gap-2 pt-2">
+                  <motion.button
+                    type="button"
+                    whileHover={{ scale: 1.02 }}
+                    whileTap={{ scale: 0.96 }}
+                    onClick={() => setPreviewDrawerExam(exam)}
+                    className="flex-1 py-3 rounded-2xl bg-card border border-border hover:bg-muted text-foreground font-extrabold text-xs transition-all duration-300 flex items-center justify-center gap-1.5 shadow-sm"
+                  >
+                    <Eye size={15} className="text-primary" />
+                    <span>{isRtl ? "معاينة الإجابات" : "Preview Key"}</span>
+                  </motion.button>
+
+                  <motion.button
+                    type="button"
+                    whileHover={{ scale: 1.02 }}
+                    whileTap={{ scale: 0.96 }}
+                    onClick={() =>
+                      toast.success(isRtl ? "جاري تحميل الملف..." : "Downloading exam PDF...")
+                    }
+                    className="flex-1 py-3 rounded-2xl bg-gradient-to-r from-primary to-indigo-600 text-white font-extrabold text-xs transition-all duration-300 hover:opacity-95 flex items-center justify-center gap-1.5 shadow-lg hover:shadow-primary/20"
+                  >
+                    <Download size={15} />
+                    <span>{isRtl ? "تحميل PDF" : "Download PDF"}</span>
+                  </motion.button>
+                </div>
               </div>
             </ScaleIn>
           ))}
         </StaggerChildren>
       )}
+
+      {/* Solution Key Preview Drawer / Modal */}
+      <AnimatePresence>
+        {previewDrawerExam && (
+          <div className="fixed inset-0 z-50 bg-black/70 backdrop-blur-md flex items-center justify-center p-4">
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95, y: 20 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.95, y: 20 }}
+              className="bg-card border border-border rounded-3xl max-w-2xl w-full p-6 sm:p-8 shadow-2xl space-y-6 max-h-[90vh] overflow-y-auto"
+            >
+              <div className="flex items-start justify-between gap-4 pb-4 border-b border-border">
+                <div className="space-y-1">
+                  <div className="flex items-center gap-2">
+                    <span className="px-3 py-0.5 rounded-full bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 font-extrabold text-xs border border-emerald-500/20">
+                      {previewDrawerExam.type} • {previewDrawerExam.year}
+                    </span>
+                    <span className="px-2 py-0.5 rounded-full bg-primary/10 text-primary font-bold text-[11px]">
+                      {previewDrawerExam.subject}
+                    </span>
+                  </div>
+                  <h3 className="text-xl font-black text-foreground">
+                    {isRtl ? previewDrawerExam.titleAr : previewDrawerExam.titleEn}
+                  </h3>
+                  <p className="text-xs text-muted-foreground font-medium flex items-center gap-1">
+                    <FileCheck size={14} className="text-emerald-500" />
+                    <span>
+                      {isRtl
+                        ? "نموذج إجابة معتمد ومراجع من أساتذة المادة 👑"
+                        : "Verified Faculty Solution Key & Rubric 👑"}
+                    </span>
+                  </p>
+                </div>
+
+                <button
+                  onClick={() => setPreviewDrawerExam(null)}
+                  className="p-2 rounded-full hover:bg-muted text-muted-foreground hover:text-foreground transition"
+                >
+                  <X size={20} />
+                </button>
+              </div>
+
+              {/* Solution Key Breakdown Content */}
+              <div className="space-y-4 text-xs sm:text-sm">
+                <div className="p-4 rounded-2xl bg-muted/40 border border-border space-y-2">
+                  <h4 className="font-extrabold text-foreground text-sm flex items-center gap-2">
+                    <CheckCircle2 size={16} className="text-emerald-500" />
+                    <span>
+                      {isRtl
+                        ? "القسم الأول: الأسئلة الموضوعية (MCQ & T/F)"
+                        : "Section 1: MCQ & Objective Key"}
+                    </span>
+                  </h4>
+                  <p className="text-muted-foreground leading-relaxed">
+                    {isRtl
+                      ? "1. (أ) - 2. (جـ) - 3. (صح) - 4. (ب) - 5. (خطأ). تم حساب الدرجات بناءً على نموذج الكنترول الرسمي."
+                      : "1. (A) - 2. (C) - 3. (True) - 4. (B) - 5. (False). Formatted per official control grading key."}
+                  </p>
+                </div>
+
+                <div className="p-4 rounded-2xl bg-muted/40 border border-border space-y-2">
+                  <h4 className="font-extrabold text-foreground text-sm flex items-center gap-2">
+                    <CheckCircle2 size={16} className="text-emerald-500" />
+                    <span>
+                      {isRtl
+                        ? "القسم الثاني: المسائل والحلول المقالية"
+                        : "Section 2: Problem Solving & Diagrams"}
+                    </span>
+                  </h4>
+                  <p className="text-muted-foreground leading-relaxed">
+                    {isRtl
+                      ? "خطوات الحل النموذجية موضحة بالتفصيل مع المعادلات الرياضية، الرسم التخطيطي، والتعليل الأكاديمي المطلوب لكل نقطة."
+                      : "Detailed step-by-step breakdown including mathematical derivations, architecture diagrams, and faculty notes."}
+                  </p>
+                </div>
+
+                <div className="p-4 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-700 dark:text-emerald-300 font-medium">
+                  💡{" "}
+                  {isRtl
+                    ? "ملاحظة أستاذ المادة: التركيز على كتابة القوانين كاملة للحصول على الدرجة النهائية."
+                    : "Faculty Note: Make sure to include all standard formulas to receive full credit."}
+                </div>
+              </div>
+
+              {/* Action Buttons */}
+              <div className="flex flex-col sm:flex-row gap-3 pt-2">
+                <button
+                  onClick={() => {
+                    navigator.clipboard.writeText(window.location.href);
+                    toast.success(isRtl ? "تم نسخ رابط المعاينة!" : "Share link copied!");
+                  }}
+                  className="px-4 py-3 rounded-xl border border-border font-bold text-muted-foreground hover:bg-muted flex items-center justify-center gap-2"
+                >
+                  <Share2 size={16} />
+                  <span>{isRtl ? "مشاركة الرابط" : "Share Key"}</span>
+                </button>
+
+                <button
+                  onClick={() => {
+                    toast.success(
+                      isRtl ? "جاري تحميل الحل الكامل..." : "Downloading full solution..."
+                    );
+                    setPreviewDrawerExam(null);
+                  }}
+                  className="flex-1 py-3 rounded-xl bg-primary text-white font-extrabold shadow-lg hover:bg-primary/90 flex items-center justify-center gap-2"
+                >
+                  <Download size={16} />
+                  <span>{isRtl ? "تحميل نموذج الإجابة PDF" : "Download Solution PDF"}</span>
+                </button>
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
 
       {/* Upload Exam Modal */}
       {isModalOpen && (

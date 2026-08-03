@@ -243,7 +243,7 @@ function LeaderRow({
         "flex items-center gap-3 px-4 py-3 rounded-2xl border transition-all cursor-pointer",
         isSelf
           ? "bg-primary/10 border-primary/30 ring-1 ring-primary/20 shadow-lg shadow-primary/10"
-          : "bg-card/40 border-border/30 hover:bg-card/60 hover:border-border/50"
+          : "bg-card border-border dark:bg-card shadow-sm hover:border-primary/40 hover:shadow-md"
       )}
     >
       {/* Rank */}
@@ -475,7 +475,7 @@ export default function CommunityLeaderboardPage() {
           <div className="xl:col-span-2 space-y-5">
             {/* Podium */}
             <FadeIn delay={0.05}>
-              <div className="bg-card/40 backdrop-blur-2xl rounded-3xl border border-border/40 shadow-xl overflow-hidden">
+              <div className="bg-card border border-border dark:bg-card backdrop-blur-xl rounded-3xl shadow-md overflow-hidden">
                 <div className="flex items-center justify-between px-4 pt-4 pb-2">
                   <div className="flex items-center gap-2">
                     <Crown className="w-5 h-5 text-amber-400" />
@@ -506,10 +506,10 @@ export default function CommunityLeaderboardPage() {
                     key={cat.id}
                     onClick={() => setActiveCategory(cat.id)}
                     className={cn(
-                      "flex items-center gap-1.5 px-3 py-2 rounded-2xl text-xs font-black border transition-all duration-200",
+                      "flex items-center gap-1.5 px-3 py-2 rounded-2xl text-xs font-black border transition-all duration-200 active:scale-97",
                       activeCategory === cat.id
                         ? `bg-gradient-to-r ${cat.color} text-white border-transparent shadow-lg`
-                        : "bg-card/40 text-muted-foreground border-border/40 hover:text-foreground hover:border-border/60"
+                        : "bg-card text-muted-foreground border-border hover:text-foreground hover:border-border/60 dark:bg-card"
                     )}
                   >
                     <cat.icon className="w-3.5 h-3.5" />
@@ -545,7 +545,7 @@ export default function CommunityLeaderboardPage() {
 
             {/* Leaderboard List */}
             <FadeIn delay={0.15}>
-              <div className="bg-card/40 backdrop-blur-2xl rounded-3xl border border-border/40 shadow-xl overflow-hidden">
+              <div className="bg-card border border-border dark:bg-card backdrop-blur-xl rounded-3xl shadow-md overflow-hidden">
                 <div className="px-4 py-3 border-b border-border/40 flex items-center gap-2">
                   <BarChart2 className="w-4 h-4 text-muted-foreground" />
                   <h2 className="text-sm font-black text-foreground">
@@ -593,7 +593,7 @@ export default function CommunityLeaderboardPage() {
           <div className="space-y-5">
             {/* League Divisions */}
             <FadeIn delay={0.08}>
-              <div className="bg-card/40 backdrop-blur-2xl rounded-3xl border border-border/40 shadow-xl overflow-hidden">
+              <div className="bg-card border border-border dark:bg-card backdrop-blur-xl rounded-3xl shadow-md overflow-hidden">
                 <div className="px-4 py-3 border-b border-border/40 flex items-center gap-2">
                   <Award className="w-4 h-4 text-muted-foreground" />
                   <h2 className="text-sm font-black text-foreground">
@@ -649,7 +649,7 @@ export default function CommunityLeaderboardPage() {
 
             {/* Weekly Challenges */}
             <FadeIn delay={0.12}>
-              <div className="bg-card/40 backdrop-blur-2xl rounded-3xl border border-border/40 shadow-xl overflow-hidden">
+              <div className="bg-card border border-border dark:bg-card backdrop-blur-xl rounded-3xl shadow-md overflow-hidden">
                 <div className="px-4 py-3 border-b border-border/40 flex items-center gap-2">
                   <Target className="w-4 h-4 text-muted-foreground" />
                   <h2 className="text-sm font-black text-foreground">

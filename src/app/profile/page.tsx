@@ -97,7 +97,7 @@ export default function ProfilePage() {
   return (
     <div className="container mx-auto p-6 space-y-8">
       {/* Header section */}
-      <div className="relative overflow-hidden flex flex-col md:flex-row items-center gap-6 bg-card/60 backdrop-blur-2xl p-8 rounded-3xl border border-primary/20 shadow-2xl">
+      <div className="relative overflow-hidden flex flex-col md:flex-row items-center gap-6 bg-card border border-border dark:bg-card backdrop-blur-xl p-8 rounded-3xl shadow-xl">
         <div className="absolute top-0 right-0 -mt-8 -mr-8 w-40 h-40 bg-primary/10 rounded-full blur-3xl pointer-events-none" />
 
         <div className="relative">
@@ -151,7 +151,7 @@ export default function ProfilePage() {
 
       {/* Info Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <Card className="rounded-4xl border-border/50 bg-card/40 backdrop-blur-md">
+        <Card className="rounded-4xl border-border bg-card shadow-md dark:bg-card">
           <CardHeader>
             <CardTitle className="text-lg flex items-center gap-2">
               <Clock className="w-5 h-5 text-primary" />
@@ -181,7 +181,7 @@ export default function ProfilePage() {
         </Card>
 
         {/* Support Card */}
-        <Card className="rounded-4xl border-border/50 bg-card/40 backdrop-blur-md">
+        <Card className="rounded-4xl border-border bg-card shadow-md dark:bg-card">
           <CardHeader>
             <CardTitle className="text-lg flex items-center gap-2">
               <Shield className="w-5 h-5 text-primary" />
@@ -202,7 +202,7 @@ export default function ProfilePage() {
                   })
                 );
               }}
-              className="w-full flex items-center justify-center gap-2 py-3 bg-muted hover:bg-muted/80 rounded-xl transition-all text-sm font-bold"
+              className="w-full flex items-center justify-center gap-2 py-3 bg-muted hover:bg-muted/80 rounded-xl transition-all text-sm font-bold active:scale-97"
             >
               <Edit2 className="w-4 h-4" />
               {t("profile.contactSupport")}
@@ -218,7 +218,7 @@ export default function ProfilePage() {
 
       {/* My Data Section */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <Card className="rounded-4xl border-border/50 bg-card/40 backdrop-blur-md">
+        <Card className="rounded-4xl border-border bg-card shadow-md dark:bg-card">
           <CardHeader>
             <CardTitle className="text-lg flex items-center gap-2">
               <RotateCcw className="w-5 h-5 text-primary" />

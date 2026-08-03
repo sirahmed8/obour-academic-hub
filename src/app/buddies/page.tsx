@@ -182,7 +182,7 @@ export default function StudyBuddiesPage() {
         <StaggerChildren className="grid grid-cols-1 md:grid-cols-2 gap-6">
           {buddies.map((buddy) => (
             <ScaleIn key={buddy.id}>
-              <div className="p-6 rounded-3xl bg-card border border-border shadow-md hover:border-primary/40 hover:shadow-xl transition-all duration-300 space-y-4 relative overflow-hidden group">
+              <div className="p-6 rounded-3xl bg-card border border-border shadow-md hover:border-primary/40 hover:shadow-xl hover-lift transition-all duration-300 space-y-4 relative overflow-hidden group dark:bg-card">
                 <div className="flex items-center justify-between">
                   <div
                     onClick={() => setSelectedUserUid(buddy.id)}
@@ -223,7 +223,7 @@ export default function StudyBuddiesPage() {
 
                 <Link
                   href={`/hagaz`}
-                  className="w-full py-3 rounded-2xl bg-gradient-to-r from-primary to-indigo-600 text-white font-extrabold text-xs transition-all duration-300 hover:opacity-95 flex items-center justify-center gap-2 shadow-lg hover:shadow-primary/20 active:scale-98"
+                  className="w-full py-3 rounded-2xl bg-gradient-to-r from-primary to-indigo-600 text-white font-extrabold text-xs transition-all duration-300 hover:opacity-95 flex items-center justify-center gap-2 shadow-lg hover:shadow-primary/20 active:scale-97"
                 >
                   <UserCheck size={16} />
                   <span>{isRtl ? "طلب جلسة مراجعة مشتركة" : "Request Study Session"}</span>

@@ -81,7 +81,7 @@ export function TacticalAdviceCard() {
   const isCooldown = cooldownMinutes > 0;
 
   return (
-    <div className="bg-card/40 backdrop-blur-xl border border-primary/20 rounded-3xl p-6 shadow-xl relative overflow-hidden my-6">
+    <div className="bg-card border border-border shadow-md backdrop-blur-xl dark:bg-card rounded-3xl p-6 relative overflow-hidden my-6">
       <div className="flex items-center justify-between mb-4">
         <div className="flex items-center gap-3">
           <div className="p-3 bg-primary/10 text-primary rounded-2xl">

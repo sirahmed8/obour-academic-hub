@@ -57,26 +57,39 @@
 - **Multi-Step Student Onboarding Wizard (`StudentProfileSetup.tsx`)**: Interactive 2-step setup wizard allowing students to set their full Arabic name, 6-digit student code, Institute selection, Academic Grade year, and Department specialization with progress bar tracking.
 - **Role-Based Access Control (RBAC)**: Supports `student`, `admin`, and `owner` roles with administrative middleware/API validation.
 
-### B. Core Student Experience
+### B. Core Student Experience & Design System Overhaul
 
+- **Design System & Micro-Interactions Specialist Overhaul**:
+  - Unified all card containers across all 8 major student page routes with high-contrast, fully readable solid backgrounds (`bg-card border border-border shadow-md dark:bg-card`), smooth hover lifts (`.hover-lift`), responsive layouts (`rounded-3xl` / `rounded-[2rem]`), and button micro-press feedback (`active:scale-97`).
 - **Main Student Dashboard (`/main`)**:
-  - **Academic Streak Widget**: Displays current study streak (days), level, XP, and daily check-in rewards.
+  - **Academic Streak Widget**: Displays current study streak (days), level, XP, and daily check-in rewards with solid card borders.
   - **Live Banner & Broadcast Announcements**: Critical institute announcements and active event banners.
-  - **Tactical Advice Card**: Context-aware academic recommendations based on upcoming deadlines and subject progress.
+  - **Tactical Advice Card**: Context-aware academic recommendations with high-contrast `bg-card` surface.
   - **Subject Quick Cards**: Direct access to enrolled subjects with resource counts and progress bars.
   - **Who Is Online Widget**: Real-time presence indicators of online classmates.
-  - **Academic Shortcut Bar**: Quick action bar to create tasks, start focus timers, view resources, or launch AI help.
-- **Subject Hub (`/subject`)**:
+  - **Academic Shortcut Bar**: Quick action bar with hover lift and micro-press feedback to navigate key tools.
+- **Subject Hub (`/subject`) & SubjectCard**:
   - Filterable academic subjects grid with real-time resource downloads (PDFs, lectures, summaries, assignments).
-  - Subject details viewer with resource search, bookmarking, and category tags.
-- **Academic Task Manager (`/todo`)**:
-  - Interactive Todo list with priority filters, search, due date pickers, and progress tracking.
+  - Subject details viewer with resource search, quick star bookmarking (synced to local storage), category type pills (PDFs, Summaries & Docs, Lectures & Videos, Bookmarked ⭐), `hover-lift` cards, and `active:scale-97` filter pills.
+- **Academic Task Manager (`/todo`) & Task Components**:
+  - Seamless Kanban Board vs List View toggle (`todo_view_mode`), with 3 Kanban columns (To Do, In Progress, Done), status transition actions, +10 points award, confetti celebration, priority filters, search, due date pickers, progress tracking, and solid readable card styling.
   - **AI Task Assistant Modal (`AITaskAssistantModal`)**: AI-powered task generator and breakdown tool (`/api/ai/generate-todos`, `/api/ai/suggest-breakdown`).
+- **Study Buddies (`/buddies`) & Hagaz Sessions (`/hagaz`)**:
+  - Real-time study partner matching, match score percentages, slot reservation cards with solid surfaces and micro-press feedback.
+- **Academic Q&A Forum (`/qa`) & Past Exams Bank (`/exams`)**:
+  - Q&A Forum featuring optimistic upvote counter with Firestore `increment()` sync, active vote highlighting, search bar, and subject tag filter pills.
+  - Searchable past midterm/final exam paper repository with year pills (2025-2022), exam type pills (Midterm/Final), PDF download, and interactive Solution Key Preview Drawer with faculty-verified rubric and model answers.
+- **Interactive Practice Hubs (`/quiz`, `/schedule`, `/mindmap`)**:
+  - **AI Quiz Generator (`/quiz`)**: Instant quiz creation with difficulty levels, question count selection, instant score calculation, `canvas-confetti` celebration, +15 XP toast reward, and step-by-step solution explanations.
+  - **Academic Timetable & Attendance (`/schedule`)**: Interactive lecture timetable with Day Filter Pills (Sunday through Thursday), attendance tracking, and attendance percentage calculator.
+  - **AI MindMap Visualizer (`/mindmap`)**: Instant concept tree generator simplifying complex academic subjects into structured hierarchical nodes.
+- **Student Marketplace (`/market`) & Alumni Network (`/alumni`)**:
+  - Peer academic gear exchange and alumni internship/mentorship board with solid card surfaces and seller/mentor chat buttons.
 - **Student Leaderboard & Competition Hub (`/community`, `/community/leaderboard`)**:
   - Overhauled competition dashboard with Champions Podium (Top 3), League Divisions (Diamond 💎, Gold 🥇, Silver 🥈, Bronze 🥉), category-specific leaderboards (XP, Streaks, Resources, Battles), weekly challenges, and real-time student standings.
   - **Public User Profile Modal (`UserProfileModal.tsx`)**: Reusable profile popup showing student ID, department, league tier, XP progress, streaks, uploaded resources, and battle wins.
 - **Student Profile & Setup (`/profile`)**:
-  - Interactive student profile with photo, email, and 6-digit student code display.
+  - Interactive student profile with photo, email, 6-digit student code display, and high-contrast solid cards.
   - **Weighted GPA & Grade Calculator Widget (`GpaCalculatorWidget.tsx`)**: Real-time 4.0 scale weighted GPA calculation widget (`A+` to `F`), course addition/removal, credit weighting, and instant grade point updates.
   - Account deletion modal, study stats reset, and achievement reset capabilities.
 - **Notification Center (`/notifications`)**:

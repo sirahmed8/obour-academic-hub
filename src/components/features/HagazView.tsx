@@ -297,7 +297,7 @@ export function HagazView() {
 
             return (
               <ScaleIn key={slot.id}>
-                <div className="p-6 rounded-[2rem] bg-card border border-border shadow-md hover:shadow-xl transition-all duration-300 flex flex-col justify-between h-full space-y-5">
+                <div className="p-6 rounded-[2rem] bg-card border border-border shadow-md hover:shadow-xl hover:border-primary/40 hover-lift transition-all duration-300 flex flex-col justify-between h-full space-y-5 dark:bg-card">
                   <div className="space-y-3">
                     <div className="flex items-center justify-between gap-2">
                       <span className="px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-wider bg-primary/10 text-primary border border-primary/20">
@@ -367,7 +367,7 @@ export function HagazView() {
                     <button
                       onClick={() => handleBook(slot.id)}
                       disabled={isFull && !isBooked}
-                      className={`w-full py-3 rounded-2xl font-extrabold text-xs sm:text-sm transition-all shadow-md flex items-center justify-center gap-2 ${
+                      className={`w-full py-3 rounded-2xl font-extrabold text-xs sm:text-sm transition-all shadow-md active:scale-97 flex items-center justify-center gap-2 ${
                         isBooked
                           ? "bg-emerald-500 text-white hover:bg-emerald-600"
                           : isFull

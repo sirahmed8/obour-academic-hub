@@ -17,7 +17,21 @@ import { AnimatePresence, motion } from "framer-motion";
 import { TodoItem } from "./TodoItem";
 import { AddTodoModal } from "./AddTodoModal";
 import { AITaskAssistantModal } from "./AITaskAssistantModal";
-import { Plus, CheckCircle2, ChevronRight, ArrowUpDown, Search, X, Sparkles } from "lucide-react";
+import {
+  Plus,
+  CheckCircle2,
+  ChevronRight,
+  ArrowUpDown,
+  Search,
+  X,
+  Sparkles,
+  Kanban,
+  LayoutList,
+  Calendar,
+  Trash2,
+  Edit3,
+  Clock,
+} from "lucide-react";
 import { cn } from "@/lib/utils";
 import { buttonVariants } from "@/lib/ui-variants";
 import { toast } from "sonner";
@@ -26,6 +40,7 @@ import { useReducedMotion } from "@/hooks/useReducedMotion";
 import { listContainer, getMotionProps } from "@/lib/motion";
 import { ConfirmationModal } from "@/components/ui/ConfirmationModal";
 import { CustomSelect } from "@/components/ui/CustomSelect";
+
 export function TodoList() {
   const { user } = useAuth();
   const { language } = useLanguage();
@@ -41,6 +56,23 @@ export function TodoList() {
     priority: "all",
   });
   const [sortBy, setSortBy] = useState<"dueDate" | "priority" | "newest">("dueDate");
+  const [viewMode, setViewMode] = useState<"list" | "kanban">("list");
+
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      const saved = localStorage.getItem("todo_view_mode");
+      if (saved === "kanban" || saved === "list") {
+        setViewMode(saved);
+      }
+    }
+  }, []);
+
+  const handleViewModeChange = (mode: "list" | "kanban") => {
+    setViewMode(mode);
+    if (typeof window !== "undefined") {
+      localStorage.setItem("todo_view_mode", mode);
+    }
+  };
 
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isAIAssistantOpen, setIsAIAssistantOpen] = useState(false);
@@ -262,6 +294,80 @@ export function TodoList() {
     [user, language]
   );
 
+  const handleStatusChange = useCallback(
+    async (task: TodoTask, newStatus: "todo" | "in-progress" | "done") => {
+      if (!user || !db) return;
+      try {
+        const willBeCompleted = newStatus === "done";
+        const wasCompleted = task.completed;
+
+        await updateDoc(doc(db!, `users/${user.uid}/tasks`, task.id), {
+          status: newStatus,
+          completed: willBeCompleted,
+        });
+
+        if (willBeCompleted && !wasCompleted) {
+          try {
+            await updateDoc(doc(db!, "users", user.uid), {
+              points: increment(10),
+            });
+          } catch (err) {
+            console.error("Failed to update points:", err);
+          }
+
+          const title = language === "ar" ? "مهمة مكتملة 🎉" : "Task Completed 🎉";
+          const message =
+            language === "ar"
+              ? `عاش يا بطل! خلصت مهمة: "${task.title}"`
+              : `Great job! You completed: "${task.title}"`;
+
+          await notificationService.create({
+            userId: user?.uid,
+            target: user?.uid,
+            title,
+            message,
+            type: "success",
+            entityId: task.id,
+            entityType: "task",
+          });
+
+          notificationService.sendBrowserNotification(title, {
+            body: message,
+            tag: `task-complete-${task.id}`,
+          });
+
+          try {
+            const confetti = (await import("canvas-confetti")).default;
+            confetti({
+              particleCount: 60,
+              spread: 70,
+              origin: { y: 0.7 },
+            });
+          } catch {
+            // Ignore failure
+          }
+
+          toast.success(language === "ar" ? "عمل رائع! +10 نقاط 🎉" : "Great job! +10 points 🎉");
+        } else if (!willBeCompleted && wasCompleted) {
+          try {
+            await updateDoc(doc(db!, "users", user.uid), {
+              points: increment(-10),
+            });
+          } catch (err) {
+            console.error("Failed to update points:", err);
+          }
+          await notificationService.deleteByEntity(task.id, user?.uid || "");
+          toast.info(language === "ar" ? "تم نقل المهمة للمتابعة" : "Task moved to active");
+        } else {
+          toast.success(language === "ar" ? `تم نقل المهمة` : `Task moved to ${newStatus}`);
+        }
+      } catch {
+        toast.error("Failed to update task status");
+      }
+    },
+    [user, language]
+  );
+
   const handleSubtaskToggle = useCallback(
     async (taskId: string, subtaskId: string) => {
       if (!user || !db) return;
@@ -336,7 +442,7 @@ export function TodoList() {
 
   return (
     <div className="w-full p-4 sm:p-6 lg:p-10 space-y-6 max-w-7xl mx-auto">
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 p-6 rounded-3xl bg-card/60 border border-primary/20 backdrop-blur-2xl shadow-xl">
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 p-6 rounded-3xl bg-card border border-border dark:bg-card shadow-md backdrop-blur-xl">
         <div className="space-y-1">
           <h1 className="text-3xl sm:text-4xl font-black tracking-tight flex items-center gap-3">
             <span className="bg-primary/10 p-2.5 rounded-2xl text-primary border border-primary/20">
@@ -412,7 +518,7 @@ export function TodoList() {
           onChange={(e) => setSearchQuery(e.target.value)}
           placeholder={language === "ar" ? "ابحث عن مهمة..." : "Search tasks..."}
           className={cn(
-            "w-full bg-card/30 backdrop-blur-md border border-border/50 rounded-2xl py-3 text-sm outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary/50 transition-all text-foreground placeholder-muted-foreground shadow-sm",
+            "w-full bg-card border border-border dark:bg-card rounded-2xl py-3 text-sm outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary/50 transition-all text-foreground placeholder-muted-foreground shadow-sm",
             isRtl ? "pr-12 pl-10" : "pl-12 pr-10"
           )}
         />
@@ -431,7 +537,7 @@ export function TodoList() {
       </div>
 
       {/* Modern Filter & Sort Bar */}
-      <div className="flex flex-col sm:flex-row gap-4 items-stretch sm:items-center bg-card/40 backdrop-blur-md p-2 rounded-3xl border border-border/50 shadow-sm relative z-20">
+      <div className="flex flex-col sm:flex-row gap-4 items-stretch sm:items-center bg-card border border-border dark:bg-card backdrop-blur-md p-2 rounded-3xl shadow-sm relative z-20">
         {/* Status Segmented Control */}
         <div className="flex p-1 bg-muted/30 rounded-2xl w-full sm:w-fit overflow-x-auto hide-scrollbar">
           {statusOptions.map((opt) => (
@@ -495,6 +601,38 @@ export function TodoList() {
             compact
           />
         </div>
+
+        <div className="hidden sm:block w-px h-8 bg-border/40" />
+
+        {/* View Mode Toggle (List vs Kanban) */}
+        <div className="flex p-1 bg-muted/40 rounded-2xl shrink-0 border border-border/40">
+          <button
+            onClick={() => handleViewModeChange("list")}
+            className={cn(
+              "flex items-center gap-1.5 px-3 py-1.5 text-xs font-black rounded-xl transition-all",
+              viewMode === "list"
+                ? "bg-primary text-white shadow-md shadow-primary/20"
+                : "text-muted-foreground hover:bg-muted hover:text-foreground"
+            )}
+            title={language === "ar" ? "عرض القائمة" : "List View"}
+          >
+            <LayoutList size={15} />
+            <span>{language === "ar" ? "قائمة" : "List"}</span>
+          </button>
+          <button
+            onClick={() => handleViewModeChange("kanban")}
+            className={cn(
+              "flex items-center gap-1.5 px-3 py-1.5 text-xs font-black rounded-xl transition-all",
+              viewMode === "kanban"
+                ? "bg-primary text-white shadow-md shadow-primary/20"
+                : "text-muted-foreground hover:bg-muted hover:text-foreground"
+            )}
+            title={language === "ar" ? "لوحة كانبان" : "Kanban Board"}
+          >
+            <Kanban size={15} />
+            <span>{language === "ar" ? "كانبان" : "Kanban"}</span>
+          </button>
+        </div>
       </div>
 
       <div className="space-y-3">
@@ -534,6 +672,275 @@ export function TodoList() {
                     ? "استرخِ أو أضف مهامًا جديدة لإدارة وقتك بذكاء."
                     : "Relax or add new tasks to manage your time wisely."}
               </p>
+            </motion.div>
+          ) : viewMode === "kanban" ? (
+            <motion.div
+              key="kanban-view"
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0 }}
+              className="grid grid-cols-1 md:grid-cols-3 gap-6 pt-2"
+            >
+              {/* Kanban Column 1: To Do */}
+              <div className="flex flex-col gap-3 p-4 rounded-3xl bg-card border border-border shadow-md">
+                <div className="flex items-center justify-between pb-2 border-b border-border/50">
+                  <div className="flex items-center gap-2 font-black text-sm text-amber-600 dark:text-amber-400">
+                    <Clock size={18} />
+                    <span>{language === "ar" ? "قيد الانتظار" : "To Do"}</span>
+                  </div>
+                  <span className="px-2.5 py-0.5 rounded-full text-xs font-black bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20">
+                    {
+                      filteredTasks.filter(
+                        (t) => !t.completed && (t.status === "todo" || !t.status)
+                      ).length
+                    }
+                  </span>
+                </div>
+
+                <div className="space-y-3 min-h-[150px]">
+                  {filteredTasks
+                    .filter((t) => !t.completed && (t.status === "todo" || !t.status))
+                    .map((task) => (
+                      <div
+                        key={task.id}
+                        className="p-4 rounded-2xl bg-muted/30 border border-border/60 shadow-sm hover:shadow-md transition-all space-y-3"
+                      >
+                        <div className="flex items-start justify-between gap-2">
+                          <h4 className="font-bold text-sm text-foreground leading-snug">
+                            {task.title}
+                          </h4>
+                          <span
+                            className={cn(
+                              "text-[10px] uppercase font-black px-2 py-0.5 rounded-full shrink-0",
+                              task.priority === "high"
+                                ? "bg-red-500/10 text-red-600 dark:text-red-400 border border-red-500/20"
+                                : task.priority === "medium"
+                                  ? "bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20"
+                                  : "bg-blue-500/10 text-blue-600 dark:text-blue-400 border border-blue-500/20"
+                            )}
+                          >
+                            {task.priority}
+                          </span>
+                        </div>
+
+                        {task.description && (
+                          <p className="text-xs text-muted-foreground line-clamp-2">
+                            {task.description}
+                          </p>
+                        )}
+
+                        {task.dueDate && (
+                          <div className="flex items-center gap-1.5 text-[11px] font-bold text-muted-foreground">
+                            <Calendar size={12} />
+                            <span>{task.dueDate}</span>
+                          </div>
+                        )}
+
+                        <div className="flex items-center justify-between pt-2 border-t border-border/40 text-xs">
+                          <div className="flex items-center gap-1">
+                            <button
+                              onClick={() => {
+                                setEditingTask(task);
+                                setIsModalOpen(true);
+                              }}
+                              className="p-1.5 rounded-lg hover:bg-muted text-muted-foreground hover:text-foreground"
+                              title="Edit"
+                            >
+                              <Edit3 size={14} />
+                            </button>
+                            <button
+                              onClick={() => handleDelete(task.id)}
+                              className="p-1.5 rounded-lg hover:bg-red-500/10 text-muted-foreground hover:text-red-500"
+                              title="Delete"
+                            >
+                              <Trash2 size={14} />
+                            </button>
+                          </div>
+
+                          <div className="flex items-center gap-1">
+                            <button
+                              onClick={() => handleStatusChange(task, "in-progress")}
+                              className="px-2.5 py-1 rounded-xl bg-blue-500/10 text-blue-600 dark:text-blue-400 font-extrabold text-[11px] border border-blue-500/20 hover:bg-blue-500/20 transition"
+                            >
+                              {language === "ar" ? "بدء ➔" : "Start ➔"}
+                            </button>
+                            <button
+                              onClick={() => handleStatusChange(task, "done")}
+                              className="px-2.5 py-1 rounded-xl bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 font-extrabold text-[11px] border border-emerald-500/20 hover:bg-emerald-500/20 transition"
+                            >
+                              {language === "ar" ? "تم ✓" : "Done ✓"}
+                            </button>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  {filteredTasks.filter((t) => !t.completed && (t.status === "todo" || !t.status))
+                    .length === 0 && (
+                    <p className="text-center text-xs text-muted-foreground py-8 font-medium">
+                      {language === "ar" ? "لا توجد مهام قيد الانتظار" : "No pending tasks"}
+                    </p>
+                  )}
+                </div>
+              </div>
+
+              {/* Kanban Column 2: In Progress */}
+              <div className="flex flex-col gap-3 p-4 rounded-3xl bg-card border border-border shadow-md">
+                <div className="flex items-center justify-between pb-2 border-b border-border/50">
+                  <div className="flex items-center gap-2 font-black text-sm text-blue-600 dark:text-blue-400">
+                    <Sparkles size={18} />
+                    <span>{language === "ar" ? "قيد التنفيذ" : "In Progress"}</span>
+                  </div>
+                  <span className="px-2.5 py-0.5 rounded-full text-xs font-black bg-blue-500/10 text-blue-600 dark:text-blue-400 border border-blue-500/20">
+                    {filteredTasks.filter((t) => !t.completed && t.status === "in-progress").length}
+                  </span>
+                </div>
+
+                <div className="space-y-3 min-h-[150px]">
+                  {filteredTasks
+                    .filter((t) => !t.completed && t.status === "in-progress")
+                    .map((task) => (
+                      <div
+                        key={task.id}
+                        className="p-4 rounded-2xl bg-muted/30 border border-blue-500/30 shadow-sm hover:shadow-md transition-all space-y-3"
+                      >
+                        <div className="flex items-start justify-between gap-2">
+                          <h4 className="font-bold text-sm text-foreground leading-snug">
+                            {task.title}
+                          </h4>
+                          <span
+                            className={cn(
+                              "text-[10px] uppercase font-black px-2 py-0.5 rounded-full shrink-0",
+                              task.priority === "high"
+                                ? "bg-red-500/10 text-red-600 dark:text-red-400 border border-red-500/20"
+                                : task.priority === "medium"
+                                  ? "bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20"
+                                  : "bg-blue-500/10 text-blue-600 dark:text-blue-400 border border-blue-500/20"
+                            )}
+                          >
+                            {task.priority}
+                          </span>
+                        </div>
+
+                        {task.description && (
+                          <p className="text-xs text-muted-foreground line-clamp-2">
+                            {task.description}
+                          </p>
+                        )}
+
+                        {task.dueDate && (
+                          <div className="flex items-center gap-1.5 text-[11px] font-bold text-muted-foreground">
+                            <Calendar size={12} />
+                            <span>{task.dueDate}</span>
+                          </div>
+                        )}
+
+                        <div className="flex items-center justify-between pt-2 border-t border-border/40 text-xs">
+                          <div className="flex items-center gap-1">
+                            <button
+                              onClick={() => {
+                                setEditingTask(task);
+                                setIsModalOpen(true);
+                              }}
+                              className="p-1.5 rounded-lg hover:bg-muted text-muted-foreground hover:text-foreground"
+                              title="Edit"
+                            >
+                              <Edit3 size={14} />
+                            </button>
+                            <button
+                              onClick={() => handleDelete(task.id)}
+                              className="p-1.5 rounded-lg hover:bg-red-500/10 text-muted-foreground hover:text-red-500"
+                              title="Delete"
+                            >
+                              <Trash2 size={14} />
+                            </button>
+                          </div>
+
+                          <div className="flex items-center gap-1">
+                            <button
+                              onClick={() => handleStatusChange(task, "todo")}
+                              className="px-2 py-1 rounded-xl bg-muted text-muted-foreground font-extrabold text-[11px] hover:bg-muted/80 transition"
+                            >
+                              {language === "ar" ? "⬅ انتظار" : "⬅ To Do"}
+                            </button>
+                            <button
+                              onClick={() => handleStatusChange(task, "done")}
+                              className="px-2.5 py-1 rounded-xl bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 font-extrabold text-[11px] border border-emerald-500/20 hover:bg-emerald-500/20 transition"
+                            >
+                              {language === "ar" ? "تم ✓" : "Done ✓"}
+                            </button>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  {filteredTasks.filter((t) => !t.completed && t.status === "in-progress")
+                    .length === 0 && (
+                    <p className="text-center text-xs text-muted-foreground py-8 font-medium">
+                      {language === "ar"
+                        ? "لا توجد مهام قيد التنفيذ حالياً"
+                        : "No tasks in progress"}
+                    </p>
+                  )}
+                </div>
+              </div>
+
+              {/* Kanban Column 3: Done */}
+              <div className="flex flex-col gap-3 p-4 rounded-3xl bg-card border border-border shadow-md">
+                <div className="flex items-center justify-between pb-2 border-b border-border/50">
+                  <div className="flex items-center gap-2 font-black text-sm text-emerald-600 dark:text-emerald-400">
+                    <CheckCircle2 size={18} />
+                    <span>{language === "ar" ? "مكتملة" : "Done"}</span>
+                  </div>
+                  <span className="px-2.5 py-0.5 rounded-full text-xs font-black bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20">
+                    {filteredTasks.filter((t) => t.completed || t.status === "done").length}
+                  </span>
+                </div>
+
+                <div className="space-y-3 min-h-[150px]">
+                  {filteredTasks
+                    .filter((t) => t.completed || t.status === "done")
+                    .map((task) => (
+                      <div
+                        key={task.id}
+                        className="p-4 rounded-2xl bg-emerald-500/5 border border-emerald-500/20 shadow-sm hover:shadow-md transition-all space-y-3"
+                      >
+                        <div className="flex items-start justify-between gap-2">
+                          <h4 className="font-bold text-sm text-foreground line-through opacity-75 leading-snug">
+                            {task.title}
+                          </h4>
+                          <CheckCircle2 size={16} className="text-emerald-500 shrink-0 mt-0.5" />
+                        </div>
+
+                        {task.description && (
+                          <p className="text-xs text-muted-foreground line-clamp-2 opacity-75">
+                            {task.description}
+                          </p>
+                        )}
+
+                        <div className="flex items-center justify-between pt-2 border-t border-border/40 text-xs">
+                          <button
+                            onClick={() => handleDelete(task.id)}
+                            className="p-1.5 rounded-lg hover:bg-red-500/10 text-muted-foreground hover:text-red-500"
+                            title="Delete"
+                          >
+                            <Trash2 size={14} />
+                          </button>
+
+                          <button
+                            onClick={() => handleStatusChange(task, "in-progress")}
+                            className="px-2.5 py-1 rounded-xl bg-amber-500/10 text-amber-600 dark:text-amber-400 font-extrabold text-[11px] border border-amber-500/20 hover:bg-amber-500/20 transition"
+                          >
+                            {language === "ar" ? "إعادة فتح ↺" : "Reopen ↺"}
+                          </button>
+                        </div>
+                      </div>
+                    ))}
+                  {filteredTasks.filter((t) => t.completed || t.status === "done").length === 0 && (
+                    <p className="text-center text-xs text-muted-foreground py-8 font-medium">
+                      {language === "ar" ? "لا توجد مهام مكتملة" : "No completed tasks"}
+                    </p>
+                  )}
+                </div>
+              </div>
             </motion.div>
           ) : null}
 

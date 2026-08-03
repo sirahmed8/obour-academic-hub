@@ -47,7 +47,7 @@ export const SubjectCard = React.memo(function SubjectCard({
         whileHover={{ y: -6, transition: { type: "spring", stiffness: 350, damping: 22 } }}
         whileTap={{ scale: 0.98 }}
         className={cn(
-          "group relative overflow-hidden flex flex-col justify-between h-full p-6 sm:p-7 rounded-[2rem] focus-visible:ring-2 focus-visible:ring-primary border border-border bg-card shadow-md hover:shadow-2xl transition-all duration-300"
+          "group relative overflow-hidden flex flex-col justify-between h-full p-6 sm:p-7 rounded-[2rem] focus-visible:ring-2 focus-visible:ring-primary border border-border bg-card shadow-md hover:shadow-2xl hover-lift active:scale-97 transition-all duration-300 dark:bg-card"
         )}
       >
         {/* Subtle Ambient Background Glow on Hover */}

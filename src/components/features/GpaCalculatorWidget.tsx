@@ -76,7 +76,7 @@ export function GpaCalculatorWidget() {
   );
 
   return (
-    <div className="p-6 rounded-[2rem] bg-card/60 border border-primary/20 backdrop-blur-2xl shadow-xl space-y-6">
+    <div className="p-6 rounded-[2rem] bg-card border border-border dark:bg-card backdrop-blur-xl shadow-md space-y-6">
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-3">
           <div className="p-3 rounded-2xl bg-primary/10 text-primary border border-primary/20">

@@ -67,8 +67,8 @@ export function TodoItem({ task, onToggle, onDelete, onEdit, onSubtaskToggle }: 
         className={cn(
           "relative overflow-hidden rounded-2xl transition-all duration-300 border backdrop-blur-xl",
           task.completed
-            ? "bg-white/5 dark:bg-white/2 border-white/5 opacity-80" // Completed State
-            : "bg-white/10 dark:bg-black/20 border-white/10 hover:border-primary/30 hover:shadow-lg hover:shadow-primary/5 active:scale-[0.99]" // Active State
+            ? "bg-muted/40 border-border/40 opacity-80" // Completed State
+            : "bg-card border-border shadow-sm hover:shadow-md hover:border-primary/30 active:scale-[0.99] dark:bg-card" // Active State
         )}
       >
         {/* Progress Bar Background for Task */}

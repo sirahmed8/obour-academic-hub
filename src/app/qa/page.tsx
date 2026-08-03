@@ -1,13 +1,25 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { useLanguage, useAuth } from "@/contexts";
-import { MessageSquare, ThumbsUp, ShieldCheck, Sparkles, Plus } from "lucide-react";
+import { MessageSquare, ThumbsUp, ShieldCheck, Sparkles, Plus, Search } from "lucide-react";
 import { FadeIn, ScaleIn, StaggerChildren } from "@/components/ui/Animations";
 import { motion } from "framer-motion";
 import { toast } from "sonner";
-import { collection, getDocs, query, limit, addDoc, serverTimestamp } from "firebase/firestore";
+import {
+  collection,
+  getDocs,
+  query,
+  limit,
+  addDoc,
+  doc,
+  updateDoc,
+  increment,
+  serverTimestamp,
+} from "firebase/firestore";
 import { db } from "@/lib/firebase";
+import { cn } from "@/lib/utils";
+import { qaQuestionSchema } from "@/lib/zod-schemas";
 
 interface QAQuestion {
   id: string;
@@ -32,6 +44,23 @@ export default function QAForumPage() {
   const [newTitle, setNewTitle] = useState("");
   const [newSubject, setNewSubject] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const [searchQuery, setSearchQuery] = useState("");
+  const [selectedSubject, setSelectedSubject] = useState<string>("all");
+  const [upvotedIds, setUpvotedIds] = useState<string[]>([]);
+
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      const saved = localStorage.getItem(`upvoted_questions_${user?.uid || "guest"}`);
+      if (saved) {
+        try {
+          setUpvotedIds(JSON.parse(saved));
+        } catch {
+          // ignore
+        }
+      }
+    }
+  }, [user?.uid]);
 
   useEffect(() => {
     async function loadQuestions() {
@@ -67,24 +96,88 @@ export default function QAForumPage() {
     loadQuestions();
   }, []);
 
-  const handleUpvote = (id: string) => {
-    setQuestions(questions.map((q) => (q.id === id ? { ...q, upvotes: q.upvotes + 1 } : q)));
-    toast.success(isRtl ? "تم تسجيل التصويت! 👍" : "Upvoted! 👍");
+  const handleUpvote = async (id: string) => {
+    const isUpvoted = upvotedIds.includes(id);
+    const diff = isUpvoted ? -1 : 1;
+
+    // Optimistic UI update
+    setQuestions((prev) =>
+      prev.map((q) => (q.id === id ? { ...q, upvotes: Math.max(0, q.upvotes + diff) } : q))
+    );
+
+    const newUpvoted = isUpvoted ? upvotedIds.filter((item) => item !== id) : [...upvotedIds, id];
+    setUpvotedIds(newUpvoted);
+
+    if (typeof window !== "undefined") {
+      localStorage.setItem(`upvoted_questions_${user?.uid || "guest"}`, JSON.stringify(newUpvoted));
+    }
+
+    if (isUpvoted) {
+      toast.info(isRtl ? "تم إلغاء التصويت" : "Upvote removed");
+    } else {
+      toast.success(isRtl ? "تم تسجيل التصويت! 👍" : "Upvoted! 👍");
+    }
+
+    // Persist to Firestore if available
+    if (db && !id.startsWith("q-")) {
+      try {
+        await updateDoc(doc(db, "questions", id), {
+          upvotes: increment(diff),
+        });
+      } catch (err) {
+        console.error("Failed to update upvote doc in Firestore:", err);
+      }
+    }
   };
+
+  // Dynamic Subject list
+  const availableSubjects = useMemo(() => {
+    const set = new Set<string>();
+    set.add("all");
+    questions.forEach((q) => {
+      if (q.subject) set.add(q.subject);
+    });
+    // add defaults if empty
+    set.add("General");
+    set.add("Databases");
+    set.add("Networks");
+    return Array.from(set);
+  }, [questions]);
+
+  const filteredQuestions = useMemo(() => {
+    return questions.filter((q) => {
+      const matchSub =
+        selectedSubject === "all"
+          ? true
+          : q.subject.toLowerCase() === selectedSubject.toLowerCase();
+      const matchSearch =
+        searchQuery.trim() === ""
+          ? true
+          : q.titleAr.toLowerCase().includes(searchQuery.toLowerCase()) ||
+            q.titleEn.toLowerCase().includes(searchQuery.toLowerCase()) ||
+            q.subject.toLowerCase().includes(searchQuery.toLowerCase());
+      return matchSub && matchSearch;
+    });
+  }, [questions, selectedSubject, searchQuery]);
 
   const handleAskQuestion = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!newTitle.trim() || !newSubject.trim()) {
-      toast.error(isRtl ? "يرجى كتابة السؤال واختيار المادة" : "Please fill title and subject");
+    const validation = qaQuestionSchema.safeParse({ title: newTitle, subject: newSubject });
+    if (!validation.success) {
+      toast.error(
+        validation.error.issues[0]?.message || (isRtl ? "بيانات غير صالحة" : "Invalid input")
+      );
       return;
     }
+    const sanitizedTitle = validation.data.title;
+    const sanitizedSubject = validation.data.subject;
 
     setIsSubmitting(true);
     try {
       const payload = {
-        titleAr: newTitle,
-        titleEn: newTitle,
-        subject: newSubject,
+        titleAr: sanitizedTitle,
+        titleEn: sanitizedTitle,
+        subject: sanitizedSubject,
         authorName: user?.displayName || user?.email?.split("@")[0] || "Obour Student",
         authorId: user?.uid || "guest",
         upvotes: 0,
@@ -160,27 +253,62 @@ export default function QAForumPage() {
         </div>
       </FadeIn>
 
+      {/* Search & Subject Tag Filter Bar */}
+      <ScaleIn>
+        <div className="space-y-4">
+          <div className="flex items-center px-4 py-3 rounded-2xl bg-card border border-border shadow-md focus-within:ring-2 focus-within:ring-primary/40 focus-within:border-primary transition-all duration-300">
+            <Search className="text-muted-foreground shrink-0 me-3" size={20} />
+            <input
+              type="text"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              placeholder={
+                isRtl ? "ابحث بداخل الأسئلة والمواد..." : "Search questions or subjects..."
+              }
+              className="w-full bg-transparent outline-none text-sm font-bold text-foreground"
+            />
+          </div>
+
+          <div className="flex items-center gap-2 overflow-x-auto pb-1 scrollbar-hide">
+            {availableSubjects.map((sub) => (
+              <button
+                key={sub}
+                onClick={() => setSelectedSubject(sub)}
+                className={cn(
+                  "px-4 py-1.5 rounded-full text-xs font-black transition-all border whitespace-nowrap shrink-0",
+                  selectedSubject.toLowerCase() === sub.toLowerCase()
+                    ? "bg-primary text-white border-primary shadow-sm shadow-primary/20"
+                    : "bg-card border-border text-muted-foreground hover:text-foreground hover:bg-muted"
+                )}
+              >
+                {sub === "all" ? (isRtl ? "جميع المواد" : "All Subjects") : sub}
+              </button>
+            ))}
+          </div>
+        </div>
+      </ScaleIn>
+
       {loading ? (
         <div className="flex items-center justify-center py-12">
           <div className="w-8 h-8 rounded-full border-4 border-primary border-t-transparent animate-spin" />
         </div>
-      ) : questions.length === 0 ? (
+      ) : filteredQuestions.length === 0 ? (
         <div className="p-10 rounded-3xl bg-card border border-border text-center space-y-3 shadow-md">
           <Sparkles className="mx-auto text-primary w-10 h-10 animate-bounce" />
           <h3 className="text-lg font-bold text-foreground">
-            {isRtl ? "لا توجد أسئلة منشورة حالياً" : "No academic questions posted yet"}
+            {isRtl ? "لا توجد أسئلة تطابق البحث" : "No academic questions matching search"}
           </h3>
           <p className="text-sm text-muted-foreground">
             {isRtl
-              ? "كن أول من يطرح استفساراً أكاديمياً ليتلقى الإجابة من الأساتذة والطلاب."
-              : "Be the first student to ask an academic question and get answered."}
+              ? "جرّب البحث بكلمات أخرى أو اختر مادة مختلفة."
+              : "Try searching with different keywords or select another subject."}
           </p>
         </div>
       ) : (
         <StaggerChildren className="space-y-4">
-          {questions.map((q) => (
+          {filteredQuestions.map((q) => (
             <ScaleIn key={q.id}>
-              <div className="p-6 rounded-3xl bg-card border border-border shadow-md hover:border-primary/40 hover:shadow-xl transition-all duration-300 space-y-4">
+              <div className="p-6 rounded-3xl bg-card border border-border shadow-md hover:border-primary/40 hover:shadow-xl hover-lift transition-all duration-300 space-y-4 dark:bg-card">
                 <div className="flex items-start justify-between gap-4">
                   <div>
                     <span className="px-3 py-1 rounded-full bg-primary/10 text-primary font-extrabold text-xs border border-primary/20">
@@ -199,9 +327,19 @@ export default function QAForumPage() {
                     whileHover={{ scale: 1.08 }}
                     whileTap={{ scale: 0.92 }}
                     onClick={() => handleUpvote(q.id)}
-                    className="px-4 py-2.5 rounded-2xl bg-primary/10 hover:bg-primary/20 border border-primary/20 font-black text-xs text-primary flex items-center gap-1.5 shrink-0 shadow-sm transition-all"
+                    className={cn(
+                      "px-4 py-2.5 rounded-2xl font-black text-xs flex items-center gap-1.5 shrink-0 shadow-sm transition-all border",
+                      upvotedIds.includes(q.id)
+                        ? "bg-primary text-white border-primary shadow-md shadow-primary/25"
+                        : "bg-primary/10 hover:bg-primary/20 border-primary/20 text-primary"
+                    )}
                   >
-                    <ThumbsUp size={14} className="text-primary" />
+                    <ThumbsUp
+                      size={14}
+                      className={
+                        upvotedIds.includes(q.id) ? "fill-current text-white" : "text-primary"
+                      }
+                    />
                     <span>{q.upvotes}</span>
                   </motion.button>
                 </div>

@@ -13,7 +13,9 @@ import {
   ExternalLink,
   Search,
   SearchX,
+  Star,
 } from "lucide-react";
+import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { FadeIn, ScaleIn, StaggerChildren } from "@/components/ui/Animations";
 import { AnimatedIcon } from "@/components/ui/AnimatedIcon";
@@ -80,7 +82,38 @@ export function SubjectClient({ subjectName }: SubjectClientProps) {
   const [fetchError, setFetchError] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
   const [sortBy, setSortBy] = useState<"default" | "name" | "type">("default");
+  const [selectedTypeFilter, setSelectedTypeFilter] = useState<string>("all");
+  const [bookmarks, setBookmarks] = useState<string[]>([]);
   const [isHovered, setIsHovered] = useState(false);
+
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      const saved = localStorage.getItem(`bookmarked_resources_${user?.uid || "guest"}`);
+      if (saved) {
+        try {
+          setBookmarks(JSON.parse(saved));
+        } catch {
+          // ignore
+        }
+      }
+    }
+  }, [user?.uid]);
+
+  const toggleBookmark = (resourceId: string) => {
+    const isBookmarked = bookmarks.includes(resourceId);
+    let updated: string[];
+    if (isBookmarked) {
+      updated = bookmarks.filter((id) => id !== resourceId);
+      toast.info(language === "ar" ? "تم إزالة المصدر من المحفوظات" : "Removed from bookmarks");
+    } else {
+      updated = [...bookmarks, resourceId];
+      toast.success(language === "ar" ? "تم حفظ المصدر بنجاح ⭐" : "Resource bookmarked ⭐");
+    }
+    setBookmarks(updated);
+    if (typeof window !== "undefined") {
+      localStorage.setItem(`bookmarked_resources_${user?.uid || "guest"}`, JSON.stringify(updated));
+    }
+  };
 
   // Highlight from notification
   const highlightId = searchParams.get("highlight");
@@ -365,6 +398,32 @@ export function SubjectClient({ subjectName }: SubjectClientProps) {
           </div>
         </FadeIn>
 
+        {/* Resource Tag & Type Filter Pills */}
+        <FadeIn delay={0.35}>
+          <div className="flex items-center gap-2 overflow-x-auto pb-2 mb-6 scrollbar-hide">
+            {[
+              { id: "all", label: language === "ar" ? "جميع المصادر" : "All Resources" },
+              { id: "pdf", label: language === "ar" ? "ملفات PDF" : "PDFs" },
+              { id: "document", label: language === "ar" ? "ملخصات وتلخيصات" : "Summaries & Docs" },
+              { id: "video", label: language === "ar" ? "محاضرات وفيديوهات" : "Lectures & Videos" },
+              { id: "bookmarked", label: language === "ar" ? "المحفوظة ⭐" : "Bookmarked ⭐" },
+            ].map((pill) => (
+              <button
+                key={pill.id}
+                onClick={() => setSelectedTypeFilter(pill.id)}
+                className={cn(
+                  "px-3.5 py-1.5 rounded-xl text-xs font-black transition-all whitespace-nowrap border shrink-0",
+                  selectedTypeFilter === pill.id
+                    ? "bg-primary text-white border-primary shadow-sm shadow-primary/20"
+                    : "bg-card border-border text-muted-foreground hover:text-foreground hover:bg-muted"
+                )}
+              >
+                {pill.label}
+              </button>
+            ))}
+          </div>
+        </FadeIn>
+
         {(() => {
           // Filter and sort resources
           let filtered = resources.filter(
@@ -372,6 +431,18 @@ export function SubjectClient({ subjectName }: SubjectClientProps) {
               (r.title?.toLowerCase() || "").includes(searchTerm.toLowerCase()) ||
               (r.description?.toLowerCase() || "").includes(searchTerm.toLowerCase())
           );
+
+          if (selectedTypeFilter === "pdf") {
+            filtered = filtered.filter((r) => r.type === "pdf" || r.displayAsFile);
+          } else if (selectedTypeFilter === "document") {
+            filtered = filtered.filter(
+              (r) => r.type === "document" || r.type === "other" || r.type === "link"
+            );
+          } else if (selectedTypeFilter === "video") {
+            filtered = filtered.filter((r) => r.type === "video");
+          } else if (selectedTypeFilter === "bookmarked") {
+            filtered = filtered.filter((r) => bookmarks.includes(r.id));
+          }
 
           if (sortBy === "name") {
             filtered = [...filtered].sort((a, b) => (a.title || "").localeCompare(b.title || ""));
@@ -471,6 +542,34 @@ export function SubjectClient({ subjectName }: SubjectClientProps) {
                     </div>
 
                     <div className="flex flex-col sm:flex-row items-end sm:items-center gap-3 shrink-0">
+                      {/* Bookmark Button */}
+                      <button
+                        onClick={() => toggleBookmark(resource.id)}
+                        className={cn(
+                          "inline-flex items-center justify-center w-10 h-10 rounded-xl transition-all duration-300 shadow-sm border",
+                          bookmarks.includes(resource.id)
+                            ? "bg-amber-500/10 text-amber-500 border-amber-500/30 dark:bg-amber-500/20"
+                            : "bg-background text-muted-foreground border-border hover:border-amber-500 hover:text-amber-500 hover:bg-amber-50 active:scale-95 dark:hover:bg-amber-500/10"
+                        )}
+                        title={
+                          bookmarks.includes(resource.id)
+                            ? language === "ar"
+                              ? "إزالة من المحفوظات"
+                              : "Remove Bookmark"
+                            : language === "ar"
+                              ? "إضافة للمحفوظات"
+                              : "Bookmark Resource"
+                        }
+                      >
+                        <Star
+                          size={18}
+                          className={cn(
+                            "transition-transform",
+                            bookmarks.includes(resource.id) ? "fill-amber-500 text-amber-500" : ""
+                          )}
+                        />
+                      </button>
+
                       {/* Mark as Done Checkbox / Button */}
                       {user && (
                         <button
