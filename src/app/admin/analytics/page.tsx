@@ -32,6 +32,10 @@ import {
   Database,
   ShieldCheck,
   PieChart as PieChartIcon,
+  Crown,
+  Trophy,
+  UserCheck,
+  CalendarDays,
 } from "lucide-react";
 import dynamic from "next/dynamic";
 import { ConfirmationModal } from "@/components/ui/ConfirmationModal";
@@ -64,6 +68,16 @@ const UserRolesChart = dynamic(() => import("./_components/UserRolesChart"), {
 import { cn, toDate } from "@/lib/utils";
 import { toast } from "sonner";
 
+interface TopPlayer {
+  uid: string;
+  name: string;
+  email: string;
+  points: number;
+  avatar?: string;
+  isVip: boolean;
+  role: string;
+}
+
 interface AnalyticsData {
   subjectViews: { name: string; views: number }[];
   resourceDownloads: { name: string; downloads: number }[];
@@ -77,6 +91,11 @@ interface AnalyticsData {
   recentLogs: ActivityLog[];
   resourceTypeDistribution: { name: string; value: number }[];
   userGrowth: { name: string; users: number }[];
+  vipUsers: number;
+  freeUsers: number;
+  topPlayers: TopPlayer[];
+  todayLogins: number;
+  newUsersThisWeek: number;
 }
 
 export default function AdminAnalyticsPage() {
@@ -93,13 +112,18 @@ export default function AdminAnalyticsPage() {
     recentLogs: [],
     resourceTypeDistribution: [],
     userGrowth: [],
+    vipUsers: 0,
+    freeUsers: 0,
+    topPlayers: [],
+    todayLogins: 0,
+    newUsersThisWeek: 0,
   });
   const [mounted, setMounted] = useState(false);
   const [loading, setLoading] = useState(true);
   const [showResetModal, setShowResetModal] = useState(false);
-  const [activeTab, setActiveTab] = useState<"overview" | "subjects" | "users" | "audit">(
-    "overview"
-  );
+  const [activeTab, setActiveTab] = useState<
+    "overview" | "subjects" | "users" | "audit" | "players"
+  >("overview");
   const { language } = useLanguage();
 
   useEffect(() => {
@@ -148,13 +172,65 @@ export default function AdminAnalyticsPage() {
               Admin: 0,
               Owner: 0,
             };
+
+            let vipCount = 0;
+            let freeCount = 0;
+            let todayLogins = 0;
+            let newThisWeek = 0;
+            const now = new Date();
+            const weekAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+            const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+            const topPlayersArr: TopPlayer[] = [];
+
             snapshot.docs.forEach((d) => {
               const u = d.data() as User;
               const roleName = u.role
                 ? u.role.charAt(0).toUpperCase() + u.role.slice(1)
                 : "Student";
               roles[roleName] = (roles[roleName] || 0) + 1;
+
+              // VIP vs Free
+              if (u.isVip || u.role === "owner" || u.role === "admin") vipCount++;
+              else freeCount++;
+
+              // Today logins
+              if (u.lastLogin) {
+                try {
+                  const loginDate =
+                    u.lastLogin &&
+                    typeof (u.lastLogin as { toDate?: () => Date }).toDate === "function"
+                      ? (u.lastLogin as { toDate: () => Date }).toDate()
+                      : new Date((u.lastLogin as { seconds: number }).seconds * 1000);
+                  if (loginDate >= todayStart) todayLogins++;
+                } catch {}
+              }
+
+              // New this week
+              if (u.createdAt) {
+                const date = toDate(u.createdAt);
+                if (date >= weekAgo) newThisWeek++;
+              }
+
+              // Top players
+              if ((u.points ?? 0) > 0) {
+                topPlayersArr.push({
+                  uid: d.id,
+                  name: u.displayName || u.email || "Student",
+                  email: u.email || "",
+                  points: u.points ?? 0,
+                  avatar: u.photoURL || undefined,
+                  isVip: !!(u.isVip || u.role === "owner" || u.role === "admin"),
+                  role: u.role || "student",
+                });
+              }
             });
+
+            newState.vipUsers = vipCount;
+            newState.freeUsers = freeCount;
+            newState.todayLogins = todayLogins;
+            newState.newUsersThisWeek = newThisWeek;
+            newState.topPlayers = topPlayersArr.sort((a, b) => b.points - a.points).slice(0, 10);
+
             newState.userRolesDistribution = Object.entries(roles).map(([name, value]) => ({
               name:
                 language === "ar"
@@ -319,6 +395,27 @@ export default function AdminAnalyticsPage() {
         description: language === "ar" ? "مسجلين في المنصة" : "Registered accounts",
       },
       {
+        label: language === "ar" ? "مستخدمو VIP" : "VIP Users",
+        value: data.vipUsers,
+        icon: Crown,
+        color: "bg-amber-500",
+        description: language === "ar" ? "مشتركون في الباقة المميزة" : "Active VIP subscribers",
+      },
+      {
+        label: language === "ar" ? "تسجيلات اليوم" : "Today's Logins",
+        value: data.todayLogins,
+        icon: UserCheck,
+        color: "bg-teal-500",
+        description: language === "ar" ? "دخلوا المنصة اليوم" : "Logged in today",
+      },
+      {
+        label: language === "ar" ? "مستخدمون جدد (7 أيام)" : "New Users (7d)",
+        value: data.newUsersThisWeek,
+        icon: CalendarDays,
+        color: "bg-sky-500",
+        description: language === "ar" ? "تسجيلات الأسبوع الأخير" : "Registered last 7 days",
+      },
+      {
         label: language === "ar" ? "المواد الدراسية" : "Academic Subjects",
         value: data.totalSubjects,
         icon: BookOpen,
@@ -481,6 +578,11 @@ export default function AdminAnalyticsPage() {
                 id: "audit",
                 label: language === "ar" ? "السجل النظيف" : "Audit",
                 icon: ShieldCheck,
+              },
+              {
+                id: "players",
+                label: language === "ar" ? "المتصدرون" : "Top Players",
+                icon: Trophy,
               },
             ].map((tab) => {
               const Icon = tab.icon;
@@ -785,6 +887,144 @@ export default function AdminAnalyticsPage() {
                         {language === "ar" ? "لا توجد سجلات" : "The audit trail is empty"}
                       </p>
                     </div>
+                  )}
+                </div>
+              </ScaleIn>
+            </div>
+          )}
+
+          {activeTab === "players" && (
+            <div className="space-y-6 animate-in slide-in-from-bottom-4 duration-500">
+              {/* Header row: VIP vs Free */}
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                <ScaleIn className="p-6 rounded-3xl bg-gradient-to-br from-amber-500/15 to-yellow-500/5 border border-amber-500/30 shadow-md space-y-2">
+                  <Crown className="text-amber-500" size={28} />
+                  <p className="text-3xl font-black text-foreground">{data.vipUsers}</p>
+                  <p className="text-sm font-bold text-foreground">
+                    {language === "ar" ? "مستخدمو VIP" : "VIP Users"}
+                  </p>
+                  <p className="text-xs text-muted-foreground">
+                    {language === "ar" ? "يستمتعون بجميع مميزات بلس" : "Enjoying all VIP perks"}
+                  </p>
+                </ScaleIn>
+                <ScaleIn className="p-6 rounded-3xl bg-card border border-border shadow-md space-y-2">
+                  <Users className="text-blue-500" size={28} />
+                  <p className="text-3xl font-black text-foreground">{data.freeUsers}</p>
+                  <p className="text-sm font-bold text-foreground">
+                    {language === "ar" ? "مستخدمو الباقة المجانية" : "Free Plan Users"}
+                  </p>
+                  <p className="text-xs text-muted-foreground">
+                    {language === "ar" ? "على الباقة الأساسية" : "On the basic free plan"}
+                  </p>
+                </ScaleIn>
+                <ScaleIn className="p-6 rounded-3xl bg-card border border-border shadow-md space-y-2">
+                  <Activity className="text-emerald-500" size={28} />
+                  <p className="text-3xl font-black text-foreground">
+                    {data.totalUsers > 0 ? Math.round((data.vipUsers / data.totalUsers) * 100) : 0}%
+                  </p>
+                  <p className="text-sm font-bold text-foreground">
+                    {language === "ar" ? "نسبة VIP" : "VIP Rate"}
+                  </p>
+                  <p className="text-xs text-muted-foreground">
+                    {language === "ar" ? "من إجمالي المستخدمين" : "Of total users"}
+                  </p>
+                </ScaleIn>
+              </div>
+
+              {/* Top 10 Players Leaderboard */}
+              <ScaleIn className="rounded-3xl bg-card border border-border shadow-md overflow-hidden">
+                <div className="px-6 py-5 border-b border-border flex items-center gap-3">
+                  <Trophy className="text-amber-500" size={22} />
+                  <div>
+                    <h2 className="text-lg font-black text-foreground">
+                      {language === "ar" ? "أفضل 10 لاعبين على المنصة" : "Top 10 Platform Players"}
+                    </h2>
+                    <p className="text-xs text-muted-foreground mt-0.5">
+                      {language === "ar" ? "مرتبون حسب إجمالي النقاط" : "Ranked by total points"}
+                    </p>
+                  </div>
+                </div>
+                <div className="divide-y divide-border">
+                  {data.topPlayers.length === 0 ? (
+                    <div className="py-16 text-center text-muted-foreground flex flex-col items-center gap-3">
+                      <Trophy size={40} className="opacity-20" />
+                      <p className="font-semibold italic text-sm">
+                        {language === "ar"
+                          ? "لا يوجد لاعبون بنقاط بعد"
+                          : "No players with points yet"}
+                      </p>
+                    </div>
+                  ) : (
+                    data.topPlayers.map((player, idx) => (
+                      <div
+                        key={player.uid}
+                        className="flex items-center gap-4 px-6 py-4 hover:bg-muted/30 transition-colors"
+                      >
+                        {/* Rank badge */}
+                        <div
+                          className={cn(
+                            "w-9 h-9 rounded-xl flex items-center justify-center font-black text-sm shrink-0",
+                            idx === 0
+                              ? "bg-amber-400 text-black shadow-lg shadow-amber-400/30"
+                              : idx === 1
+                                ? "bg-slate-300 text-black"
+                                : idx === 2
+                                  ? "bg-amber-700 text-white"
+                                  : "bg-muted text-muted-foreground"
+                          )}
+                        >
+                          {idx + 1}
+                        </div>
+                        {/* Avatar */}
+                        <div className="w-10 h-10 rounded-xl bg-muted border border-border overflow-hidden shrink-0">
+                          {player.avatar ? (
+                            // eslint-disable-next-line @next/next/no-img-element
+                            <img
+                              src={player.avatar}
+                              alt={player.name}
+                              className="w-full h-full object-cover"
+                            />
+                          ) : (
+                            <div className="w-full h-full flex items-center justify-center text-sm font-black text-muted-foreground">
+                              {player.name.charAt(0).toUpperCase()}
+                            </div>
+                          )}
+                        </div>
+                        {/* Name & email */}
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center gap-2">
+                            <p className="font-bold text-sm text-foreground truncate">
+                              {player.name}
+                            </p>
+                            {player.isVip && (
+                              <Crown size={12} className="text-amber-500 shrink-0" />
+                            )}
+                            {player.role === "owner" && (
+                              <span className="text-[9px] px-1.5 py-0.5 rounded-full bg-primary/10 text-primary font-bold border border-primary/20">
+                                OWNER
+                              </span>
+                            )}
+                            {player.role === "admin" && (
+                              <span className="text-[9px] px-1.5 py-0.5 rounded-full bg-purple-500/10 text-purple-600 font-bold border border-purple-500/20">
+                                ADMIN
+                              </span>
+                            )}
+                          </div>
+                          <p className="text-[10px] text-muted-foreground truncate">
+                            {player.email}
+                          </p>
+                        </div>
+                        {/* Points */}
+                        <div className="text-right shrink-0">
+                          <p className="font-black text-lg text-foreground">
+                            {player.points.toLocaleString()}
+                          </p>
+                          <p className="text-[10px] text-muted-foreground font-medium">
+                            {language === "ar" ? "نقطة" : "pts"}
+                          </p>
+                        </div>
+                      </div>
+                    ))
                   )}
                 </div>
               </ScaleIn>

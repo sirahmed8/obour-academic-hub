@@ -121,7 +121,7 @@ export function UserTableRow({
         {(user.role !== "owner" || currentUser?.role === "owner") && (
           <div className="flex flex-col gap-2">
             <div className="flex flex-wrap items-center gap-1.5">
-              {canEditUser(user) && user.role === "student" && (
+              {canEditUser(user) && (
                 <button
                   onClick={() => onToggleVip(user)}
                   title={
