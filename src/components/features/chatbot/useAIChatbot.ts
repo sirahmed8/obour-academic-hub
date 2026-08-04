@@ -557,7 +557,7 @@ export function useAIChatbot(): AIChatbotController {
                 : "عذراً، لم أتمكن من الحصول على إجابة الآن. يرجى المحاولة مرة أخرى.");
 
             // Parse & execute automated task creation if TASK_SPEC exists
-            const taskMatch = responseText.match(/\[TASK_SPEC:\s*(\{.*?\})\]/s);
+            const taskMatch = responseText.match(/\[TASK_SPEC:\s*(\{[\s\S]*?\})\]/);
             if (taskMatch) {
               try {
                 const taskSpec = JSON.parse(taskMatch[1]);
@@ -596,7 +596,7 @@ export function useAIChatbot(): AIChatbotController {
                 } catch {}
 
                 // Remove raw TASK_SPEC from response text for clean display
-                responseText = responseText.replace(/\[TASK_SPEC:\s*\{.*?\}\]/s, "").trim();
+                responseText = responseText.replace(/\[TASK_SPEC:\s*\{[\s\S]*?\}\]/, "").trim();
 
                 toast.success(
                   languageRef.current === "ar"
