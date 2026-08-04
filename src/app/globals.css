@@ -217,11 +217,13 @@
   height: 6px;
 }
 
-/* GLOBAL OVERRIDE: Disable pulsing animations as per user request */
-.animate-pulse,
+/* Smooth Pulse Animations for High-Fidelity Skeletons */
+.animate-pulse {
+  animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite !important;
+}
+
 .animate-pulse-slow {
-  animation: none !important;
-  opacity: 1 !important;
+  animation: pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite !important;
 }
 
 ::-webkit-scrollbar-track {

@@ -289,6 +289,54 @@ class UserService {
   }
 
   /**
+   * Alias for updating user profile data directly in Firestore
+   */
+  async updateUserProfile(uid: string, data: Partial<User>): Promise<void> {
+    return this.upsert(uid, data);
+  }
+
+  /**
+   * Centralized Gamification Engine: Awards XP & Points to a user with VIP Pass 2x multiplier support.
+   */
+  async awardUserXP(
+    uid: string,
+    amount: number,
+    reason: string = "general_activity"
+  ): Promise<{ finalXP: number; isVip: boolean; multiplier: number }> {
+    if (!db || !uid || amount <= 0) {
+      return { finalXP: amount, isVip: false, multiplier: 1 };
+    }
+
+    try {
+      const userDoc = await getDoc(doc(db, "users", uid));
+      const userData = userDoc.exists() ? userDoc.data() : {};
+      const isVip = Boolean(
+        userData.isVip ||
+        userData.role === "owner" ||
+        userData.role === "admin" ||
+        userData.subscriptionTier === "vip"
+      );
+      const multiplier = isVip ? 2 : 1;
+      const finalXP = amount * multiplier;
+
+      await setDoc(
+        doc(db, "users", uid),
+        {
+          xp: increment(finalXP),
+          points: increment(finalXP),
+          updatedAt: serverTimestamp(),
+        },
+        { merge: true }
+      );
+
+      return { finalXP, isVip, multiplier };
+    } catch (error) {
+      errorLogger.capture(error, { context: "UserService.awardUserXP", uid, amount, reason });
+      return { finalXP: amount, isVip: false, multiplier: 1 };
+    }
+  }
+
+  /**
    * Mark a resource as completed, awarding points
    */
   async completeResource(uid: string, resourceId: string): Promise<void> {
@@ -298,7 +346,7 @@ class UserService {
         doc(db, "users", uid),
         {
           completedResources: arrayUnion(resourceId),
-          points: increment(25), // 25 points for completing a resource
+          points: increment(25),
         },
         { merge: true }
       );

@@ -1,5 +1,5 @@
-import { LoadingPage } from "@/components/ui/Loading";
+import { SkeletonCommunityFeed } from "@/components/ui/Skeleton";
 
 export default function CommunityLoading() {
-  return <LoadingPage />;
+  return <SkeletonCommunityFeed />;
 }

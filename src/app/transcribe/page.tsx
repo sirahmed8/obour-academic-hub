@@ -3,8 +3,12 @@
 import { useState, useRef } from "react";
 import Link from "next/link";
 import { useAuth, useLanguage } from "@/contexts";
-import { Mic, MicOff, FileText, Sparkles, Download, RefreshCw, Crown } from "lucide-react";
+import { Mic, MicOff, FileText, Sparkles, Download, RefreshCw, Crown, Layers } from "lucide-react";
 import { FadeIn, ScaleIn } from "@/components/ui/Animations";
+import { SkeletonTranscribeView } from "@/components/ui/Skeleton";
+import { userService } from "@/services/user.service";
+import { addDoc, collection, serverTimestamp } from "firebase/firestore";
+import { db } from "@/lib/firebase";
 import { motion } from "framer-motion";
 import { toast } from "sonner";
 import ReactMarkdown from "react-markdown";
@@ -181,13 +185,38 @@ export default function TranscribePage() {
       if (res?.summary) {
         setSummaryResult(res.summary);
         toast.success(
-          isRtl ? "تم تحويل المحاضرة إلى تلخيص أكاديمي! 📑" : "Lecture summary generated! 📑"
+          isRtl
+            ? "تم تحويل المحاضرة إلى تلخيص أكاديمي! 📑 وحصولك على +50 XP"
+            : "Lecture summary generated! 📑 Earned +50 XP"
         );
+        if (user?.uid) {
+          userService.awardUserXP(user.uid, 50, "transcribe_lecture").catch(console.error);
+        }
       }
     } catch {
       toast.error(isRtl ? "حدث خطأ أثناء معالجة المحاضرة" : "Failed to generate summary");
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleCreateTaskFromSummary = async () => {
+    if (!user?.uid || !db || !summaryResult) return;
+    try {
+      await addDoc(collection(db, "users", user.uid, "tasks"), {
+        title: `${isRtl ? "مراجعة تلخيص" : "Review Summary"}: ${lectureTitle || subjectName}`,
+        description: summaryResult.slice(0, 200) + "...",
+        completed: false,
+        priority: "high",
+        subject: subjectName,
+        createdAt: serverTimestamp(),
+      });
+      toast.success(
+        isRtl ? "تمت إضافة المهمة بنجاح إلى قائمة مهامك! 📝" : "Task added to your To-Do list! 📝"
+      );
+    } catch (err) {
+      console.error("Error creating task:", err);
+      toast.error(isRtl ? "تعذر إضافة المهمة" : "Failed to add task");
     }
   };
 
@@ -352,7 +381,32 @@ export default function TranscribePage() {
                   <span className="text-xs font-black text-primary uppercase">
                     {isRtl ? "التلخيص النهائي" : "Generated Summary"}
                   </span>
-                  <div className="flex items-center gap-2">
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <Link
+                      href={`/quiz?subject=${encodeURIComponent(subjectName)}&topic=${encodeURIComponent(lectureTitle || "Lecture Summary")}`}
+                      className="px-3 py-1.5 rounded-xl bg-purple-500/10 hover:bg-purple-500/20 text-purple-600 dark:text-purple-400 font-extrabold text-xs flex items-center gap-1 border border-purple-500/20 transition active:scale-95"
+                    >
+                      <Sparkles size={14} />
+                      <span>{isRtl ? "إنشاء اختبار 🎯" : "Generate Quiz 🎯"}</span>
+                    </Link>
+
+                    <Link
+                      href={`/mindmap?subject=${encodeURIComponent(subjectName)}&topic=${encodeURIComponent(lectureTitle || "Lecture Summary")}`}
+                      className="px-3 py-1.5 rounded-xl bg-indigo-500/10 hover:bg-indigo-500/20 text-indigo-600 dark:text-indigo-400 font-extrabold text-xs flex items-center gap-1 border border-indigo-500/20 transition active:scale-95"
+                    >
+                      <Layers size={14} />
+                      <span>{isRtl ? "خريطة ذهنية 🧠" : "Mind Map 🧠"}</span>
+                    </Link>
+
+                    <button
+                      type="button"
+                      onClick={handleCreateTaskFromSummary}
+                      className="px-3 py-1.5 rounded-xl bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 font-extrabold text-xs flex items-center gap-1 border border-emerald-500/20 transition active:scale-95"
+                    >
+                      <Sparkles size={14} />
+                      <span>{isRtl ? "إضافة كـ مهمة 📝" : "Add as Task 📝"}</span>
+                    </button>
+
                     <button
                       type="button"
                       onClick={() => {
@@ -392,6 +446,8 @@ export default function TranscribePage() {
                   <ReactMarkdown remarkPlugins={[remarkGfm]}>{summaryResult}</ReactMarkdown>
                 </div>
               </div>
+            ) : loading ? (
+              <SkeletonTranscribeView />
             ) : (
               <div className="flex flex-col items-center justify-center h-full text-center p-8 space-y-3 text-muted-foreground">
                 <FileText size={48} className="text-primary/40" />

@@ -1,6 +1,15 @@
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { generateText } from "@/lib/aiService";
+import { getRequestContext } from "@/lib/server/auth";
+import { rateLimit } from "@/lib/server/rate-limit";
+import { corsOptions, withCors } from "@/lib/server/cors";
+
+export const runtime = "nodejs";
+
+export async function OPTIONS(request: Request) {
+  return corsOptions(request);
+}
 
 const quizRequestSchema = z.object({
   subjectId: z.string().optional(),
@@ -12,21 +21,56 @@ const quizRequestSchema = z.object({
 
 export async function POST(req: NextRequest) {
   try {
+    let uid = "guest";
+    let isVipOrAdmin = false;
+
+    try {
+      const context = await getRequestContext(req, { allowMissingProfile: true });
+      uid = context.uid;
+      isVipOrAdmin =
+        context.isOwner ||
+        context.role === "admin" ||
+        context.role === "owner" ||
+        Boolean(context.profile?.isVip) ||
+        context.profile?.subscriptionTier === "vip";
+    } catch {
+      // Guest fallback
+    }
+
+    const limiter = await rateLimit({
+      key: `api:quiz:${uid}`,
+      limit: 25,
+      windowMs: 60_000,
+    });
+
+    if (!limiter.allowed) {
+      return withCors(
+        req,
+        NextResponse.json(
+          { error: "Too many quiz requests. Please wait a moment." },
+          { status: 429 }
+        )
+      );
+    }
+
     const body = await req.json();
     const parsed = quizRequestSchema.safeParse(body);
 
     if (!parsed.success) {
-      return NextResponse.json(
-        { error: "Invalid quiz parameters", details: parsed.error.format() },
-        { status: 400 }
+      return withCors(
+        req,
+        NextResponse.json(
+          { error: "Invalid quiz parameters", details: parsed.error.format() },
+          { status: 400 }
+        )
       );
     }
 
     let { questionCount } = parsed.data;
     const { subjectName, topic, difficulty } = parsed.data;
 
-    // Enforce 5-question cap for non-VIP users
-    if (!body.isVip && !body.isOwner && questionCount > 5) {
+    // Server-side enforced question cap for non-VIP users
+    if (!isVipOrAdmin && questionCount > 5) {
       questionCount = 5;
     }
 
@@ -53,62 +97,64 @@ Return EXACTLY valid JSON formatted as follows (no markdown backticks, no wrappi
 
     const rawResponse = await generateText(prompt);
 
-    // Parse JSON safely
     let cleanJsonString = rawResponse.trim();
-    if (cleanJsonString.startsWith("```")) {
-      cleanJsonString = cleanJsonString
-        .replace(/^```json?\n?/, "")
-        .replace(/```$/, "")
-        .trim();
+    const jsonMatch = cleanJsonString.match(/\{[\s\S]*\}/);
+    if (jsonMatch) {
+      cleanJsonString = jsonMatch[0];
     }
 
     const quizData = JSON.parse(cleanJsonString);
 
-    return NextResponse.json({
-      success: true,
-      quiz: quizData,
-    });
+    return withCors(
+      req,
+      NextResponse.json({
+        success: true,
+        quiz: quizData,
+      })
+    );
   } catch (error) {
     console.error("[Quiz API Error]:", error);
 
-    // Resilient fallback quiz data if AI service fails or times out
-    return NextResponse.json({
-      success: true,
-      quiz: {
-        title: "Obour Academic Practice Quiz",
-        questions: [
-          {
-            id: "q1",
-            questionAr: "ما هو المفهوم الأساسي للبرمجة الهيكلية؟",
-            questionEn: "What is the primary concept of Structural Programming?",
-            options: [
-              "Divide and Conquer (التجزئة والحل)",
-              "Random Execution (التنفيذ العشوائي)",
-              "Global State Only (الحالة العامة فقط)",
-              "No Functions (بدون دلالات)",
-            ],
-            correctIndex: 0,
-            explanationAr:
-              "تعتمد البرمجة الهيكلية على تقسيم المسألة إلى دالّات أفرع أصغر لسهولة التطوير.",
-            explanationEn:
-              "Structural programming divides complex tasks into manageable functions.",
-          },
-          {
-            id: "q2",
-            questionAr: "أي من التالي يُستخدم لحفظ البيانات بشكل دائيم؟",
-            questionEn: "Which of the following is used for persistent data storage?",
-            options: [
-              "RAM (الذاكرة العشوائية)",
-              "Cloud Firestore Database (قاعدة البيانات السحابية)",
-              "CPU Cache (ذاكرة المعالج)",
-              "Registers (المسجلات)",
-            ],
-            correctIndex: 1,
-            explanationAr: "قواعد البيانات تحفظ البيانات دائمياً بعكس الذاكرة المؤقتة.",
-            explanationEn: "Databases persist data beyond application reboot cycles.",
-          },
-        ],
-      },
-    });
+    return withCors(
+      req,
+      NextResponse.json({
+        success: true,
+        quiz: {
+          title: "Obour Academic Practice Quiz",
+          questions: [
+            {
+              id: "q1",
+              questionAr: "ما هو المفهوم الأساسي للبرمجة الهيكلية؟",
+              questionEn: "What is the primary concept of Structural Programming?",
+              options: [
+                "Divide and Conquer (التجزئة والحل)",
+                "Random Execution (التنفيذ العشوائي)",
+                "Global State Only (الحالة العامة فقط)",
+                "No Functions (بدون دلالات)",
+              ],
+              correctIndex: 0,
+              explanationAr:
+                "تعتمد البرمجة الهيكلية على تقسيم المسألة إلى دالّات أفرع أصغر لسهولة التطوير.",
+              explanationEn:
+                "Structural programming divides complex tasks into manageable functions.",
+            },
+            {
+              id: "q2",
+              questionAr: "أي من التالي يُستخدم لحفظ البيانات بشكل دائيم؟",
+              questionEn: "Which of the following is used for persistent data storage?",
+              options: [
+                "RAM (الذاكرة العشوائية)",
+                "Cloud Firestore Database (قاعدة البيانات السحابية)",
+                "CPU Cache (ذاكرة المعالج)",
+                "Registers (المسجلات)",
+              ],
+              correctIndex: 1,
+              explanationAr: "قواعد البيانات تحفظ البيانات دائمياً بعكس الذاكرة المؤقتة.",
+              explanationEn: "Databases persist data beyond application reboot cycles.",
+            },
+          ],
+        },
+      })
+    );
   }
 }

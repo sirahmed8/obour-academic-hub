@@ -3,6 +3,7 @@
 import { motion, Variants, HTMLMotionProps } from "framer-motion";
 import { ReactNode } from "react";
 import { useSolidMode } from "@/contexts";
+import { cn } from "@/lib/utils";
 
 // --- Configuration ---
 export const springConfig = {
@@ -68,7 +69,7 @@ export function FadeIn({
       whileInView={{ opacity: 1 }}
       viewport={{ once: true, margin: "-50px" }}
       transition={{ duration, delay, ease: "easeOut" }}
-      className={className}
+      className={cn("transform-gpu", className)}
     >
       {children}
     </motion.div>
@@ -91,10 +92,19 @@ export function ScaleIn({
 
   if (isSolid) {
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    const { initial, animate, exit, whileInView, viewport, transition, variants, ...domProps } =
-      props as Record<string, unknown>;
+    const {
+      initial,
+      animate,
+      exit,
+      whileInView,
+      viewport,
+      transition,
+      variants,
+      layout,
+      ...domProps
+    } = props as Record<string, unknown>;
     return (
-      <div className={className} {...domProps}>
+      <div className={className} {...(domProps as React.HTMLAttributes<HTMLDivElement>)}>
         {children}
       </div>
     );
@@ -109,7 +119,7 @@ export function ScaleIn({
       whileInView={{ opacity: 1, scale: 1 }}
       viewport={{ once: true }}
       transition={{ ...(props.transition || springConfig), delay }}
-      className={className}
+      className={cn("transform-gpu", className)}
       {...props}
     >
       {children}
@@ -141,7 +151,7 @@ export function SlideIn({ children, direction = "up", delay = 0, className = "" 
       whileInView={{ opacity: 1, x: 0, y: 0 }}
       viewport={{ once: true, margin: "-50px" }}
       transition={{ ...springConfig, delay }}
-      className={className}
+      className={cn("transform-gpu", className)}
     >
       {children}
     </motion.div>
@@ -185,7 +195,7 @@ export function StaggerChildren({
       whileInView="visible"
       viewport={{ once: true, margin: "-50px" }}
       variants={containerVariants}
-      className={className}
+      className={cn("transform-gpu", className)}
     >
       {children}
     </motion.div>
@@ -210,7 +220,7 @@ export function Reveal({ children, delay = 0, className = "" }: AnimationProps) 
       whileInView={{ opacity: 1, y: 0 }}
       viewport={{ once: true }}
       transition={{ duration: 0.5, delay, ease: easeConfig }}
-      className={className}
+      className={cn("transform-gpu", className)}
     >
       {children}
     </motion.div>
@@ -237,7 +247,11 @@ export function HoverScale({
   }
 
   return (
-    <motion.div whileHover={{ scale }} transition={springConfig} className={className}>
+    <motion.div
+      whileHover={{ scale }}
+      transition={springConfig}
+      className={cn("transform-gpu", className)}
+    >
       {children}
     </motion.div>
   );
@@ -263,7 +277,11 @@ export function TapScale({
   }
 
   return (
-    <motion.div whileTap={{ scale }} transition={springConfig} className={className}>
+    <motion.div
+      whileTap={{ scale }}
+      transition={springConfig}
+      className={cn("transform-gpu", className)}
+    >
       {children}
     </motion.div>
   );
@@ -289,7 +307,12 @@ export function SmoothTransition({
   }
 
   return (
-    <motion.div layout layoutId={layoutId} transition={springConfig} className={className}>
+    <motion.div
+      layout
+      layoutId={layoutId}
+      transition={springConfig}
+      className={cn("transform-gpu", className)}
+    >
       {children}
     </motion.div>
   );

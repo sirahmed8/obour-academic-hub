@@ -608,6 +608,12 @@ export function useAIChatbot(): AIChatbotController {
               }
             }
 
+            // Award XP for interacting with AI Assistant
+            try {
+              const { userService } = await import("@/services/user.service");
+              await userService.awardUserXP(user.uid, 20, "ai_assistant_chat");
+            } catch {}
+
             const botLocalMsg = {
               id: "bot-" + Date.now(),
               text: responseText,

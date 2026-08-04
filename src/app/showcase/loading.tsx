@@ -1,10 +1,10 @@
-import { SkeletonHeaderBanner, SkeletonCardGrid } from "@/components/ui/Skeleton";
+import { SkeletonCardGrid, SkeletonHeaderBanner } from "@/components/ui/Skeleton";
 
 export default function ShowcaseLoading() {
   return (
-    <div className="p-4 sm:p-6 lg:p-10 space-y-8 w-full min-h-screen max-w-5xl mx-auto">
+    <div className="space-y-6 max-w-6xl mx-auto p-4 animate-fade-in">
       <SkeletonHeaderBanner />
-      <SkeletonCardGrid count={4} cols="grid-cols-1 md:grid-cols-2" />
+      <SkeletonCardGrid count={6} cols="grid-cols-1 md:grid-cols-2 lg:grid-cols-3" />
     </div>
   );
 }

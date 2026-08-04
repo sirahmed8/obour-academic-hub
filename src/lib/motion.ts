@@ -26,8 +26,14 @@ export const smoothTransition: Transition = {
 
 export const springTransition: Transition = {
   type: "spring",
-  stiffness: 300,
-  damping: 25,
+  stiffness: 320,
+  damping: 28,
+};
+
+export const layoutTransition: Transition = {
+  type: "spring",
+  stiffness: 350,
+  damping: 30,
 };
 
 export const quickTransition: Transition = {

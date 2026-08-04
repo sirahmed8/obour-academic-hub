@@ -10,6 +10,9 @@ import { apiFetch } from "@/lib/api-client";
 import { CustomSelect } from "@/components/ui/CustomSelect";
 import { collection, getDocs } from "firebase/firestore";
 import { db } from "@/lib/firebase";
+import { userService } from "@/services/user.service";
+
+import { useSearchParams } from "next/navigation";
 
 interface Question {
   id: string;
@@ -29,9 +32,11 @@ interface Quiz {
 export default function QuizPage() {
   const { language } = useLanguage();
   const { user } = useAuth();
+  const searchParams = useSearchParams();
   const isRtl = language === "ar";
 
-  const [subjectName, setSubjectName] = useState("");
+  const initialSubject = searchParams.get("subject") || "";
+  const [subjectName, setSubjectName] = useState(initialSubject);
   const [topic, setTopic] = useState("");
   const [difficulty, setDifficulty] = useState<"easy" | "medium" | "hard">("medium");
   const [questionCount, setQuestionCount] = useState(5);
@@ -366,15 +371,42 @@ export default function QuizPage() {
                 currentIndex === quiz.questions.length - 1 ? (
                   <button
                     type="button"
-                    onClick={() => {
+                    onClick={async () => {
                       setIsSubmitted(true);
+                      const finalScore = calculateScore();
+                      const xpEarned = Math.max(15, finalScore * 10);
                       import("canvas-confetti").then((m) => {
                         m.default({ particleCount: 80, spread: 70, origin: { y: 0.6 } });
                       });
+                      if (user?.uid && db) {
+                        try {
+                          const {
+                            addDoc,
+                            collection: fsColl,
+                            serverTimestamp: fsTs,
+                          } = await import("firebase/firestore");
+                          await addDoc(fsColl(db, "users", user.uid, "quiz_results"), {
+                            subjectName,
+                            topic,
+                            difficulty,
+                            score: finalScore,
+                            totalQuestions: quiz.questions.length,
+                            xpEarned,
+                            createdAt: fsTs(),
+                          });
+                          await userService.awardUserXP(
+                            user.uid,
+                            xpEarned,
+                            `quiz_completed_${subjectName}`
+                          );
+                        } catch (err) {
+                          console.error("Failed to log quiz result:", err);
+                        }
+                      }
                       toast.success(
                         isRtl
-                          ? "🎉 تم تسليم الاختبار وحساب +15 نقطة XP!"
-                          : "🎉 Quiz submitted! +15 XP earned!"
+                          ? `🎉 تم تسليم الاختبار وحساب +${xpEarned} نقطة XP!`
+                          : `🎉 Quiz submitted! +${xpEarned} XP earned!`
                       );
                     }}
                     className="px-6 py-3 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-black text-xs transition shadow-lg flex items-center gap-1.5 active:scale-95"
@@ -392,14 +424,67 @@ export default function QuizPage() {
                   </button>
                 )
               ) : (
-                <button
-                  type="button"
-                  onClick={() => setQuiz(null)}
-                  className="px-6 py-3 rounded-xl bg-primary text-white font-black text-xs transition flex items-center gap-2"
-                >
-                  <RefreshCw size={16} />
-                  <span>{isRtl ? "إنشاء اختبار جديد" : "Create New Quiz"}</span>
-                </button>
+                <div className="flex items-center gap-2 flex-wrap">
+                  <button
+                    type="button"
+                    onClick={async () => {
+                      if (!user?.uid || !db || !quiz) {
+                        toast.error(
+                          isRtl ? "سجل الدخول لحفظ المهام" : "Please log in to save tasks"
+                        );
+                        return;
+                      }
+                      const wrongQuestions = quiz.questions.filter(
+                        (q, idx) => selectedAnswers[idx] !== q.correctIndex
+                      );
+                      if (wrongQuestions.length === 0) {
+                        toast.success(
+                          isRtl
+                            ? "درجة كاملة! لا توجد أسئلة خاطئة 🎯"
+                            : "Perfect score! No incorrect questions to add 🎯"
+                        );
+                        return;
+                      }
+                      try {
+                        const {
+                          addDoc,
+                          collection: fsColl,
+                          serverTimestamp: fsTs,
+                        } = await import("firebase/firestore");
+                        for (const q of wrongQuestions) {
+                          await addDoc(fsColl(db, "users", user.uid, "tasks"), {
+                            title: `${isRtl ? "مراجعة سؤال" : "Review Question"}: ${isRtl ? q.questionAr : q.questionEn}`,
+                            description: `${isRtl ? "الشرح" : "Explanation"}: ${isRtl ? q.explanationAr : q.explanationEn}`,
+                            completed: false,
+                            priority: "high",
+                            subject: subjectName || "عام",
+                            createdAt: fsTs(),
+                          });
+                        }
+                        toast.success(
+                          isRtl
+                            ? `تمت إضافة ${wrongQuestions.length} سؤال خاطئ لمهام المراجعة! 📝`
+                            : `Added ${wrongQuestions.length} missed questions to your revision tasks! 📝`
+                        );
+                      } catch {
+                        toast.error(isRtl ? "تعذر حفظ المهام" : "Failed to save revision tasks");
+                      }
+                    }}
+                    className="px-4 py-2.5 rounded-xl bg-amber-500/15 hover:bg-amber-500/25 text-amber-600 dark:text-amber-300 font-extrabold text-xs flex items-center gap-1.5 border border-amber-500/30 transition active:scale-95"
+                  >
+                    <Sparkles size={14} />
+                    <span>{isRtl ? "إضافة الأخطاء للمراجعة 📝" : "Add Missed to To-Do 📝"}</span>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => setQuiz(null)}
+                    className="px-6 py-2.5 rounded-xl bg-primary text-white font-black text-xs transition flex items-center gap-2 active:scale-95"
+                  >
+                    <RefreshCw size={16} />
+                    <span>{isRtl ? "إنشاء اختبار جديد" : "Create New Quiz"}</span>
+                  </button>
+                </div>
               )}
             </div>
           </div>

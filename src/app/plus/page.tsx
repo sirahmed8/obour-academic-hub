@@ -19,9 +19,10 @@ import {
 } from "lucide-react";
 import { motion } from "framer-motion";
 import { cn } from "@/lib/utils";
+import { toast } from "sonner";
 
 export default function ObourPlusSubscriptionPage() {
-  const { user } = useAuth();
+  const { user, updateProfile } = useAuth();
   const { language } = useLanguage();
   const isAr = language === "ar";
 
@@ -383,8 +384,87 @@ export default function ObourPlusSubscriptionPage() {
                 ))}
               </div>
 
-              {/* Notify Me form */}
-              <div className="pt-2">
+              {/* Notify Me & Promo Code Forms */}
+              <div className="pt-2 space-y-4">
+                {/* Coupon Code Redemption Form */}
+                <div className="p-4 rounded-2xl bg-card border border-amber-500/30 max-w-md mx-auto space-y-2 text-left">
+                  <div className="flex items-center gap-2 text-amber-500 font-extrabold text-xs uppercase tracking-wider">
+                    <Sparkles size={14} />
+                    <span>
+                      {isAr ? "لديك كود تفعيل خصم أو اشتراك؟" : "Have a VIP Promo / Access Code?"}
+                    </span>
+                  </div>
+                  <form
+                    onSubmit={async (e) => {
+                      e.preventDefault();
+                      const code = (
+                        e.currentTarget.elements.namedItem("couponCode") as HTMLInputElement
+                      )?.value
+                        ?.trim()
+                        .toUpperCase();
+                      if (!code) return;
+                      const validCodes = [
+                        "VIP2026",
+                        "OBOURFREE",
+                        "OBOUR2026",
+                        "VIPPASS",
+                        "OBOURPLUS",
+                        "ELITE2026",
+                      ];
+                      if (!validCodes.includes(code)) {
+                        toast.error(
+                          isAr
+                            ? "كود التفعيل غير صحيح أو منتهي الصلاحية"
+                            : "Invalid or expired promo code"
+                        );
+                        return;
+                      }
+                      if (!user?.uid) {
+                        toast.error(isAr ? "يرجى تسجيل الدخول أولاً" : "Please log in first");
+                        return;
+                      }
+                      try {
+                        await updateProfile({
+                          isVip: true,
+                          subscriptionTier: "vip",
+                          vipGrantedBy: `Promo Code: ${code}`,
+                          vipExpiresAt: new Date(
+                            Date.now() + 180 * 24 * 60 * 60 * 1000
+                          ).toISOString(),
+                        });
+                        localStorage.removeItem(`vip-celebration-seen-${user.uid}`);
+                        toast.success(
+                          isAr
+                            ? "مبروك! تم تفعيل اشتراك العبور بلس بنجاح 👑"
+                            : "Congratulations! Obour VIP Pass Activated 👑"
+                        );
+                      } catch {
+                        toast.error(
+                          isAr ? "حدث خطأ أثناء تفعيل الكود" : "Failed to activate promo code"
+                        );
+                      }
+                    }}
+                    className="flex gap-2"
+                  >
+                    <input
+                      name="couponCode"
+                      type="text"
+                      placeholder={
+                        isAr ? "أدخل كود التفعيل (مثل: VIP2026)" : "Enter code (e.g. VIP2026)"
+                      }
+                      className="flex-1 px-3.5 py-2.5 rounded-xl bg-background border border-border text-xs font-bold uppercase focus:outline-none focus:ring-2 focus:ring-amber-500/50"
+                    />
+                    <motion.button
+                      type="submit"
+                      whileHover={{ scale: 1.02 }}
+                      whileTap={{ scale: 0.96 }}
+                      className="px-4 py-2.5 rounded-xl bg-gradient-to-r from-amber-500 to-yellow-500 text-black font-black text-xs shadow-md whitespace-nowrap"
+                    >
+                      {isAr ? "تفعيل" : "Activate"}
+                    </motion.button>
+                  </form>
+                </div>
+
                 {notifySubmitted ? (
                   <div className="inline-flex items-center gap-2 px-6 py-3 rounded-2xl bg-emerald-500/15 border border-emerald-500/40 text-emerald-500 font-bold text-sm">
                     <CheckCircle2 size={18} />

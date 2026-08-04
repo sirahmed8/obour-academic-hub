@@ -16,6 +16,8 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 import { FadeIn, ScaleIn, StaggerChildren } from "@/components/ui/Animations";
+import { SkeletonHagazView } from "@/components/ui/Skeleton";
+import { userService } from "@/services/user.service";
 import { collection, getDocs, query, limit, addDoc, serverTimestamp } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 
@@ -74,6 +76,46 @@ export function HagazView() {
             mentor: data.mentor || "Peer Mentor",
           });
         });
+        if (list.length === 0) {
+          list.push(
+            {
+              id: "hagaz-1",
+              titleAr: "ورشة عمل تصميم قواعد البيانات (ERD)",
+              titleEn: "Database ERD Design Workshop",
+              subject: "Database Systems",
+              time: "02:00 PM - 04:00 PM",
+              date: new Date().toISOString().split("T")[0],
+              seats: 12,
+              bookedSeats: 8,
+              type: "lab",
+              mentor: "Eng. Ahmed Hassan",
+            },
+            {
+              id: "hagaz-2",
+              titleAr: "تحدي حل أسئلة البرمجة الهيكلية (Quiz Battle)",
+              titleEn: "OOP Programming Quiz Battle",
+              subject: "Computer Science",
+              time: "05:00 PM - 06:30 PM",
+              date: new Date().toISOString().split("T")[0],
+              seats: 16,
+              bookedSeats: 12,
+              type: "battle",
+              mentor: "Dr. Mohamed El-Sayed",
+            },
+            {
+              id: "hagaz-3",
+              titleAr: "مراجعة شاملة لأساسيات الرياضيات الحاسوبية",
+              titleEn: "Discrete Mathematics Exam Review",
+              subject: "Mathematics",
+              time: "07:00 PM - 09:00 PM",
+              date: new Date().toISOString().split("T")[0],
+              seats: 20,
+              bookedSeats: 15,
+              type: "group",
+              mentor: "Obour Study Club",
+            }
+          );
+        }
         setSlots(list);
       } catch (err) {
         console.error("Error loading hagaz sessions:", err);
@@ -84,7 +126,7 @@ export function HagazView() {
     loadSessions();
   }, []);
 
-  const handleBook = (slotId: string) => {
+  const handleBook = async (slotId: string) => {
     if (!user) {
       toast.error(language === "ar" ? "يرجى تسجيل الدخول أولاً" : "Please log in first");
       return;
@@ -101,11 +143,29 @@ export function HagazView() {
     } else {
       setMyBookings([...myBookings, slotId]);
       setSlots(slots.map((s) => (s.id === slotId ? { ...s, bookedSeats: s.bookedSeats + 1 } : s)));
+      const bookedSlot = slots.find((s) => s.id === slotId);
       toast.success(
         language === "ar"
-          ? "🎉 تم تأكيد حجز الجلسة بنجاح! تم إضافتها إلى جدولك"
-          : "🎉 Slot reserved successfully! Added to your timetable"
+          ? "🎉 تم تأكيد حجز الجلسة بنجاح! تم إضافتها إلى جدولك وقائمة مهامك وحصولك على +50 XP"
+          : "🎉 Slot reserved successfully! Added to your timetable & tasks, earned +50 XP"
       );
+      try {
+        await userService.awardUserXP(user.uid, 50, "hagaz_booking");
+        await userService.updateStudyStreak(user.uid);
+        if (db && bookedSlot) {
+          const title = language === "ar" ? bookedSlot.titleAr : bookedSlot.titleEn;
+          await addDoc(collection(db, "users", user.uid, "tasks"), {
+            title: `${language === "ar" ? "حضور جلسة مذاكرة" : "Attend Study Session"}: ${title}`,
+            description: `${language === "ar" ? "الموعد" : "Time"}: ${bookedSlot.date} (${bookedSlot.time})`,
+            completed: false,
+            priority: "high",
+            subject: bookedSlot.subject || "عام",
+            createdAt: serverTimestamp(),
+          });
+        }
+      } catch (e) {
+        console.error("Error updating booking tasks/XP:", e);
+      }
     }
   };
 
@@ -177,6 +237,14 @@ export function HagazView() {
     if (filterType === "all") return matchesSearch;
     return matchesSearch && s.type === filterType;
   });
+
+  if (loading) {
+    return (
+      <div className="p-4 sm:p-6 lg:p-10 space-y-8 w-full page-transition min-h-screen max-w-7xl mx-auto">
+        <SkeletonHagazView />
+      </div>
+    );
+  }
 
   return (
     <div className="p-4 sm:p-6 lg:p-10 space-y-8 w-full page-transition min-h-screen max-w-7xl mx-auto">

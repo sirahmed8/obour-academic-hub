@@ -7,8 +7,12 @@ import { collection, getDocs } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 
 import { FadeIn, ScaleIn } from "@/components/ui/Animations";
+import { SkeletonMindmapCanvas } from "@/components/ui/Skeleton";
+import { userService } from "@/services/user.service";
 import { toast } from "sonner";
 import { apiFetch } from "@/lib/api-client";
+
+import { useSearchParams } from "next/navigation";
 
 interface MindNode {
   title: string;
@@ -23,10 +27,12 @@ interface MindMapData {
 export default function MindMapPage() {
   const { language } = useLanguage();
   const { user } = useAuth();
+  const searchParams = useSearchParams();
   const isRtl = language === "ar";
 
+  const initialSubject = searchParams.get("subject") || "";
   const [topic, setTopic] = useState("");
-  const [subjectName, setSubjectName] = useState("");
+  const [subjectName, setSubjectName] = useState(initialSubject);
   const [loading, setLoading] = useState(false);
   const [mindmap, setMindmap] = useState<MindMapData | null>(null);
   const [enrolledSubjects, setEnrolledSubjects] = useState<string[]>([]);
@@ -66,7 +72,14 @@ export default function MindMapPage() {
 
       if (res?.mindmap) {
         setMindmap(res.mindmap);
-        toast.success(isRtl ? "تم توليد الخريطة الذهنية بنجاح! 🧠" : "Mind map generated! 🧠");
+        toast.success(
+          isRtl
+            ? "تم توليد الخريطة الذهنية بنجاح! 🧠 وحصولك على +40 XP"
+            : "Mind map generated! 🧠 Earned +40 XP"
+        );
+        if (user?.uid) {
+          userService.awardUserXP(user.uid, 40, "mindmap_generated").catch(console.error);
+        }
       }
     } catch {
       toast.error(isRtl ? "حدث خطأ أثناء إنشاء الخريطة الذهنية" : "Failed to generate mind map");
@@ -180,19 +193,72 @@ export default function MindMapPage() {
         </form>
       </ScaleIn>
 
+      {loading && <SkeletonMindmapCanvas />}
+
       {/* Rendered Mind Map Display */}
-      {mindmap && (
+      {!loading && mindmap && (
         <ScaleIn>
           <div className="p-6 sm:p-8 rounded-3xl bg-card border border-border shadow-xl space-y-6 dark:bg-card">
-            <div className="flex items-center justify-between border-b border-border/50 pb-4">
+            <div className="flex flex-wrap items-center justify-between border-b border-border/50 pb-4 gap-3">
               <h2 className="text-xl font-black text-foreground flex items-center gap-2">
                 <Layers className="text-primary" />
                 <span>{mindmap.root}</span>
               </h2>
 
-              <span className="text-xs font-bold text-muted-foreground">
-                {isRtl ? "شجرة المفاهيم الأكاديمية" : "Concept Tree Map"}
-              </span>
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  onClick={async () => {
+                    if (!user?.uid || !db) {
+                      toast.error(isRtl ? "سجل الدخول لحفظ المهام" : "Please log in to save tasks");
+                      return;
+                    }
+                    try {
+                      const {
+                        addDoc,
+                        collection: fsColl,
+                        serverTimestamp: fsTs,
+                      } = await import("firebase/firestore");
+                      await addDoc(fsColl(db, "users", user.uid, "tasks"), {
+                        title: `${isRtl ? "مراجعة خريطة ذهنية" : "Review Mindmap"}: ${mindmap.root}`,
+                        description: mindmap.children?.map((c) => c.title).join(", ") || "",
+                        completed: false,
+                        priority: "medium",
+                        subject: subjectName || "عام",
+                        createdAt: fsTs(),
+                      });
+                      toast.success(
+                        isRtl
+                          ? "تمت إضافة الخريطة إلى قائمة المهام! 📝"
+                          : "Mindmap added to your tasks! 📝"
+                      );
+                    } catch {
+                      toast.error(isRtl ? "تعذر حفظ المهمة" : "Failed to save task");
+                    }
+                  }}
+                  className="px-3 py-1.5 rounded-xl bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 font-extrabold text-xs flex items-center gap-1.5 border border-emerald-500/20 transition active:scale-95"
+                >
+                  <Sparkles size={14} />
+                  <span>{isRtl ? "إضافة كـ مهمة 📝" : "Add as Task 📝"}</span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => {
+                    const dataStr =
+                      "data:text/json;charset=utf-8," +
+                      encodeURIComponent(JSON.stringify(mindmap, null, 2));
+                    const a = document.createElement("a");
+                    a.href = dataStr;
+                    a.download = `${mindmap.root}-mindmap.json`;
+                    a.click();
+                    toast.success(isRtl ? "تم تصدير ملف الخريطة! 📤" : "Mindmap exported! 📤");
+                  }}
+                  className="px-3 py-1.5 rounded-xl bg-primary text-white font-extrabold text-xs flex items-center gap-1.5 transition shadow-md hover:bg-primary/90 active:scale-95"
+                >
+                  <span>{isRtl ? "تصدير JSON" : "Export JSON"}</span>
+                </button>
+              </div>
             </div>
 
             {/* Tree Nodes Renderer */}

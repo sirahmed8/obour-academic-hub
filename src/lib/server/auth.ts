@@ -18,6 +18,8 @@ type UserProfile = {
   studentCode?: string;
   createdAt?: unknown;
   lastLogin?: unknown;
+  subscriptionTier?: string;
+  isVip?: boolean;
 };
 
 import { ApiError } from "@/lib/server/api-error";

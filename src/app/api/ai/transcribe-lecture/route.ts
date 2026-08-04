@@ -1,6 +1,15 @@
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { generateText } from "@/lib/aiService";
+import { getRequestContext } from "@/lib/server/auth";
+import { rateLimit } from "@/lib/server/rate-limit";
+import { corsOptions, withCors } from "@/lib/server/cors";
+
+export const runtime = "nodejs";
+
+export async function OPTIONS(request: Request) {
+  return corsOptions(request);
+}
 
 const transcribeRequestSchema = z.object({
   lectureTitle: z.string().min(1),
@@ -10,13 +19,41 @@ const transcribeRequestSchema = z.object({
 
 export async function POST(req: NextRequest) {
   try {
+    let uid = "guest";
+
+    try {
+      const context = await getRequestContext(req, { allowMissingProfile: true });
+      uid = context.uid;
+    } catch {
+      // Guest fallback
+    }
+
+    const limiter = await rateLimit({
+      key: `api:transcribe:${uid}`,
+      limit: 20,
+      windowMs: 60_000,
+    });
+
+    if (!limiter.allowed) {
+      return withCors(
+        req,
+        NextResponse.json(
+          { error: "Too many transcription requests. Please try again shortly." },
+          { status: 429 }
+        )
+      );
+    }
+
     const body = await req.json();
     const parsed = transcribeRequestSchema.safeParse(body);
 
     if (!parsed.success) {
-      return NextResponse.json(
-        { error: "Invalid payload", details: parsed.error.format() },
-        { status: 400 }
+      return withCors(
+        req,
+        NextResponse.json(
+          { error: "Invalid payload", details: parsed.error.format() },
+          { status: 400 }
+        )
       );
     }
 
@@ -38,16 +75,21 @@ Return clean markdown text.`;
 
     const summaryMd = await generateText(prompt);
 
-    return NextResponse.json({
-      success: true,
-      summary: summaryMd,
-    });
+    return withCors(
+      req,
+      NextResponse.json({
+        success: true,
+        summary: summaryMd,
+      })
+    );
   } catch (error) {
     console.error("[Transcribe API Error]:", error);
 
-    return NextResponse.json({
-      success: true,
-      summary: `### 📝 ملخص المحاضرة والأفكار الرئيسية
+    return withCors(
+      req,
+      NextResponse.json({
+        success: true,
+        summary: `### 📝 ملخص المحاضرة والأفكار الرئيسية
 
 #### 1. المفاهيم الأساسية
 - **الدوال والهيكلة**: تقسيم المحاضرة إلى أجزاء لتسهيل الفهم والمراجعة.
@@ -56,6 +98,7 @@ Return clean markdown text.`;
 #### 2. نقاط هامة للامتحان
 - التركيز على أسئلة التطبيق العملي.
 - مراجعة الأمثلة المحلولة في الشريحة الأخيرة.`,
-    });
+      })
+    );
   }
 }

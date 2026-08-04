@@ -55,12 +55,14 @@ service cloud.firestore {
             (
               request.resource.data.points is int &&
               (
-                (!('points' in resource.data) && (request.resource.data.points == 2 || request.resource.data.points == 10 || request.resource.data.points == 25)) ||
+                (!('points' in resource.data) && (request.resource.data.points == 2 || request.resource.data.points == 10 || request.resource.data.points == 25 || request.resource.data.points == 40 || request.resource.data.points == 50)) ||
                 (('points' in resource.data) && (
                   request.resource.data.points - resource.data.points == 2 ||
                   request.resource.data.points - resource.data.points == 10 ||
                   request.resource.data.points - resource.data.points == -10 ||
-                  request.resource.data.points - resource.data.points == 25
+                  request.resource.data.points - resource.data.points == 25 ||
+                  request.resource.data.points - resource.data.points == 40 ||
+                  request.resource.data.points - resource.data.points == 50
                 ))
               )
             )

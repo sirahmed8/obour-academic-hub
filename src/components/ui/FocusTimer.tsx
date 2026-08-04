@@ -2,7 +2,9 @@
 
 import { useState, useEffect, useRef } from "react";
 import { Timer, Play, Pause, RotateCcw, X, Volume2 } from "lucide-react";
-import { useLanguage } from "@/contexts";
+import { useAuth, useLanguage } from "@/contexts";
+import { userService } from "@/services/user.service";
+import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { motion, AnimatePresence } from "framer-motion";
 
@@ -19,6 +21,8 @@ export function FocusTimer() {
   const intervalRef = useRef<NodeJS.Timeout | null>(null);
   const audioContextRef = useRef<AudioContext | null>(null);
 
+  const { user } = useAuth();
+
   useEffect(() => {
     if (isActive) {
       intervalRef.current = setInterval(() => {
@@ -27,6 +31,18 @@ export function FocusTimer() {
             setIsActive(false);
             // Switch mode on completion
             if (mode === "study") {
+              if (user?.uid) {
+                userService
+                  .awardUserXP(user.uid, 10, "pomodoro_focus")
+                  .then(({ finalXP, isVip }) => {
+                    toast.success(
+                      isAr
+                        ? `أحسنت! أتممت جلسة تركيز بنجاح +${finalXP} نقطة ${isVip ? "👑 (2x VIP)" : "⏱️"}`
+                        : `Great focus session! +${finalXP} XP ${isVip ? "👑 (2x VIP)" : "⏱️"}`
+                    );
+                  })
+                  .catch(() => {});
+              }
               setMode("break");
               return 5 * 60;
             } else {
@@ -43,7 +59,7 @@ export function FocusTimer() {
     return () => {
       if (intervalRef.current) clearInterval(intervalRef.current);
     };
-  }, [isActive, mode]);
+  }, [isActive, mode, user?.uid, isAr]);
 
   const formatTime = (totalSeconds: number) => {
     const m = Math.floor(totalSeconds / 60);

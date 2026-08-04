@@ -1,5 +1,5 @@
-import { LoadingPage } from "@/components/ui/Loading";
+import { SkeletonTodoView } from "@/components/ui/Skeleton";
 
 export default function TodoLoading() {
-  return <LoadingPage />;
+  return <SkeletonTodoView />;
 }

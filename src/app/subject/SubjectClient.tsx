@@ -14,6 +14,9 @@ import {
   Search,
   SearchX,
   Star,
+  GitFork,
+  Sparkles,
+  CheckSquare,
 } from "lucide-react";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
@@ -312,12 +315,33 @@ export function SubjectClient({ subjectName }: SubjectClientProps) {
             </div>
           </div>
 
-          <div className="shrink-0 flex items-center gap-3">
+          <div className="shrink-0 flex flex-wrap items-center gap-2.5">
+            <Link
+              href={`/mindmap?subject=${encodeURIComponent(subject.name)}`}
+              className="px-4 py-2.5 rounded-2xl bg-white/20 hover:bg-white/30 backdrop-blur-md text-white font-extrabold text-xs transition shadow-md inline-flex items-center gap-1.5 border border-white/20"
+            >
+              <GitFork size={14} />
+              <span>{language === "ar" ? "خريطة ذهنية" : "Mind Map"}</span>
+            </Link>
+            <Link
+              href={`/quiz?subject=${encodeURIComponent(subject.name)}`}
+              className="px-4 py-2.5 rounded-2xl bg-white/20 hover:bg-white/30 backdrop-blur-md text-white font-extrabold text-xs transition shadow-md inline-flex items-center gap-1.5 border border-white/20"
+            >
+              <Sparkles size={14} />
+              <span>{language === "ar" ? "اختبار ذكي" : "AI Quiz"}</span>
+            </Link>
+            <Link
+              href={`/todo?subject=${encodeURIComponent(subject.name)}`}
+              className="px-4 py-2.5 rounded-2xl bg-white/20 hover:bg-white/30 backdrop-blur-md text-white font-extrabold text-xs transition shadow-md inline-flex items-center gap-1.5 border border-white/20"
+            >
+              <CheckSquare size={14} />
+              <span>{language === "ar" ? "إضافة مهمة" : "Add Task"}</span>
+            </Link>
             <Link
               href={`/community?room=${subject.id}`}
-              className="px-5 py-3 rounded-2xl bg-white text-black font-extrabold text-xs sm:text-sm hover:bg-white/90 transition shadow-lg inline-flex items-center gap-2"
+              className="px-5 py-2.5 rounded-2xl bg-white text-black font-extrabold text-xs hover:bg-white/90 transition shadow-lg inline-flex items-center gap-1.5"
             >
-              <span>{language === "ar" ? "غرفة محادثة المادة" : "Subject Room Chat"}</span>
+              <span>{language === "ar" ? "غرفة المحادثة" : "Subject Chat"}</span>
             </Link>
           </div>
         </div>

@@ -1,13 +1,7 @@
 import { adminDb } from "@/lib/server/firebase-admin";
 import { LRUCache } from "lru-cache";
 
-const GEMINI_API_KEY =
-  process.env.GEMINI_API_KEY ||
-  process.env.NEXT_PUBLIC_GEMINI_API_KEY ||
-  Buffer.from(
-    "QVEuQWI4Uk42SS1vbjU2RnQ2SDEyRWRIRVZJbXVzYk9WYVF6MkRoUmd4TEd5eEF6aXNiclE=",
-    "base64"
-  ).toString("utf-8");
+const GEMINI_API_KEY = process.env.GEMINI_API_KEY || process.env.NEXT_PUBLIC_GEMINI_API_KEY || "";
 
 export const GEMINI_MODEL_FALLBACK_CHAIN = [
   "gemini-2.5-flash",
@@ -179,6 +173,12 @@ async function getLiveDatabaseContext(userUid?: string): Promise<string> {
           const u = userDoc.data();
           contextText += `\n### بيانات الطالب الحالي (${u?.displayName || "طالب"}):\n`;
           contextText += `- الاسم: ${u?.displayName || "غير محدد"}\n`;
+          contextText += `- المعهد: ${u?.institute || "معاهد العبور"}\n`;
+          contextText += `- القسم الأكاديمي: ${u?.department || "غير محدد"}\n`;
+          contextText += `- الفرقة الدراسية: ${u?.academicYear ? `الفرقة ${u.academicYear}` : "غير محددة"}\n`;
+          contextText += `- حالة العبور بلس (VIP): ${u?.isVip ? "مشترك مميز (👑 VIP)" : "طالب مجاني"}\n`;
+          contextText += `- المعدل التراكمي (GPA): ${u?.gpa ? u.gpa.toFixed(2) : "غير محدد"}\n`;
+          contextText += `- سلسلة الأيام المتواصلة (Streak): ${u?.streak || 0} أيام\n`;
           contextText += `- النقاط الحالية: ${u?.points || 0}\n`;
         }
 
