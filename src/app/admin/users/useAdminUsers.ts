@@ -190,23 +190,43 @@ export function useAdminUsers(): AdminUsersController {
 
   const handleToggleVipUser = async (user: User) => {
     const nextVip = !user.isVip;
+    const adminName = currentUser?.displayName || currentUser?.email || "Owner/Admin";
     try {
       await userService.update(user.uid, {
         isVip: nextVip,
         subscriptionTier: nextVip ? "vip" : "free",
         vipType: nextVip ? "gifted" : undefined,
-        vipGrantedBy: nextVip
-          ? currentUser?.displayName || currentUser?.email || "Owner/Admin"
-          : undefined,
+        vipGrantedBy: nextVip ? adminName : undefined,
         vipGrantedAt: nextVip ? new Date().toISOString() : undefined,
       });
+
+      if (nextVip) {
+        try {
+          const { notificationService } = await import("@/services/notification.service");
+          await notificationService.create({
+            target: user.uid,
+            userId: user.uid,
+            type: "VIP_GIFT",
+            title: "🎉 VIP Pass Gifted! / تم إهداؤك العبور بلس 👑",
+            message: `Congratulations! You have been granted complimentary Obour VIP Pass access by (${adminName}) with 2x XP multipliers and priority AI features!`,
+            titleAr: "🎉 تهانينا! تم إهداؤك العبور بلس 👑 VIP Pass!",
+            messageAr: `تم منحك اشتراك "العبور بلس 👑 VIP Pass" مجاناً بفضل (${adminName})! استمتع بمميزات مضاعفة النظراء (2x XP)، معالجة الذكاء الاصطناعي الأسرع، وشارة التاج الذهبي الملكي!`,
+            titleEn: "🎉 Congratulations! You received Obour VIP Pass 👑",
+            messageEn: `You have been gifted the Obour VIP Pass 👑 by (${adminName})! Enjoy 2x XP points multiplier, priority AI processing, and a golden crown badge!`,
+            link: "/plus",
+          });
+        } catch (e) {
+          console.error("Failed to send VIP notification:", e);
+        }
+      }
+
       toast.success(
         language === "ar"
           ? nextVip
-            ? "👑 تم تفعيل العبور بلس للمستخدم مجاناً بنجاح!"
+            ? "👑 تم تفعيل العبور بلس للمستخدم وإرسال إشعار التهنئة!"
             : "تم إلغاء تفعيل العبور بلس"
           : nextVip
-            ? "👑 Complimentary VIP Pass granted to user!"
+            ? "👑 Complimentary VIP Pass granted & celebratory notice sent!"
             : "VIP Pass deactivated for user"
       );
     } catch (err) {

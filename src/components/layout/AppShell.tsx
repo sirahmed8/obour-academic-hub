@@ -51,6 +51,12 @@ import { usePerformance } from "@/hooks/usePerformance";
 import { PageTransition } from "@/components/ui/Animations";
 import { LanguageTransition } from "@/components/ui/LanguageTransition";
 
+const VipGrantCelebrationModal = dynamic(
+  () =>
+    import("@/components/ui/VipGrantCelebrationModal").then((mod) => mod.VipGrantCelebrationModal),
+  { ssr: false }
+);
+
 export function AppShell({ children }: { children: React.ReactNode }) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   // Use localStorage to persist dismissal permanently
@@ -294,6 +300,8 @@ export function AppShell({ children }: { children: React.ReactNode }) {
       )}
       {/* Admin Live Approval Modal */}
       <AdminApprovalModal />
+      {/* VIP Pass Celebration Modal */}
+      <VipGrantCelebrationModal />
       {/* Cookie Consent Banner */}
       <CookieConsent />
     </div>
