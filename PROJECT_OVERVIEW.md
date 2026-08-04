@@ -59,11 +59,10 @@
 
 ### B. Core Student Experience & Design System Overhaul
 
-- **Master Platform Perfection, Cross-Feature Integration & Resilience (Checkpoint 26)**:
-  - **JSON & AI Model Response Resilience**: Enhanced `generate-quiz` and `generate-mindmap` API routes with robust regex JSON object extraction `/{[\s\S]*}/` to ensure model output parsing never fails.
-  - **Subcollection Task Unification**: Unified task creation across `TranscribePage` and `MindMapPage` to write directly to `users/${user.uid}/tasks` subcollection, making generated study tasks immediately visible in `TodoList`.
-  - **MindMap & Transcribe Export/Save Capabilities**: Added 1-click "Add as Task 📝" and "Export JSON 📤" buttons to `MindMapPage`, and fallback curated academic sessions to `HagazView`.
-  - **Verification**: 100% TypeScript compilation check (`npx tsc --noEmit` code 0).
+- **Master Platform Perfection, Cross-Feature Integration & UI Polish (Checkpoint 26)**:
+  - **Animations ESLint Fix**: Resolved ESLint unused variable errors in `ScaleIn` solid-mode fallback (`src/components/ui/Animations.tsx`) by introducing `omitMotionProps` object property filter.
+  - **Scrollable To-Do Filter Bar**: Enhanced academic task planner (`TodoList.tsx`) filter toolbars and tab controls with scrollbar-free horizontal scrolling (`scrollbar-hide`, `hide-scrollbar`, `no-scrollbar` in `globals.css`), preventing tab overflow on mobile/tablet viewports while keeping scrollbars completely invisible when scrolling or stationary.
+  - **Verification**: `npm run lint` passed with 0 errors and 0 warnings. `npx vitest run` passed with 131/131 tests passing across 37 test suites. `npm run build` compiled cleanly (61/61 static and dynamic routes).
 - **Design System & Micro-Interactions Specialist Overhaul**:
   - Unified all card containers across all major student page routes with high-contrast, fully readable solid backgrounds (`bg-card border border-border shadow-md dark:bg-card`), smooth hover lifts (`.hover-lift`), responsive layouts (`rounded-3xl` / `rounded-[2rem]`), and button micro-press feedback (`active:scale-97`).
 - **Main Student Dashboard (`/main`)**:

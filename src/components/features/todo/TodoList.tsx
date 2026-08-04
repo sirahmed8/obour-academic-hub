@@ -580,9 +580,9 @@ export function TodoList() {
       </div>
 
       {/* Modern Filter & Sort Bar */}
-      <div className="flex flex-col sm:flex-row gap-4 items-stretch sm:items-center bg-card border border-border dark:bg-card backdrop-blur-md p-2 rounded-3xl shadow-sm relative z-20">
+      <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 items-stretch sm:items-center bg-card border border-border dark:bg-card backdrop-blur-md p-2.5 rounded-3xl shadow-sm relative z-20 overflow-x-auto scrollbar-hide max-w-full">
         {/* Status Segmented Control */}
-        <div className="flex p-1 bg-muted/30 rounded-2xl w-full sm:w-fit overflow-x-auto hide-scrollbar">
+        <div className="flex p-1 bg-muted/30 rounded-2xl w-full sm:w-auto overflow-x-auto scrollbar-hide shrink-0">
           {statusOptions.map((opt) => (
             <button
               key={opt.value}
@@ -593,7 +593,7 @@ export function TodoList() {
                 }))
               }
               className={cn(
-                "px-4 py-2 text-sm font-bold rounded-xl transition-all select-none whitespace-nowrap",
+                "px-4 py-2 text-sm font-bold rounded-xl transition-all select-none whitespace-nowrap shrink-0",
                 filters.status === opt.value
                   ? "bg-primary text-white shadow-md shadow-primary/20"
                   : "text-muted-foreground hover:bg-muted hover:text-foreground"
@@ -604,11 +604,11 @@ export function TodoList() {
           ))}
         </div>
 
-        <div className="hidden sm:block w-px h-8 bg-border/40" />
+        <div className="hidden sm:block w-px h-8 bg-border/40 shrink-0" />
 
-        <div className="flex flex-1 items-center gap-2">
+        <div className="flex flex-1 items-center gap-2 overflow-x-auto scrollbar-hide">
           {/* Priority Pill Control */}
-          <div className="flex p-1 bg-muted/30 rounded-2xl overflow-x-auto hide-scrollbar">
+          <div className="flex p-1 bg-muted/30 rounded-2xl overflow-x-auto scrollbar-hide shrink-0">
             {priorityOptions.map((opt) => (
               <button
                 key={opt.value}
@@ -619,7 +619,7 @@ export function TodoList() {
                   }))
                 }
                 className={cn(
-                  "px-3 py-1.5 text-xs font-bold rounded-xl transition-all whitespace-nowrap",
+                  "px-3 py-1.5 text-xs font-bold rounded-xl transition-all whitespace-nowrap shrink-0",
                   filters.priority === opt.value
                     ? "bg-secondary text-foreground shadow-sm"
                     : "text-muted-foreground hover:bg-muted hover:text-foreground"
@@ -631,7 +631,7 @@ export function TodoList() {
           </div>
         </div>
 
-        <div className="hidden sm:block w-px h-8 bg-border/40" />
+        <div className="hidden sm:block w-px h-8 bg-border/40 shrink-0" />
 
         {/* Sort Dropdown */}
         <div className="flex items-center gap-2 w-full sm:w-48 shrink-0 relative">
@@ -645,14 +645,14 @@ export function TodoList() {
           />
         </div>
 
-        <div className="hidden sm:block w-px h-8 bg-border/40" />
+        <div className="hidden sm:block w-px h-8 bg-border/40 shrink-0" />
 
         {/* View Mode Toggle (List vs Kanban) */}
         <div className="flex p-1 bg-muted/40 rounded-2xl shrink-0 border border-border/40">
           <button
             onClick={() => handleViewModeChange("list")}
             className={cn(
-              "flex items-center gap-1.5 px-3 py-1.5 text-xs font-black rounded-xl transition-all",
+              "flex items-center gap-1.5 px-3 py-1.5 text-xs font-black rounded-xl transition-all whitespace-nowrap shrink-0",
               viewMode === "list"
                 ? "bg-primary text-white shadow-md shadow-primary/20"
                 : "text-muted-foreground hover:bg-muted hover:text-foreground"
@@ -665,7 +665,7 @@ export function TodoList() {
           <button
             onClick={() => handleViewModeChange("kanban")}
             className={cn(
-              "flex items-center gap-1.5 px-3 py-1.5 text-xs font-black rounded-xl transition-all",
+              "flex items-center gap-1.5 px-3 py-1.5 text-xs font-black rounded-xl transition-all whitespace-nowrap shrink-0",
               viewMode === "kanban"
                 ? "bg-primary text-white shadow-md shadow-primary/20"
                 : "text-muted-foreground hover:bg-muted hover:text-foreground"

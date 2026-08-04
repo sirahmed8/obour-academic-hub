@@ -81,6 +81,19 @@ export function FadeIn({
  * Best for cards, modals, and spotlight items.
  * Uses a gentle spring for a "pop" effect.
  */
+function omitMotionProps<T extends Record<string, unknown>>(props: T) {
+  const copy = { ...props };
+  delete copy.initial;
+  delete copy.animate;
+  delete copy.exit;
+  delete copy.whileInView;
+  delete copy.viewport;
+  delete copy.transition;
+  delete copy.variants;
+  delete copy.layout;
+  return copy;
+}
+
 export function ScaleIn({
   children,
   delay = 0,
@@ -91,18 +104,7 @@ export function ScaleIn({
   const { isSolid } = useSolidMode();
 
   if (isSolid) {
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    const {
-      initial,
-      animate,
-      exit,
-      whileInView,
-      viewport,
-      transition,
-      variants,
-      layout,
-      ...domProps
-    } = props as Record<string, unknown>;
+    const domProps = omitMotionProps(props as Record<string, unknown>);
     return (
       <div className={className} {...(domProps as React.HTMLAttributes<HTMLDivElement>)}>
         {children}
