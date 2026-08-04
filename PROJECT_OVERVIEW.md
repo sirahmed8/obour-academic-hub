@@ -59,6 +59,10 @@
 
 ### B. Core Student Experience & Design System Overhaul
 
+- **To-Do List Layout Overhaul & Scrollable Tab Bars (Checkpoint 27)**:
+  - **Top Tab Bar Repositioning**: Moved primary task status controls (`All Tasks`, `Pending`, `Completed`) and view mode switcher (`List View`, `Kanban Board`) into a clean scrollable header tab bar positioned above the filter card.
+  - **Embedded Filter Toolbar**: Integrated real-time search input, scrollable priority filter pills (`All`, `High`, `Medium`, `Low`), and sort dropdown cleanly into the secondary filter card below.
+  - **Verification**: `npm run lint` code 0 (0 errors, 0 warnings). `npm run build` compiled cleanly (61/61 routes).
 - **Master Platform Perfection, Cross-Feature Integration & UI Polish (Checkpoint 26)**:
   - **Animations ESLint Fix**: Resolved ESLint unused variable errors in `ScaleIn` solid-mode fallback (`src/components/ui/Animations.tsx`) by introducing `omitMotionProps` object property filter.
   - **Scrollable To-Do Filter Bar**: Enhanced academic task planner (`TodoList.tsx`) filter toolbars and tab controls with scrollbar-free horizontal scrolling (`scrollbar-hide`, `hide-scrollbar`, `no-scrollbar` in `globals.css`), preventing tab overflow on mobile/tablet viewports while keeping scrollbars completely invisible when scrolling or stationary.

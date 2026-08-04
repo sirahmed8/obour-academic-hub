@@ -547,42 +547,10 @@ export function TodoList() {
         </div>
       </div>
 
-      {/* Search Bar */}
-      <div className="relative w-full" dir={isRtl ? "rtl" : "ltr"}>
-        <Search
-          className={cn(
-            "absolute top-1/2 -translate-y-1/2 text-muted-foreground w-5 h-5 pointer-events-none",
-            isRtl ? "right-4" : "left-4"
-          )}
-        />
-        <input
-          type="text"
-          value={searchQuery}
-          onChange={(e) => setSearchQuery(e.target.value)}
-          placeholder={language === "ar" ? "ابحث عن مهمة..." : "Search tasks..."}
-          className={cn(
-            "w-full bg-card border border-border dark:bg-card rounded-2xl py-3 text-sm outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary/50 transition-all text-foreground placeholder-muted-foreground shadow-sm",
-            isRtl ? "pr-12 pl-10" : "pl-12 pr-10"
-          )}
-        />
-        {searchQuery && (
-          <button
-            onClick={() => setSearchQuery("")}
-            className={cn(
-              "absolute top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors p-1",
-              isRtl ? "left-4" : "right-4"
-            )}
-            type="button"
-          >
-            <X size={16} />
-          </button>
-        )}
-      </div>
-
-      {/* Modern Filter & Sort Bar */}
-      <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 items-stretch sm:items-center bg-card border border-border dark:bg-card backdrop-blur-md p-2.5 rounded-3xl shadow-sm relative z-20 overflow-x-auto scrollbar-hide max-w-full">
-        {/* Status Segmented Control */}
-        <div className="flex p-1 bg-muted/30 rounded-2xl w-full sm:w-auto overflow-x-auto scrollbar-hide shrink-0">
+      {/* Primary Top Tab Bar (Status Tabs + View Mode Toggle) */}
+      <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 pb-1">
+        {/* Status Segmented Control (Scrollable) */}
+        <div className="flex items-center gap-1.5 p-1.5 bg-card border border-border dark:bg-card rounded-2xl shadow-sm overflow-x-auto scrollbar-hide shrink-0 max-w-full">
           {statusOptions.map((opt) => (
             <button
               key={opt.value}
@@ -593,7 +561,7 @@ export function TodoList() {
                 }))
               }
               className={cn(
-                "px-4 py-2 text-sm font-bold rounded-xl transition-all select-none whitespace-nowrap shrink-0",
+                "px-4 py-2 text-xs sm:text-sm font-black rounded-xl transition-all select-none whitespace-nowrap shrink-0",
                 filters.status === opt.value
                   ? "bg-primary text-white shadow-md shadow-primary/20"
                   : "text-muted-foreground hover:bg-muted hover:text-foreground"
@@ -604,55 +572,12 @@ export function TodoList() {
           ))}
         </div>
 
-        <div className="hidden sm:block w-px h-8 bg-border/40 shrink-0" />
-
-        <div className="flex flex-1 items-center gap-2 overflow-x-auto scrollbar-hide">
-          {/* Priority Pill Control */}
-          <div className="flex p-1 bg-muted/30 rounded-2xl overflow-x-auto scrollbar-hide shrink-0">
-            {priorityOptions.map((opt) => (
-              <button
-                key={opt.value}
-                onClick={() =>
-                  setFilters((prev) => ({
-                    ...prev,
-                    priority: opt.value as "all" | "high" | "medium" | "low",
-                  }))
-                }
-                className={cn(
-                  "px-3 py-1.5 text-xs font-bold rounded-xl transition-all whitespace-nowrap shrink-0",
-                  filters.priority === opt.value
-                    ? "bg-secondary text-foreground shadow-sm"
-                    : "text-muted-foreground hover:bg-muted hover:text-foreground"
-                )}
-              >
-                {opt.label}
-              </button>
-            ))}
-          </div>
-        </div>
-
-        <div className="hidden sm:block w-px h-8 bg-border/40 shrink-0" />
-
-        {/* Sort Dropdown */}
-        <div className="flex items-center gap-2 w-full sm:w-48 shrink-0 relative">
-          <ArrowUpDown className="w-4 h-4 text-muted-foreground shrink-0" />
-          <CustomSelect
-            options={sortOptions}
-            value={sortBy}
-            onChange={(v) => setSortBy(v as "dueDate" | "priority" | "newest")}
-            className="w-full flex-1"
-            compact
-          />
-        </div>
-
-        <div className="hidden sm:block w-px h-8 bg-border/40 shrink-0" />
-
-        {/* View Mode Toggle (List vs Kanban) */}
-        <div className="flex p-1 bg-muted/40 rounded-2xl shrink-0 border border-border/40">
+        {/* View Mode Switcher (List vs Kanban) */}
+        <div className="flex items-center p-1.5 bg-card border border-border dark:bg-card rounded-2xl shadow-sm shrink-0 self-start sm:self-auto">
           <button
             onClick={() => handleViewModeChange("list")}
             className={cn(
-              "flex items-center gap-1.5 px-3 py-1.5 text-xs font-black rounded-xl transition-all whitespace-nowrap shrink-0",
+              "flex items-center gap-1.5 px-3.5 py-1.5 text-xs font-black rounded-xl transition-all whitespace-nowrap shrink-0",
               viewMode === "list"
                 ? "bg-primary text-white shadow-md shadow-primary/20"
                 : "text-muted-foreground hover:bg-muted hover:text-foreground"
@@ -665,7 +590,7 @@ export function TodoList() {
           <button
             onClick={() => handleViewModeChange("kanban")}
             className={cn(
-              "flex items-center gap-1.5 px-3 py-1.5 text-xs font-black rounded-xl transition-all whitespace-nowrap shrink-0",
+              "flex items-center gap-1.5 px-3.5 py-1.5 text-xs font-black rounded-xl transition-all whitespace-nowrap shrink-0",
               viewMode === "kanban"
                 ? "bg-primary text-white shadow-md shadow-primary/20"
                 : "text-muted-foreground hover:bg-muted hover:text-foreground"
@@ -675,6 +600,78 @@ export function TodoList() {
             <Kanban size={15} />
             <span>{language === "ar" ? "كانبان" : "Kanban"}</span>
           </button>
+        </div>
+      </div>
+
+      {/* Secondary Filter & Search Card */}
+      <div className="flex flex-col md:flex-row gap-3 md:items-center bg-card border border-border dark:bg-card backdrop-blur-md p-3 rounded-3xl shadow-sm relative z-20">
+        {/* Search Input */}
+        <div className="relative flex-1" dir={isRtl ? "rtl" : "ltr"}>
+          <Search
+            className={cn(
+              "absolute top-1/2 -translate-y-1/2 text-muted-foreground w-4 h-4 pointer-events-none",
+              isRtl ? "right-3.5" : "left-3.5"
+            )}
+          />
+          <input
+            type="text"
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            placeholder={language === "ar" ? "ابحث عن مهمة..." : "Search tasks..."}
+            className={cn(
+              "w-full bg-muted/40 border border-border/60 rounded-xl py-2.5 text-xs sm:text-sm outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary/50 transition-all text-foreground placeholder-muted-foreground",
+              isRtl ? "pr-10 pl-9" : "pl-10 pr-9"
+            )}
+          />
+          {searchQuery && (
+            <button
+              onClick={() => setSearchQuery("")}
+              className={cn(
+                "absolute top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors p-1",
+                isRtl ? "left-3" : "right-3"
+              )}
+              type="button"
+            >
+              <X size={14} />
+            </button>
+          )}
+        </div>
+
+        {/* Priority Filter Pills (Scrollable) */}
+        <div className="flex items-center gap-1 p-1 bg-muted/30 rounded-xl overflow-x-auto scrollbar-hide shrink-0 max-w-full">
+          {priorityOptions.map((opt) => (
+            <button
+              key={opt.value}
+              onClick={() =>
+                setFilters((prev) => ({
+                  ...prev,
+                  priority: opt.value as "all" | "high" | "medium" | "low",
+                }))
+              }
+              className={cn(
+                "px-3 py-1.5 text-xs font-bold rounded-lg transition-all whitespace-nowrap shrink-0",
+                filters.priority === opt.value
+                  ? "bg-secondary text-foreground shadow-sm font-black"
+                  : "text-muted-foreground hover:bg-muted hover:text-foreground"
+              )}
+            >
+              {opt.label}
+            </button>
+          ))}
+        </div>
+
+        <div className="hidden md:block w-px h-6 bg-border/50 shrink-0" />
+
+        {/* Sort Dropdown */}
+        <div className="flex items-center gap-2 w-full md:w-52 shrink-0 relative">
+          <ArrowUpDown className="w-4 h-4 text-muted-foreground shrink-0" />
+          <CustomSelect
+            options={sortOptions}
+            value={sortBy}
+            onChange={(v) => setSortBy(v as "dueDate" | "priority" | "newest")}
+            className="w-full flex-1"
+            compact
+          />
         </div>
       </div>
 
