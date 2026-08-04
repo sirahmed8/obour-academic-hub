@@ -74,6 +74,50 @@ class UserService {
   }
 
   /**
+   * Check if a username is available (unique across all users)
+   */
+  async checkUsernameAvailable(rawUsername: string, excludeUid?: string): Promise<boolean> {
+    if (!db || !rawUsername.trim()) return false;
+    const cleanHandle = rawUsername.trim().toLowerCase().replace(/^@/, "");
+    if (cleanHandle.length < 3 || cleanHandle.length > 20) return false;
+    if (!/^[a-z0-9_]+$/.test(cleanHandle)) return false;
+
+    try {
+      const q = query(collection(db, "users"), where("username", "==", cleanHandle));
+      const snap = await getDocs(q);
+      if (snap.empty) return true;
+      if (excludeUid && snap.docs.length === 1 && snap.docs[0].id === excludeUid) {
+        return true;
+      }
+      return false;
+    } catch (error) {
+      errorLogger.capture(error, { context: "UserService.checkUsernameAvailable", rawUsername });
+      return false;
+    }
+  }
+
+  /**
+   * Get a user profile by unique username handle
+   */
+  async getByUsername(rawUsername: string): Promise<User | null> {
+    if (!db || !rawUsername.trim()) return null;
+    const cleanHandle = rawUsername.trim().toLowerCase().replace(/^@/, "");
+    try {
+      const q = query(
+        collection(db, "users"),
+        where("username", "==", cleanHandle),
+        firestoreLimit(1)
+      );
+      const snap = await getDocs(q);
+      if (snap.empty) return null;
+      return this.transformUser(snap.docs[0]);
+    } catch (error) {
+      errorLogger.capture(error, { context: "UserService.getByUsername", rawUsername });
+      return null;
+    }
+  }
+
+  /**
    * Subscribe to a single user by ID (real-time stream)
    */
   subscribeToUser(

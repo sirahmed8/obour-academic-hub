@@ -248,8 +248,9 @@ export default function AdminAnalyticsPage() {
                 : "Student";
               roles[roleName] = (roles[roleName] || 0) + 1;
 
-              const isVipUser = !!(
-                u.isVip ||
+              const isVipUser = Boolean(
+                u.isVip === true ||
+                (u.isVip as unknown) === "true" ||
                 u.subscriptionTier === "vip" ||
                 u.vipType === "gifted" ||
                 u.vipType === "paid" ||

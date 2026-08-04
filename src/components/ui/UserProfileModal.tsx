@@ -22,6 +22,7 @@ import { cn } from "@/lib/utils";
 interface PublicProfile {
   uid: string;
   displayName: string;
+  username?: string;
   email?: string;
   photoURL?: string;
   studentCode?: string;
@@ -117,7 +118,8 @@ export function UserProfileModal({ uid, onClose }: UserProfileModalProps) {
           const d = snap.data();
           setProfile({
             uid: snap.id,
-            displayName: d.displayName || d.email || "Unknown",
+            displayName: d.displayName || "Student",
+            username: d.username,
             email: d.email,
             photoURL: d.photoURL,
             studentCode: d.studentCode,
@@ -264,6 +266,11 @@ export function UserProfileModal({ uid, onClose }: UserProfileModalProps) {
                         <h2 className="text-lg font-black text-foreground truncate">
                           {profile.displayName}
                         </h2>
+                        {profile.username && (
+                          <p className="text-xs text-primary font-extrabold flex items-center gap-0.5">
+                            <span>@{profile.username}</span>
+                          </p>
+                        )}
                         {profile.studentCode && (
                           <p className="text-xs text-muted-foreground font-medium">
                             ID: {profile.studentCode}

@@ -82,7 +82,12 @@ export function UserTableRow({
           className="h-10 w-10 shrink-0 rounded-full object-cover"
         />
         <div className="truncate">
-          <div className="truncate font-bold text-foreground">{user.displayName}</div>
+          <div className="truncate font-bold text-foreground flex items-center gap-1.5">
+            <span>{user.displayName}</span>
+            {user.username && (
+              <span className="text-xs text-primary font-extrabold">@{user.username}</span>
+            )}
+          </div>
           <div className="truncate text-sm text-muted-foreground">{user.email}</div>
         </div>
       </div>

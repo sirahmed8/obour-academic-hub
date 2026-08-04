@@ -57,6 +57,11 @@ const VipGrantCelebrationModal = dynamic(
   { ssr: false }
 );
 
+const UsernameSetupModal = dynamic(
+  () => import("@/components/ui/UsernameSetupModal").then((mod) => mod.UsernameSetupModal),
+  { ssr: false }
+);
+
 export function AppShell({ children }: { children: React.ReactNode }) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   // Use localStorage to persist dismissal permanently
@@ -302,6 +307,8 @@ export function AppShell({ children }: { children: React.ReactNode }) {
       <AdminApprovalModal />
       {/* VIP Pass Celebration Modal */}
       <VipGrantCelebrationModal />
+      {/* Username Setup Modal for Users without @handle */}
+      <UsernameSetupModal />
       {/* Cookie Consent Banner */}
       <CookieConsent />
     </div>

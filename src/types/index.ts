@@ -27,6 +27,7 @@ export interface User {
   uid: string;
   email: string;
   displayName: string;
+  username?: string;
   studentCode?: string;
   role: UserRole;
   status?: "active" | "banned";

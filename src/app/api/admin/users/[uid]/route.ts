@@ -97,6 +97,30 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ ui
       update.permissions = body.permissions;
     }
 
+    if (body.isVip !== undefined) {
+      update.isVip = body.isVip;
+    }
+
+    if (body.subscriptionTier !== undefined) {
+      update.subscriptionTier = body.subscriptionTier;
+    }
+
+    if (body.vipType !== undefined) {
+      update.vipType = body.vipType;
+    }
+
+    if (body.vipGrantedBy !== undefined) {
+      update.vipGrantedBy = body.vipGrantedBy;
+    }
+
+    if (body.vipGrantedAt !== undefined) {
+      update.vipGrantedAt = body.vipGrantedAt;
+    }
+
+    if (body.vipExpiresAt !== undefined) {
+      update.vipExpiresAt = body.vipExpiresAt;
+    }
+
     await userRef.set(update, { merge: true });
 
     // Sync Custom Claims to Firebase Auth for real-time permission updates

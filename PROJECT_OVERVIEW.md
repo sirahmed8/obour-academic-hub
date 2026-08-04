@@ -59,6 +59,11 @@
 
 ### B. Core Student Experience & Design System Overhaul
 
+- **Input Caret Visibility, Dark Mode Language Icons & VIP Persistence (Checkpoint 28)**:
+  - **Command Palette Input Caret Fix**: Added `caret-color: hsl(var(--primary))` globally in [`globals.css`](file:///d:/obour-academic-hub/src/app/globals.css) and updated [`SearchBar.tsx`](file:///d:/obour-academic-hub/src/components/ui/SearchBar.tsx) with `caret-primary leading-normal h-full`, preventing the blinking cursor `|` from being invisible or vertically cropped.
+  - **Dark Mode Language Badge Styling**: Updated Arabic (`ع`) and English (`En`) language badge icons in [`SendNotificationTab.tsx`](file:///d:/obour-academic-hub/src/app/admin/notifications/_components/SendNotificationTab.tsx) to translucent theme-aware borders and text colors (`bg-emerald-500/15`, `bg-blue-500/15`), eliminating glaring white background artifacts in dark mode.
+  - **Admin VIP Update Persistence**: Expanded `userUpdateSchema` in [`admin-schemas.ts`](file:///d:/obour-academic-hub/src/lib/server/admin-schemas.ts) and `/api/admin/users/[uid]` PATCH route to accept and persist `isVip`, `subscriptionTier`, `vipType`, `vipGrantedBy`, and `vipGrantedAt` in Firestore. Ensures VIP grants immediately reflect in Admin Analytics (`VIP Users`).
+  - **Verification**: `npm run lint` code 0 (0 errors, 0 warnings). `npm run build` compiled cleanly (61/61 static and dynamic routes).
 - **To-Do List Layout Overhaul & Scrollable Tab Bars (Checkpoint 27)**:
   - **Top Tab Bar Repositioning**: Moved primary task status controls (`All Tasks`, `Pending`, `Completed`) and view mode switcher (`List View`, `Kanban Board`) into a clean scrollable header tab bar positioned above the filter card.
   - **Embedded Filter Toolbar**: Integrated real-time search input, scrollable priority filter pills (`All`, `High`, `Medium`, `Low`), and sort dropdown cleanly into the secondary filter card below.

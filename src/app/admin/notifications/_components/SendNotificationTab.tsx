@@ -132,7 +132,7 @@ export function SendNotificationTab({ language }: SendNotificationTabProps) {
         <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
           <div className="space-y-4">
             <h3 className="flex items-center gap-2 text-sm font-semibold text-muted-foreground">
-              <span className="flex h-4 w-4 items-center justify-center rounded-full bg-green-100 text-[10px] text-green-700">
+              <span className="flex h-5 w-5 items-center justify-center rounded-full bg-emerald-500/15 text-[10px] font-black text-emerald-600 dark:bg-emerald-500/20 dark:text-emerald-400 border border-emerald-500/30">
                 ع
               </span>
               Arabic
@@ -159,7 +159,7 @@ export function SendNotificationTab({ language }: SendNotificationTabProps) {
 
           <div className="space-y-4">
             <h3 className="flex items-center gap-2 text-sm font-semibold text-muted-foreground">
-              <span className="flex h-4 w-4 items-center justify-center rounded-full bg-blue-100 text-[10px] text-blue-700">
+              <span className="flex h-5 w-5 items-center justify-center rounded-full bg-blue-500/15 text-[10px] font-black text-blue-600 dark:bg-blue-500/20 dark:text-blue-400 border border-blue-500/30">
                 En
               </span>
               English

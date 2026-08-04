@@ -3,6 +3,7 @@
 import { useAuth, useLanguage } from "@/contexts";
 import Link from "next/link";
 import Image from "next/image";
+import { useSearchParams } from "next/navigation";
 import {
   User,
   Mail,
@@ -15,11 +16,16 @@ import {
   Trophy,
   Crown,
   Sparkles,
+  AtSign,
+  Copy,
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/Card";
 import { ConfirmationModal } from "@/components/ui/ConfirmationModal";
+import { UsernameSetupModal } from "@/components/ui/UsernameSetupModal";
 import { toast } from "sonner";
 import { apiFetch } from "@/lib/api-client";
+import { userService } from "@/services/user.service";
+import { User as UserType } from "@/types";
 import { GpaGoalPlannerWidget } from "@/components/features/GpaGoalPlannerWidget";
 
 import { useState, useEffect } from "react";
@@ -48,7 +54,9 @@ function FormattedDate({ date, type = "date" }: { date: unknown; type?: "date" |
 }
 
 export default function ProfilePage() {
-  const { user, isAdmin, isOwner, logout } = useAuth();
+  const { user, isAdmin, logout } = useAuth();
+  const searchParams = useSearchParams();
+  const targetUsername = searchParams.get("u") || searchParams.get("username");
 
   const { t, language } = useLanguage();
   const [isMounting, setIsMounting] = useState(true);
@@ -57,10 +65,32 @@ export default function ProfilePage() {
   const [showResetStatsModal, setShowResetStatsModal] = useState(false);
   const [showResetAchievementsModal, setShowResetAchievementsModal] = useState(false);
   const [isResetting, setIsResetting] = useState(false);
+  const [showUsernameModal, setShowUsernameModal] = useState(false);
+
+  const [searchedUser, setSearchedUser] = useState<UserType | null>(null);
+  const [searchingUser, setSearchingUser] = useState(false);
 
   useEffect(() => {
     setIsMounting(false);
   }, []);
+
+  useEffect(() => {
+    if (targetUsername) {
+      setSearchingUser(true);
+      userService
+        .getByUsername(targetUsername)
+        .then((u) => {
+          setSearchedUser(u);
+          setSearchingUser(false);
+        })
+        .catch(() => setSearchingUser(false));
+    } else {
+      setSearchedUser(null);
+    }
+  }, [targetUsername]);
+
+  const activeUser = searchedUser || user;
+  const isSelf = !searchedUser || searchedUser.uid === user?.uid;
 
   const handleDeleteAccount = async () => {
     setIsDeleting(true);
@@ -77,7 +107,15 @@ export default function ProfilePage() {
     }
   };
 
-  if (!user) return null;
+  if (searchingUser) {
+    return (
+      <div className="max-w-6xl mx-auto p-4 sm:p-6 lg:p-8 space-y-6">
+        <Skeleton className="h-48 w-full rounded-3xl" />
+      </div>
+    );
+  }
+
+  if (!activeUser) return null;
 
   if (isMounting) {
     return (
@@ -105,10 +143,10 @@ export default function ProfilePage() {
 
         <div className="relative">
           <div className="w-32 h-32 rounded-3xl overflow-hidden ring-4 ring-primary/30 shadow-2xl bg-muted transition-transform hover:scale-105">
-            {user.photoURL ? (
+            {activeUser.photoURL ? (
               <Image
-                src={user.photoURL}
-                alt={user.displayName || "User"}
+                src={activeUser.photoURL}
+                alt={activeUser.displayName || "User"}
                 width={128}
                 height={128}
                 className="object-cover w-full h-full"
@@ -117,9 +155,9 @@ export default function ProfilePage() {
               <User className="w-16 h-16 text-muted-foreground m-8" />
             )}
           </div>
-          {isAdmin && (
+          {(activeUser.role === "owner" || activeUser.role === "admin") && (
             <div className="absolute -bottom-2 -right-2 bg-gradient-to-r from-primary to-indigo-600 text-primary-foreground px-3.5 py-1 rounded-full text-xs font-black shadow-lg uppercase tracking-wider border border-white/20">
-              {isOwner ? "Owner 👑" : "Admin 🛡️"}
+              {activeUser.role === "owner" ? "Owner 👑" : "Admin 🛡️"}
             </div>
           )}
         </div>
@@ -127,8 +165,8 @@ export default function ProfilePage() {
         <div className="text-center md:text-left space-y-3 flex-1">
           <div>
             <h1 className="text-3xl sm:text-4xl font-black text-foreground tracking-tight flex flex-wrap items-center justify-center md:justify-start gap-2">
-              <span>{user.displayName}</span>
-              {user.isVip || user.role === "owner" ? (
+              <span>{activeUser.displayName}</span>
+              {activeUser.isVip || activeUser.role === "owner" ? (
                 <Link
                   href="/plus"
                   className="inline-flex items-center gap-1 text-xs px-3 py-1 rounded-full bg-gradient-to-r from-amber-500 to-yellow-400 text-black font-extrabold shadow-md hover:scale-105 transition-all"
@@ -149,6 +187,60 @@ export default function ProfilePage() {
                 {language === "ar" ? "طالب مسجل 🟢" : "Active Student 🟢"}
               </span>
             </h1>
+
+            {/* Handle & Profile Link Section */}
+            <div className="flex flex-wrap items-center justify-center md:justify-start gap-2 mt-2">
+              {activeUser.username ? (
+                <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-primary/10 border border-primary/20 text-primary font-black text-xs">
+                  <AtSign size={13} />
+                  <span>{activeUser.username}</span>
+                </div>
+              ) : isSelf ? (
+                <button
+                  type="button"
+                  onClick={() => setShowUsernameModal(true)}
+                  className="inline-flex items-center gap-1 px-3 py-1 rounded-full bg-amber-500/15 border border-amber-500/30 text-amber-600 dark:text-amber-300 font-extrabold text-xs hover:scale-105 transition"
+                >
+                  <Sparkles size={12} />
+                  <span>
+                    {language === "ar"
+                      ? "+ اختر اسم المستخدم (Handle)"
+                      : "+ Choose Username Handle"}
+                  </span>
+                </button>
+              ) : null}
+
+              {activeUser.username && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    const profileUrl = `${window.location.origin}/profile?u=${activeUser.username}`;
+                    navigator.clipboard.writeText(profileUrl);
+                    toast.success(
+                      language === "ar"
+                        ? `تم نسخ رابط البروفايل (@${activeUser.username}) 🔗`
+                        : `Profile link copied (@${activeUser.username}) 🔗`
+                    );
+                  }}
+                  className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-muted hover:bg-muted/80 text-muted-foreground font-bold text-xs transition"
+                >
+                  <Copy size={12} />
+                  <span>{language === "ar" ? "نسخ الرابط" : "Copy Link"}</span>
+                </button>
+              )}
+
+              {isSelf && activeUser.username && (
+                <button
+                  type="button"
+                  onClick={() => setShowUsernameModal(true)}
+                  className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-muted hover:bg-muted/80 text-muted-foreground font-bold text-xs transition"
+                >
+                  <Edit2 size={12} />
+                  <span>{language === "ar" ? "تعديل المعرف" : "Edit Handle"}</span>
+                </button>
+              )}
+            </div>
+
             <p className="text-xs sm:text-sm text-muted-foreground font-medium mt-1">
               {language === "ar"
                 ? "أكاديمية العبور للهندسة والتكنولوجيا"
@@ -159,11 +251,11 @@ export default function ProfilePage() {
           <div className="flex flex-wrap items-center justify-center md:justify-start gap-3 text-xs sm:text-sm font-semibold text-muted-foreground">
             <div className="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-card border border-border/50">
               <Mail className="w-4 h-4 text-primary" />
-              {user.email}
+              {activeUser.email}
             </div>
             <div className="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-card border border-border/50">
               <Shield className="w-4 h-4 text-primary" />
-              <span>{user.studentCode || t("profile.codeLocked")}</span>
+              <span>{activeUser.studentCode || t("profile.codeLocked")}</span>
             </div>
           </div>
         </div>
@@ -185,7 +277,7 @@ export default function ProfilePage() {
                 {language === "ar" ? "تاريخ الانضمام" : "Joined"}
               </span>
               <span className="text-sm font-medium">
-                <FormattedDate date={user.createdAt} />
+                <FormattedDate date={activeUser.createdAt} />
               </span>
             </div>
             <div className="flex justify-between items-center py-2">
@@ -194,7 +286,7 @@ export default function ProfilePage() {
                 {language === "ar" ? "آخر ظهور" : "Last Activity"}
               </span>
               <span className="text-sm font-medium">
-                <FormattedDate date={user.lastLogin} type="time" />
+                <FormattedDate date={activeUser.lastLogin} type="time" />
               </span>
             </div>
           </CardContent>
@@ -238,7 +330,7 @@ export default function ProfilePage() {
 
       {/* Points & XP Section */}
       {(() => {
-        const points = user.points ?? 0;
+        const points = activeUser.points ?? 0;
 
         // League thresholds matching community/page.tsx
         const LEAGUES = [
@@ -536,8 +628,13 @@ export default function ProfilePage() {
 
       {/* Hidden check for role persistence */}
       <div className="opacity-0 pointer-events-none select-none h-0 w-0">
-        Role: {user.role} | Claims: {isAdmin ? "Admin" : "Student"}
+        Role: {user?.role} | Claims: {isAdmin ? "Admin" : "Student"}
       </div>
+
+      <UsernameSetupModal
+        forceShow={showUsernameModal}
+        onClose={() => setShowUsernameModal(false)}
+      />
     </div>
   );
 }

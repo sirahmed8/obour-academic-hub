@@ -168,8 +168,10 @@ export default function LeaderboardClient() {
                       >
                         {user.displayName || "Anonymous Student"}
                       </h3>
-                      <p className="text-[10px] md:text-xs text-muted-foreground truncate w-full">
-                        {user.email?.split("@")[0] || "Student"}
+                      <p className="text-[10px] md:text-xs text-primary font-bold truncate w-full">
+                        {user.username
+                          ? `@${user.username}`
+                          : user.email?.split("@")[0] || "Student"}
                       </p>
 
                       {/* Points badge */}
@@ -271,6 +273,11 @@ export default function LeaderboardClient() {
                                 >
                                   {user.displayName || "Anonymous Student"}
                                 </span>
+                                {user.username && (
+                                  <span className="text-xs text-primary font-bold">
+                                    @{user.username}
+                                  </span>
+                                )}
                                 {isCurrentUser && (
                                   <span className="text-[10px] bg-primary/20 text-primary px-2 py-0.5 rounded-full font-bold animate-pulse shrink-0">
                                     {t("leaderboard.you")}

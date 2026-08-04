@@ -73,6 +73,12 @@ export const userUpdateSchema = z.object({
       ])
     )
     .optional(),
+  isVip: z.boolean().optional(),
+  subscriptionTier: z.enum(["free", "vip", "pro"]).optional(),
+  vipType: z.enum(["paid", "gifted"]).optional(),
+  vipGrantedBy: z.string().optional(),
+  vipGrantedAt: z.string().optional(),
+  vipExpiresAt: z.string().optional(),
 });
 
 export const settingsUpdateSchema = z
