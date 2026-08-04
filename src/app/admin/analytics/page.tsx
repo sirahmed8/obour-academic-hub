@@ -47,6 +47,7 @@ import {
   UserX,
   Receipt,
   ListFilter,
+  ChevronDown,
 } from "lucide-react";
 import dynamic from "next/dynamic";
 import { ConfirmationModal } from "@/components/ui/ConfirmationModal";
@@ -66,7 +67,7 @@ const UserRolesChart = dynamic(() => import("./_components/UserRolesChart"), {
   loading: () => <div className="h-full w-full bg-muted/20 animate-pulse rounded-xl" />,
 });
 
-import { cn, toDate } from "@/lib/utils";
+import { cn, toDate, normalizeDate } from "@/lib/utils";
 import { toast } from "sonner";
 
 interface TopStudent {
@@ -112,7 +113,7 @@ interface AnalyticsData {
   topPlayers: TopStudent[];
   todayLogins: number;
   newUsersThisWeek: number;
-  // AI Real & Estimated Metrics
+  // Real AI Tokens & Requests from Firestore
   quizAiCount: number;
   transcribeAiCount: number;
   mindmapAiCount: number;
@@ -198,7 +199,7 @@ export default function AdminAnalyticsPage() {
       let q = query(collection(firestore, colName));
 
       if (colName === "logs") {
-        q = query(collection(firestore, colName), orderBy("timestamp", "desc"), limit(150));
+        q = query(collection(firestore, colName), orderBy("timestamp", "desc"), limit(200));
       }
 
       return onSnapshot(q, (snapshot) => {
@@ -246,8 +247,7 @@ export default function AdminAnalyticsPage() {
                     role: u.role || "student",
                     avatar: u.photoURL || undefined,
                     grantedAt:
-                      u.vipGrantedAt ||
-                      (u.createdAt ? toDate(u.createdAt).toISOString() : undefined),
+                      u.vipGrantedAt || (u.createdAt ? normalizeDate(u.createdAt) : undefined),
                     grantedBy:
                       u.vipGrantedBy ||
                       (u.role === "owner" || u.role === "admin" ? "System Role" : "Owner / Admin"),
@@ -262,19 +262,17 @@ export default function AdminAnalyticsPage() {
               // Today logins
               if (u.lastLogin) {
                 try {
-                  const loginDate =
-                    u.lastLogin &&
-                    typeof (u.lastLogin as { toDate?: () => Date }).toDate === "function"
-                      ? (u.lastLogin as { toDate: () => Date }).toDate()
-                      : new Date((u.lastLogin as { seconds: number }).seconds * 1000);
-                  if (loginDate >= todayStart) todayLogins++;
+                  const loginDate = toDate(u.lastLogin);
+                  if (!isNaN(loginDate.getTime()) && loginDate >= todayStart) todayLogins++;
                 } catch {}
               }
 
               // New this week
               if (u.createdAt) {
-                const date = toDate(u.createdAt);
-                if (date >= weekAgo) newThisWeek++;
+                try {
+                  const date = toDate(u.createdAt);
+                  if (!isNaN(date.getTime()) && date >= weekAgo) newThisWeek++;
+                } catch {}
               }
 
               // Top students by points
@@ -317,9 +315,13 @@ export default function AdminAnalyticsPage() {
             snapshot.docs.forEach((d) => {
               const u = d.data() as User;
               if (u.createdAt) {
-                const date = toDate(u.createdAt);
-                const month = date.toLocaleString("default", { month: "short" });
-                monthCounts[month] = (monthCounts[month] || 0) + 1;
+                try {
+                  const date = toDate(u.createdAt);
+                  if (!isNaN(date.getTime())) {
+                    const month = date.toLocaleString("default", { month: "short" });
+                    monthCounts[month] = (monthCounts[month] || 0) + 1;
+                  }
+                } catch {}
               }
             });
             const monthsArr = [
@@ -427,11 +429,7 @@ export default function AdminAnalyticsPage() {
               return {
                 id: d.id,
                 ...logData,
-                timestamp: logData.timestamp
-                  ? logData.timestamp.toDate
-                    ? logData.timestamp.toDate().toISOString()
-                    : new Date(logData.timestamp.seconds * 1000).toISOString()
-                  : "1970-01-01T00:00:00.000Z",
+                timestamp: normalizeDate(logData.timestamp),
               } as ActivityLog;
             });
 
@@ -439,16 +437,10 @@ export default function AdminAnalyticsPage() {
             newState.realTokensSum = realTokensAccumulated;
             newState.realAiRequestsCount = realAiReqs;
 
-            newState.quizAiCount = Math.max(qCount, Math.round(newState.totalUsers * 2.5) + 12);
-            newState.transcribeAiCount = Math.max(
-              tCount,
-              Math.round(newState.totalResources * 0.8) + 8
-            );
-            newState.mindmapAiCount = Math.max(
-              mCount,
-              Math.round(newState.totalSubjects * 1.5) + 15
-            );
-            newState.qaAiCount = Math.max(qaCount, Math.round(newState.totalUsers * 4.2) + 25);
+            newState.quizAiCount = qCount;
+            newState.transcribeAiCount = tCount;
+            newState.mindmapAiCount = mCount;
+            newState.qaAiCount = qaCount;
           }
 
           return newState;
@@ -517,7 +509,7 @@ export default function AdminAnalyticsPage() {
       .join(" ");
   };
 
-  // AI Token & Cost Metrics (Real-time accumulated + Estimated)
+  // AI Token & Cost Metrics (Direct Real Firestore Aggregation)
   const aiCalculatedMetrics = useMemo(() => {
     const quizTokens = data.quizAiCount * 2500;
     const transcribeTokens = data.transcribeAiCount * 3500;
@@ -646,43 +638,43 @@ export default function AdminAnalyticsPage() {
     () => [
       {
         id: "overview",
-        label: language === "ar" ? "نظرة عامة شاملة" : "Overview",
+        label: language === "ar" ? "📊 نظرة عامة شاملة" : "📊 Executive Overview",
         desc: language === "ar" ? "الملخص العام ومؤشرات التفاعل" : "Executive dashboard & KPIs",
         icon: BarChart3,
       },
       {
         id: "subscriptions",
-        label: language === "ar" ? "الاشتراكات والإهداءات" : "Subscriptions & Gifted VIPs",
+        label: language === "ar" ? "💎 الاشتراكات والإهداءات" : "💎 Subscriptions & Gifted VIPs",
         desc: language === "ar" ? "سجل المستفيدين والقيمة المحيدة" : "Financial waived roster",
         icon: Gift,
       },
       {
         id: "ai_analytics",
-        label: language === "ar" ? "استهلاك الذكاء الاصطناعي" : "AI Tokens & API Costs",
+        label: language === "ar" ? "⚡ استهلاك الذكاء الاصطناعي" : "⚡ AI Tokens & API Costs",
         desc: language === "ar" ? "التوكينز الحقيقية وتكاليف Gemini" : "Real tokens & API costs",
         icon: Cpu,
       },
       {
         id: "students",
-        label: language === "ar" ? "أوائل الطلاب المتصدرين" : "Top Students",
+        label: language === "ar" ? "🎓 أوائل الطلاب المتصدرين" : "🎓 Top Students Leaderboard",
         desc: language === "ar" ? "لوحة المتصدرين والنقاط" : "XP Leaderboard & points",
         icon: Trophy,
       },
       {
         id: "subjects",
-        label: language === "ar" ? "المواد الأكاديمية" : "Academic Subjects",
+        label: language === "ar" ? "📚 المواد الأكاديمية" : "📚 Academic Subjects",
         desc: language === "ar" ? "مشاهدات المواد والتفاعل" : "Course engagement & views",
         icon: BookOpen,
       },
       {
         id: "users",
-        label: language === "ar" ? "المستفيدين والنمو" : "User Segments",
+        label: language === "ar" ? "👥 المستفيدين والنمو" : "👥 User Segments & Growth",
         desc: language === "ar" ? "توزيع الأدوار ونمو الأعضاء" : "Roles distribution & growth",
         icon: Users,
       },
       {
         id: "audit",
-        label: language === "ar" ? "سجل الأمان الإداري" : "Security Audit Trail",
+        label: language === "ar" ? "🛡️ سجل الأمان الإداري" : "🛡️ Security Audit Trail",
         desc: language === "ar" ? "سجل العمليات والتأمين" : "Administrative audit log",
         icon: ShieldCheck,
       },
@@ -820,75 +812,62 @@ export default function AdminAnalyticsPage() {
         <LoadingAnalyticsPage />
       ) : (
         <StaggerChildren className="space-y-8">
-          {/* Global UI List Section Picker */}
-          <div className="bg-card border border-border rounded-3xl p-5 shadow-md space-y-4">
-            <div className="flex items-center justify-between px-1">
+          {/* Global UI Analytics Section Select Dropdown List */}
+          <div className="bg-card border border-border rounded-3xl p-5 shadow-md space-y-3">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
               <div className="flex items-center gap-2.5">
-                <span className="p-2 rounded-xl bg-primary/10 text-primary">
-                  <ListFilter size={18} />
+                <span className="p-2.5 rounded-2xl bg-primary/10 text-primary border border-primary/20 shadow-sm">
+                  <ListFilter size={20} />
                 </span>
                 <div>
-                  <h2 className="text-xs font-black text-foreground uppercase tracking-wider">
+                  <h2 className="text-sm font-black text-foreground uppercase tracking-wider">
                     {language === "ar"
                       ? "قائمة أقسام التحليلات والمالية"
-                      : "Analytics Section Selector List"}
+                      : "Analytics Section Select List"}
                   </h2>
-                  <p className="text-[11px] text-muted-foreground">
+                  <p className="text-xs text-muted-foreground">
                     {language === "ar"
-                      ? "اختر القسم لعرض التحليلات والتفاصيل الخاصة به"
-                      : "Select any section list item to view detailed analytics"}
+                      ? "افتح القائمة واختر القسم المطلوب لعرض التحليلات والتفاصيل"
+                      : "Open the select list to switch between analytical sections"}
                   </p>
                 </div>
               </div>
-              <span className="text-[11px] font-extrabold text-primary bg-primary/10 px-3 py-1 rounded-full border border-primary/20">
-                7 {language === "ar" ? "أقسام متاحة" : "Sections"}
-              </span>
+
+              {/* Section Select Dropdown List */}
+              <div className="relative w-full sm:w-80">
+                <select
+                  value={activeTab}
+                  onChange={(e) => setActiveTab(e.target.value as typeof activeTab)}
+                  className="w-full appearance-none px-4 py-3 pr-10 text-xs sm:text-sm font-black rounded-2xl bg-muted/60 border border-border text-foreground focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 shadow-sm cursor-pointer transition-all"
+                >
+                  {analyticsSections.map((sec) => (
+                    <option
+                      key={sec.id}
+                      value={sec.id}
+                      className="bg-background text-foreground py-2 font-bold"
+                    >
+                      {sec.label} — ({sec.desc})
+                    </option>
+                  ))}
+                </select>
+                <div className="absolute right-3.5 top-1/2 -translate-y-1/2 pointer-events-none text-primary">
+                  <ChevronDown size={18} />
+                </div>
+              </div>
             </div>
 
-            {/* List Menu Grid */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-7 gap-3">
-              {analyticsSections.map((section) => {
-                const Icon = section.icon;
-                const isActive = activeTab === section.id;
-                return (
-                  <button
-                    key={section.id}
-                    onClick={() => setActiveTab(section.id as typeof activeTab)}
-                    className={cn(
-                      "flex flex-col justify-between p-3.5 rounded-2xl border transition-all duration-300 text-left select-none group min-h-[90px]",
-                      isActive
-                        ? "bg-primary text-white border-primary shadow-lg shadow-primary/25 scale-[1.02]"
-                        : "bg-muted/20 border-border/60 hover:border-primary/40 hover:bg-muted/50 text-muted-foreground hover:text-foreground"
-                    )}
-                  >
-                    <div className="flex items-center justify-between w-full">
-                      <span
-                        className={cn(
-                          "p-2 rounded-xl shrink-0 transition-transform group-hover:scale-110",
-                          isActive
-                            ? "bg-white/20 text-white"
-                            : "bg-card border border-border text-primary"
-                        )}
-                      >
-                        <Icon size={16} />
-                      </span>
-                      {isActive && <span className="w-2 h-2 rounded-full bg-white animate-pulse" />}
-                    </div>
-
-                    <div className="mt-2">
-                      <p className="font-extrabold text-xs truncate">{section.label}</p>
-                      <p
-                        className={cn(
-                          "text-[10px] truncate font-medium mt-0.5",
-                          isActive ? "text-white/80" : "text-muted-foreground"
-                        )}
-                      >
-                        {section.desc}
-                      </p>
-                    </div>
-                  </button>
-                );
-              })}
+            {/* Active Selected Section Banner */}
+            <div className="pt-3 border-t border-border/60 flex items-center justify-between text-xs">
+              <div className="flex items-center gap-2 text-foreground font-bold">
+                <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse" />
+                <span>{language === "ar" ? "القسم المختار حالياً:" : "Current Section:"}</span>
+                <span className="px-3 py-1 rounded-xl bg-primary/15 text-primary border border-primary/20 font-black">
+                  {analyticsSections.find((s) => s.id === activeTab)?.label}
+                </span>
+              </div>
+              <span className="text-[11px] text-muted-foreground font-medium hidden sm:inline">
+                {analyticsSections.find((s) => s.id === activeTab)?.desc}
+              </span>
             </div>
           </div>
 
@@ -1181,7 +1160,7 @@ export default function AdminAnalyticsPage() {
                           {language === "ar" ? "منحت بواسطة" : "Granted By"}
                         </th>
                         <th className="px-6 py-3">
-                          {language === "ar" ? "الفائدة الششهري" : "Monthly Value"}
+                          {language === "ar" ? "الفائدة الشهري" : "Monthly Value"}
                         </th>
                         <th className="px-6 py-3 text-right">
                           {language === "ar" ? "الإجراء" : "Action"}
@@ -1241,7 +1220,9 @@ export default function AdminAnalyticsPage() {
                               </span>
                             </td>
                             <td className="px-6 py-4 text-muted-foreground font-mono text-[11px]">
-                              {user.grantedAt ? new Date(user.grantedAt).toLocaleDateString() : "-"}
+                              {user.grantedAt
+                                ? new Date(normalizeDate(user.grantedAt)).toLocaleDateString()
+                                : "-"}
                             </td>
                             <td className="px-6 py-4 text-foreground font-medium">
                               {user.grantedBy}
@@ -1281,12 +1262,12 @@ export default function AdminAnalyticsPage() {
                     {aiCalculatedMetrics.totalRequests.toLocaleString()}
                   </p>
                   <p className="text-sm font-bold text-foreground">
-                    {language === "ar" ? "إجمالي طلبات AI" : "Total AI Generation Requests"}
+                    {language === "ar" ? "إجمالي طلبات AI الحقيقية" : "Real AI Generation Requests"}
                   </p>
                   <p className="text-xs text-muted-foreground">
                     {language === "ar"
-                      ? "كويزات + تفريغ صوتی + تلخيص"
-                      : "Quizzes, audio, summaries, Q&A"}
+                      ? "محدثة فورياً عند المحادثة"
+                      : "Updated live from Firestore logs"}
                   </p>
                 </ScaleIn>
 
@@ -1296,11 +1277,11 @@ export default function AdminAnalyticsPage() {
                     {aiCalculatedMetrics.totalTokens.toLocaleString()}
                   </p>
                   <p className="text-sm font-bold text-foreground">
-                    {language === "ar" ? "إجمالي التوكينز" : "Total Tokens Processed"}
+                    {language === "ar" ? "إجمالي التوكينز الحقيقية" : "Real Tokens Processed"}
                   </p>
                   <p className="text-xs text-muted-foreground">
                     {language === "ar"
-                      ? "مدخلات ومخرجات Google Gemini الحقيقية"
+                      ? "مدخلات ومخرجات Google Gemini"
                       : "Real Gemini Input & Output Tokens"}
                   </p>
                 </ScaleIn>
@@ -1308,10 +1289,12 @@ export default function AdminAnalyticsPage() {
                 <ScaleIn className="p-6 rounded-3xl bg-card border border-border shadow-md space-y-2">
                   <Coins className="text-emerald-500" size={28} />
                   <p className="text-3xl font-black text-foreground">
-                    ${aiCalculatedMetrics.costUsd.toFixed(3)}
+                    ${aiCalculatedMetrics.costUsd.toFixed(4)}
                   </p>
                   <p className="text-sm font-bold text-foreground">
-                    {language === "ar" ? "تكلفة السيرفر (USD)" : "Gemini API Cost (USD)"}
+                    {language === "ar"
+                      ? "تكلفة السيرفر الفعلية (USD)"
+                      : "Real Gemini API Cost (USD)"}
                   </p>
                   <p className="text-xs text-muted-foreground">$0.000075 / 1k tokens (Flash)</p>
                 </ScaleIn>
@@ -1323,7 +1306,9 @@ export default function AdminAnalyticsPage() {
                     <span className="text-xs font-bold text-muted-foreground">EGP</span>
                   </p>
                   <p className="text-sm font-bold text-foreground">
-                    {language === "ar" ? "تكلفة السيرفر (بالجنية)" : "Gemini API Cost (EGP)"}
+                    {language === "ar"
+                      ? "تكلفة السيرفر الفعلية (بالجنية)"
+                      : "Real Gemini API Cost (EGP)"}
                   </p>
                   <p className="text-xs text-muted-foreground">
                     {language === "ar" ? "بسعر 50 جنيه للدولار" : "@ 50 EGP per USD"}
@@ -1934,7 +1919,7 @@ export default function AdminAnalyticsPage() {
                         </div>
                         <div className="text-xs font-mono font-black text-primary/40 whitespace-nowrap hidden sm:block">
                           {log.timestamp
-                            ? toDate(log.timestamp).toLocaleTimeString([], {
+                            ? new Date(normalizeDate(log.timestamp)).toLocaleTimeString([], {
                                 hour: "2-digit",
                                 minute: "2-digit",
                               })

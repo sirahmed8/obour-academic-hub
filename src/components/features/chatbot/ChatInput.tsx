@@ -304,7 +304,7 @@ export function ChatInput({
       </AnimatePresence>
 
       <div className="flex gap-2 items-center">
-        <div className="flex-1 flex items-center gap-2 bg-white/5 dark:bg-white/2 backdrop-blur-xl border border-white/10 focus-within:ring-4 focus-within:ring-primary/10 focus-within:border-primary/50 rounded-full px-4 py-1.5 transition-all duration-300 min-h-[44px] shadow-sm">
+        <div className="flex-1 flex items-center gap-2 bg-muted/30 dark:bg-white/5 backdrop-blur-xl border border-border focus-within:border-primary focus-within:ring-2 focus-within:ring-primary/20 rounded-full px-4 py-1.5 transition-all duration-200 min-h-[44px]">
           <FileUpload
             onFileUploaded={(attachment) => {
               setStagedAttachment(attachment);
@@ -333,7 +333,7 @@ export function ChatInput({
               language === "ar" ? "اكتب رسالتك أو استخدم الصوت..." : "Type or use voice..."
             }
             disabled={disabled}
-            className="flex-1 bg-transparent border-none text-[16px] md:text-sm placeholder:text-muted-foreground/50 max-h-24 py-2 px-2.5 outline-none focus:ring-0 shadow-none ring-0 disabled:opacity-50 disabled:cursor-not-allowed"
+            className="flex-1 bg-transparent border-0 text-[16px] md:text-sm placeholder:text-muted-foreground/50 max-h-24 py-2 px-2.5 outline-none focus:outline-none focus:ring-0 focus-visible:outline-none focus-visible:ring-0 shadow-none ring-0 disabled:opacity-50 disabled:cursor-not-allowed"
           />
         </div>
 
