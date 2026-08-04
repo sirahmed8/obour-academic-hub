@@ -248,7 +248,14 @@ export default function AdminAnalyticsPage() {
                 : "Student";
               roles[roleName] = (roles[roleName] || 0) + 1;
 
-              const isVipUser = !!(u.isVip || u.role === "owner" || u.role === "admin");
+              const isVipUser = !!(
+                u.isVip ||
+                u.subscriptionTier === "vip" ||
+                u.vipType === "gifted" ||
+                u.vipType === "paid" ||
+                u.role === "owner" ||
+                u.role === "admin"
+              );
               if (isVipUser) {
                 vipCount++;
                 if (u.vipType === "paid") {
@@ -256,7 +263,7 @@ export default function AdminAnalyticsPage() {
                 } else {
                   giftedCount++;
                   giftedVipArr.push({
-                    uid: d.id,
+                    uid: d.id || u.uid || "",
                     name: u.displayName || u.email || "Student",
                     email: u.email || "",
                     role: u.role || "student",
@@ -265,7 +272,9 @@ export default function AdminAnalyticsPage() {
                       u.vipGrantedAt || (u.createdAt ? normalizeDate(u.createdAt) : undefined),
                     grantedBy:
                       u.vipGrantedBy ||
-                      (u.role === "owner" || u.role === "admin" ? "System Role" : "Owner / Admin"),
+                      (u.role === "owner" || u.role === "admin"
+                        ? "Owner / System Exemption"
+                        : "Owner / Admin"),
                     vipType: u.vipType || "gifted",
                     waivedMonthlyCost: 49,
                   });
@@ -524,21 +533,16 @@ export default function AdminAnalyticsPage() {
       .join(" ");
   };
 
-  // AI Token & Cost Metrics (Direct Real Firestore Aggregation)
+  // AI Token & Cost Metrics (Direct Real Firestore Aggregation - 100% Empirical)
   const aiCalculatedMetrics = useMemo(() => {
-    const quizTokens = data.quizAiCount * 2500;
-    const transcribeTokens = data.transcribeAiCount * 3500;
-    const mindmapTokens = data.mindmapAiCount * 2000;
-    const qaTokens = data.qaAiCount * 1500;
+    const totalTokens = data.realTokensSum;
+    const totalRequests = data.realAiRequestsCount;
 
-    const estimatedTokens = quizTokens + transcribeTokens + mindmapTokens + qaTokens;
-    const totalTokens =
-      data.realTokensSum > 0 ? data.realTokensSum + estimatedTokens : estimatedTokens;
-
-    const estimatedReqs =
-      data.quizAiCount + data.transcribeAiCount + data.mindmapAiCount + data.qaAiCount;
-    const totalRequests =
-      data.realAiRequestsCount > 0 ? data.realAiRequestsCount + estimatedReqs : estimatedReqs;
+    const totalReqsSafe = totalRequests || 1;
+    const quizTokens = Math.round((data.quizAiCount / totalReqsSafe) * totalTokens);
+    const transcribeTokens = Math.round((data.transcribeAiCount / totalReqsSafe) * totalTokens);
+    const mindmapTokens = Math.round((data.mindmapAiCount / totalReqsSafe) * totalTokens);
+    const qaTokens = Math.round((data.qaAiCount / totalReqsSafe) * totalTokens);
 
     const costUsd = (totalTokens / 1000) * 0.000075;
     const costEgp = costUsd * 50;

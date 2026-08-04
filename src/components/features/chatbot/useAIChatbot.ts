@@ -550,11 +550,63 @@ export function useAIChatbot(): AIChatbotController {
 
             const isEnglishInput =
               /[a-zA-Z]/.test(textToSend) && !/[\u0600-\u06FF]/.test(textToSend);
-            const responseText =
+            let responseText =
               data?.content?.trim() ||
               (isEnglishInput
                 ? "I'm sorry, I couldn't generate a response right now. Please try asking again."
                 : "عذراً، لم أتمكن من الحصول على إجابة الآن. يرجى المحاولة مرة أخرى.");
+
+            // Parse & execute automated task creation if TASK_SPEC exists
+            const taskMatch = responseText.match(/\[TASK_SPEC:\s*(\{.*?\})\]/s);
+            if (taskMatch) {
+              try {
+                const taskSpec = JSON.parse(taskMatch[1]);
+                const taskTitle =
+                  taskSpec.title || (isEnglishInput ? "Academic Task" : "مهمة أكاديمية");
+                const taskDesc = taskSpec.description || "";
+                const priority = taskSpec.priority || "medium";
+                const dueDate = taskSpec.dueDate || "";
+
+                // Save task to Firestore
+                if (user?.uid && db) {
+                  const { addDoc, collection } = await import("firebase/firestore");
+                  await addDoc(collection(db, `users/${user.uid}/tasks`), {
+                    title: taskTitle,
+                    description: taskDesc,
+                    priority,
+                    dueDate,
+                    completed: false,
+                    createdAt: new Date().toISOString(),
+                    createdBy: "AI Assistant",
+                  });
+                }
+
+                // Save task to localStorage for instant client reactivity
+                try {
+                  const existing = JSON.parse(localStorage.getItem("todo-items") || "[]");
+                  existing.unshift({
+                    id: "ai-task-" + Date.now(),
+                    title: taskTitle,
+                    description: taskDesc,
+                    priority,
+                    dueDate,
+                    completed: false,
+                  });
+                  localStorage.setItem("todo-items", JSON.stringify(existing));
+                } catch {}
+
+                // Remove raw TASK_SPEC from response text for clean display
+                responseText = responseText.replace(/\[TASK_SPEC:\s*\{.*?\}\]/s, "").trim();
+
+                toast.success(
+                  languageRef.current === "ar"
+                    ? `📋 تمت إضافة المهمة "${taskTitle}" إلى قائمة مهامك بنجاح!`
+                    : `📋 Task "${taskTitle}" added to your To-Do list!`
+                );
+              } catch (parseErr) {
+                console.error("Failed to parse TASK_SPEC from AI:", parseErr);
+              }
+            }
 
             const botLocalMsg = {
               id: "bot-" + Date.now(),
