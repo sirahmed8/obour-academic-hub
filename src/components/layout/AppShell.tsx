@@ -144,7 +144,8 @@ export function AppShell({ children }: { children: React.ReactNode }) {
       !user.academicYear ||
       !user.department ||
       !user.institute ||
-      user.onboardingCompleted === false;
+      user.onboardingCompleted === false ||
+      user.onboardingCompleted === undefined;
 
     // If profile is incomplete, clear dismissal flag so modal unconditionally reappears on every visit
     if (isProfileIncomplete) {
