@@ -1,6 +1,6 @@
 # Agent Handoff & Single Source of Truth
 
-> **LIVE SYSTEM STATUS**: Checkpoint 20 — Owner Command Center & Financial/AI Analytics Overhaul (`/admin/analytics`). Subscriptions & Complimentary VIPs Financial Roster created with waived cost calculations (49 EGP/mo per gifted user), student search filter, and instant Revoke VIP action button. AI System Tokens & API Costs tab added featuring Google Gemini token usage breakdown across Quizzes, Audio Transcriber, Mindmaps, and Q&A, plus an interactive AI Scaling & Profitability Budget Calculator. ESLint 0 errors / 0 warnings, 39/39 Next.js routes built cleanly.
+> **LIVE SYSTEM STATUS**: Checkpoint 21 — Analytics Section Dropdown Select List Menu (`/admin/analytics`), Date Safety Fix for `RangeError: Invalid time value` using `normalizeDate`, Floating Chatbot Dual Outline Removal (`ChatInput.tsx`), and Live Real-Time Firestore AI Token & Cost Aggregation. ESLint 0 errors / 0 warnings, 39/39 Next.js routes built & deployed cleanly.
 
 ---
 

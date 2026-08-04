@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, useRef } from "react";
 import { db, rtdb } from "@/lib/firebase";
 import {
   collection,
@@ -50,6 +50,7 @@ import {
   ChevronDown,
 } from "lucide-react";
 import dynamic from "next/dynamic";
+import { motion, AnimatePresence } from "framer-motion";
 import { ConfirmationModal } from "@/components/ui/ConfirmationModal";
 
 const UserGrowthChart = dynamic(() => import("./_components/UserGrowthChart"), {
@@ -156,6 +157,20 @@ export default function AdminAnalyticsPage() {
   const [loading, setLoading] = useState(true);
   const [showResetModal, setShowResetModal] = useState(false);
   const [giftedSearchTerm, setGiftedSearchTerm] = useState("");
+
+  // Custom Dropdown Menu State & Outside Click Ref
+  const [dropdownOpen, setDropdownOpen] = useState(false);
+  const dropdownRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+        setDropdownOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
 
   // Interactive AI Calculator State
   const [simulatedStudents, setSimulatedStudents] = useState<number>(500);
@@ -638,48 +653,53 @@ export default function AdminAnalyticsPage() {
     () => [
       {
         id: "overview",
-        label: language === "ar" ? "📊 نظرة عامة شاملة" : "📊 Executive Overview",
+        label: language === "ar" ? "نظرة عامة شاملة" : "Executive Overview",
         desc: language === "ar" ? "الملخص العام ومؤشرات التفاعل" : "Executive dashboard & KPIs",
         icon: BarChart3,
       },
       {
         id: "subscriptions",
-        label: language === "ar" ? "💎 الاشتراكات والإهداءات" : "💎 Subscriptions & Gifted VIPs",
+        label: language === "ar" ? "الاشتراكات والإهداءات" : "Subscriptions & Gifted VIPs",
         desc: language === "ar" ? "سجل المستفيدين والقيمة المحيدة" : "Financial waived roster",
         icon: Gift,
       },
       {
         id: "ai_analytics",
-        label: language === "ar" ? "⚡ استهلاك الذكاء الاصطناعي" : "⚡ AI Tokens & API Costs",
+        label: language === "ar" ? "استهلاك الذكاء الاصطناعي" : "AI Tokens & API Costs",
         desc: language === "ar" ? "التوكينز الحقيقية وتكاليف Gemini" : "Real tokens & API costs",
         icon: Cpu,
       },
       {
         id: "students",
-        label: language === "ar" ? "🎓 أوائل الطلاب المتصدرين" : "🎓 Top Students Leaderboard",
+        label: language === "ar" ? "أوائل الطلاب المتصدرين" : "Top Students Leaderboard",
         desc: language === "ar" ? "لوحة المتصدرين والنقاط" : "XP Leaderboard & points",
         icon: Trophy,
       },
       {
         id: "subjects",
-        label: language === "ar" ? "📚 المواد الأكاديمية" : "📚 Academic Subjects",
+        label: language === "ar" ? "المواد الأكاديمية" : "Academic Subjects",
         desc: language === "ar" ? "مشاهدات المواد والتفاعل" : "Course engagement & views",
         icon: BookOpen,
       },
       {
         id: "users",
-        label: language === "ar" ? "👥 المستفيدين والنمو" : "👥 User Segments & Growth",
+        label: language === "ar" ? "المستفيدين والنمو" : "User Segments & Growth",
         desc: language === "ar" ? "توزيع الأدوار ونمو الأعضاء" : "Roles distribution & growth",
         icon: Users,
       },
       {
         id: "audit",
-        label: language === "ar" ? "🛡️ سجل الأمان الإداري" : "🛡️ Security Audit Trail",
+        label: language === "ar" ? "سجل الأمان الإداري" : "Security Audit Trail",
         desc: language === "ar" ? "سجل العمليات والتأمين" : "Administrative audit log",
         icon: ShieldCheck,
       },
     ],
     [language]
+  );
+
+  const selectedSection = useMemo(
+    () => analyticsSections.find((s) => s.id === activeTab),
+    [analyticsSections, activeTab]
   );
 
   const filteredGiftedVipList = useMemo(() => {
@@ -812,12 +832,12 @@ export default function AdminAnalyticsPage() {
         <LoadingAnalyticsPage />
       ) : (
         <StaggerChildren className="space-y-8">
-          {/* Global UI Analytics Section Select Dropdown List */}
+          {/* Global UI Custom Analytics Section Select Dropdown List */}
           <div className="bg-card border border-border rounded-3xl p-5 shadow-md space-y-3">
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-              <div className="flex items-center gap-2.5">
-                <span className="p-2.5 rounded-2xl bg-primary/10 text-primary border border-primary/20 shadow-sm">
-                  <ListFilter size={20} />
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+              <div className="flex items-center gap-3">
+                <span className="p-3 rounded-2xl bg-primary/10 text-primary border border-primary/20 shadow-sm">
+                  <ListFilter size={22} />
                 </span>
                 <div>
                   <h2 className="text-sm font-black text-foreground uppercase tracking-wider">
@@ -827,32 +847,113 @@ export default function AdminAnalyticsPage() {
                   </h2>
                   <p className="text-xs text-muted-foreground">
                     {language === "ar"
-                      ? "افتح القائمة واختر القسم المطلوب لعرض التحليلات والتفاصيل"
-                      : "Open the select list to switch between analytical sections"}
+                      ? "افتح القائمة وافحص الأقسام التحليلية المتاحة للتنقل"
+                      : "Click to open the list menu and select any analytical section"}
                   </p>
                 </div>
               </div>
 
-              {/* Section Select Dropdown List */}
-              <div className="relative w-full sm:w-80">
-                <select
-                  value={activeTab}
-                  onChange={(e) => setActiveTab(e.target.value as typeof activeTab)}
-                  className="w-full appearance-none px-4 py-3 pr-10 text-xs sm:text-sm font-black rounded-2xl bg-muted/60 border border-border text-foreground focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 shadow-sm cursor-pointer transition-all"
+              {/* Custom Animated Popup Menu Dropdown */}
+              <div className="relative w-full sm:w-96" ref={dropdownRef}>
+                <button
+                  type="button"
+                  onClick={() => setDropdownOpen((prev) => !prev)}
+                  className="w-full flex items-center justify-between gap-3 px-4 py-3.5 rounded-2xl bg-muted/40 hover:bg-muted/70 border border-border hover:border-primary/50 text-foreground font-black text-sm shadow-md transition-all active:scale-[0.99] group cursor-pointer"
                 >
-                  {analyticsSections.map((sec) => (
-                    <option
-                      key={sec.id}
-                      value={sec.id}
-                      className="bg-background text-foreground py-2 font-bold"
+                  <div className="flex items-center gap-3 min-w-0">
+                    <span className="p-2 rounded-xl bg-primary/15 text-primary border border-primary/20 shrink-0">
+                      {selectedSection ? (
+                        <selectedSection.icon size={18} />
+                      ) : (
+                        <ListFilter size={18} />
+                      )}
+                    </span>
+                    <div className="text-left rtl:text-right min-w-0">
+                      <p className="font-black text-xs sm:text-sm text-foreground truncate">
+                        {selectedSection?.label}
+                      </p>
+                      <p className="text-[10px] text-muted-foreground truncate font-medium">
+                        {selectedSection?.desc}
+                      </p>
+                    </div>
+                  </div>
+                  <div className="p-1 rounded-lg bg-background text-muted-foreground group-hover:text-primary transition-colors shrink-0 shadow-sm">
+                    <motion.div
+                      animate={{ rotate: dropdownOpen ? 180 : 0 }}
+                      transition={{ duration: 0.2 }}
                     >
-                      {sec.label} — ({sec.desc})
-                    </option>
-                  ))}
-                </select>
-                <div className="absolute right-3.5 top-1/2 -translate-y-1/2 pointer-events-none text-primary">
-                  <ChevronDown size={18} />
-                </div>
+                      <ChevronDown size={18} />
+                    </motion.div>
+                  </div>
+                </button>
+
+                {/* Custom Glassmorphism Animated Dropdown List */}
+                <AnimatePresence>
+                  {dropdownOpen && (
+                    <motion.div
+                      initial={{ opacity: 0, y: -10, scale: 0.96 }}
+                      animate={{ opacity: 1, y: 0, scale: 1 }}
+                      exit={{ opacity: 0, y: -10, scale: 0.96 }}
+                      transition={{ duration: 0.2, ease: [0.16, 1, 0.3, 1] }}
+                      className="absolute left-0 right-0 top-full mt-2 z-50 rounded-3xl bg-card/95 border border-border shadow-2xl backdrop-blur-2xl p-2 space-y-1.5 max-h-96 overflow-y-auto"
+                    >
+                      {analyticsSections.map((sec) => {
+                        const SecIcon = sec.icon;
+                        const isSelected = activeTab === sec.id;
+                        return (
+                          <button
+                            key={sec.id}
+                            type="button"
+                            onClick={() => {
+                              setActiveTab(sec.id as typeof activeTab);
+                              setDropdownOpen(false);
+                            }}
+                            className={cn(
+                              "w-full flex items-center justify-between gap-3 p-3 rounded-2xl text-left rtl:text-right transition-all duration-200 group cursor-pointer",
+                              isSelected
+                                ? "bg-primary text-primary-foreground font-black shadow-lg shadow-primary/25"
+                                : "hover:bg-muted/70 text-foreground font-bold"
+                            )}
+                          >
+                            <div className="flex items-center gap-3 min-w-0">
+                              <span
+                                className={cn(
+                                  "p-2 rounded-xl border transition-colors shrink-0",
+                                  isSelected
+                                    ? "bg-white/20 text-white border-white/30"
+                                    : "bg-muted text-muted-foreground border-border group-hover:text-primary group-hover:bg-primary/10"
+                                )}
+                              >
+                                <SecIcon size={18} />
+                              </span>
+                              <div className="min-w-0">
+                                <p
+                                  className={cn(
+                                    "text-xs sm:text-sm font-black truncate",
+                                    isSelected ? "text-white" : "text-foreground"
+                                  )}
+                                >
+                                  {sec.label}
+                                </p>
+                                <p
+                                  className={cn(
+                                    "text-[10px] truncate font-medium",
+                                    isSelected ? "text-white/80" : "text-muted-foreground"
+                                  )}
+                                >
+                                  {sec.desc}
+                                </p>
+                              </div>
+                            </div>
+                            {isSelected && (
+                              <span className="w-2.5 h-2.5 rounded-full bg-white shrink-0 shadow-sm animate-pulse" />
+                            )}
+                          </button>
+                        );
+                      })}
+                    </motion.div>
+                  )}
+                </AnimatePresence>
               </div>
             </div>
 
@@ -862,11 +963,11 @@ export default function AdminAnalyticsPage() {
                 <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse" />
                 <span>{language === "ar" ? "القسم المختار حالياً:" : "Current Section:"}</span>
                 <span className="px-3 py-1 rounded-xl bg-primary/15 text-primary border border-primary/20 font-black">
-                  {analyticsSections.find((s) => s.id === activeTab)?.label}
+                  {selectedSection?.label}
                 </span>
               </div>
               <span className="text-[11px] text-muted-foreground font-medium hidden sm:inline">
-                {analyticsSections.find((s) => s.id === activeTab)?.desc}
+                {selectedSection?.desc}
               </span>
             </div>
           </div>
