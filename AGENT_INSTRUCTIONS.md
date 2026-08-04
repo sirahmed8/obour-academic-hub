@@ -1,6 +1,6 @@
 # Agent Handoff & Single Source of Truth
 
-> **LIVE SYSTEM STATUS**: Checkpoint 19 — Owner VIP Grant for Any User + Analytics "Top Students" Tab + 9-stat Overview. Admin can now grant/revoke VIP to ANY user (not just students) from Admin → Users panel. Analytics page has new "Top Students" tab showing VIP vs Free split, student leaderboard ranked by points with avatars/role badges, and new stat cards: VIP Users, Today's Logins, New Users (7d). Terminology corrected platform-wide: "players" → "students". ESLint 0 errors / 0 warnings, all 39 routes building cleanly.
+> **LIVE SYSTEM STATUS**: Checkpoint 20 — Owner Command Center & Financial/AI Analytics Overhaul (`/admin/analytics`). Subscriptions & Complimentary VIPs Financial Roster created with waived cost calculations (49 EGP/mo per gifted user), student search filter, and instant Revoke VIP action button. AI System Tokens & API Costs tab added featuring Google Gemini token usage breakdown across Quizzes, Audio Transcriber, Mindmaps, and Q&A, plus an interactive AI Scaling & Profitability Budget Calculator. ESLint 0 errors / 0 warnings, 39/39 Next.js routes built cleanly.
 
 ---
 

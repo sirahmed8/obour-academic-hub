@@ -167,7 +167,7 @@
 
 ## 5. Firestore Database Collections
 
-1. `users`: User metadata, institute ID, grade, XP, streak, role (`student`, `admin`, `owner`), and study preferences.
+1. `users`: User metadata, institute ID, grade, XP, points, streak, role (`student`, `admin`, `owner`), VIP status (`isVip`, `subscriptionTier`, `vipType`, `vipGrantedBy`, `vipGrantedAt`), and study preferences.
 2. `subjects`: Academic subjects, code, institute mapping, section count, and resource counters.
 3. `resources`: Academic files (PDFs, lectures, exams), title, subject ID, file URL, author ID, and download count.
 4. `todos`: Student task list items, title, subject ID, priority, completed status, estimated time, and subtasks.
