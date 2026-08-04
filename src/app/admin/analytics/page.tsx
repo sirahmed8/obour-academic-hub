@@ -46,6 +46,7 @@ import {
   Search,
   UserX,
   Receipt,
+  ListFilter,
 } from "lucide-react";
 import dynamic from "next/dynamic";
 import { ConfirmationModal } from "@/components/ui/ConfirmationModal";
@@ -87,7 +88,7 @@ interface GiftedVipUser {
   grantedAt?: string;
   grantedBy?: string;
   vipType: "paid" | "gifted";
-  waivedMonthlyCost: number; // e.g. 49 EGP
+  waivedMonthlyCost: number;
 }
 
 interface AnalyticsData {
@@ -111,11 +112,13 @@ interface AnalyticsData {
   topPlayers: TopStudent[];
   todayLogins: number;
   newUsersThisWeek: number;
-  // AI Metrics
+  // AI Real & Estimated Metrics
   quizAiCount: number;
   transcribeAiCount: number;
   mindmapAiCount: number;
   qaAiCount: number;
+  realTokensSum: number;
+  realAiRequestsCount: number;
 }
 
 export default function AdminAnalyticsPage() {
@@ -144,6 +147,8 @@ export default function AdminAnalyticsPage() {
     transcribeAiCount: 0,
     mindmapAiCount: 0,
     qaAiCount: 0,
+    realTokensSum: 0,
+    realAiRequestsCount: 0,
   });
 
   const [mounted, setMounted] = useState(false);
@@ -193,7 +198,7 @@ export default function AdminAnalyticsPage() {
       let q = query(collection(firestore, colName));
 
       if (colName === "logs") {
-        q = query(collection(firestore, colName), orderBy("timestamp", "desc"), limit(100));
+        q = query(collection(firestore, colName), orderBy("timestamp", "desc"), limit(150));
       }
 
       return onSnapshot(q, (snapshot) => {
@@ -386,11 +391,18 @@ export default function AdminAnalyticsPage() {
             let tCount = 0;
             let mCount = 0;
             let qaCount = 0;
+            let realTokensAccumulated = 0;
+            let realAiReqs = 0;
 
             const logs = snapshot.docs.map((d) => {
               const logData = d.data();
               const actionUpper = (logData.action || "").toUpperCase();
               const detailsUpper = (logData.details || "").toUpperCase();
+
+              if (typeof logData.totalTokens === "number" && logData.totalTokens > 0) {
+                realTokensAccumulated += logData.totalTokens;
+                realAiReqs++;
+              }
 
               if (actionUpper.includes("QUIZ") || detailsUpper.includes("QUIZ")) qCount++;
               if (
@@ -424,8 +436,9 @@ export default function AdminAnalyticsPage() {
             });
 
             newState.recentLogs = logs.slice(0, 8);
+            newState.realTokensSum = realTokensAccumulated;
+            newState.realAiRequestsCount = realAiReqs;
 
-            // Baseline estimated counts based on content & interaction volume
             newState.quizAiCount = Math.max(qCount, Math.round(newState.totalUsers * 2.5) + 12);
             newState.transcribeAiCount = Math.max(
               tCount,
@@ -493,6 +506,7 @@ export default function AdminAnalyticsPage() {
       ADMIN_INVITE: { en: "Admin Invited", ar: "دعوة مشرف" },
       SYSTEM_NOTICE: { en: "System Notice", ar: "تنبيه النظام" },
       LOGS_DELETE: { en: "Audit Logs Cleared", ar: "تصفير سجل العمليات" },
+      AI_GENERATION: { en: "AI Generation", ar: "توليد بالذكاء الاصطناعي" },
     };
 
     if (map[action]) return map[action][lang === "ar" ? "ar" : "en"];
@@ -503,20 +517,24 @@ export default function AdminAnalyticsPage() {
       .join(" ");
   };
 
-  // AI Calculated Token Metrics
+  // AI Token & Cost Metrics (Real-time accumulated + Estimated)
   const aiCalculatedMetrics = useMemo(() => {
     const quizTokens = data.quizAiCount * 2500;
     const transcribeTokens = data.transcribeAiCount * 3500;
     const mindmapTokens = data.mindmapAiCount * 2000;
     const qaTokens = data.qaAiCount * 1500;
 
-    const totalTokens = quizTokens + transcribeTokens + mindmapTokens + qaTokens;
-    const totalRequests =
-      data.quizAiCount + data.transcribeAiCount + data.mindmapAiCount + data.qaAiCount;
+    const estimatedTokens = quizTokens + transcribeTokens + mindmapTokens + qaTokens;
+    const totalTokens =
+      data.realTokensSum > 0 ? data.realTokensSum + estimatedTokens : estimatedTokens;
 
-    // Gemini 2.5/2.0 Flash pricing: ~$0.000075 / 1k tokens
+    const estimatedReqs =
+      data.quizAiCount + data.transcribeAiCount + data.mindmapAiCount + data.qaAiCount;
+    const totalRequests =
+      data.realAiRequestsCount > 0 ? data.realAiRequestsCount + estimatedReqs : estimatedReqs;
+
     const costUsd = (totalTokens / 1000) * 0.000075;
-    const costEgp = costUsd * 50; // 50 EGP/USD
+    const costEgp = costUsd * 50;
 
     return {
       quizTokens,
@@ -539,7 +557,6 @@ export default function AdminAnalyticsPage() {
     const costUsd = (monthlyTokens / 1000) * 0.000075;
     const costEgp = costUsd * 50;
 
-    // Assuming 10% students subscribe to VIP (49 EGP/mo)
     const projectedVipRevenueEgp = Math.round(simulatedStudents * 0.1) * 49;
     const netProfitMarginEgp = projectedVipRevenueEgp - costEgp;
 
@@ -623,6 +640,54 @@ export default function AdminAnalyticsPage() {
       },
     ],
     [data, aiCalculatedMetrics, language]
+  );
+
+  const analyticsSections = useMemo(
+    () => [
+      {
+        id: "overview",
+        label: language === "ar" ? "نظرة عامة شاملة" : "Overview",
+        desc: language === "ar" ? "الملخص العام ومؤشرات التفاعل" : "Executive dashboard & KPIs",
+        icon: BarChart3,
+      },
+      {
+        id: "subscriptions",
+        label: language === "ar" ? "الاشتراكات والإهداءات" : "Subscriptions & Gifted VIPs",
+        desc: language === "ar" ? "سجل المستفيدين والقيمة المحيدة" : "Financial waived roster",
+        icon: Gift,
+      },
+      {
+        id: "ai_analytics",
+        label: language === "ar" ? "استهلاك الذكاء الاصطناعي" : "AI Tokens & API Costs",
+        desc: language === "ar" ? "التوكينز الحقيقية وتكاليف Gemini" : "Real tokens & API costs",
+        icon: Cpu,
+      },
+      {
+        id: "students",
+        label: language === "ar" ? "أوائل الطلاب المتصدرين" : "Top Students",
+        desc: language === "ar" ? "لوحة المتصدرين والنقاط" : "XP Leaderboard & points",
+        icon: Trophy,
+      },
+      {
+        id: "subjects",
+        label: language === "ar" ? "المواد الأكاديمية" : "Academic Subjects",
+        desc: language === "ar" ? "مشاهدات المواد والتفاعل" : "Course engagement & views",
+        icon: BookOpen,
+      },
+      {
+        id: "users",
+        label: language === "ar" ? "المستفيدين والنمو" : "User Segments",
+        desc: language === "ar" ? "توزيع الأدوار ونمو الأعضاء" : "Roles distribution & growth",
+        icon: Users,
+      },
+      {
+        id: "audit",
+        label: language === "ar" ? "سجل الأمان الإداري" : "Security Audit Trail",
+        desc: language === "ar" ? "سجل العمليات والتأمين" : "Administrative audit log",
+        icon: ShieldCheck,
+      },
+    ],
+    [language]
   );
 
   const filteredGiftedVipList = useMemo(() => {
@@ -755,54 +820,76 @@ export default function AdminAnalyticsPage() {
         <LoadingAnalyticsPage />
       ) : (
         <StaggerChildren className="space-y-8">
-          {/* Tabs Navigation */}
-          <div className="flex items-center gap-2 p-1.5 bg-muted/30 rounded-2xl w-full max-w-full overflow-x-auto border border-border/50 hide-scrollbar">
-            {[
-              {
-                id: "overview",
-                label: language === "ar" ? "نظرة عامة" : "Overview",
-                icon: BarChart3,
-              },
-              {
-                id: "subscriptions",
-                label: language === "ar" ? "الاشتراكات والإهداءات" : "Subscriptions & Gifted VIPs",
-                icon: Gift,
-              },
-              {
-                id: "ai_analytics",
-                label: language === "ar" ? "استهلاك الذكاء الاصطناعي" : "AI Tokens & API Costs",
-                icon: Cpu,
-              },
-              {
-                id: "students",
-                label: language === "ar" ? "أوائل الطلاب" : "Top Students",
-                icon: Trophy,
-              },
-              { id: "subjects", label: language === "ar" ? "المواد" : "Subjects", icon: BookOpen },
-              { id: "users", label: language === "ar" ? "المستفيدين" : "Users", icon: Users },
-              {
-                id: "audit",
-                label: language === "ar" ? "السجل النظيف" : "Audit",
-                icon: ShieldCheck,
-              },
-            ].map((tab) => {
-              const Icon = tab.icon;
-              return (
-                <button
-                  key={tab.id}
-                  onClick={() => setActiveTab(tab.id as typeof activeTab)}
-                  className={cn(
-                    "flex items-center gap-2 px-5 py-2.5 rounded-xl transition-all font-bold text-xs sm:text-sm select-none whitespace-nowrap shrink-0",
-                    activeTab === tab.id
-                      ? "bg-primary text-white shadow-lg shadow-primary/20 scale-105"
-                      : "text-muted-foreground hover:bg-muted hover:text-foreground"
-                  )}
-                >
-                  <Icon size={16} />
-                  {tab.label}
-                </button>
-              );
-            })}
+          {/* Global UI List Section Picker */}
+          <div className="bg-card border border-border rounded-3xl p-5 shadow-md space-y-4">
+            <div className="flex items-center justify-between px-1">
+              <div className="flex items-center gap-2.5">
+                <span className="p-2 rounded-xl bg-primary/10 text-primary">
+                  <ListFilter size={18} />
+                </span>
+                <div>
+                  <h2 className="text-xs font-black text-foreground uppercase tracking-wider">
+                    {language === "ar"
+                      ? "قائمة أقسام التحليلات والمالية"
+                      : "Analytics Section Selector List"}
+                  </h2>
+                  <p className="text-[11px] text-muted-foreground">
+                    {language === "ar"
+                      ? "اختر القسم لعرض التحليلات والتفاصيل الخاصة به"
+                      : "Select any section list item to view detailed analytics"}
+                  </p>
+                </div>
+              </div>
+              <span className="text-[11px] font-extrabold text-primary bg-primary/10 px-3 py-1 rounded-full border border-primary/20">
+                7 {language === "ar" ? "أقسام متاحة" : "Sections"}
+              </span>
+            </div>
+
+            {/* List Menu Grid */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-7 gap-3">
+              {analyticsSections.map((section) => {
+                const Icon = section.icon;
+                const isActive = activeTab === section.id;
+                return (
+                  <button
+                    key={section.id}
+                    onClick={() => setActiveTab(section.id as typeof activeTab)}
+                    className={cn(
+                      "flex flex-col justify-between p-3.5 rounded-2xl border transition-all duration-300 text-left select-none group min-h-[90px]",
+                      isActive
+                        ? "bg-primary text-white border-primary shadow-lg shadow-primary/25 scale-[1.02]"
+                        : "bg-muted/20 border-border/60 hover:border-primary/40 hover:bg-muted/50 text-muted-foreground hover:text-foreground"
+                    )}
+                  >
+                    <div className="flex items-center justify-between w-full">
+                      <span
+                        className={cn(
+                          "p-2 rounded-xl shrink-0 transition-transform group-hover:scale-110",
+                          isActive
+                            ? "bg-white/20 text-white"
+                            : "bg-card border border-border text-primary"
+                        )}
+                      >
+                        <Icon size={16} />
+                      </span>
+                      {isActive && <span className="w-2 h-2 rounded-full bg-white animate-pulse" />}
+                    </div>
+
+                    <div className="mt-2">
+                      <p className="font-extrabold text-xs truncate">{section.label}</p>
+                      <p
+                        className={cn(
+                          "text-[10px] truncate font-medium mt-0.5",
+                          isActive ? "text-white/80" : "text-muted-foreground"
+                        )}
+                      >
+                        {section.desc}
+                      </p>
+                    </div>
+                  </button>
+                );
+              })}
+            </div>
           </div>
 
           {/* OVERVIEW TAB */}
@@ -914,8 +1001,8 @@ export default function AdminAnalyticsPage() {
                         </h2>
                         <p className="text-xs text-muted-foreground">
                           {language === "ar"
-                            ? "تقدير استهلاك محرك Google Gemini للمنصة"
-                            : "Estimated Google Gemini API usage & tokens"}
+                            ? "استهلاك محرك Google Gemini الفعلي للمنصة"
+                            : "Real Google Gemini API usage & tokens"}
                         </p>
                       </div>
                     </div>
@@ -1180,61 +1267,6 @@ export default function AdminAnalyticsPage() {
                   </table>
                 </div>
               </ScaleIn>
-
-              {/* Payment Gateways Integration Status */}
-              <div className="p-6 rounded-3xl bg-card border border-border shadow-md space-y-4">
-                <div className="flex items-center gap-3">
-                  <CreditCard className="text-primary" size={24} />
-                  <div>
-                    <h3 className="text-base font-bold text-foreground">
-                      {language === "ar"
-                        ? "جاهزية بوابات الدفع الإلكترونية"
-                        : "Live Payment Gateway Integration Status"}
-                    </h3>
-                    <p className="text-xs text-muted-foreground">
-                      {language === "ar"
-                        ? "الموقع حالياً في وضع الاستعداد بانتظار مفاتيح API للبوابات"
-                        : "Platform ready for direct API keys deployment"}
-                    </p>
-                  </div>
-                </div>
-
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 pt-2">
-                  <div className="p-4 rounded-2xl bg-muted/40 border border-border flex items-center gap-3">
-                    <span className="p-2 rounded-xl bg-rose-500/10 text-rose-500 font-black text-xs">
-                      VODAFONE
-                    </span>
-                    <div>
-                      <p className="font-bold text-xs">Vodafone Cash</p>
-                      <p className="text-[10px] text-emerald-500 font-semibold">
-                        {language === "ar" ? "جاهز للربط" : "Ready for API Key"}
-                      </p>
-                    </div>
-                  </div>
-                  <div className="p-4 rounded-2xl bg-muted/40 border border-border flex items-center gap-3">
-                    <span className="p-2 rounded-xl bg-purple-500/10 text-purple-500 font-black text-xs">
-                      INSTAPAY
-                    </span>
-                    <div>
-                      <p className="font-bold text-xs">InstaPay Egypt</p>
-                      <p className="text-[10px] text-emerald-500 font-semibold">
-                        {language === "ar" ? "جاهز للربط" : "Ready for API Key"}
-                      </p>
-                    </div>
-                  </div>
-                  <div className="p-4 rounded-2xl bg-muted/40 border border-border flex items-center gap-3">
-                    <span className="p-2 rounded-xl bg-blue-500/10 text-blue-500 font-black text-xs">
-                      VISA/MC
-                    </span>
-                    <div>
-                      <p className="font-bold text-xs">Debit / Credit Cards</p>
-                      <p className="text-[10px] text-emerald-500 font-semibold">
-                        {language === "ar" ? "جاهز للربط" : "Ready for API Key"}
-                      </p>
-                    </div>
-                  </div>
-                </div>
-              </div>
             </div>
           )}
 
@@ -1268,8 +1300,8 @@ export default function AdminAnalyticsPage() {
                   </p>
                   <p className="text-xs text-muted-foreground">
                     {language === "ar"
-                      ? "مدخلات ومخرجات Google Gemini"
-                      : "Gemini Input & Output Tokens"}
+                      ? "مدخلات ومخرجات Google Gemini الحقيقية"
+                      : "Real Gemini Input & Output Tokens"}
                   </p>
                 </ScaleIn>
 
@@ -1848,7 +1880,9 @@ export default function AdminAnalyticsPage() {
                   <div>
                     <h2 className="text-xl font-bold flex items-center gap-3">
                       <ShieldCheck className="w-6 h-6 text-indigo-500 group-hover:scale-110 transition-transform" />
-                      {language === "ar" ? "سجل العمليات الإدارية" : "Administrative Audit Trail"}
+                      {language === "ar"
+                        ? "سجل العمليات الإدارية والأمان"
+                        : "Administrative Audit Trail"}
                     </h2>
                   </div>
                 </div>
@@ -1863,7 +1897,7 @@ export default function AdminAnalyticsPage() {
                         <div
                           className={cn(
                             "p-3 rounded-2xl transition-all group-hover/log:scale-110 shadow-inner",
-                            log.action.includes("CREATE")
+                            log.action.includes("CREATE") || log.action.includes("GENERATED")
                               ? "bg-emerald-500 text-white"
                               : log.action.includes("DELETE")
                                 ? "bg-rose-500 text-white"

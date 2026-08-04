@@ -204,6 +204,44 @@ async function getLiveDatabaseContext(userUid?: string): Promise<string> {
   return contextText;
 }
 
+async function recordAiUsageLog(
+  userUid: string | undefined,
+  systemText: string,
+  messages: ChatHistoryMessage[],
+  output: string
+) {
+  try {
+    if (!adminDb) return;
+
+    const inputChars =
+      systemText.length +
+      messages.reduce(
+        (acc, m) => acc + (typeof m.content === "string" ? m.content.length : 100),
+        0
+      );
+    const outputChars = output.length;
+
+    const inputTokens = Math.max(80, Math.ceil(inputChars / 3));
+    const outputTokens = Math.max(40, Math.ceil(outputChars / 3));
+    const totalTokens = inputTokens + outputTokens;
+    const costUsd = (totalTokens / 1000) * 0.000075;
+
+    await adminDb.collection("logs").add({
+      action: "AI_GENERATION",
+      service: "AI Chat / Assistant",
+      details: `Generated AI chat response (~${totalTokens} tokens: ${inputTokens} in, ${outputTokens} out)`,
+      inputTokens,
+      outputTokens,
+      totalTokens,
+      costUsd,
+      timestamp: new Date().toISOString(),
+      userEmail: userUid ? `Student (${userUid.slice(0, 6)})` : "Student / User",
+    });
+  } catch (err) {
+    console.warn("Failed to record real AI log:", err);
+  }
+}
+
 export async function generateText(prompt: string): Promise<string> {
   return generateGeminiResponse([{ role: "user", content: prompt }]);
 }
@@ -216,6 +254,7 @@ export async function generateGeminiResponse(
   const cacheKey = JSON.stringify({ messages: messages.slice(-4), userUid, customSystemPrompt });
   const cachedResponse = responseCache.get(cacheKey);
   if (cachedResponse) {
+    void recordAiUsageLog(userUid, "Cached System Context", messages, cachedResponse);
     return cachedResponse;
   }
 
@@ -273,6 +312,7 @@ export async function generateGeminiResponse(
           const textOutput = resData?.choices?.[0]?.message?.content || "";
           if (textOutput.trim()) {
             responseCache.set(cacheKey, textOutput);
+            void recordAiUsageLog(userUid, systemInstructionText, messages, textOutput);
             return textOutput;
           }
         } else {
