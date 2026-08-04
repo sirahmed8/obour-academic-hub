@@ -48,6 +48,9 @@ export interface User {
   isVip?: boolean;
   subscriptionTier?: "free" | "vip";
   vipExpiresAt?: string;
+  vipGrantedBy?: string;
+  vipGrantedAt?: string;
+  vipType?: "paid" | "gifted";
 }
 
 export interface Notification {

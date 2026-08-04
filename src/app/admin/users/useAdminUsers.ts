@@ -194,14 +194,19 @@ export function useAdminUsers(): AdminUsersController {
       await userService.update(user.uid, {
         isVip: nextVip,
         subscriptionTier: nextVip ? "vip" : "free",
+        vipType: nextVip ? "gifted" : undefined,
+        vipGrantedBy: nextVip
+          ? currentUser?.displayName || currentUser?.email || "Owner/Admin"
+          : undefined,
+        vipGrantedAt: nextVip ? new Date().toISOString() : undefined,
       });
       toast.success(
         language === "ar"
           ? nextVip
-            ? "👑 تم تفعيل العبور بلس للمستخدم بنجاح!"
+            ? "👑 تم تفعيل العبور بلس للمستخدم مجاناً بنجاح!"
             : "تم إلغاء تفعيل العبور بلس"
           : nextVip
-            ? "👑 VIP Pass activated for user!"
+            ? "👑 Complimentary VIP Pass granted to user!"
             : "VIP Pass deactivated for user"
       );
     } catch (err) {

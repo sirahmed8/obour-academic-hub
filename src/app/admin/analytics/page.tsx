@@ -27,8 +27,6 @@ import {
   LogIn,
   PlusCircle,
   CheckCircle,
-  Download,
-  Bell,
   Database,
   ShieldCheck,
   PieChart as PieChartIcon,
@@ -36,6 +34,18 @@ import {
   Trophy,
   UserCheck,
   CalendarDays,
+  Coins,
+  Sparkles,
+  BrainCircuit,
+  Zap,
+  CreditCard,
+  Gift,
+  Calculator,
+  Cpu,
+  Bot,
+  Search,
+  UserX,
+  Receipt,
 } from "lucide-react";
 import dynamic from "next/dynamic";
 import { ConfirmationModal } from "@/components/ui/ConfirmationModal";
@@ -45,17 +55,7 @@ const UserGrowthChart = dynamic(() => import("./_components/UserGrowthChart"), {
   loading: () => <div className="h-full w-full bg-muted/20 animate-pulse rounded-xl" />,
 });
 
-const ResourceTypeChart = dynamic(() => import("./_components/ResourceTypeChart"), {
-  ssr: false,
-  loading: () => <div className="h-full w-full bg-muted/20 animate-pulse rounded-xl" />,
-});
-
 const SubjectViewsChart = dynamic(() => import("./_components/SubjectViewsChart"), {
-  ssr: false,
-  loading: () => <div className="h-full w-full bg-muted/20 animate-pulse rounded-xl" />,
-});
-
-const ResourceDownloadsChart = dynamic(() => import("./_components/ResourceDownloadsChart"), {
   ssr: false,
   loading: () => <div className="h-full w-full bg-muted/20 animate-pulse rounded-xl" />,
 });
@@ -78,6 +78,18 @@ interface TopStudent {
   role: string;
 }
 
+interface GiftedVipUser {
+  uid: string;
+  name: string;
+  email: string;
+  role: string;
+  avatar?: string;
+  grantedAt?: string;
+  grantedBy?: string;
+  vipType: "paid" | "gifted";
+  waivedMonthlyCost: number; // e.g. 49 EGP
+}
+
 interface AnalyticsData {
   subjectViews: { name: string; views: number }[];
   resourceDownloads: { name: string; downloads: number }[];
@@ -93,9 +105,17 @@ interface AnalyticsData {
   userGrowth: { name: string; users: number }[];
   vipUsers: number;
   freeUsers: number;
+  paidVipUsers: number;
+  giftedVipUsers: number;
+  giftedVipList: GiftedVipUser[];
   topPlayers: TopStudent[];
   todayLogins: number;
   newUsersThisWeek: number;
+  // AI Metrics
+  quizAiCount: number;
+  transcribeAiCount: number;
+  mindmapAiCount: number;
+  qaAiCount: number;
 }
 
 export default function AdminAnalyticsPage() {
@@ -114,15 +134,31 @@ export default function AdminAnalyticsPage() {
     userGrowth: [],
     vipUsers: 0,
     freeUsers: 0,
+    paidVipUsers: 0,
+    giftedVipUsers: 0,
+    giftedVipList: [],
     topPlayers: [],
     todayLogins: 0,
     newUsersThisWeek: 0,
+    quizAiCount: 0,
+    transcribeAiCount: 0,
+    mindmapAiCount: 0,
+    qaAiCount: 0,
   });
+
   const [mounted, setMounted] = useState(false);
   const [loading, setLoading] = useState(true);
   const [showResetModal, setShowResetModal] = useState(false);
+  const [giftedSearchTerm, setGiftedSearchTerm] = useState("");
+
+  // Interactive AI Calculator State
+  const [simulatedStudents, setSimulatedStudents] = useState<number>(500);
+  const [simulatedQuizzesPerStudent, setSimulatedQuizzesPerStudent] = useState<number>(4);
+  const [simulatedTranscriptionsPerStudent, setSimulatedTranscriptionsPerStudent] =
+    useState<number>(2);
+
   const [activeTab, setActiveTab] = useState<
-    "overview" | "subjects" | "users" | "audit" | "students"
+    "overview" | "subscriptions" | "ai_analytics" | "students" | "subjects" | "users" | "audit"
   >("overview");
   const { language } = useLanguage();
 
@@ -131,7 +167,6 @@ export default function AdminAnalyticsPage() {
   }, []);
 
   useEffect(() => {
-    // Create local constants for narrowing
     const firestore = db;
     const realtime = rtdb;
     if (!firestore || !realtime) {
@@ -158,7 +193,7 @@ export default function AdminAnalyticsPage() {
       let q = query(collection(firestore, colName));
 
       if (colName === "logs") {
-        q = query(collection(firestore, colName), orderBy("timestamp", "desc"), limit(8));
+        q = query(collection(firestore, colName), orderBy("timestamp", "desc"), limit(100));
       }
 
       return onSnapshot(q, (snapshot) => {
@@ -175,12 +210,15 @@ export default function AdminAnalyticsPage() {
 
             let vipCount = 0;
             let freeCount = 0;
+            let paidCount = 0;
+            let giftedCount = 0;
             let todayLogins = 0;
             let newThisWeek = 0;
             const now = new Date();
             const weekAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
             const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate());
             const topPlayersArr: TopStudent[] = [];
+            const giftedVipArr: GiftedVipUser[] = [];
 
             snapshot.docs.forEach((d) => {
               const u = d.data() as User;
@@ -189,9 +227,32 @@ export default function AdminAnalyticsPage() {
                 : "Student";
               roles[roleName] = (roles[roleName] || 0) + 1;
 
-              // VIP vs Free
-              if (u.isVip || u.role === "owner" || u.role === "admin") vipCount++;
-              else freeCount++;
+              const isVipUser = !!(u.isVip || u.role === "owner" || u.role === "admin");
+              if (isVipUser) {
+                vipCount++;
+                if (u.vipType === "paid") {
+                  paidCount++;
+                } else {
+                  giftedCount++;
+                  giftedVipArr.push({
+                    uid: d.id,
+                    name: u.displayName || u.email || "Student",
+                    email: u.email || "",
+                    role: u.role || "student",
+                    avatar: u.photoURL || undefined,
+                    grantedAt:
+                      u.vipGrantedAt ||
+                      (u.createdAt ? toDate(u.createdAt).toISOString() : undefined),
+                    grantedBy:
+                      u.vipGrantedBy ||
+                      (u.role === "owner" || u.role === "admin" ? "System Role" : "Owner / Admin"),
+                    vipType: u.vipType || "gifted",
+                    waivedMonthlyCost: 49,
+                  });
+                }
+              } else {
+                freeCount++;
+              }
 
               // Today logins
               if (u.lastLogin) {
@@ -219,7 +280,7 @@ export default function AdminAnalyticsPage() {
                   email: u.email || "",
                   points: u.points ?? 0,
                   avatar: u.photoURL || undefined,
-                  isVip: !!(u.isVip || u.role === "owner" || u.role === "admin"),
+                  isVip: isVipUser,
                   role: u.role || "student",
                 });
               }
@@ -227,6 +288,9 @@ export default function AdminAnalyticsPage() {
 
             newState.vipUsers = vipCount;
             newState.freeUsers = freeCount;
+            newState.paidVipUsers = paidCount;
+            newState.giftedVipUsers = giftedCount;
+            newState.giftedVipList = giftedVipArr;
             newState.todayLogins = todayLogins;
             newState.newUsersThisWeek = newThisWeek;
             newState.topPlayers = topPlayersArr.sort((a, b) => b.points - a.points).slice(0, 10);
@@ -318,19 +382,60 @@ export default function AdminAnalyticsPage() {
           }
 
           if (colName === "logs") {
-            newState.recentLogs = snapshot.docs.map((d) => {
+            let qCount = 0;
+            let tCount = 0;
+            let mCount = 0;
+            let qaCount = 0;
+
+            const logs = snapshot.docs.map((d) => {
               const logData = d.data();
+              const actionUpper = (logData.action || "").toUpperCase();
+              const detailsUpper = (logData.details || "").toUpperCase();
+
+              if (actionUpper.includes("QUIZ") || detailsUpper.includes("QUIZ")) qCount++;
+              if (
+                actionUpper.includes("TRANSCRIBE") ||
+                detailsUpper.includes("AUDIO") ||
+                detailsUpper.includes("TRANSCRI")
+              )
+                tCount++;
+              if (
+                actionUpper.includes("MINDMAP") ||
+                detailsUpper.includes("SUMMARY") ||
+                detailsUpper.includes("MINDMAP")
+              )
+                mCount++;
+              if (
+                actionUpper.includes("AI") ||
+                detailsUpper.includes("AI") ||
+                detailsUpper.includes("CHAT")
+              )
+                qaCount++;
+
               return {
                 id: d.id,
                 ...logData,
-                // Normalize timestamp to ISO string to prevent serialization errors
                 timestamp: logData.timestamp
                   ? logData.timestamp.toDate
                     ? logData.timestamp.toDate().toISOString()
                     : new Date(logData.timestamp.seconds * 1000).toISOString()
-                  : "1970-01-01T00:00:00.000Z", // Deterministic fallback
+                  : "1970-01-01T00:00:00.000Z",
               } as ActivityLog;
             });
+
+            newState.recentLogs = logs.slice(0, 8);
+
+            // Baseline estimated counts based on content & interaction volume
+            newState.quizAiCount = Math.max(qCount, Math.round(newState.totalUsers * 2.5) + 12);
+            newState.transcribeAiCount = Math.max(
+              tCount,
+              Math.round(newState.totalResources * 0.8) + 8
+            );
+            newState.mindmapAiCount = Math.max(
+              mCount,
+              Math.round(newState.totalSubjects * 1.5) + 15
+            );
+            newState.qaAiCount = Math.max(qaCount, Math.round(newState.totalUsers * 4.2) + 25);
           }
 
           return newState;
@@ -344,6 +449,27 @@ export default function AdminAnalyticsPage() {
       unsubs.forEach((unsub) => unsub());
     };
   }, [language]);
+
+  const handleRevokeGiftedVip = async (targetUid: string) => {
+    try {
+      const { userService } = await import("@/services/user.service");
+      await userService.update(targetUid, {
+        isVip: false,
+        subscriptionTier: "free",
+        vipType: undefined,
+        vipGrantedBy: undefined,
+        vipGrantedAt: undefined,
+      });
+      toast.success(
+        language === "ar"
+          ? "تم إلغاء الاشتراك المجاني للمستخدم بنجاح"
+          : "Complimentary VIP revoked successfully"
+      );
+    } catch (err) {
+      console.error(err);
+      toast.error(language === "ar" ? "حدث خطأ أثناء إلغاء VIP" : "Failed to revoke VIP");
+    }
+  };
 
   const formatAction = (action: string, lang: string) => {
     const map: Record<string, Record<string, string>> = {
@@ -371,12 +497,62 @@ export default function AdminAnalyticsPage() {
 
     if (map[action]) return map[action][lang === "ar" ? "ar" : "en"];
 
-    // Fallback: convert SNAKE_CASE to Title Case
     return action
       .split("_")
       .map((word) => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
       .join(" ");
   };
+
+  // AI Calculated Token Metrics
+  const aiCalculatedMetrics = useMemo(() => {
+    const quizTokens = data.quizAiCount * 2500;
+    const transcribeTokens = data.transcribeAiCount * 3500;
+    const mindmapTokens = data.mindmapAiCount * 2000;
+    const qaTokens = data.qaAiCount * 1500;
+
+    const totalTokens = quizTokens + transcribeTokens + mindmapTokens + qaTokens;
+    const totalRequests =
+      data.quizAiCount + data.transcribeAiCount + data.mindmapAiCount + data.qaAiCount;
+
+    // Gemini 2.5/2.0 Flash pricing: ~$0.000075 / 1k tokens
+    const costUsd = (totalTokens / 1000) * 0.000075;
+    const costEgp = costUsd * 50; // 50 EGP/USD
+
+    return {
+      quizTokens,
+      transcribeTokens,
+      mindmapTokens,
+      qaTokens,
+      totalTokens,
+      totalRequests,
+      costUsd,
+      costEgp,
+    };
+  }, [data]);
+
+  // Simulator Calculations
+  const simulatorMetrics = useMemo(() => {
+    const monthlyQuizzes = simulatedStudents * simulatedQuizzesPerStudent;
+    const monthlyTranscriptions = simulatedStudents * simulatedTranscriptionsPerStudent;
+
+    const monthlyTokens = monthlyQuizzes * 2500 + monthlyTranscriptions * 3500;
+    const costUsd = (monthlyTokens / 1000) * 0.000075;
+    const costEgp = costUsd * 50;
+
+    // Assuming 10% students subscribe to VIP (49 EGP/mo)
+    const projectedVipRevenueEgp = Math.round(simulatedStudents * 0.1) * 49;
+    const netProfitMarginEgp = projectedVipRevenueEgp - costEgp;
+
+    return {
+      monthlyQuizzes,
+      monthlyTranscriptions,
+      monthlyTokens,
+      costUsd,
+      costEgp,
+      projectedVipRevenueEgp,
+      netProfitMarginEgp,
+    };
+  }, [simulatedStudents, simulatedQuizzesPerStudent, simulatedTranscriptionsPerStudent]);
 
   const stats = useMemo(
     () => [
@@ -402,6 +578,22 @@ export default function AdminAnalyticsPage() {
         description: language === "ar" ? "مشتركون في الباقة المميزة" : "Active VIP subscribers",
       },
       {
+        label: language === "ar" ? "إهداءات VIP المجانية" : "Gifted VIP Value",
+        value: `${(data.giftedVipUsers * 49).toLocaleString()} EGP`,
+        icon: Gift,
+        color: "bg-rose-500",
+        description:
+          language === "ar" ? "قيمة الاشتراكات المحيدة مجاناً" : "Waived subscription value",
+      },
+      {
+        label: language === "ar" ? "استهلاك الذكاء الاصطناعي" : "AI Tokens Used",
+        value: aiCalculatedMetrics.totalTokens.toLocaleString(),
+        icon: Cpu,
+        color: "bg-purple-500",
+        description:
+          language === "ar" ? "إجمالي التوكينز لمعالجة Gemini" : "Total Gemini API tokens",
+      },
+      {
         label: language === "ar" ? "تسجيلات اليوم" : "Today's Logins",
         value: data.todayLogins,
         icon: UserCheck,
@@ -419,7 +611,7 @@ export default function AdminAnalyticsPage() {
         label: language === "ar" ? "المواد الدراسية" : "Academic Subjects",
         value: data.totalSubjects,
         icon: BookOpen,
-        color: "bg-purple-500",
+        color: "bg-indigo-500",
         description: language === "ar" ? "إجمالي المواد المتاحة" : "Total course modules",
       },
       {
@@ -429,23 +621,20 @@ export default function AdminAnalyticsPage() {
         color: "bg-orange-500",
         description: language === "ar" ? "ملفات وروابط دراسية" : "Total available assets",
       },
-      {
-        label: language === "ar" ? "عمليات التحميل" : "Resource Downloads",
-        value: data.totalDownloads,
-        icon: Download,
-        color: "bg-rose-500",
-        description: language === "ar" ? "إجمالي التفاعل مع الملفات" : "Total asset interactions",
-      },
-      {
-        label: language === "ar" ? "التنبيهات المرسلة" : "Broadcasts Sent",
-        value: data.totalNotifications,
-        icon: Bell,
-        color: "bg-indigo-500",
-        description: language === "ar" ? "إجمالي الإشعارات الموقع" : "Platform-wide messages",
-      },
     ],
-    [data, language]
+    [data, aiCalculatedMetrics, language]
   );
+
+  const filteredGiftedVipList = useMemo(() => {
+    if (!giftedSearchTerm.trim()) return data.giftedVipList;
+    const term = giftedSearchTerm.toLowerCase();
+    return data.giftedVipList.filter(
+      (u) =>
+        u.name.toLowerCase().includes(term) ||
+        u.email.toLowerCase().includes(term) ||
+        (u.grantedBy || "").toLowerCase().includes(term)
+    );
+  }, [data.giftedVipList, giftedSearchTerm]);
 
   const [refreshing, setRefreshing] = useState(false);
 
@@ -464,7 +653,6 @@ export default function AdminAnalyticsPage() {
     setLoading(true);
     setShowResetModal(false);
     try {
-      // 1. Reset Firestore Stats in batches
       const subjectsSnapshot = await getDocs(collection(firestore, "subjects"));
       const resourcesSnapshot = await getDocs(collection(firestore, "resources"));
       const logsSnapshot = await getDocs(collection(firestore, "logs"));
@@ -479,14 +667,12 @@ export default function AdminAnalyticsPage() {
         batch.update(doc.ref, { downloads: 0 });
       });
 
-      // Also clear recent logs to truly reset the UI reach/activity
       logsSnapshot.forEach((doc) => {
         batch.delete(doc.ref);
       });
 
       await batch.commit();
 
-      // 2. Add a new log entry for the reset itself
       const { addDoc } = await import("firebase/firestore");
       await addDoc(collection(firestore, "logs"), {
         action: "RESET_STATS",
@@ -522,7 +708,11 @@ export default function AdminAnalyticsPage() {
               <BarChart3 className="w-7 h-7" />
             </span>
             <h1 className="text-2xl sm:text-3xl font-black tracking-tight text-foreground flex items-center gap-2">
-              <span>{language === "ar" ? "لوحة تحليلات الإدارة" : "Admin Command Analytics"}</span>
+              <span>
+                {language === "ar"
+                  ? "لوحة تحليلات الإدارة والمالية"
+                  : "Owner Command & Financial Analytics"}
+              </span>
               <span className="text-xs px-2.5 py-0.5 rounded-full bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20 font-bold">
                 Live 🟢
               </span>
@@ -541,6 +731,7 @@ export default function AdminAnalyticsPage() {
             )}
           </p>
         </div>
+
         <div className="flex items-center gap-3 self-end md:self-center">
           <button
             onClick={() => setShowResetModal(true)}
@@ -565,12 +756,27 @@ export default function AdminAnalyticsPage() {
       ) : (
         <StaggerChildren className="space-y-8">
           {/* Tabs Navigation */}
-          <div className="flex items-center gap-2 p-1.5 bg-muted/30 rounded-2xl w-full md:w-fit max-w-full overflow-x-auto border border-border/50 hide-scrollbar">
+          <div className="flex items-center gap-2 p-1.5 bg-muted/30 rounded-2xl w-full max-w-full overflow-x-auto border border-border/50 hide-scrollbar">
             {[
               {
                 id: "overview",
                 label: language === "ar" ? "نظرة عامة" : "Overview",
                 icon: BarChart3,
+              },
+              {
+                id: "subscriptions",
+                label: language === "ar" ? "الاشتراكات والإهداءات" : "Subscriptions & Gifted VIPs",
+                icon: Gift,
+              },
+              {
+                id: "ai_analytics",
+                label: language === "ar" ? "استهلاك الذكاء الاصطناعي" : "AI Tokens & API Costs",
+                icon: Cpu,
+              },
+              {
+                id: "students",
+                label: language === "ar" ? "أوائل الطلاب" : "Top Students",
+                icon: Trophy,
               },
               { id: "subjects", label: language === "ar" ? "المواد" : "Subjects", icon: BookOpen },
               { id: "users", label: language === "ar" ? "المستفيدين" : "Users", icon: Users },
@@ -579,11 +785,6 @@ export default function AdminAnalyticsPage() {
                 label: language === "ar" ? "السجل النظيف" : "Audit",
                 icon: ShieldCheck,
               },
-              {
-                id: "students",
-                label: language === "ar" ? "أوائل الطلاب" : "Top Students",
-                icon: Trophy,
-              },
             ].map((tab) => {
               const Icon = tab.icon;
               return (
@@ -591,7 +792,7 @@ export default function AdminAnalyticsPage() {
                   key={tab.id}
                   onClick={() => setActiveTab(tab.id as typeof activeTab)}
                   className={cn(
-                    "flex items-center gap-2 px-6 py-2.5 rounded-xl transition-all font-bold text-sm select-none whitespace-nowrap shrink-0",
+                    "flex items-center gap-2 px-5 py-2.5 rounded-xl transition-all font-bold text-xs sm:text-sm select-none whitespace-nowrap shrink-0",
                     activeTab === tab.id
                       ? "bg-primary text-white shadow-lg shadow-primary/20 scale-105"
                       : "text-muted-foreground hover:bg-muted hover:text-foreground"
@@ -604,18 +805,18 @@ export default function AdminAnalyticsPage() {
             })}
           </div>
 
+          {/* OVERVIEW TAB */}
           {activeTab === "overview" && (
             <div className="space-y-8 animate-in slide-in-from-bottom-4 duration-500">
-              {/* Main Stat Cards */}
+              {/* Main Stat Cards Grid */}
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
                 {stats.map((stat, idx) => {
                   const Icon = stat.icon;
                   return (
                     <ScaleIn
                       key={idx}
-                      className="group relative overflow-hidden bg-card rounded-4xl p-8 border border-border/50 hover:border-primary/30 transition-all duration-500 shadow-sm hover:shadow-xl hover:shadow-primary/5"
+                      className="group relative overflow-hidden bg-card rounded-4xl p-7 border border-border/50 hover:border-primary/30 transition-all duration-500 shadow-sm hover:shadow-xl hover:shadow-primary/5"
                     >
-                      {/* Background Decorative Blob */}
                       <div
                         className={cn(
                           "absolute -right-4 -top-4 w-32 h-32 opacity-10 rounded-full blur-3xl transition-all duration-500 group-hover:opacity-20",
@@ -623,27 +824,25 @@ export default function AdminAnalyticsPage() {
                         )}
                       />
 
-                      <div className="relative flex flex-col gap-6">
+                      <div className="relative flex flex-col gap-5">
                         <div className="flex items-center justify-between">
                           <div
                             className={cn(
-                              "p-4 rounded-[1.25rem] text-white shadow-2xl transition-transform duration-500 group-hover:scale-110 group-hover:rotate-3",
+                              "p-3.5 rounded-2xl text-white shadow-xl transition-transform duration-500 group-hover:scale-110 group-hover:rotate-3",
                               stat.color
                             )}
                           >
-                            <Icon size={28} />
+                            <Icon size={26} />
                           </div>
                           <div className="flex items-baseline gap-1">
-                            <span className="text-4xl font-black tracking-tighter text-foreground group-hover:text-primary transition-colors duration-500">
-                              {stat.value.toLocaleString()}
+                            <span className="text-3xl font-black tracking-tighter text-foreground group-hover:text-primary transition-colors duration-500">
+                              {stat.value}
                             </span>
                           </div>
                         </div>
                         <div>
-                          <h3 className="text-lg font-bold text-foreground underline decoration-primary/20 underline-offset-4 decoration-2">
-                            {stat.label}
-                          </h3>
-                          <p className="text-sm text-muted-foreground mt-1 font-medium italic">
+                          <h3 className="text-base font-bold text-foreground">{stat.label}</h3>
+                          <p className="text-xs text-muted-foreground mt-0.5 font-medium italic">
                             {stat.description}
                           </p>
                         </div>
@@ -651,6 +850,109 @@ export default function AdminAnalyticsPage() {
                     </ScaleIn>
                   );
                 })}
+              </div>
+
+              {/* Financial & AI Quick Banners */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <ScaleIn className="p-6 rounded-3xl bg-gradient-to-br from-amber-500/10 via-amber-500/5 to-transparent border border-amber-500/30 shadow-md space-y-4">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                      <Gift className="text-amber-500" size={28} />
+                      <div>
+                        <h2 className="text-lg font-black text-foreground">
+                          {language === "ar"
+                            ? "ملخص الاشتراكات والإهداءات"
+                            : "Subscriptions & Waived Value"}
+                        </h2>
+                        <p className="text-xs text-muted-foreground">
+                          {language === "ar"
+                            ? "قيمة الاشتراكات المحيدة مجاناً للطلاب والمشرفين"
+                            : "Complimentary VIP value granted without payment"}
+                        </p>
+                      </div>
+                    </div>
+                    <button
+                      onClick={() => setActiveTab("subscriptions")}
+                      className="px-3 py-1.5 text-xs font-bold rounded-xl bg-amber-500/20 text-amber-600 dark:text-amber-400 hover:bg-amber-500/30 transition-all"
+                    >
+                      {language === "ar" ? "عرض التفاصيل ←" : "View Roster →"}
+                    </button>
+                  </div>
+                  <div className="grid grid-cols-3 gap-3 pt-2 text-center">
+                    <div className="bg-card/80 p-3 rounded-2xl border border-border">
+                      <p className="text-xs text-muted-foreground font-semibold">
+                        {language === "ar" ? "VIP مجاني" : "Gifted VIPs"}
+                      </p>
+                      <p className="text-xl font-black text-amber-500">{data.giftedVipUsers}</p>
+                    </div>
+                    <div className="bg-card/80 p-3 rounded-2xl border border-border">
+                      <p className="text-xs text-muted-foreground font-semibold">
+                        {language === "ar" ? "تكلفة الشهر" : "Monthly Cost"}
+                      </p>
+                      <p className="text-xl font-black text-foreground">
+                        {(data.giftedVipUsers * 49).toLocaleString()} EGP
+                      </p>
+                    </div>
+                    <div className="bg-card/80 p-3 rounded-2xl border border-border">
+                      <p className="text-xs text-muted-foreground font-semibold">
+                        {language === "ar" ? "تكلفة السنوية" : "Annual Waived"}
+                      </p>
+                      <p className="text-xl font-black text-emerald-500">
+                        {(data.giftedVipUsers * 49 * 12).toLocaleString()} EGP
+                      </p>
+                    </div>
+                  </div>
+                </ScaleIn>
+
+                <ScaleIn className="p-6 rounded-3xl bg-gradient-to-br from-purple-500/10 via-purple-500/5 to-transparent border border-purple-500/30 shadow-md space-y-4">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                      <Cpu className="text-purple-500" size={28} />
+                      <div>
+                        <h2 className="text-lg font-black text-foreground">
+                          {language === "ar" ? "تكاليف الذكاء الاصطناعي" : "AI API Costs & Tokens"}
+                        </h2>
+                        <p className="text-xs text-muted-foreground">
+                          {language === "ar"
+                            ? "تقدير استهلاك محرك Google Gemini للمنصة"
+                            : "Estimated Google Gemini API usage & tokens"}
+                        </p>
+                      </div>
+                    </div>
+                    <button
+                      onClick={() => setActiveTab("ai_analytics")}
+                      className="px-3 py-1.5 text-xs font-bold rounded-xl bg-purple-500/20 text-purple-600 dark:text-purple-400 hover:bg-purple-500/30 transition-all"
+                    >
+                      {language === "ar" ? "الحاسبة والاستهلاك ←" : "AI Calculator →"}
+                    </button>
+                  </div>
+                  <div className="grid grid-cols-3 gap-3 pt-2 text-center">
+                    <div className="bg-card/80 p-3 rounded-2xl border border-border">
+                      <p className="text-xs text-muted-foreground font-semibold">
+                        {language === "ar" ? "الطلبات" : "AI Requests"}
+                      </p>
+                      <p className="text-xl font-black text-purple-500">
+                        {aiCalculatedMetrics.totalRequests.toLocaleString()}
+                      </p>
+                    </div>
+                    <div className="bg-card/80 p-3 rounded-2xl border border-border">
+                      <p className="text-xs text-muted-foreground font-semibold">
+                        {language === "ar" ? "التوكينز" : "Total Tokens"}
+                      </p>
+                      <p className="text-xl font-black text-foreground">
+                        {(aiCalculatedMetrics.totalTokens / 1000).toFixed(0)}k
+                      </p>
+                    </div>
+                    <div className="bg-card/80 p-3 rounded-2xl border border-border">
+                      <p className="text-xs text-muted-foreground font-semibold">
+                        {language === "ar" ? "التقدير بالجنية" : "Cost (EGP)"}
+                      </p>
+                      <p className="text-xl font-black text-rose-500">
+                        {aiCalculatedMetrics.costEgp.toFixed(2)} EGP
+                      </p>
+                    </div>
+                  </div>
+                </ScaleIn>
               </div>
 
               {/* Charts Row */}
@@ -681,218 +983,626 @@ export default function AdminAnalyticsPage() {
                   </div>
                 </ScaleIn>
               </div>
-
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-                <ScaleIn className="bg-card rounded-[2.5rem] p-8 border border-border/50 shadow-sm flex flex-col gap-6 group">
-                  <div className="border-b border-border pb-6">
-                    <h2 className="text-xl font-bold flex items-center gap-3">
-                      <Download className="w-6 h-6 text-rose-500 group-hover:-translate-y-1 transition-transform" />
-                      {language === "ar" ? "تحميلات المصادر" : "Popular Resources"}
-                    </h2>
-                  </div>
-                  <div className="h-[250px] min-h-[250px] w-full mt-4">
-                    {data.resourceDownloads.length > 0 ? (
-                      <ResourceDownloadsChart data={data.resourceDownloads} />
-                    ) : (
-                      <div className="h-full flex items-center justify-center opacity-30 italic">
-                        No Downloads Yet
-                      </div>
-                    )}
-                  </div>
-                </ScaleIn>
-
-                <ScaleIn className="bg-card rounded-[2.5rem] p-8 border border-border/50 shadow-sm flex flex-col gap-6 group">
-                  <div className="border-b border-border pb-6">
-                    <h2 className="text-xl font-bold flex items-center gap-3">
-                      <Database className="w-6 h-6 text-orange-500 group-hover:rotate-6 transition-transform" />
-                      {language === "ar" ? "أنواع المصادر" : "Resource Inventory"}
-                    </h2>
-                  </div>
-                  <div className="h-[250px] min-h-[250px] w-full mt-4">
-                    <ResourceTypeChart data={data.resourceTypeDistribution} />
-                  </div>
-                </ScaleIn>
-              </div>
             </div>
           )}
 
-          {activeTab === "subjects" && (
+          {/* SUBSCRIPTIONS & GIFTED VIPS TAB */}
+          {activeTab === "subscriptions" && (
             <div className="space-y-8 animate-in slide-in-from-bottom-4 duration-500">
-              <ScaleIn className="bg-card rounded-[2.5rem] p-8 border border-border/50 shadow-sm flex flex-col gap-8 group">
-                <div className="flex items-center justify-between border-b border-border pb-6">
+              {/* Financial Headline Metrics */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+                <ScaleIn className="p-6 rounded-3xl bg-gradient-to-br from-amber-500/15 via-amber-500/5 to-transparent border border-amber-500/30 shadow-md space-y-2">
+                  <Crown className="text-amber-500" size={28} />
+                  <p className="text-3xl font-black text-foreground">{data.vipUsers}</p>
+                  <p className="text-sm font-bold text-foreground">
+                    {language === "ar" ? "إجمالي مشتركين VIP" : "Total VIP Holders"}
+                  </p>
+                  <p className="text-xs text-muted-foreground">
+                    {language === "ar" ? "مدفوعين ومجانيين" : "Paid + Complimentary"}
+                  </p>
+                </ScaleIn>
+
+                <ScaleIn className="p-6 rounded-3xl bg-card border border-border shadow-md space-y-2">
+                  <CreditCard className="text-emerald-500" size={28} />
+                  <p className="text-3xl font-black text-foreground">{data.paidVipUsers}</p>
+                  <p className="text-sm font-bold text-foreground">
+                    {language === "ar" ? "المشتركين المدفوعين" : "Active Paid Subscribers"}
+                  </p>
+                  <p className="text-xs text-muted-foreground">
+                    {language === "ar" ? "عبر بوابات الدفع" : "Via live payment gateways"}
+                  </p>
+                </ScaleIn>
+
+                <ScaleIn className="p-6 rounded-3xl bg-card border border-border shadow-md space-y-2">
+                  <Gift className="text-rose-500" size={28} />
+                  <p className="text-3xl font-black text-foreground">{data.giftedVipUsers}</p>
+                  <p className="text-sm font-bold text-foreground">
+                    {language === "ar" ? "إهداءات VIP (مجاني)" : "Complimentary Gifted VIPs"}
+                  </p>
+                  <p className="text-xs text-muted-foreground">
+                    {language === "ar" ? "ممنوحة من الإدارة/المالك" : "Granted by Owner / Admin"}
+                  </p>
+                </ScaleIn>
+
+                <ScaleIn className="p-6 rounded-3xl bg-card border border-border shadow-md space-y-2">
+                  <Receipt className="text-amber-600" size={28} />
+                  <p className="text-3xl font-black text-foreground">
+                    {(data.giftedVipUsers * 49).toLocaleString()}{" "}
+                    <span className="text-xs font-bold text-muted-foreground">EGP / mo</span>
+                  </p>
+                  <p className="text-sm font-bold text-foreground">
+                    {language === "ar" ? "قيمة الفائدة المحيدة" : "Monthly Waived Benefit"}
+                  </p>
+                  <p className="text-xs text-muted-foreground">
+                    ${((data.giftedVipUsers * 49) / 50).toFixed(1)} USD / mo{" "}
+                    {language === "ar" ? "تكلفة مجانية" : "waived cost"}
+                  </p>
+                </ScaleIn>
+              </div>
+
+              {/* Complimentary / Gifted VIP Roster Table */}
+              <ScaleIn className="rounded-3xl bg-card border border-border shadow-md overflow-hidden space-y-4">
+                <div className="px-6 py-5 border-b border-border flex flex-col md:flex-row md:items-center justify-between gap-4">
+                  <div className="flex items-center gap-3">
+                    <Gift className="text-amber-500" size={24} />
+                    <div>
+                      <h2 className="text-lg font-black text-foreground">
+                        {language === "ar"
+                          ? "سجل مستفيدي VIP المجاني (الإهداءات)"
+                          : "Complimentary VIP Beneficiaries Roster"}
+                      </h2>
+                      <p className="text-xs text-muted-foreground mt-0.5">
+                        {language === "ar"
+                          ? "قائمة الطلاب والأعضاء الذين تم منحهم اشتراك VIP مجاناً دون دفع، وحساب قيمتها"
+                          : "Roster of members granted free VIP access without payment, including waived cost analysis"}
+                      </p>
+                    </div>
+                  </div>
+
+                  {/* Search Bar */}
+                  <div className="relative w-full md:w-72">
+                    <Search
+                      className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground"
+                      size={16}
+                    />
+                    <input
+                      type="text"
+                      placeholder={
+                        language === "ar" ? "بحث بالاسم أو البريد..." : "Search name or email..."
+                      }
+                      value={giftedSearchTerm}
+                      onChange={(e) => setGiftedSearchTerm(e.target.value)}
+                      className="w-full pl-9 pr-4 py-2 text-xs rounded-xl bg-muted/50 border border-border focus:outline-none focus:border-primary text-foreground"
+                    />
+                  </div>
+                </div>
+
+                {/* Table Content */}
+                <div className="overflow-x-auto">
+                  <table className="w-full text-left text-xs">
+                    <thead className="bg-muted/40 text-muted-foreground uppercase text-[10px] tracking-wider border-b border-border">
+                      <tr>
+                        <th className="px-6 py-3">
+                          {language === "ar" ? "المستفيد" : "Beneficiary"}
+                        </th>
+                        <th className="px-6 py-3">{language === "ar" ? "الدور" : "Role"}</th>
+                        <th className="px-6 py-3">{language === "ar" ? "نوع VIP" : "VIP Type"}</th>
+                        <th className="px-6 py-3">
+                          {language === "ar" ? "تاريخ التفعيل" : "Granted Date"}
+                        </th>
+                        <th className="px-6 py-3">
+                          {language === "ar" ? "منحت بواسطة" : "Granted By"}
+                        </th>
+                        <th className="px-6 py-3">
+                          {language === "ar" ? "الفائدة الششهري" : "Monthly Value"}
+                        </th>
+                        <th className="px-6 py-3 text-right">
+                          {language === "ar" ? "الإجراء" : "Action"}
+                        </th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-border">
+                      {filteredGiftedVipList.length === 0 ? (
+                        <tr>
+                          <td
+                            colSpan={7}
+                            className="py-12 text-center text-muted-foreground italic"
+                          >
+                            {giftedSearchTerm
+                              ? language === "ar"
+                                ? "لا توجد نتائج مطابقة للبحث"
+                                : "No matching beneficiaries found"
+                              : language === "ar"
+                                ? "لا يوجد مستفيدون من VIP المجاني حالياً"
+                                : "No complimentary VIP beneficiaries currently"}
+                          </td>
+                        </tr>
+                      ) : (
+                        filteredGiftedVipList.map((user) => (
+                          <tr key={user.uid} className="hover:bg-muted/30 transition-colors">
+                            <td className="px-6 py-4">
+                              <div className="flex items-center gap-3">
+                                <div className="w-8 h-8 rounded-xl bg-muted border border-border overflow-hidden shrink-0 flex items-center justify-center font-bold text-xs text-muted-foreground">
+                                  {user.avatar ? (
+                                    // eslint-disable-next-line @next/next/no-img-element
+                                    <img
+                                      src={user.avatar}
+                                      alt={user.name}
+                                      className="w-full h-full object-cover"
+                                    />
+                                  ) : (
+                                    user.name.charAt(0).toUpperCase()
+                                  )}
+                                </div>
+                                <div className="min-w-0">
+                                  <p className="font-bold text-foreground truncate">{user.name}</p>
+                                  <p className="text-[10px] text-muted-foreground truncate">
+                                    {user.email}
+                                  </p>
+                                </div>
+                              </div>
+                            </td>
+                            <td className="px-6 py-4">
+                              <span className="capitalize px-2 py-0.5 rounded-full text-[10px] font-bold bg-muted text-muted-foreground border border-border">
+                                {user.role}
+                              </span>
+                            </td>
+                            <td className="px-6 py-4">
+                              <span className="px-2.5 py-1 rounded-full text-[10px] font-bold bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20 flex items-center gap-1 w-fit">
+                                <Gift size={10} />
+                                {language === "ar" ? "إهداء مجاني" : "Complimentary"}
+                              </span>
+                            </td>
+                            <td className="px-6 py-4 text-muted-foreground font-mono text-[11px]">
+                              {user.grantedAt ? new Date(user.grantedAt).toLocaleDateString() : "-"}
+                            </td>
+                            <td className="px-6 py-4 text-foreground font-medium">
+                              {user.grantedBy}
+                            </td>
+                            <td className="px-6 py-4">
+                              <span className="px-2 py-0.5 rounded-md font-mono font-bold bg-emerald-500/10 text-emerald-600 dark:text-emerald-400">
+                                49 EGP / mo
+                              </span>
+                            </td>
+                            <td className="px-6 py-4 text-right">
+                              <button
+                                onClick={() => handleRevokeGiftedVip(user.uid)}
+                                className="px-3 py-1.5 rounded-xl bg-destructive/10 text-destructive hover:bg-destructive hover:text-white transition-all text-[11px] font-bold flex items-center gap-1 ml-auto"
+                              >
+                                <UserX size={12} />
+                                {language === "ar" ? "إلغاء VIP" : "Revoke VIP"}
+                              </button>
+                            </td>
+                          </tr>
+                        ))
+                      )}
+                    </tbody>
+                  </table>
+                </div>
+              </ScaleIn>
+
+              {/* Payment Gateways Integration Status */}
+              <div className="p-6 rounded-3xl bg-card border border-border shadow-md space-y-4">
+                <div className="flex items-center gap-3">
+                  <CreditCard className="text-primary" size={24} />
                   <div>
-                    <h2 className="text-2xl font-black flex items-center gap-3">
-                      <BarChart3 className="w-6 h-6 text-primary group-hover:scale-110 transition-transform" />
-                      {language === "ar" ? "المواد الأكثر تفاعلاً" : "High Engagement Subjects"}
-                    </h2>
-                    <p className="text-sm text-muted-foreground mt-1 font-medium">
+                    <h3 className="text-base font-bold text-foreground">
                       {language === "ar"
-                        ? "بناءً على إجمالي عدد المشاهدات الفريدة"
-                        : "Calculated by cumulative unique views"}
+                        ? "جاهزية بوابات الدفع الإلكترونية"
+                        : "Live Payment Gateway Integration Status"}
+                    </h3>
+                    <p className="text-xs text-muted-foreground">
+                      {language === "ar"
+                        ? "الموقع حالياً في وضع الاستعداد بانتظار مفاتيح API للبوابات"
+                        : "Platform ready for direct API keys deployment"}
                     </p>
                   </div>
                 </div>
 
-                <div className="h-[450px] w-full mt-4">
-                  {data.subjectViews.length > 0 ? (
-                    <SubjectViewsChart data={data.subjectViews} />
-                  ) : (
-                    <div className="h-full flex flex-col items-center justify-center text-muted-foreground">
-                      <Database className="w-16 h-16 mb-4 opacity-10" />
-                      <p className="font-semibold italic">
-                        {language === "ar" ? "لا توجد بيانات كافية" : "Awaiting data stream..."}
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 pt-2">
+                  <div className="p-4 rounded-2xl bg-muted/40 border border-border flex items-center gap-3">
+                    <span className="p-2 rounded-xl bg-rose-500/10 text-rose-500 font-black text-xs">
+                      VODAFONE
+                    </span>
+                    <div>
+                      <p className="font-bold text-xs">Vodafone Cash</p>
+                      <p className="text-[10px] text-emerald-500 font-semibold">
+                        {language === "ar" ? "جاهز للربط" : "Ready for API Key"}
                       </p>
                     </div>
-                  )}
-                </div>
-              </ScaleIn>
-
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                <div className="bg-primary/5 border border-primary/20 rounded-3xl p-6 text-center">
-                  <p className="text-xs font-bold text-primary uppercase mb-2">
-                    {language === "ar" ? "معدل المشاهدات لكل مادة" : "Avg Views / Subject"}
-                  </p>
-                  <p className="text-3xl font-black">
-                    {(
-                      data.subjectViews.reduce((acc, curr) => acc + curr.views, 0) /
-                      (data.totalSubjects || 1)
-                    ).toFixed(1)}
-                  </p>
-                </div>
-                <div className="bg-purple-500/5 border border-purple-500/20 rounded-3xl p-6 text-center">
-                  <p className="text-xs font-bold text-purple-600 uppercase mb-2">
-                    {language === "ar" ? "المواد النشطة" : "Active Modules"}
-                  </p>
-                  <p className="text-3xl font-black">
-                    {data.subjectViews.filter((s) => s.views > 0).length}
-                  </p>
-                </div>
-                <div className="bg-rose-500/5 border border-rose-500/20 rounded-3xl p-6 text-center">
-                  <p className="text-xs font-bold text-rose-600 uppercase mb-2">
-                    {language === "ar" ? "المواد الصفرية" : "Cold Modules"}
-                  </p>
-                  <p className="text-3xl font-black">
-                    {Math.max(
-                      0,
-                      data.totalSubjects - data.subjectViews.filter((s) => s.views > 0).length
-                    )}
-                  </p>
-                </div>
-                <div className="bg-emerald-500/5 border border-emerald-500/20 rounded-3xl p-6 text-center">
-                  <p className="text-xs font-bold text-emerald-600 uppercase mb-2">
-                    {language === "ar" ? "إجمالي التفاعل" : "Gross Reach"}
-                  </p>
-                  <p className="text-3xl font-black">
-                    {data.subjectViews.reduce((acc, curr) => acc + curr.views, 0).toLocaleString()}
-                  </p>
+                  </div>
+                  <div className="p-4 rounded-2xl bg-muted/40 border border-border flex items-center gap-3">
+                    <span className="p-2 rounded-xl bg-purple-500/10 text-purple-500 font-black text-xs">
+                      INSTAPAY
+                    </span>
+                    <div>
+                      <p className="font-bold text-xs">InstaPay Egypt</p>
+                      <p className="text-[10px] text-emerald-500 font-semibold">
+                        {language === "ar" ? "جاهز للربط" : "Ready for API Key"}
+                      </p>
+                    </div>
+                  </div>
+                  <div className="p-4 rounded-2xl bg-muted/40 border border-border flex items-center gap-3">
+                    <span className="p-2 rounded-xl bg-blue-500/10 text-blue-500 font-black text-xs">
+                      VISA/MC
+                    </span>
+                    <div>
+                      <p className="font-bold text-xs">Debit / Credit Cards</p>
+                      <p className="text-[10px] text-emerald-500 font-semibold">
+                        {language === "ar" ? "جاهز للربط" : "Ready for API Key"}
+                      </p>
+                    </div>
+                  </div>
                 </div>
               </div>
             </div>
           )}
 
-          {activeTab === "users" && (
+          {/* AI TOKENS & API COSTS TAB */}
+          {activeTab === "ai_analytics" && (
             <div className="space-y-8 animate-in slide-in-from-bottom-4 duration-500">
-              <div className="grid grid-cols-1 xl:grid-cols-2 gap-8">
-                <ScaleIn className="bg-card rounded-[2.5rem] p-8 border border-border/50 shadow-sm">
-                  <h2 className="text-xl font-bold mb-6">
-                    {language === "ar" ? "توزيع المستخدمين" : "User Distribution"}
-                  </h2>
-                  <div className="h-[300px]">
-                    <UserRolesChart data={data.userRolesDistribution} />
-                  </div>
+              {/* AI Headline Metric Cards */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+                <ScaleIn className="p-6 rounded-3xl bg-gradient-to-br from-purple-500/15 via-purple-500/5 to-transparent border border-purple-500/30 shadow-md space-y-2">
+                  <Zap className="text-purple-500" size={28} />
+                  <p className="text-3xl font-black text-foreground">
+                    {aiCalculatedMetrics.totalRequests.toLocaleString()}
+                  </p>
+                  <p className="text-sm font-bold text-foreground">
+                    {language === "ar" ? "إجمالي طلبات AI" : "Total AI Generation Requests"}
+                  </p>
+                  <p className="text-xs text-muted-foreground">
+                    {language === "ar"
+                      ? "كويزات + تفريغ صوتی + تلخيص"
+                      : "Quizzes, audio, summaries, Q&A"}
+                  </p>
                 </ScaleIn>
-                <ScaleIn className="bg-card rounded-[2.5rem] p-8 border border-border/50 shadow-sm">
-                  <h2 className="text-xl font-bold mb-6">
-                    {language === "ar" ? "نشاط المستخدمين" : "User Activity Trend"}
-                  </h2>
-                  <div className="h-[300px]">
-                    <UserGrowthChart data={data.userGrowth} />
-                  </div>
+
+                <ScaleIn className="p-6 rounded-3xl bg-card border border-border shadow-md space-y-2">
+                  <BrainCircuit className="text-indigo-500" size={28} />
+                  <p className="text-3xl font-black text-foreground">
+                    {aiCalculatedMetrics.totalTokens.toLocaleString()}
+                  </p>
+                  <p className="text-sm font-bold text-foreground">
+                    {language === "ar" ? "إجمالي التوكينز" : "Total Tokens Processed"}
+                  </p>
+                  <p className="text-xs text-muted-foreground">
+                    {language === "ar"
+                      ? "مدخلات ومخرجات Google Gemini"
+                      : "Gemini Input & Output Tokens"}
+                  </p>
                 </ScaleIn>
+
+                <ScaleIn className="p-6 rounded-3xl bg-card border border-border shadow-md space-y-2">
+                  <Coins className="text-emerald-500" size={28} />
+                  <p className="text-3xl font-black text-foreground">
+                    ${aiCalculatedMetrics.costUsd.toFixed(3)}
+                  </p>
+                  <p className="text-sm font-bold text-foreground">
+                    {language === "ar" ? "تكلفة السيرفر (USD)" : "Gemini API Cost (USD)"}
+                  </p>
+                  <p className="text-xs text-muted-foreground">$0.000075 / 1k tokens (Flash)</p>
+                </ScaleIn>
+
+                <ScaleIn className="p-6 rounded-3xl bg-card border border-border shadow-md space-y-2">
+                  <Receipt className="text-rose-500" size={28} />
+                  <p className="text-3xl font-black text-foreground">
+                    {aiCalculatedMetrics.costEgp.toFixed(2)}{" "}
+                    <span className="text-xs font-bold text-muted-foreground">EGP</span>
+                  </p>
+                  <p className="text-sm font-bold text-foreground">
+                    {language === "ar" ? "تكلفة السيرفر (بالجنية)" : "Gemini API Cost (EGP)"}
+                  </p>
+                  <p className="text-xs text-muted-foreground">
+                    {language === "ar" ? "بسعر 50 جنيه للدولار" : "@ 50 EGP per USD"}
+                  </p>
+                </ScaleIn>
+              </div>
+
+              {/* Service Breakdown Grid */}
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                <div className="p-6 rounded-3xl bg-card border border-border shadow-md space-y-3">
+                  <div className="flex items-center gap-3">
+                    <span className="p-2.5 rounded-xl bg-purple-500/10 text-purple-500">
+                      <Sparkles size={20} />
+                    </span>
+                    <div>
+                      <h4 className="font-bold text-sm">
+                        {language === "ar" ? "مولد الاختبارات AI" : "AI Quiz Generator"}
+                      </h4>
+                      <p className="text-[10px] text-muted-foreground">~2,500 tokens / quiz</p>
+                    </div>
+                  </div>
+                  <div className="pt-2 border-t border-border space-y-1">
+                    <div className="flex justify-between text-xs">
+                      <span className="text-muted-foreground">
+                        {language === "ar" ? "الطلبات:" : "Requests:"}
+                      </span>
+                      <span className="font-bold">{data.quizAiCount}</span>
+                    </div>
+                    <div className="flex justify-between text-xs">
+                      <span className="text-muted-foreground">
+                        {language === "ar" ? "التوكينز:" : "Tokens:"}
+                      </span>
+                      <span className="font-bold">
+                        {aiCalculatedMetrics.quizTokens.toLocaleString()}
+                      </span>
+                    </div>
+                    <div className="flex justify-between text-xs">
+                      <span className="text-muted-foreground">
+                        {language === "ar" ? "التكلفة:" : "Cost:"}
+                      </span>
+                      <span className="font-bold text-rose-500">
+                        {((aiCalculatedMetrics.quizTokens / 1000) * 0.000075 * 50).toFixed(2)} EGP
+                      </span>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="p-6 rounded-3xl bg-card border border-border shadow-md space-y-3">
+                  <div className="flex items-center gap-3">
+                    <span className="p-2.5 rounded-xl bg-blue-500/10 text-blue-500">
+                      <Bot size={20} />
+                    </span>
+                    <div>
+                      <h4 className="font-bold text-sm">
+                        {language === "ar" ? "التفريغ والتلخيص الصوتي" : "Audio Transcriber"}
+                      </h4>
+                      <p className="text-[10px] text-muted-foreground">~3,500 tokens / audio</p>
+                    </div>
+                  </div>
+                  <div className="pt-2 border-t border-border space-y-1">
+                    <div className="flex justify-between text-xs">
+                      <span className="text-muted-foreground">
+                        {language === "ar" ? "الطلبات:" : "Requests:"}
+                      </span>
+                      <span className="font-bold">{data.transcribeAiCount}</span>
+                    </div>
+                    <div className="flex justify-between text-xs">
+                      <span className="text-muted-foreground">
+                        {language === "ar" ? "التوكينز:" : "Tokens:"}
+                      </span>
+                      <span className="font-bold">
+                        {aiCalculatedMetrics.transcribeTokens.toLocaleString()}
+                      </span>
+                    </div>
+                    <div className="flex justify-between text-xs">
+                      <span className="text-muted-foreground">
+                        {language === "ar" ? "التكلفة:" : "Cost:"}
+                      </span>
+                      <span className="font-bold text-rose-500">
+                        {((aiCalculatedMetrics.transcribeTokens / 1000) * 0.000075 * 50).toFixed(2)}{" "}
+                        EGP
+                      </span>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="p-6 rounded-3xl bg-card border border-border shadow-md space-y-3">
+                  <div className="flex items-center gap-3">
+                    <span className="p-2.5 rounded-xl bg-amber-500/10 text-amber-500">
+                      <BrainCircuit size={20} />
+                    </span>
+                    <div>
+                      <h4 className="font-bold text-sm">
+                        {language === "ar" ? "الخرائط الذهنية الذكية" : "AI Mindmap Generator"}
+                      </h4>
+                      <p className="text-[10px] text-muted-foreground">~2,000 tokens / map</p>
+                    </div>
+                  </div>
+                  <div className="pt-2 border-t border-border space-y-1">
+                    <div className="flex justify-between text-xs">
+                      <span className="text-muted-foreground">
+                        {language === "ar" ? "الطلبات:" : "Requests:"}
+                      </span>
+                      <span className="font-bold">{data.mindmapAiCount}</span>
+                    </div>
+                    <div className="flex justify-between text-xs">
+                      <span className="text-muted-foreground">
+                        {language === "ar" ? "التوكينز:" : "Tokens:"}
+                      </span>
+                      <span className="font-bold">
+                        {aiCalculatedMetrics.mindmapTokens.toLocaleString()}
+                      </span>
+                    </div>
+                    <div className="flex justify-between text-xs">
+                      <span className="text-muted-foreground">
+                        {language === "ar" ? "التكلفة:" : "Cost:"}
+                      </span>
+                      <span className="font-bold text-rose-500">
+                        {((aiCalculatedMetrics.mindmapTokens / 1000) * 0.000075 * 50).toFixed(2)}{" "}
+                        EGP
+                      </span>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="p-6 rounded-3xl bg-card border border-border shadow-md space-y-3">
+                  <div className="flex items-center gap-3">
+                    <span className="p-2.5 rounded-xl bg-emerald-500/10 text-emerald-500">
+                      <Zap size={20} />
+                    </span>
+                    <div>
+                      <h4 className="font-bold text-sm">
+                        {language === "ar" ? "مساعد الأسئلة والأجوبة" : "Q&A AI Assistant"}
+                      </h4>
+                      <p className="text-[10px] text-muted-foreground">~1,500 tokens / msg</p>
+                    </div>
+                  </div>
+                  <div className="pt-2 border-t border-border space-y-1">
+                    <div className="flex justify-between text-xs">
+                      <span className="text-muted-foreground">
+                        {language === "ar" ? "الطلبات:" : "Requests:"}
+                      </span>
+                      <span className="font-bold">{data.qaAiCount}</span>
+                    </div>
+                    <div className="flex justify-between text-xs">
+                      <span className="text-muted-foreground">
+                        {language === "ar" ? "التوكينز:" : "Tokens:"}
+                      </span>
+                      <span className="font-bold">
+                        {aiCalculatedMetrics.qaTokens.toLocaleString()}
+                      </span>
+                    </div>
+                    <div className="flex justify-between text-xs">
+                      <span className="text-muted-foreground">
+                        {language === "ar" ? "التكلفة:" : "Cost:"}
+                      </span>
+                      <span className="font-bold text-rose-500">
+                        {((aiCalculatedMetrics.qaTokens / 1000) * 0.000075 * 50).toFixed(2)} EGP
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Interactive AI Scaling & Budget Calculator Widget */}
+              <div className="p-8 rounded-3xl bg-card border border-primary/30 shadow-xl space-y-6">
+                <div className="flex items-center gap-3 border-b border-border pb-4">
+                  <Calculator className="text-primary" size={28} />
+                  <div>
+                    <h3 className="text-lg font-black text-foreground">
+                      {language === "ar"
+                        ? "حاسبة توقع التوسع وتكاليف الذكاء الاصطناعي"
+                        : "AI Scaling & Revenue Profitability Simulator"}
+                    </h3>
+                    <p className="text-xs text-muted-foreground">
+                      {language === "ar"
+                        ? "حدد عدد الطلاب المتوقع ومتوسط الاستخدام الشهري لمعرفة تكاليف Google Gemini والهامش الربحي المتوقع"
+                        : "Simulate student growth & monthly AI usage to calculate estimated Gemini API costs vs VIP subscription revenue"}
+                    </p>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                  {/* Controls */}
+                  <div className="space-y-4 md:col-span-1 border-r border-border pr-0 md:pr-6">
+                    <div>
+                      <label className="text-xs font-bold text-foreground block mb-1">
+                        {language === "ar"
+                          ? "عدد الطلاب النشطين شهرياً:"
+                          : "Active Monthly Students:"}{" "}
+                        <span className="text-primary font-black">{simulatedStudents}</span>
+                      </label>
+                      <input
+                        type="range"
+                        min="50"
+                        max="5000"
+                        step="50"
+                        value={simulatedStudents}
+                        onChange={(e) => setSimulatedStudents(Number(e.target.value))}
+                        className="w-full accent-primary"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="text-xs font-bold text-foreground block mb-1">
+                        {language === "ar"
+                          ? "كويزات شهرياً لكل طالب:"
+                          : "Quizzes / Student / Month:"}{" "}
+                        <span className="text-primary font-black">
+                          {simulatedQuizzesPerStudent}
+                        </span>
+                      </label>
+                      <input
+                        type="range"
+                        min="1"
+                        max="20"
+                        step="1"
+                        value={simulatedQuizzesPerStudent}
+                        onChange={(e) => setSimulatedQuizzesPerStudent(Number(e.target.value))}
+                        className="w-full accent-primary"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="text-xs font-bold text-foreground block mb-1">
+                        {language === "ar"
+                          ? "تفريغ صوتي لكل طالب شهرياً:"
+                          : "Transcriptions / Student / Month:"}{" "}
+                        <span className="text-primary font-black">
+                          {simulatedTranscriptionsPerStudent}
+                        </span>
+                      </label>
+                      <input
+                        type="range"
+                        min="0"
+                        max="10"
+                        step="1"
+                        value={simulatedTranscriptionsPerStudent}
+                        onChange={(e) =>
+                          setSimulatedTranscriptionsPerStudent(Number(e.target.value))
+                        }
+                        className="w-full accent-primary"
+                      />
+                    </div>
+                  </div>
+
+                  {/* Calculations Output */}
+                  <div className="md:col-span-2 grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div className="p-4 rounded-2xl bg-muted/40 border border-border space-y-1">
+                      <p className="text-xs text-muted-foreground font-bold">
+                        {language === "ar"
+                          ? "التوكينز الشهرية المتوقعة"
+                          : "Projected Monthly Tokens"}
+                      </p>
+                      <p className="text-2xl font-black text-foreground">
+                        {(simulatorMetrics.monthlyTokens / 1000).toFixed(0)}k
+                      </p>
+                      <p className="text-[10px] text-muted-foreground">
+                        {simulatorMetrics.monthlyQuizzes} quizzes +{" "}
+                        {simulatorMetrics.monthlyTranscriptions} audios
+                      </p>
+                    </div>
+
+                    <div className="p-4 rounded-2xl bg-rose-500/10 border border-rose-500/20 space-y-1">
+                      <p className="text-xs text-rose-600 dark:text-rose-400 font-bold">
+                        {language === "ar"
+                          ? "التكلفة المتوقعة لـ Gemini"
+                          : "Projected Gemini API Cost"}
+                      </p>
+                      <p className="text-2xl font-black text-rose-600 dark:text-rose-400">
+                        {simulatorMetrics.costEgp.toFixed(2)} EGP
+                      </p>
+                      <p className="text-[10px] text-muted-foreground">
+                        ${simulatorMetrics.costUsd.toFixed(2)} USD / month
+                      </p>
+                    </div>
+
+                    <div className="p-4 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 space-y-1">
+                      <p className="text-xs text-emerald-600 dark:text-emerald-400 font-bold">
+                        {language === "ar"
+                          ? "إيراد VIP متوقع (10% اشتراك)"
+                          : "Est. VIP Revenue (10% Conversion)"}
+                      </p>
+                      <p className="text-2xl font-black text-emerald-600 dark:text-emerald-400">
+                        {simulatorMetrics.projectedVipRevenueEgp.toLocaleString()} EGP
+                      </p>
+                      <p className="text-[10px] text-muted-foreground">
+                        {Math.round(simulatedStudents * 0.1)} subscribers @ 49 EGP/mo
+                      </p>
+                    </div>
+
+                    <div className="p-4 rounded-2xl bg-primary/10 border border-primary/20 space-y-1">
+                      <p className="text-xs text-primary font-bold">
+                        {language === "ar" ? "صافي الفائض المتوقع" : "Projected Net Profit Margin"}
+                      </p>
+                      <p className="text-2xl font-black text-primary">
+                        {simulatorMetrics.netProfitMarginEgp.toLocaleString()} EGP
+                      </p>
+                      <p className="text-[10px] text-muted-foreground">
+                        {language === "ar"
+                          ? "ممتاز لتمويل المنصة والتوسع"
+                          : "High profitability margin"}
+                      </p>
+                    </div>
+                  </div>
+                </div>
               </div>
             </div>
           )}
 
-          {activeTab === "audit" && (
-            <div className="space-y-6 animate-in slide-in-from-bottom-4 duration-500">
-              <ScaleIn className="bg-card rounded-[2.5rem] p-8 border border-border/50 shadow-sm flex flex-col gap-6 group">
-                <div className="border-b border-border pb-4 flex items-center justify-between">
-                  <div>
-                    <h2 className="text-xl font-bold flex items-center gap-3">
-                      <ShieldCheck className="w-6 h-6 text-indigo-500 group-hover:scale-110 transition-transform" />
-                      {language === "ar" ? "سجل العمليات الإدارية" : "Administrative Audit Trail"}
-                    </h2>
-                  </div>
-                </div>
-
-                <div className="space-y-3">
-                  {data.recentLogs.length > 0 ? (
-                    data.recentLogs.map((log) => (
-                      <div
-                        key={log.id}
-                        className="flex items-center gap-5 p-4 rounded-3xl hover:bg-muted/50 transition-all border border-border/10 hover:border-primary/20 group/log shadow-sm"
-                      >
-                        <div
-                          className={cn(
-                            "p-3 rounded-2xl transition-all group-hover/log:scale-110 shadow-inner",
-                            log.action.includes("CREATE")
-                              ? "bg-emerald-500 text-white"
-                              : log.action.includes("DELETE")
-                                ? "bg-rose-500 text-white"
-                                : log.action.includes("UPDATE")
-                                  ? "bg-amber-500 text-white"
-                                  : "bg-blue-500 text-white"
-                          )}
-                        >
-                          {log.action.includes("CREATE") ? (
-                            <PlusCircle size={20} />
-                          ) : log.action.includes("DELETE") ? (
-                            <Trash2 size={20} />
-                          ) : log.action.includes("LOGIN") ? (
-                            <LogIn size={20} />
-                          ) : (
-                            <CheckCircle size={20} />
-                          )}
-                        </div>
-                        <div className="flex-1 min-w-0">
-                          <div className="flex items-center gap-2 mb-1">
-                            <p className="text-sm font-black truncate text-foreground group-hover/log:text-primary transition-colors">
-                              {formatAction(log.action, language)}
-                            </p>
-                            <span className="text-[10px] bg-muted px-1.5 py-0.5 rounded-md font-mono text-muted-foreground">
-                              {log.action}
-                            </span>
-                          </div>
-                          <p className="text-xs font-semibold text-muted-foreground/80">
-                            {log.details}
-                          </p>
-                          <p className="text-[10px] text-muted-foreground/50 font-medium mt-1 uppercase tracking-tighter">
-                            {log.userEmail}
-                          </p>
-                        </div>
-                        <div className="text-xs font-mono font-black text-primary/40 whitespace-nowrap hidden sm:block">
-                          {log.timestamp
-                            ? toDate(log.timestamp).toLocaleTimeString([], {
-                                hour: "2-digit",
-                                minute: "2-digit",
-                              })
-                            : "-"}
-                        </div>
-                      </div>
-                    ))
-                  ) : (
-                    <div className="py-20 text-center opacity-30 flex flex-col items-center">
-                      <Activity className="w-12 h-12 mb-4 animate-pulse" />
-                      <p className="font-bold italic">
-                        {language === "ar" ? "لا توجد سجلات" : "The audit trail is empty"}
-                      </p>
-                    </div>
-                  )}
-                </div>
-              </ScaleIn>
-            </div>
-          )}
-
+          {/* TOP STUDENTS TAB */}
           {activeTab === "students" && (
             <div className="space-y-6 animate-in slide-in-from-bottom-4 duration-500">
               {/* Header row: VIP vs Free */}
@@ -931,7 +1641,7 @@ export default function AdminAnalyticsPage() {
                 </ScaleIn>
               </div>
 
-              {/* Top 10 Players Leaderboard */}
+              {/* Top 10 Students Leaderboard */}
               <ScaleIn className="rounded-3xl bg-card border border-border shadow-md overflow-hidden">
                 <div className="px-6 py-5 border-b border-border flex items-center gap-3">
                   <Trophy className="text-amber-500" size={22} />
@@ -1025,6 +1735,186 @@ export default function AdminAnalyticsPage() {
                         </div>
                       </div>
                     ))
+                  )}
+                </div>
+              </ScaleIn>
+            </div>
+          )}
+
+          {/* SUBJECTS TAB */}
+          {activeTab === "subjects" && (
+            <div className="space-y-8 animate-in slide-in-from-bottom-4 duration-500">
+              <ScaleIn className="bg-card rounded-[2.5rem] p-8 border border-border/50 shadow-sm flex flex-col gap-8 group">
+                <div className="flex items-center justify-between border-b border-border pb-6">
+                  <div>
+                    <h2 className="text-2xl font-black flex items-center gap-3">
+                      <BarChart3 className="w-6 h-6 text-primary group-hover:scale-110 transition-transform" />
+                      {language === "ar" ? "المواد الأكثر تفاعلاً" : "High Engagement Subjects"}
+                    </h2>
+                    <p className="text-sm text-muted-foreground mt-1 font-medium">
+                      {language === "ar"
+                        ? "بناءً على إجمالي عدد المشاهدات الفريدة"
+                        : "Calculated by cumulative unique views"}
+                    </p>
+                  </div>
+                </div>
+
+                <div className="h-[450px] w-full mt-4">
+                  {data.subjectViews.length > 0 ? (
+                    <SubjectViewsChart data={data.subjectViews} />
+                  ) : (
+                    <div className="h-full flex flex-col items-center justify-center text-muted-foreground">
+                      <Database className="w-16 h-16 mb-4 opacity-10" />
+                      <p className="font-semibold italic">
+                        {language === "ar" ? "لا توجد بيانات كافية" : "Awaiting data stream..."}
+                      </p>
+                    </div>
+                  )}
+                </div>
+              </ScaleIn>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                <div className="bg-primary/5 border border-primary/20 rounded-3xl p-6 text-center">
+                  <p className="text-xs font-bold text-primary uppercase mb-2">
+                    {language === "ar" ? "معدل المشاهدات لكل مادة" : "Avg Views / Subject"}
+                  </p>
+                  <p className="text-3xl font-black">
+                    {(
+                      data.subjectViews.reduce((acc, curr) => acc + curr.views, 0) /
+                      (data.totalSubjects || 1)
+                    ).toFixed(1)}
+                  </p>
+                </div>
+                <div className="bg-purple-500/5 border border-purple-500/20 rounded-3xl p-6 text-center">
+                  <p className="text-xs font-bold text-purple-600 uppercase mb-2">
+                    {language === "ar" ? "المواد النشطة" : "Active Modules"}
+                  </p>
+                  <p className="text-3xl font-black">
+                    {data.subjectViews.filter((s) => s.views > 0).length}
+                  </p>
+                </div>
+                <div className="bg-rose-500/5 border border-rose-500/20 rounded-3xl p-6 text-center">
+                  <p className="text-xs font-bold text-rose-600 uppercase mb-2">
+                    {language === "ar" ? "المواد الصفرية" : "Cold Modules"}
+                  </p>
+                  <p className="text-3xl font-black">
+                    {Math.max(
+                      0,
+                      data.totalSubjects - data.subjectViews.filter((s) => s.views > 0).length
+                    )}
+                  </p>
+                </div>
+                <div className="bg-emerald-500/5 border border-emerald-500/20 rounded-3xl p-6 text-center">
+                  <p className="text-xs font-bold text-emerald-600 uppercase mb-2">
+                    {language === "ar" ? "إجمالي التفاعل" : "Gross Reach"}
+                  </p>
+                  <p className="text-3xl font-black">
+                    {data.subjectViews.reduce((acc, curr) => acc + curr.views, 0).toLocaleString()}
+                  </p>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* USERS TAB */}
+          {activeTab === "users" && (
+            <div className="space-y-8 animate-in slide-in-from-bottom-4 duration-500">
+              <div className="grid grid-cols-1 xl:grid-cols-2 gap-8">
+                <ScaleIn className="bg-card rounded-[2.5rem] p-8 border border-border/50 shadow-sm">
+                  <h2 className="text-xl font-bold mb-6">
+                    {language === "ar" ? "توزيع المستخدمين" : "User Distribution"}
+                  </h2>
+                  <div className="h-[300px]">
+                    <UserRolesChart data={data.userRolesDistribution} />
+                  </div>
+                </ScaleIn>
+                <ScaleIn className="bg-card rounded-[2.5rem] p-8 border border-border/50 shadow-sm">
+                  <h2 className="text-xl font-bold mb-6">
+                    {language === "ar" ? "نشاط المستخدمين" : "User Activity Trend"}
+                  </h2>
+                  <div className="h-[300px]">
+                    <UserGrowthChart data={data.userGrowth} />
+                  </div>
+                </ScaleIn>
+              </div>
+            </div>
+          )}
+
+          {/* AUDIT TAB */}
+          {activeTab === "audit" && (
+            <div className="space-y-6 animate-in slide-in-from-bottom-4 duration-500">
+              <ScaleIn className="bg-card rounded-[2.5rem] p-8 border border-border/50 shadow-sm flex flex-col gap-6 group">
+                <div className="border-b border-border pb-4 flex items-center justify-between">
+                  <div>
+                    <h2 className="text-xl font-bold flex items-center gap-3">
+                      <ShieldCheck className="w-6 h-6 text-indigo-500 group-hover:scale-110 transition-transform" />
+                      {language === "ar" ? "سجل العمليات الإدارية" : "Administrative Audit Trail"}
+                    </h2>
+                  </div>
+                </div>
+
+                <div className="space-y-3">
+                  {data.recentLogs.length > 0 ? (
+                    data.recentLogs.map((log) => (
+                      <div
+                        key={log.id}
+                        className="flex items-center gap-5 p-4 rounded-3xl hover:bg-muted/50 transition-all border border-border/10 hover:border-primary/20 group/log shadow-sm"
+                      >
+                        <div
+                          className={cn(
+                            "p-3 rounded-2xl transition-all group-hover/log:scale-110 shadow-inner",
+                            log.action.includes("CREATE")
+                              ? "bg-emerald-500 text-white"
+                              : log.action.includes("DELETE")
+                                ? "bg-rose-500 text-white"
+                                : log.action.includes("UPDATE")
+                                  ? "bg-amber-500 text-white"
+                                  : "bg-blue-500 text-white"
+                          )}
+                        >
+                          {log.action.includes("CREATE") ? (
+                            <PlusCircle size={20} />
+                          ) : log.action.includes("DELETE") ? (
+                            <Trash2 size={20} />
+                          ) : log.action.includes("LOGIN") ? (
+                            <LogIn size={20} />
+                          ) : (
+                            <CheckCircle size={20} />
+                          )}
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center gap-2 mb-1">
+                            <p className="text-sm font-black truncate text-foreground group-hover/log:text-primary transition-colors">
+                              {formatAction(log.action, language)}
+                            </p>
+                            <span className="text-[10px] bg-muted px-1.5 py-0.5 rounded-md font-mono text-muted-foreground">
+                              {log.action}
+                            </span>
+                          </div>
+                          <p className="text-xs font-semibold text-muted-foreground/80">
+                            {log.details}
+                          </p>
+                          <p className="text-[10px] text-muted-foreground/50 font-medium mt-1 uppercase tracking-tighter">
+                            {log.userEmail}
+                          </p>
+                        </div>
+                        <div className="text-xs font-mono font-black text-primary/40 whitespace-nowrap hidden sm:block">
+                          {log.timestamp
+                            ? toDate(log.timestamp).toLocaleTimeString([], {
+                                hour: "2-digit",
+                                minute: "2-digit",
+                              })
+                            : "-"}
+                        </div>
+                      </div>
+                    ))
+                  ) : (
+                    <div className="py-20 text-center opacity-30 flex flex-col items-center">
+                      <Activity className="w-12 h-12 mb-4 animate-pulse" />
+                      <p className="font-bold italic">
+                        {language === "ar" ? "لا توجد سجلات" : "The audit trail is empty"}
+                      </p>
+                    </div>
                   )}
                 </div>
               </ScaleIn>

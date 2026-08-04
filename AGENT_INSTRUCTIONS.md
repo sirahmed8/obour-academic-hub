@@ -1,6 +1,6 @@
 # Agent Handoff & Single Source of Truth
 
-> **LIVE SYSTEM STATUS**: Checkpoint 18 VIP Subscription Security, Owner Privilege Enforcement, & Real Feature Locks. Automatic permanent VIP Pass granted to Owner and Admin roles; 2x XP Multiplier (+20 XP) enabled across platform tasks for VIPs; server-side 5-question cap enforced on `/api/ai/generate-quiz` for non-VIPs; student subscription request verification workflow (`subscription_requests`) created with Admin toggle capability in `useAdminUsers.ts`. ESLint 0 errors / 0 warnings, 131/131 Vitest unit tests passing, & 61/61 Next.js routes built cleanly.
+> **LIVE SYSTEM STATUS**: Checkpoint 19 — Owner VIP Grant for Any User + Analytics "Top Students" Tab + 9-stat Overview. Admin can now grant/revoke VIP to ANY user (not just students) from Admin → Users panel. Analytics page has new "Top Students" tab showing VIP vs Free split, student leaderboard ranked by points with avatars/role badges, and new stat cards: VIP Users, Today's Logins, New Users (7d). Terminology corrected platform-wide: "players" → "students". ESLint 0 errors / 0 warnings, all 39 routes building cleanly.
 
 ---
 
