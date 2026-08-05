@@ -429,7 +429,7 @@ export function SearchBar() {
                         ? "اكتب للبحث عن مادة، قسم، أداة دراسية..."
                         : "Type a command or search academic resources..."
                     }
-                    className="no-focus-ring flex-1 w-full bg-transparent border-0 outline-none ring-0 shadow-none text-base sm:text-lg font-medium placeholder:text-muted-foreground/40 text-foreground caret-primary focus:outline-none focus:ring-0 p-0 m-0 h-full leading-[64px]"
+                    className="no-focus-ring flex-1 w-full bg-transparent border-0 outline-none ring-0 shadow-none text-base sm:text-lg font-medium placeholder:text-muted-foreground/40 text-foreground caret-primary focus:outline-none focus:ring-0 pl-4 pr-2 my-0 h-full leading-[64px]"
                     style={{ height: "100%", lineHeight: "64px" }}
                   />
                   {query && (
