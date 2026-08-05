@@ -131,7 +131,11 @@
   textarea,
   select {
     caret-color: hsl(var(--primary));
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+    transition:
+      color 0.2s ease,
+      background-color 0.2s ease,
+      border-color 0.2s ease,
+      box-shadow 0.2s ease;
   }
 
   input:not([type="checkbox"]):not([type="radio"]):not(.no-focus-ring):focus,
