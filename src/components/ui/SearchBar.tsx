@@ -413,7 +413,7 @@ export function SearchBar() {
             >
               {/* Search Header Container */}
               <div className="p-4 border-b border-border/60 bg-muted/20 space-y-3">
-                <div className="flex items-center gap-3 px-3 py-1 bg-background/80 rounded-2xl border border-border/80 focus-within:border-primary/50 focus-within:ring-2 focus-within:ring-primary/20 transition-all">
+                <div className="flex items-center gap-3 px-4 py-3.5 bg-background/80 rounded-2xl border border-border/80 focus-within:border-primary/50 focus-within:ring-2 focus-within:ring-primary/20 transition-all">
                   <Search className="w-5 h-5 text-primary shrink-0" />
                   <input
                     ref={inputRef}
@@ -429,7 +429,8 @@ export function SearchBar() {
                         ? "اكتب للبحث عن مادة، قسم، أداة دراسية..."
                         : "Type a command or search academic resources..."
                     }
-                    className="no-focus-ring flex-1 w-full bg-transparent border-0 outline-none ring-0 shadow-none text-sm font-semibold placeholder:text-muted-foreground/50 text-foreground caret-primary focus:outline-none focus:ring-0 leading-normal py-2.5 px-0 m-0"
+                    className="no-focus-ring flex-1 w-full bg-transparent border-0 outline-none ring-0 shadow-none text-sm sm:text-base font-semibold placeholder:text-muted-foreground/50 text-foreground caret-primary focus:outline-none focus:ring-0 p-0 m-0 leading-none align-middle"
+                    style={{ lineHeight: "1" }}
                   />
                   {query && (
                     <button
