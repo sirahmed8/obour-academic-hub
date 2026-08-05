@@ -133,9 +133,6 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   // Check if profile is incomplete using useMemo (no effect)
   const showProfileSetup = useMemo(() => {
     if (!user) return false;
-    // HARD FIX: Explicitly check owner/admin email to bypass modal
-    if (user?.email === process.env.NEXT_PUBLIC_OWNER_EMAIL) return false;
-    if (user?.role === "owner" || user?.role === "admin") return false;
 
     // Check all required profile fields (including onboarding completion flag for legacy/old users)
     const isProfileIncomplete =
@@ -144,6 +141,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
       !user.academicYear ||
       !user.department ||
       !user.institute ||
+      !user.username ||
       user.onboardingCompleted === false ||
       user.onboardingCompleted === undefined;
 

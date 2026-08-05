@@ -22,6 +22,7 @@ import {
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/Card";
 import { ConfirmationModal } from "@/components/ui/ConfirmationModal";
 import { UsernameSetupModal } from "@/components/ui/UsernameSetupModal";
+import { StudentProfileSetup } from "@/components/features/StudentProfileSetup";
 import { toast } from "sonner";
 import { apiFetch } from "@/lib/api-client";
 import { userService } from "@/services/user.service";
@@ -66,6 +67,7 @@ export default function ProfilePage() {
   const [showResetAchievementsModal, setShowResetAchievementsModal] = useState(false);
   const [isResetting, setIsResetting] = useState(false);
   const [showUsernameModal, setShowUsernameModal] = useState(false);
+  const [showOnboardingSetup, setShowOnboardingSetup] = useState(false);
 
   const [searchedUser, setSearchedUser] = useState<UserType | null>(null);
   const [searchingUser, setSearchingUser] = useState(false);
@@ -237,6 +239,21 @@ export default function ProfilePage() {
                 >
                   <Edit2 size={12} />
                   <span>{language === "ar" ? "تعديل المعرف" : "Edit Handle"}</span>
+                </button>
+              )}
+
+              {isSelf && (
+                <button
+                  type="button"
+                  onClick={() => setShowOnboardingSetup(true)}
+                  className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-primary/10 hover:bg-primary/20 text-primary font-bold text-xs transition"
+                >
+                  <Sparkles size={12} />
+                  <span>
+                    {language === "ar"
+                      ? "تعديل البيانات الأكاديمية 📝"
+                      : "Update Academic Profile 📝"}
+                  </span>
                 </button>
               )}
             </div>
@@ -635,6 +652,10 @@ export default function ProfilePage() {
         forceShow={showUsernameModal}
         onClose={() => setShowUsernameModal(false)}
       />
+
+      {showOnboardingSetup && (
+        <StudentProfileSetup onComplete={() => setShowOnboardingSetup(false)} />
+      )}
     </div>
   );
 }
