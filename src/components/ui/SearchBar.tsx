@@ -411,9 +411,9 @@ export function SearchBar() {
               transition={{ type: "spring", stiffness: 450, damping: 32 }}
               className="relative w-full max-w-xl bg-card/95 backdrop-blur-3xl border border-border/80 rounded-3xl shadow-2xl overflow-hidden z-10"
             >
-              {/* Search Header Container */}
-              <div className="p-4 border-b border-border/60 bg-muted/20 space-y-3">
-                <div className="flex items-center gap-3 px-4 py-3.5 bg-background/80 rounded-2xl border border-border/80 focus-within:border-primary/50 focus-within:ring-2 focus-within:ring-primary/20 transition-all">
+              {/* Search Header Container - Seamless Raycast / Linear Style */}
+              <div className="border-b border-border/60 bg-card">
+                <div className="flex items-center gap-3.5 px-5 py-4">
                   <Search className="w-5 h-5 text-primary shrink-0" />
                   <input
                     ref={inputRef}
@@ -429,14 +429,13 @@ export function SearchBar() {
                         ? "اكتب للبحث عن مادة، قسم، أداة دراسية..."
                         : "Type a command or search academic resources..."
                     }
-                    className="no-focus-ring flex-1 w-full bg-transparent border-0 outline-none ring-0 shadow-none text-sm sm:text-base font-semibold placeholder:text-muted-foreground/50 text-foreground caret-primary focus:outline-none focus:ring-0 p-0 m-0 leading-none align-middle"
-                    style={{ lineHeight: "1" }}
+                    className="no-focus-ring flex-1 w-full bg-transparent border-0 outline-none ring-0 shadow-none text-base sm:text-lg font-medium placeholder:text-muted-foreground/40 text-foreground caret-primary focus:outline-none focus:ring-0 p-0 m-0 leading-normal"
                   />
                   {query && (
                     <button
                       type="button"
                       onClick={() => setQuery("")}
-                      className="p-1 hover:bg-muted rounded-lg text-muted-foreground transition-colors shrink-0"
+                      className="p-1.5 hover:bg-muted rounded-xl text-muted-foreground transition-colors shrink-0"
                     >
                       <X className="w-4 h-4" />
                     </button>
@@ -444,7 +443,7 @@ export function SearchBar() {
                 </div>
 
                 {/* Category Filters */}
-                <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar pt-1">
+                <div className="flex items-center gap-1.5 px-5 pb-3 overflow-x-auto no-scrollbar">
                   {[
                     { id: "all", labelEn: "All Items", labelAr: "الكل", icon: Compass },
                     { id: "nav", labelEn: "Navigation", labelAr: "التنقل", icon: Home },
@@ -465,7 +464,7 @@ export function SearchBar() {
                           "inline-flex items-center gap-1.5 px-3 py-1 rounded-xl text-xs font-bold transition-all shrink-0 border",
                           isActive
                             ? "bg-primary text-primary-foreground border-primary shadow-sm"
-                            : "bg-background/60 text-muted-foreground hover:bg-muted border-border/50"
+                            : "bg-muted/40 text-muted-foreground hover:bg-muted border-border/40"
                         )}
                       >
                         <CatIcon size={12} />
