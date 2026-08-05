@@ -17,6 +17,11 @@ import {
   MessageSquare,
   User,
   Bell,
+  Brain,
+  FileAudio,
+  Calendar,
+  Layers,
+  Compass,
 } from "lucide-react";
 import { useLanguage } from "@/contexts";
 import { useTheme } from "next-themes";
@@ -33,6 +38,7 @@ interface CommandItem {
   labelAr: string;
   categoryEn: string;
   categoryAr: string;
+  badge?: string;
   icon: React.ReactNode;
   action: () => void;
 }
@@ -68,29 +74,43 @@ const CommandListItem = React.memo(function CommandListItem({
       onClick={handleClick}
       onMouseEnter={handleMouseEnter}
       className={cn(
-        "w-full flex items-center justify-between px-3 py-2.5 rounded-xl text-sm transition-colors text-start",
+        "w-full flex items-center justify-between px-3.5 py-3 rounded-2xl text-sm transition-all duration-200 text-start group relative border",
         isSelected
-          ? "bg-primary/10 text-primary font-medium"
-          : "hover:bg-muted/50 text-foreground/90"
+          ? "bg-primary/10 border-primary/30 text-primary font-bold shadow-md shadow-primary/5"
+          : "border-transparent hover:bg-muted/60 text-foreground/90"
       )}
     >
-      <div className="flex items-center gap-3 min-w-0 flex-1">
-        <div className={cn("p-2 rounded-lg shrink-0", isSelected ? "bg-primary/20" : "bg-muted")}>
+      <div className="flex items-center gap-3.5 min-w-0 flex-1">
+        <div
+          className={cn(
+            "p-2.5 rounded-xl shrink-0 transition-transform group-hover:scale-110",
+            isSelected
+              ? "bg-primary text-primary-foreground shadow-sm"
+              : "bg-muted text-muted-foreground"
+          )}
+        >
           {item.icon}
         </div>
         <div className="min-w-0 flex-1">
-          <div className="leading-tight truncate font-medium">
-            {isAr ? item.labelAr : item.labelEn}
+          <div className="leading-snug truncate font-bold text-foreground flex items-center gap-2">
+            <span>{isAr ? item.labelAr : item.labelEn}</span>
+            {item.badge && (
+              <span className="text-[10px] px-2 py-0.5 rounded-full bg-primary/15 text-primary border border-primary/20 font-black">
+                {item.badge}
+              </span>
+            )}
           </div>
-          <div className="text-[10px] text-muted-foreground mt-0.5 truncate">
-            {isAr ? item.categoryAr : item.categoryEn}
+          <div className="text-[11px] text-muted-foreground font-medium mt-0.5 truncate flex items-center gap-1">
+            <span>{isAr ? item.categoryAr : item.categoryEn}</span>
           </div>
         </div>
       </div>
       <ArrowRight
         className={cn(
           "w-4 h-4 shrink-0 transition-all duration-200",
-          isSelected ? "opacity-100 translate-x-0" : "opacity-0 -translate-x-2"
+          isSelected
+            ? "opacity-100 translate-x-0 text-primary"
+            : "opacity-0 -translate-x-2 text-muted-foreground"
         )}
       />
     </button>
@@ -102,6 +122,7 @@ export function SearchBar() {
   const { theme, setTheme } = useTheme();
   const [isOpen, setIsOpen] = useState(false);
   const [query, setQuery] = useState("");
+  const [activeCategory, setActiveCategory] = useState<string>("all");
   const [selectedIndex, setSelectedIndex] = useState(0);
   const [aiEnabled, setAiEnabled] = useState(true);
   const inputRef = useRef<HTMLInputElement>(null);
@@ -135,7 +156,7 @@ export function SearchBar() {
         labelAr: "الرئيسية ولوحة التحكم",
         categoryEn: "Navigation",
         categoryAr: "التنقل",
-        icon: <Home className="w-4 h-4 text-blue-500" />,
+        icon: <Home className="w-4 h-4" />,
         action: () => router.push("/"),
       },
       {
@@ -144,7 +165,8 @@ export function SearchBar() {
         labelAr: "المواد الدراسية والمحاضرات",
         categoryEn: "Navigation",
         categoryAr: "التنقل",
-        icon: <BookOpen className="w-4 h-4 text-emerald-500" />,
+        badge: "Core",
+        icon: <BookOpen className="w-4 h-4" />,
         action: () => router.push("/subject"),
       },
       {
@@ -153,7 +175,7 @@ export function SearchBar() {
         labelAr: "منتدى مجتمع الطلاب",
         categoryEn: "Navigation",
         categoryAr: "التنقل",
-        icon: <Users className="w-4 h-4 text-purple-500" />,
+        icon: <Users className="w-4 h-4" />,
         action: () => router.push("/community"),
       },
       {
@@ -162,7 +184,8 @@ export function SearchBar() {
         labelAr: "المحادثة العامة للطلاب",
         categoryEn: "Navigation",
         categoryAr: "التنقل",
-        icon: <MessageSquare className="w-4 h-4 text-cyan-500" />,
+        badge: "Live",
+        icon: <MessageSquare className="w-4 h-4" />,
         action: () => router.push("/community/chat"),
       },
       {
@@ -171,7 +194,7 @@ export function SearchBar() {
         labelAr: "لوحة الشرف وتصنيف الطلاب",
         categoryEn: "Navigation",
         categoryAr: "التنقل",
-        icon: <Trophy className="w-4 h-4 text-amber-500" />,
+        icon: <Trophy className="w-4 h-4" />,
         action: () => router.push("/community/leaderboard"),
       },
       {
@@ -180,38 +203,77 @@ export function SearchBar() {
         labelAr: "مهامي وواجباتي الدراسية",
         categoryEn: "Navigation",
         categoryAr: "التنقل",
-        icon: <CheckSquare className="w-4 h-4 text-indigo-500" />,
+        icon: <CheckSquare className="w-4 h-4" />,
         action: () => router.push("/todo"),
+      },
+      {
+        id: "tool-transcribe",
+        labelEn: "AI Lecture Transcriber",
+        labelAr: "تحويل المحاضرات الصوتية إلى نص",
+        categoryEn: "AI Tools",
+        categoryAr: "أدوات الذكاء الاصطناعي",
+        badge: "AI ⚡",
+        icon: <FileAudio className="w-4 h-4" />,
+        action: () => router.push("/transcribe"),
+      },
+      {
+        id: "tool-mindmap",
+        labelEn: "AI Mind Map Generator",
+        labelAr: "منشئ الخرائط الذهنية الذكي",
+        categoryEn: "AI Tools",
+        categoryAr: "أدوات الذكاء الاصطناعي",
+        badge: "AI 🧠",
+        icon: <Brain className="w-4 h-4" />,
+        action: () => router.push("/mindmap"),
+      },
+      {
+        id: "tool-quiz",
+        labelEn: "AI Practice Quiz Generator",
+        labelAr: "مولد الاختبارات والأسئلة الذكية",
+        categoryEn: "AI Tools",
+        categoryAr: "أدوات الذكاء الاصطناعي",
+        badge: "AI 🎯",
+        icon: <Layers className="w-4 h-4" />,
+        action: () => router.push("/quiz"),
+      },
+      {
+        id: "tool-hagaz",
+        labelEn: "Book Study Slot (Hagaz)",
+        labelAr: "حجز مواعيد واستشارات دراسية",
+        categoryEn: "Academic Tools",
+        categoryAr: "أدوات أكاديمية",
+        icon: <Calendar className="w-4 h-4" />,
+        action: () => router.push("/hagaz"),
       },
       {
         id: "nav-profile",
         labelEn: "My Profile & Account Settings",
         labelAr: "الملف الشخصي وإعدادات الحساب",
-        categoryEn: "Navigation",
-        categoryAr: "التنقل",
-        icon: <User className="w-4 h-4 text-violet-500" />,
+        categoryEn: "Account",
+        categoryAr: "الحساب",
+        icon: <User className="w-4 h-4" />,
         action: () => router.push("/profile"),
       },
       {
         id: "nav-notifications",
         labelEn: "Notifications & Alerts Hub",
         labelAr: "مركز التنبيهات والإشعارات",
-        categoryEn: "Navigation",
-        categoryAr: "التنقل",
-        icon: <Bell className="w-4 h-4 text-rose-500" />,
+        categoryEn: "Account",
+        categoryAr: "الحساب",
+        icon: <Bell className="w-4 h-4" />,
         action: () => router.push("/notifications"),
       },
       {
         id: "act-theme",
         labelEn: `Switch to ${theme === "dark" ? "Light" : "Dark"} Mode`,
         labelAr: `التبديل إلى الوضع ${theme === "dark" ? "الفاتح" : "الداكن"}`,
-        categoryEn: "Quick Actions",
-        categoryAr: "إجراءات سريعة",
+        categoryEn: "Settings",
+        categoryAr: "الإعدادات",
         icon:
           theme === "dark" ? (
-            <Sun className="w-4 h-4 text-yellow-400" />
+            <Sun className="w-4 h-4 text-amber-400" />
           ) : (
-            <Moon className="w-4 h-4 text-slate-700" />
+            <Moon className="w-4 h-4 text-indigo-500" />
           ),
         action: () => setTheme(theme === "dark" ? "light" : "dark"),
       },
@@ -222,8 +284,9 @@ export function SearchBar() {
         id: "act-ai",
         labelEn: "Ask Academic Assistant AI",
         labelAr: "اسأل المساعد الذكي للمواد",
-        categoryEn: "AI Assistant",
+        categoryEn: "AI Tools",
         categoryAr: "المساعد الذكي",
+        badge: "Pro",
         icon: <Sparkles className="w-4 h-4 text-pink-500" />,
         action: () => {
           window.dispatchEvent(new CustomEvent("openChatbot"));
@@ -235,21 +298,31 @@ export function SearchBar() {
   }, [router, theme, setTheme, aiEnabled]);
 
   const filteredItems = useMemo(() => {
-    if (!query.trim()) return items;
+    let result = items;
+
+    if (activeCategory !== "all") {
+      result = result.filter((item) => {
+        if (activeCategory === "nav") return item.categoryEn === "Navigation";
+        if (activeCategory === "ai") return item.categoryEn === "AI Tools";
+        if (activeCategory === "account") return item.categoryEn === "Account";
+        return true;
+      });
+    }
+
+    if (!query.trim()) return result;
     const q = query.toLowerCase();
-    return items.filter(
+    return result.filter(
       (item) =>
         item.labelEn.toLowerCase().includes(q) ||
         item.labelAr.toLowerCase().includes(q) ||
         item.categoryEn.toLowerCase().includes(q) ||
         item.categoryAr.toLowerCase().includes(q)
     );
-  }, [items, query]);
+  }, [items, query, activeCategory]);
 
   const handleSelect = useCallback((item: CommandItem) => {
     setIsOpen(false);
     setQuery("");
-    // Defer navigation to next tick so UI unmounts immediately without blocking
     setTimeout(() => {
       item.action();
     }, 15);
@@ -305,74 +378,116 @@ export function SearchBar() {
           setIsOpen(true);
           setQuery("");
         }}
-        className="flex items-center justify-between w-full max-w-md h-10 px-4 transition-all duration-300 rounded-xl border bg-muted/30 border-border/60 hover:bg-muted/50 hover:border-primary/40 text-muted-foreground hover:text-foreground group"
+        className="flex items-center justify-between w-full max-w-md h-10 px-4 transition-all duration-300 rounded-2xl border bg-card/60 hover:bg-card border-border/60 hover:border-primary/40 text-muted-foreground hover:text-foreground group shadow-sm"
       >
-        <div className="flex items-center gap-2">
-          <Search className="w-4 h-4 text-muted-foreground group-hover:text-primary transition-colors" />
-          <span className="text-sm truncate">
-            {isAr ? "ابحث في المنصة ومحاضراتك..." : "Search subjects, forums, tools..."}
+        <div className="flex items-center gap-2.5 min-w-0">
+          <Search className="w-4 h-4 text-muted-foreground group-hover:text-primary transition-colors shrink-0" />
+          <span className="text-xs sm:text-sm font-medium truncate">
+            {isAr ? "ابحث في المنصة ومحاضراتك..." : "Search subjects, tools, tasks..."}
           </span>
         </div>
-        <div className="hidden sm:flex items-center gap-1 px-1.5 py-0.5 rounded border border-muted-foreground/20 bg-muted/50">
-          <Command className="w-2.5 h-2.5 text-muted-foreground/60" />
-          <span className="text-[10px] font-medium text-muted-foreground/60">K</span>
+        <div className="hidden sm:flex items-center gap-1 px-2 py-0.5 rounded-lg border border-border/80 bg-muted/60">
+          <Command className="w-3 h-3 text-muted-foreground" />
+          <span className="text-[10px] font-black text-muted-foreground">K</span>
         </div>
       </button>
 
       {/* Spotlight Modal Overlay */}
       <AnimatePresence>
         {isOpen && (
-          <div className="fixed inset-0 z-[100] flex items-start justify-center pt-[15vh] px-4">
+          <div className="fixed inset-0 z-[100] flex items-start justify-center pt-[10vh] sm:pt-[15vh] px-3 sm:px-4">
             <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
               onClick={() => setIsOpen(false)}
-              className="fixed inset-0 bg-black/60 backdrop-blur-sm"
+              className="fixed inset-0 bg-black/70 backdrop-blur-md"
             />
 
             <motion.div
-              initial={{ opacity: 0, scale: 0.95, y: -10 }}
+              initial={{ opacity: 0, scale: 0.96, y: -15 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
-              exit={{ opacity: 0, scale: 0.95, y: -10 }}
-              transition={{ duration: 0.15 }}
-              className="relative w-full max-w-lg bg-card border border-border rounded-2xl shadow-2xl overflow-hidden z-10"
+              exit={{ opacity: 0, scale: 0.96, y: -15 }}
+              transition={{ type: "spring", stiffness: 450, damping: 32 }}
+              className="relative w-full max-w-xl bg-card/95 backdrop-blur-3xl border border-border/80 rounded-3xl shadow-2xl overflow-hidden z-10"
             >
-              {/* Search Input Bar */}
-              <div className="flex items-center gap-3 px-5 border-b border-border/80 bg-card/95">
-                <Search className="w-5 h-5 text-primary shrink-0" />
-                <input
-                  ref={inputRef}
-                  autoFocus
-                  type="text"
-                  value={query}
-                  onChange={(e) => {
-                    setQuery(e.target.value);
-                    setSelectedIndex(0);
-                  }}
-                  placeholder={
-                    isAr
-                      ? "اكتب للبحث عن مادة، قسم، أداة دراسية..."
-                      : "Type a command or search academic resources..."
-                  }
-                  className="no-focus-ring w-full flex-1 h-14 py-3 bg-transparent border-0 outline-none ring-0 shadow-none text-base font-normal placeholder:text-muted-foreground/50 text-foreground caret-primary focus:outline-none focus:ring-0 leading-normal"
-                />
-                {query && (
-                  <button
-                    type="button"
-                    onClick={() => setQuery("")}
-                    className="p-1.5 hover:bg-muted/80 rounded-xl text-muted-foreground transition-colors"
-                  >
-                    <X className="w-4 h-4" />
-                  </button>
-                )}
+              {/* Search Header Container */}
+              <div className="p-4 border-b border-border/60 bg-muted/20 space-y-3">
+                <div className="flex items-center gap-3 px-3 py-1 bg-background/80 rounded-2xl border border-border/80 focus-within:border-primary/50 focus-within:ring-2 focus-within:ring-primary/20 transition-all">
+                  <Search className="w-5 h-5 text-primary shrink-0" />
+                  <input
+                    ref={inputRef}
+                    autoFocus
+                    type="text"
+                    value={query}
+                    onChange={(e) => {
+                      setQuery(e.target.value);
+                      setSelectedIndex(0);
+                    }}
+                    placeholder={
+                      isAr
+                        ? "اكتب للبحث عن مادة، قسم، أداة دراسية..."
+                        : "Type a command or search academic resources..."
+                    }
+                    className="no-focus-ring flex-1 w-full bg-transparent border-0 outline-none ring-0 shadow-none text-sm sm:text-base font-semibold placeholder:text-muted-foreground/50 text-foreground caret-primary focus:outline-none focus:ring-0 leading-tight py-2.5 px-0 m-0"
+                  />
+                  {query && (
+                    <button
+                      type="button"
+                      onClick={() => setQuery("")}
+                      className="p-1 hover:bg-muted rounded-lg text-muted-foreground transition-colors shrink-0"
+                    >
+                      <X className="w-4 h-4" />
+                    </button>
+                  )}
+                </div>
+
+                {/* Category Filters */}
+                <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar pt-1">
+                  {[
+                    { id: "all", labelEn: "All Items", labelAr: "الكل", icon: Compass },
+                    { id: "nav", labelEn: "Navigation", labelAr: "التنقل", icon: Home },
+                    { id: "ai", labelEn: "AI Tools", labelAr: "ذكاء اصطناعي", icon: Sparkles },
+                    { id: "account", labelEn: "Account", labelAr: "الحساب", icon: User },
+                  ].map((cat) => {
+                    const CatIcon = cat.icon;
+                    const isActive = activeCategory === cat.id;
+                    return (
+                      <button
+                        key={cat.id}
+                        type="button"
+                        onClick={() => {
+                          setActiveCategory(cat.id);
+                          setSelectedIndex(0);
+                        }}
+                        className={cn(
+                          "inline-flex items-center gap-1.5 px-3 py-1 rounded-xl text-xs font-bold transition-all shrink-0 border",
+                          isActive
+                            ? "bg-primary text-primary-foreground border-primary shadow-sm"
+                            : "bg-background/60 text-muted-foreground hover:bg-muted border-border/50"
+                        )}
+                      >
+                        <CatIcon size={12} />
+                        <span>{isAr ? cat.labelAr : cat.labelEn}</span>
+                      </button>
+                    );
+                  })}
+                </div>
               </div>
 
-              {/* Command List */}
-              <div className="max-h-[360px] overflow-y-auto p-2 space-y-1">
+              {/* Command List Body */}
+              <div className="max-h-[380px] overflow-y-auto p-3 space-y-1 custom-scrollbar">
                 {filteredItems.length === 0 ? (
-                  <div className="py-10 text-center text-sm text-muted-foreground">
-                    {isAr ? "لا توجد نتائج مطابقة للبحث" : "No matching results found"}
+                  <div className="py-12 text-center space-y-2">
+                    <Search className="w-8 h-8 text-muted-foreground/40 mx-auto" />
+                    <p className="text-sm font-bold text-foreground">
+                      {isAr ? "لا توجد نتائج مطابقة للبحث" : "No matching results found"}
+                    </p>
+                    <p className="text-xs text-muted-foreground font-medium">
+                      {isAr
+                        ? "جرب البحث عن كلمات أخرى مثل: مواد، واجبات، شرف"
+                        : "Try searching for terms like: subjects, todo, leaderboard"}
+                    </p>
                   </div>
                 ) : (
                   filteredItems.map((item, index) => (
@@ -389,20 +504,28 @@ export function SearchBar() {
                 )}
               </div>
 
-              {/* Footer navigation hints */}
-              <div className="flex items-center justify-between px-4 py-2 border-t border-border bg-muted/30 text-[11px] text-muted-foreground">
-                <div className="flex items-center gap-2">
-                  <span>{isAr ? "تنقل بواسطة الأسهم" : "Navigate with arrows"}</span>
-                  <kbd className="px-1.5 py-0.5 rounded bg-background border font-mono text-[9px]">
-                    ↑↓
-                  </kbd>
+              {/* Spotlight Modal Footer */}
+              <div className="flex items-center justify-between px-5 py-3 border-t border-border/60 bg-muted/30 text-[11px] text-muted-foreground font-medium">
+                <div className="flex items-center gap-3">
+                  <span className="flex items-center gap-1">
+                    <kbd className="px-1.5 py-0.5 rounded bg-muted border border-border text-[10px] font-bold">
+                      ↑↓
+                    </kbd>
+                    <span>{isAr ? "للتنقل" : "Navigate"}</span>
+                  </span>
+                  <span className="flex items-center gap-1">
+                    <kbd className="px-1.5 py-0.5 rounded bg-muted border border-border text-[10px] font-bold">
+                      ↵
+                    </kbd>
+                    <span>{isAr ? "للاختيار" : "Select"}</span>
+                  </span>
                 </div>
-                <div className="flex items-center gap-2">
-                  <span>{isAr ? "اختيار" : "Select"}</span>
-                  <kbd className="px-1.5 py-0.5 rounded bg-background border font-mono text-[9px]">
-                    Enter
+                <span className="flex items-center gap-1">
+                  <kbd className="px-1.5 py-0.5 rounded bg-muted border border-border text-[10px] font-bold">
+                    ESC
                   </kbd>
-                </div>
+                  <span>{isAr ? "إغلاق" : "Close"}</span>
+                </span>
               </div>
             </motion.div>
           </div>
