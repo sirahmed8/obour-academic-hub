@@ -2,6 +2,8 @@ import type { Metadata, Viewport } from "next";
 import { Inter } from "next/font/google";
 import { Toaster } from "sonner";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
+import { SpeedInsights } from "@vercel/speed-insights/next";
+import { Analytics } from "@vercel/analytics/react";
 import "./globals.css";
 import NextTopLoader from "nextjs-toploader";
 import { ThemeProvider, AuthProvider, LanguageProvider, SolidModeProvider } from "@/contexts";
@@ -139,6 +141,8 @@ export default function RootLayout({
                       },
                     }}
                   />
+                  <SpeedInsights />
+                  <Analytics />
                 </SolidModeProvider>
               </AuthProvider>
             </LanguageProvider>

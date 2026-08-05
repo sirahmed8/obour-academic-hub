@@ -355,7 +355,7 @@ export function SearchBar() {
                       ? "اكتب للبحث عن مادة، قسم، أداة دراسية..."
                       : "Type a command or search academic resources..."
                   }
-                  className="w-full flex-1 h-14 py-3 bg-transparent border-0 outline-none ring-0 shadow-none text-base font-normal placeholder:text-muted-foreground/50 text-foreground caret-primary focus:outline-none focus:ring-0 leading-normal"
+                  className="no-focus-ring w-full flex-1 h-14 py-3 bg-transparent border-0 outline-none ring-0 shadow-none text-base font-normal placeholder:text-muted-foreground/50 text-foreground caret-primary focus:outline-none focus:ring-0 leading-normal"
                 />
                 {query && (
                   <button
