@@ -413,7 +413,7 @@ export function SearchBar() {
             >
               {/* Search Header Container - Seamless Raycast / Linear Style */}
               <div className="border-b border-border/60 bg-card">
-                <div className="flex items-center gap-3.5 px-5 py-4">
+                <div className="flex items-center gap-3.5 px-5 h-16">
                   <Search className="w-5 h-5 text-primary shrink-0" />
                   <input
                     ref={inputRef}
@@ -429,7 +429,8 @@ export function SearchBar() {
                         ? "اكتب للبحث عن مادة، قسم، أداة دراسية..."
                         : "Type a command or search academic resources..."
                     }
-                    className="no-focus-ring flex-1 w-full bg-transparent border-0 outline-none ring-0 shadow-none text-base sm:text-lg font-medium placeholder:text-muted-foreground/40 text-foreground caret-primary focus:outline-none focus:ring-0 p-0 m-0 leading-normal"
+                    className="no-focus-ring flex-1 w-full bg-transparent border-0 outline-none ring-0 shadow-none text-base sm:text-lg font-medium placeholder:text-muted-foreground/40 text-foreground caret-primary focus:outline-none focus:ring-0 p-0 m-0 h-full leading-[64px]"
+                    style={{ height: "100%", lineHeight: "64px" }}
                   />
                   {query && (
                     <button
