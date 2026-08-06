@@ -75,6 +75,23 @@ Return clean markdown text.`;
 
     const summaryMd = await generateText(prompt);
 
+    try {
+      const { adminDb } = await import("@/lib/server/firebase-admin");
+      if (adminDb) {
+        const estimatedTokens = Math.max(600, Math.round((summaryMd.length + prompt.length) / 3));
+        await adminDb.collection("logs").add({
+          action: "AI_GENERATION",
+          type: "transcribe",
+          totalTokens: estimatedTokens,
+          userId: uid,
+          timestamp: new Date().toISOString(),
+          details: `Transcribed & Summarized Lecture: ${lectureTitle} (${estimatedTokens} tokens)`,
+        });
+      }
+    } catch {
+      // Ignore background log error
+    }
+
     return withCors(
       req,
       NextResponse.json({

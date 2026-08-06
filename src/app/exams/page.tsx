@@ -21,6 +21,7 @@ import { collection, getDocs, query, limit, addDoc, serverTimestamp } from "fire
 import { db } from "@/lib/firebase";
 import { cn } from "@/lib/utils";
 import { pastExamSchema } from "@/lib/zod-schemas";
+import { ScrollableTabs } from "@/components/ui/ScrollableTabs";
 
 interface PastExam {
   id: string;
@@ -55,8 +56,9 @@ export default function PastExamsPage() {
         setLoading(false);
         return;
       }
+
       try {
-        const q = query(collection(db, "exams"), limit(20));
+        const q = query(collection(db, "exams"), limit(50));
         const snap = await getDocs(q);
         const list: PastExam[] = [];
         snap.forEach((docSnap) => {
@@ -69,12 +71,13 @@ export default function PastExamsPage() {
             year: data.year || "2024",
             type: data.type || "Final",
             downloadUrl: data.fileUrl || data.downloadUrl || "#",
-            hasAnswerKey: data.hasAnswerKey ?? true,
+            hasAnswerKey: data.hasAnswerKey ?? false,
           });
         });
         setExams(list);
       } catch (err) {
-        console.error("Error loading past exams:", err);
+        console.error("Error loading exams:", err);
+        setExams([]);
       } finally {
         setLoading(false);
       }
@@ -232,9 +235,9 @@ export default function PastExamsPage() {
             />
           </div>
 
-          <div className="flex flex-wrap items-center justify-between gap-3">
+          <div className="w-full space-y-3">
             {/* Year Filter Pills */}
-            <div className="flex items-center gap-1.5 overflow-x-auto pb-1 scrollbar-hide">
+            <ScrollableTabs>
               <span className="text-xs font-extrabold text-muted-foreground me-1 shrink-0">
                 {isRtl ? "السنة:" : "Year:"}
               </span>
@@ -252,10 +255,10 @@ export default function PastExamsPage() {
                   {yr === "all" ? (isRtl ? "جميع السنوات" : "All Years") : yr}
                 </button>
               ))}
-            </div>
+            </ScrollableTabs>
 
             {/* Type Filter Pills */}
-            <div className="flex items-center gap-1.5">
+            <ScrollableTabs>
               <span className="text-xs font-extrabold text-muted-foreground me-1 shrink-0">
                 {isRtl ? "النوع:" : "Type:"}
               </span>
@@ -270,14 +273,14 @@ export default function PastExamsPage() {
                   className={cn(
                     "px-3 py-1 rounded-xl text-xs font-black transition-all border whitespace-nowrap shrink-0",
                     selectedType === t.id
-                      ? "bg-secondary text-foreground border-secondary shadow-sm"
+                      ? "bg-primary text-white border-primary shadow-sm shadow-primary/20"
                       : "bg-card border-border text-muted-foreground hover:text-foreground hover:bg-muted"
                   )}
                 >
                   {t.label}
                 </button>
               ))}
-            </div>
+            </ScrollableTabs>
           </div>
         </div>
       </ScaleIn>

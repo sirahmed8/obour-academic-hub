@@ -235,6 +235,36 @@ service cloud.firestore {
         request.resource.data.timestamp is timestamp;
     }
 
+    match /exams/{examId} {
+      allow read: if true;
+      allow create: if request.auth != null;
+      allow update, delete: if hasPermission('manage_subjects') || isOwner();
+    }
+
+    match /hagazSessions/{sessionId} {
+      allow read: if true;
+      allow create: if request.auth != null;
+      allow update, delete: if request.auth != null && (resource.data.createdBy == request.auth.uid || isOwner());
+    }
+
+    match /subscription_requests/{requestId} {
+      allow read: if request.auth != null && (resource.data.userId == request.auth.uid || hasPermission('manage_users'));
+      allow create: if request.auth != null;
+      allow update, delete: if hasPermission('manage_users') || isOwner();
+    }
+
+    match /questions/{questionId} {
+      allow read: if true;
+      allow create: if request.auth != null;
+      allow update, delete: if request.auth != null && (resource.data.authorId == request.auth.uid || isOwner());
+    }
+
+    match /projects/{projectId} {
+      allow read: if true;
+      allow create: if request.auth != null;
+      allow update, delete: if request.auth != null && (resource.data.authorId == request.auth.uid || isOwner());
+    }
+
     match /{document=**} {
       allow read, write: if false;
     }

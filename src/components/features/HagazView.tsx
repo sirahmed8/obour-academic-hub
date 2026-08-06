@@ -20,6 +20,7 @@ import { SkeletonHagazView } from "@/components/ui/Skeleton";
 import { userService } from "@/services/user.service";
 import { collection, getDocs, query, limit, addDoc, serverTimestamp } from "firebase/firestore";
 import { db } from "@/lib/firebase";
+import { ScrollableTabs } from "@/components/ui/ScrollableTabs";
 
 interface StudySlot {
   id: string;
@@ -250,19 +251,19 @@ export function HagazView() {
     <div className="p-4 sm:p-6 lg:p-10 space-y-8 w-full page-transition min-h-screen max-w-7xl mx-auto">
       {/* Header Banner */}
       <FadeIn>
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 p-6 sm:p-8 rounded-3xl bg-card border border-border shadow-xl relative overflow-hidden">
-          <div className="flex items-center gap-4">
+        <div className="flex flex-col xl:flex-row xl:items-center justify-between gap-6 p-6 sm:p-8 rounded-3xl bg-card border border-border shadow-xl relative overflow-hidden">
+          <div className="flex items-center gap-4 flex-1 min-w-0">
             <div className="p-3.5 rounded-2xl bg-gradient-to-tr from-primary to-indigo-600 text-white shrink-0 shadow-lg">
               <Calendar size={32} />
             </div>
-            <div>
-              <div className="flex items-center gap-2">
+            <div className="min-w-0 flex-1">
+              <div className="flex flex-wrap items-center gap-2">
                 <h1 className="text-2xl sm:text-3xl lg:text-4xl font-black tracking-tight text-foreground font-harman">
                   {language === "ar"
                     ? "حجز الجلسات وتحديات المذاكرة (Hagaz)"
                     : "Study Sessions & Hagaz Matchmaking"}
                 </h1>
-                <span className="px-3 py-1 rounded-full text-xs font-black bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20">
+                <span className="px-3 py-1 rounded-full text-xs font-black bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20 shrink-0">
                   {language === "ar" ? "مباشر" : "Live Slots"}
                 </span>
               </div>
@@ -274,8 +275,8 @@ export function HagazView() {
             </div>
           </div>
 
-          <div className="flex items-center gap-3 shrink-0">
-            <div className="flex items-center gap-2 px-4 py-2 rounded-2xl bg-muted/60 border border-border text-xs font-bold text-muted-foreground">
+          <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 w-full xl:w-auto shrink-0">
+            <div className="flex items-center justify-center gap-2 px-4 py-2.5 rounded-2xl bg-muted/60 border border-border text-xs font-bold text-muted-foreground shrink-0">
               <BookmarkCheck size={16} className="text-primary" />
               <span>
                 {myBookings.length} {language === "ar" ? "حجوزات نشطة" : "Active Bookings"}
@@ -283,7 +284,7 @@ export function HagazView() {
             </div>
             <button
               onClick={() => setIsModalOpen(true)}
-              className="px-6 py-3.5 rounded-2xl bg-primary text-white font-extrabold text-sm hover:bg-primary/90 transition-all shadow-lg shadow-primary/20 flex items-center justify-center gap-2 hover:scale-105 active:scale-95"
+              className="px-5 py-3 rounded-2xl bg-primary text-white font-extrabold text-xs sm:text-sm hover:bg-primary/90 transition-all shadow-lg shadow-primary/20 flex items-center justify-center gap-2 hover:scale-105 active:scale-95 whitespace-nowrap"
             >
               <Plus size={18} />
               <span>
@@ -296,7 +297,7 @@ export function HagazView() {
 
       {/* Filter and Search Bar */}
       <FadeIn delay={0.1}>
-        <div className="flex flex-col md:flex-row items-stretch md:items-center gap-4">
+        <div className="flex flex-col gap-3 w-full">
           <div className="relative flex-1">
             <div className="flex items-center w-full px-4 py-3.5 rounded-2xl bg-card border border-border shadow-sm focus-within:border-primary">
               <Search className="text-muted-foreground me-3 shrink-0" size={20} />
@@ -309,12 +310,12 @@ export function HagazView() {
                     ? "ابحث باسم الجلسة أو المادة الدراسية..."
                     : "Search by session title or subject..."
                 }
-                className="flex-1 bg-transparent border-none outline-none text-sm placeholder:text-muted-foreground"
+                className="flex-1 bg-transparent border-none outline-none text-sm placeholder:text-muted-foreground no-focus-ring focus:ring-0 focus:outline-none"
               />
             </div>
           </div>
 
-          <div className="flex items-center gap-2 overflow-x-auto pb-1 scrollbar-hide">
+          <ScrollableTabs>
             {[
               { id: "all", label: language === "ar" ? "جميع الجلسات" : "All Slots" },
               { id: "group", label: language === "ar" ? "مراجعات جماعية" : "Group Study" },
@@ -324,7 +325,7 @@ export function HagazView() {
               <button
                 key={tab.id}
                 onClick={() => setFilterType(tab.id as typeof filterType)}
-                className={`px-4 py-2.5 rounded-2xl text-xs font-bold whitespace-nowrap transition-all ${
+                className={`px-4 py-2.5 rounded-2xl text-xs font-bold whitespace-nowrap shrink-0 transition-all ${
                   filterType === tab.id
                     ? "bg-primary text-white shadow-md shadow-primary/25"
                     : "bg-card hover:bg-muted text-muted-foreground border border-border"
@@ -333,7 +334,7 @@ export function HagazView() {
                 {tab.label}
               </button>
             ))}
-          </div>
+          </ScrollableTabs>
         </div>
       </FadeIn>
 

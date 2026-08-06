@@ -11,6 +11,7 @@ import { SkeletonCard } from "@/components/ui/Skeleton";
 import { useLanguage } from "@/contexts";
 import { SubjectClient as SubjectDetail } from "./SubjectClient";
 import { OnboardingHint } from "@/components/ui/OnboardingHints";
+import { ScrollableTabs } from "@/components/ui/ScrollableTabs";
 
 export default function SubjectHub() {
   const searchParams = useSearchParams();
@@ -117,9 +118,9 @@ function SubjectBrowser() {
 
       {/* Search & Category Filter Bar */}
       <FadeIn delay={0.15}>
-        <div className="flex flex-col md:flex-row items-stretch md:items-center gap-4">
+        <div className="flex flex-col gap-3 w-full">
           {/* Search Input */}
-          <div className="relative flex-1" id="search-container">
+          <div className="relative flex-1 min-w-[280px]" id="search-container">
             <div className="flex items-center w-full px-4 py-3.5 rounded-2xl bg-card border border-border dark:bg-card shadow-sm focus-within:ring-2 focus-within:ring-primary/20 focus-within:border-primary/50 transition-all">
               <Search className="text-muted-foreground me-3 shrink-0" size={20} />
               <input
@@ -131,12 +132,12 @@ function SubjectBrowser() {
                     ? "ابحث بأسماء المواد أو الدكاترة..."
                     : "Search by subject or professor..."
                 }
-                className="flex-1 bg-transparent border-none outline-none text-sm sm:text-base placeholder:text-muted-foreground"
+                className="flex-1 w-full min-w-0 bg-transparent border-none outline-none text-sm sm:text-base placeholder:text-muted-foreground no-focus-ring focus:ring-0 focus:outline-none"
               />
               {searchTerm && (
                 <button
                   onClick={() => setSearchTerm("")}
-                  className="p-1 rounded-lg hover:bg-muted text-muted-foreground hover:text-foreground transition-colors"
+                  className="p-1 rounded-lg hover:bg-muted text-muted-foreground hover:text-foreground transition-colors shrink-0"
                   aria-label="Clear search"
                 >
                   <X size={18} />
@@ -146,7 +147,7 @@ function SubjectBrowser() {
           </div>
 
           {/* Quick Filter Pills */}
-          <div className="flex items-center gap-2 overflow-x-auto pb-2 md:pb-0 scrollbar-hide">
+          <ScrollableTabs>
             <div className="p-2 text-muted-foreground shrink-0">
               <Filter size={18} />
             </div>
@@ -154,7 +155,7 @@ function SubjectBrowser() {
               <button
                 key={cat.id}
                 onClick={() => setSelectedCategory(cat.id)}
-                className={`px-4 py-2.5 rounded-2xl text-xs sm:text-sm font-bold whitespace-nowrap transition-all active:scale-97 ${
+                className={`px-4 py-2.5 rounded-2xl text-xs sm:text-sm font-bold whitespace-nowrap shrink-0 transition-all active:scale-97 ${
                   selectedCategory === cat.id
                     ? "bg-primary text-primary-foreground shadow-md shadow-primary/20 scale-[1.02]"
                     : "bg-card hover:bg-muted text-muted-foreground hover:text-foreground border border-border dark:bg-card"
@@ -163,7 +164,7 @@ function SubjectBrowser() {
                 {cat.label}
               </button>
             ))}
-          </div>
+          </ScrollableTabs>
         </div>
       </FadeIn>
 

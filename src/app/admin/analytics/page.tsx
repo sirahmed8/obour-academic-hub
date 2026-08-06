@@ -40,7 +40,6 @@ import {
   Zap,
   CreditCard,
   Gift,
-  Calculator,
   Cpu,
   Bot,
   Search,
@@ -116,9 +115,13 @@ interface AnalyticsData {
   newUsersThisWeek: number;
   // Real AI Tokens & Requests from Firestore
   quizAiCount: number;
+  quizAiTokens: number;
   transcribeAiCount: number;
+  transcribeAiTokens: number;
   mindmapAiCount: number;
+  mindmapAiTokens: number;
   qaAiCount: number;
+  qaAiTokens: number;
   realTokensSum: number;
   realAiRequestsCount: number;
 }
@@ -146,9 +149,13 @@ export default function AdminAnalyticsPage() {
     todayLogins: 0,
     newUsersThisWeek: 0,
     quizAiCount: 0,
+    quizAiTokens: 0,
     transcribeAiCount: 0,
+    transcribeAiTokens: 0,
     mindmapAiCount: 0,
+    mindmapAiTokens: 0,
     qaAiCount: 0,
+    qaAiTokens: 0,
     realTokensSum: 0,
     realAiRequestsCount: 0,
   });
@@ -171,12 +178,6 @@ export default function AdminAnalyticsPage() {
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
-
-  // Interactive AI Calculator State
-  const [simulatedStudents, setSimulatedStudents] = useState<number>(500);
-  const [simulatedQuizzesPerStudent, setSimulatedQuizzesPerStudent] = useState<number>(4);
-  const [simulatedTranscriptionsPerStudent, setSimulatedTranscriptionsPerStudent] =
-    useState<number>(2);
 
   const [activeTab, setActiveTab] = useState<
     "overview" | "subscriptions" | "ai_analytics" | "students" | "subjects" | "users" | "audit"
@@ -414,10 +415,14 @@ export default function AdminAnalyticsPage() {
           }
 
           if (colName === "logs") {
-            let qCount = 0;
-            let tCount = 0;
-            let mCount = 0;
-            let qaCount = 0;
+            let qCount = 0,
+              qTokens = 0;
+            let tCount = 0,
+              tTokens = 0;
+            let mCount = 0,
+              mTokens = 0;
+            let qaCount = 0,
+              qaTokens = 0;
             let realTokensAccumulated = 0;
             let realAiReqs = 0;
 
@@ -425,31 +430,53 @@ export default function AdminAnalyticsPage() {
               const logData = d.data();
               const actionUpper = (logData.action || "").toUpperCase();
               const detailsUpper = (logData.details || "").toUpperCase();
+              const typeLower = (logData.type || "").toLowerCase();
+              const tokens =
+                typeof logData.totalTokens === "number" && logData.totalTokens > 0
+                  ? logData.totalTokens
+                  : 0;
 
-              if (typeof logData.totalTokens === "number" && logData.totalTokens > 0) {
-                realTokensAccumulated += logData.totalTokens;
-                realAiReqs++;
-              }
-
-              if (actionUpper.includes("QUIZ") || detailsUpper.includes("QUIZ")) qCount++;
-              if (
-                actionUpper.includes("TRANSCRIBE") ||
-                detailsUpper.includes("AUDIO") ||
-                detailsUpper.includes("TRANSCRI")
-              )
-                tCount++;
-              if (
-                actionUpper.includes("MINDMAP") ||
-                detailsUpper.includes("SUMMARY") ||
-                detailsUpper.includes("MINDMAP")
-              )
-                mCount++;
               if (
                 actionUpper.includes("AI") ||
-                detailsUpper.includes("AI") ||
-                detailsUpper.includes("CHAT")
-              )
-                qaCount++;
+                actionUpper.includes("QUIZ") ||
+                actionUpper.includes("TRANSCRIBE") ||
+                actionUpper.includes("MINDMAP") ||
+                typeLower ||
+                tokens > 0
+              ) {
+                if (tokens > 0) {
+                  realTokensAccumulated += tokens;
+                  realAiReqs++;
+                }
+
+                if (
+                  typeLower === "quiz" ||
+                  actionUpper.includes("QUIZ") ||
+                  detailsUpper.includes("QUIZ")
+                ) {
+                  qCount++;
+                  qTokens += tokens;
+                } else if (
+                  typeLower === "transcribe" ||
+                  actionUpper.includes("TRANSCRIBE") ||
+                  detailsUpper.includes("AUDIO") ||
+                  detailsUpper.includes("TRANSCRI")
+                ) {
+                  tCount++;
+                  tTokens += tokens;
+                } else if (
+                  typeLower === "mindmap" ||
+                  actionUpper.includes("MINDMAP") ||
+                  detailsUpper.includes("MINDMAP") ||
+                  detailsUpper.includes("SUMMARY")
+                ) {
+                  mCount++;
+                  mTokens += tokens;
+                } else {
+                  qaCount++;
+                  qaTokens += tokens;
+                }
+              }
 
               return {
                 id: d.id,
@@ -463,9 +490,13 @@ export default function AdminAnalyticsPage() {
             newState.realAiRequestsCount = realAiReqs;
 
             newState.quizAiCount = qCount;
+            newState.quizAiTokens = qTokens;
             newState.transcribeAiCount = tCount;
+            newState.transcribeAiTokens = tTokens;
             newState.mindmapAiCount = mCount;
+            newState.mindmapAiTokens = mTokens;
             newState.qaAiCount = qaCount;
+            newState.qaAiTokens = qaTokens;
           }
 
           return newState;
@@ -539,11 +570,10 @@ export default function AdminAnalyticsPage() {
     const totalTokens = data.realTokensSum;
     const totalRequests = data.realAiRequestsCount;
 
-    const totalReqsSafe = totalRequests || 1;
-    const quizTokens = Math.round((data.quizAiCount / totalReqsSafe) * totalTokens);
-    const transcribeTokens = Math.round((data.transcribeAiCount / totalReqsSafe) * totalTokens);
-    const mindmapTokens = Math.round((data.mindmapAiCount / totalReqsSafe) * totalTokens);
-    const qaTokens = Math.round((data.qaAiCount / totalReqsSafe) * totalTokens);
+    const quizTokens = data.quizAiTokens || 0;
+    const transcribeTokens = data.transcribeAiTokens || 0;
+    const mindmapTokens = data.mindmapAiTokens || 0;
+    const qaTokens = data.qaAiTokens || 0;
 
     const costUsd = (totalTokens / 1000) * 0.000075;
     const costEgp = costUsd * 50;
@@ -559,29 +589,6 @@ export default function AdminAnalyticsPage() {
       costEgp,
     };
   }, [data]);
-
-  // Simulator Calculations
-  const simulatorMetrics = useMemo(() => {
-    const monthlyQuizzes = simulatedStudents * simulatedQuizzesPerStudent;
-    const monthlyTranscriptions = simulatedStudents * simulatedTranscriptionsPerStudent;
-
-    const monthlyTokens = monthlyQuizzes * 2500 + monthlyTranscriptions * 3500;
-    const costUsd = (monthlyTokens / 1000) * 0.000075;
-    const costEgp = costUsd * 50;
-
-    const projectedVipRevenueEgp = Math.round(simulatedStudents * 0.1) * 49;
-    const netProfitMarginEgp = projectedVipRevenueEgp - costEgp;
-
-    return {
-      monthlyQuizzes,
-      monthlyTranscriptions,
-      monthlyTokens,
-      costUsd,
-      costEgp,
-      projectedVipRevenueEgp,
-      netProfitMarginEgp,
-    };
-  }, [simulatedStudents, simulatedQuizzesPerStudent, simulatedTranscriptionsPerStudent]);
 
   const stats = useMemo(
     () => [
@@ -608,11 +615,13 @@ export default function AdminAnalyticsPage() {
       },
       {
         label: language === "ar" ? "إهداءات VIP المجانية" : "Gifted VIP Value",
-        value: `${(data.giftedVipUsers * 49).toLocaleString()} EGP`,
+        value: `${(data.giftedVipUsers * 199).toLocaleString()} EGP`,
         icon: Gift,
         color: "bg-rose-500",
         description:
-          language === "ar" ? "قيمة الاشتراكات المحيدة مجاناً" : "Waived subscription value",
+          language === "ar"
+            ? "قيمة ترم واحد لكل اشتراك مجاني"
+            : "Waived semester value (199 EGP × gifted)",
       },
       {
         label: language === "ar" ? "استهلاك الذكاء الاصطناعي" : "AI Tokens Used",
@@ -1059,18 +1068,22 @@ export default function AdminAnalyticsPage() {
                     </div>
                     <div className="bg-card/80 p-3 rounded-2xl border border-border">
                       <p className="text-xs text-muted-foreground font-semibold">
-                        {language === "ar" ? "تكلفة الشهر" : "Monthly Cost"}
+                        {language === "ar"
+                          ? "قيمة الترم (199 EGP × عدد)"
+                          : "Semester Value (199 EGP × gifted)"}
                       </p>
                       <p className="text-xl font-black text-foreground">
-                        {(data.giftedVipUsers * 49).toLocaleString()} EGP
+                        {(data.giftedVipUsers * 199).toLocaleString()} EGP
                       </p>
                     </div>
                     <div className="bg-card/80 p-3 rounded-2xl border border-border">
                       <p className="text-xs text-muted-foreground font-semibold">
-                        {language === "ar" ? "تكلفة السنوية" : "Annual Waived"}
+                        {language === "ar"
+                          ? "قيمة شهرية (49 EGP × عدد)"
+                          : "Monthly Value (49 EGP × gifted)"}
                       </p>
                       <p className="text-xl font-black text-emerald-500">
-                        {(data.giftedVipUsers * 49 * 12).toLocaleString()} EGP
+                        {(data.giftedVipUsers * 49).toLocaleString()} EGP
                       </p>
                     </div>
                   </div>
@@ -1579,146 +1592,74 @@ export default function AdminAnalyticsPage() {
                 </div>
               </div>
 
-              {/* Interactive AI Scaling & Budget Calculator Widget */}
-              <div className="p-8 rounded-3xl bg-card border border-primary/30 shadow-xl space-y-6">
-                <div className="flex items-center gap-3 border-b border-border pb-4">
-                  <Calculator className="text-primary" size={28} />
-                  <div>
-                    <h3 className="text-lg font-black text-foreground">
-                      {language === "ar"
-                        ? "حاسبة توقع التوسع وتكاليف الذكاء الاصطناعي"
-                        : "AI Scaling & Revenue Profitability Simulator"}
-                    </h3>
-                    <p className="text-xs text-muted-foreground">
-                      {language === "ar"
-                        ? "حدد عدد الطلاب المتوقع ومتوسط الاستخدام الشهري لمعرفة تكاليف Google Gemini والهامش الربحي المتوقع"
-                        : "Simulate student growth & monthly AI usage to calculate estimated Gemini API costs vs VIP subscription revenue"}
-                    </p>
+              {/* Complimentary Gifted VIP Valuation Summary Card */}
+              <div className="p-8 rounded-3xl bg-gradient-to-br from-amber-500/10 via-yellow-500/5 to-amber-500/10 border border-amber-500/30 shadow-xl space-y-6">
+                <div className="flex items-center justify-between border-b border-border/60 pb-4">
+                  <div className="flex items-center gap-3">
+                    <div className="p-3 rounded-2xl bg-amber-500/20 text-amber-500 border border-amber-500/30">
+                      <Crown size={24} />
+                    </div>
+                    <div>
+                      <h3 className="text-lg font-black text-foreground">
+                        {language === "ar"
+                          ? "حاسبة القيمة الإجمالية لاشتراكات VIP الممنوحة مجاناً"
+                          : "Granted Complimentary VIP Subscriptions Valuation"}
+                      </h3>
+                      <p className="text-xs text-muted-foreground">
+                        {language === "ar"
+                          ? "إحصائية حقيقية بقيمة الاشتراكات المعفاة الممنوحة للطلاب بدون دفع"
+                          : "Empirical calculation of waived VIP subscription costs granted to students by admin"}
+                      </p>
+                    </div>
+                  </div>
+                  <div className="px-3 py-1 rounded-full bg-amber-500/20 text-amber-500 text-xs font-black border border-amber-500/30">
+                    {data.giftedVipUsers || data.vipUsers}{" "}
+                    {language === "ar" ? "مستخدم VIP" : "VIP Users"}
                   </div>
                 </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                  {/* Controls */}
-                  <div className="space-y-4 md:col-span-1 border-r border-border pr-0 md:pr-6">
-                    <div>
-                      <label className="text-xs font-bold text-foreground block mb-1">
-                        {language === "ar"
-                          ? "عدد الطلاب النشطين شهرياً:"
-                          : "Active Monthly Students:"}{" "}
-                        <span className="text-primary font-black">{simulatedStudents}</span>
-                      </label>
-                      <input
-                        type="range"
-                        min="50"
-                        max="5000"
-                        step="50"
-                        value={simulatedStudents}
-                        onChange={(e) => setSimulatedStudents(Number(e.target.value))}
-                        className="w-full accent-primary"
-                      />
-                    </div>
-
-                    <div>
-                      <label className="text-xs font-bold text-foreground block mb-1">
-                        {language === "ar"
-                          ? "كويزات شهرياً لكل طالب:"
-                          : "Quizzes / Student / Month:"}{" "}
-                        <span className="text-primary font-black">
-                          {simulatedQuizzesPerStudent}
-                        </span>
-                      </label>
-                      <input
-                        type="range"
-                        min="1"
-                        max="20"
-                        step="1"
-                        value={simulatedQuizzesPerStudent}
-                        onChange={(e) => setSimulatedQuizzesPerStudent(Number(e.target.value))}
-                        className="w-full accent-primary"
-                      />
-                    </div>
-
-                    <div>
-                      <label className="text-xs font-bold text-foreground block mb-1">
-                        {language === "ar"
-                          ? "تفريغ صوتي لكل طالب شهرياً:"
-                          : "Transcriptions / Student / Month:"}{" "}
-                        <span className="text-primary font-black">
-                          {simulatedTranscriptionsPerStudent}
-                        </span>
-                      </label>
-                      <input
-                        type="range"
-                        min="0"
-                        max="10"
-                        step="1"
-                        value={simulatedTranscriptionsPerStudent}
-                        onChange={(e) =>
-                          setSimulatedTranscriptionsPerStudent(Number(e.target.value))
-                        }
-                        className="w-full accent-primary"
-                      />
-                    </div>
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                  <div className="p-5 rounded-2xl bg-card border border-border space-y-1">
+                    <p className="text-xs text-muted-foreground font-bold">
+                      {language === "ar"
+                        ? "عدد الاشتراكات المجانية الممنوحة"
+                        : "Total Gifted VIP Beneficiaries"}
+                    </p>
+                    <p className="text-3xl font-black text-amber-500">
+                      {data.giftedVipUsers} {language === "ar" ? "طلاب" : "students"}
+                    </p>
+                    <p className="text-[10px] text-muted-foreground">
+                      {language === "ar" ? "حسابات نشطة مجانية 👑" : "Active gifted VIP accounts"}
+                    </p>
                   </div>
 
-                  {/* Calculations Output */}
-                  <div className="md:col-span-2 grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    <div className="p-4 rounded-2xl bg-muted/40 border border-border space-y-1">
-                      <p className="text-xs text-muted-foreground font-bold">
-                        {language === "ar"
-                          ? "التوكينز الشهرية المتوقعة"
-                          : "Projected Monthly Tokens"}
-                      </p>
-                      <p className="text-2xl font-black text-foreground">
-                        {(simulatorMetrics.monthlyTokens / 1000).toFixed(0)}k
-                      </p>
-                      <p className="text-[10px] text-muted-foreground">
-                        {simulatorMetrics.monthlyQuizzes} quizzes +{" "}
-                        {simulatorMetrics.monthlyTranscriptions} audios
-                      </p>
-                    </div>
+                  <div className="p-5 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 space-y-1">
+                    <p className="text-xs text-emerald-600 dark:text-emerald-400 font-bold">
+                      {language === "ar"
+                        ? "القيمة الإجمالية المعفاة (اشتراك الترم)"
+                        : "Waived Semester Subscription Value"}
+                    </p>
+                    <p className="text-3xl font-black text-emerald-600 dark:text-emerald-400">
+                      {(data.giftedVipUsers * 199).toLocaleString()} EGP
+                    </p>
+                    <p className="text-[10px] text-muted-foreground">
+                      @ 199 EGP /{" "}
+                      {language === "ar" ? "ترم كامل لكل مستخدم" : "full semester per user"}
+                    </p>
+                  </div>
 
-                    <div className="p-4 rounded-2xl bg-rose-500/10 border border-rose-500/20 space-y-1">
-                      <p className="text-xs text-rose-600 dark:text-rose-400 font-bold">
-                        {language === "ar"
-                          ? "التكلفة المتوقعة لـ Gemini"
-                          : "Projected Gemini API Cost"}
-                      </p>
-                      <p className="text-2xl font-black text-rose-600 dark:text-rose-400">
-                        {simulatorMetrics.costEgp.toFixed(2)} EGP
-                      </p>
-                      <p className="text-[10px] text-muted-foreground">
-                        ${simulatorMetrics.costUsd.toFixed(2)} USD / month
-                      </p>
-                    </div>
-
-                    <div className="p-4 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 space-y-1">
-                      <p className="text-xs text-emerald-600 dark:text-emerald-400 font-bold">
-                        {language === "ar"
-                          ? "إيراد VIP متوقع (10% اشتراك)"
-                          : "Est. VIP Revenue (10% Conversion)"}
-                      </p>
-                      <p className="text-2xl font-black text-emerald-600 dark:text-emerald-400">
-                        {simulatorMetrics.projectedVipRevenueEgp.toLocaleString()} EGP
-                      </p>
-                      <p className="text-[10px] text-muted-foreground">
-                        {Math.round(simulatedStudents * 0.1)} subscribers @ 49 EGP/mo
-                      </p>
-                    </div>
-
-                    <div className="p-4 rounded-2xl bg-primary/10 border border-primary/20 space-y-1">
-                      <p className="text-xs text-primary font-bold">
-                        {language === "ar" ? "صافي الفائض المتوقع" : "Projected Net Profit Margin"}
-                      </p>
-                      <p className="text-2xl font-black text-primary">
-                        {simulatorMetrics.netProfitMarginEgp.toLocaleString()} EGP
-                      </p>
-                      <p className="text-[10px] text-muted-foreground">
-                        {language === "ar"
-                          ? "ممتاز لتمويل المنصة والتوسع"
-                          : "High profitability margin"}
-                      </p>
-                    </div>
+                  <div className="p-5 rounded-2xl bg-blue-500/10 border border-blue-500/20 space-y-1">
+                    <p className="text-xs text-blue-600 dark:text-blue-400 font-bold">
+                      {language === "ar"
+                        ? "القيمة الشهرية المعفاة الإجمالية"
+                        : "Waived Monthly Value"}
+                    </p>
+                    <p className="text-3xl font-black text-blue-600 dark:text-blue-400">
+                      {(data.giftedVipUsers * 49).toLocaleString()} EGP
+                    </p>
+                    <p className="text-[10px] text-muted-foreground">
+                      @ 49 EGP / {language === "ar" ? "شهرياً لكل مستخدم" : "month per user"}
+                    </p>
                   </div>
                 </div>
               </div>

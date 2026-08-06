@@ -231,7 +231,12 @@ export function StudentProfileSetup({ onComplete }: StudentProfileSetupProps) {
                     {isNameLocked && <Lock className="w-3 h-3 text-muted-foreground" />}
                   </label>
                   <div className="relative group">
-                    <User className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground group-focus-within:text-primary transition-colors" />
+                    <User
+                      className={cn(
+                        "absolute top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground group-focus-within:text-primary transition-colors",
+                        language === "ar" ? "right-3.5" : "left-3.5"
+                      )}
+                    />
                     <input
                       type="text"
                       value={displayName}
@@ -239,12 +244,13 @@ export function StudentProfileSetup({ onComplete }: StudentProfileSetupProps) {
                       placeholder={language === "ar" ? "أحمد محمد علي" : "Ahmed Mohamed Ali"}
                       disabled={isNameLocked}
                       className={cn(
-                        "w-full pl-10 pr-4 py-3 rounded-2xl border bg-background/50 font-medium text-sm transition-all duration-300",
+                        "w-full py-3 rounded-2xl border bg-background/50 font-medium text-sm transition-all duration-300",
+                        language === "ar" ? "pr-10 pl-4" : "pl-10 pr-4",
                         isNameLocked
                           ? "opacity-60 cursor-not-allowed bg-muted border-transparent"
                           : "border-border focus:border-primary focus:ring-2 focus:ring-primary/20 hover:border-primary/50"
                       )}
-                      dir="rtl"
+                      dir={language === "ar" ? "rtl" : "ltr"}
                     />
                   </div>
                   {errors.name && (
@@ -261,7 +267,12 @@ export function StudentProfileSetup({ onComplete }: StudentProfileSetupProps) {
                     {isCodeLocked && <Lock className="w-3 h-3 text-muted-foreground" />}
                   </label>
                   <div className="relative group">
-                    <Hash className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground group-focus-within:text-primary transition-colors" />
+                    <Hash
+                      className={cn(
+                        "absolute top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground group-focus-within:text-primary transition-colors",
+                        language === "ar" ? "right-3.5" : "left-3.5"
+                      )}
+                    />
                     <input
                       type="text"
                       value={studentCode}
@@ -273,7 +284,8 @@ export function StudentProfileSetup({ onComplete }: StudentProfileSetupProps) {
                       maxLength={6}
                       disabled={isCodeLocked}
                       className={cn(
-                        "w-full pl-10 pr-4 py-3 rounded-2xl border bg-background/50 font-mono text-base tracking-widest transition-all duration-300",
+                        "w-full py-3 rounded-2xl border bg-background/50 font-mono text-base tracking-widest transition-all duration-300",
+                        language === "ar" ? "pr-10 pl-4" : "pl-10 pr-4",
                         isCodeLocked
                           ? "opacity-60 cursor-not-allowed bg-muted border-transparent"
                           : "border-border focus:border-primary focus:ring-2 focus:ring-primary/20 hover:border-primary/50"

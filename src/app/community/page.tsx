@@ -351,30 +351,40 @@ export default function CommunityLeaderboardPage() {
   const [totalUsers, setTotalUsers] = useState(0);
 
   useEffect(() => {
-    if (!db) return;
-    const q = query(collection(db, "users"), orderBy("points", "desc"), limit(100));
-    const unsub = onSnapshot(q, (snap) => {
-      setTotalUsers(snap.size);
-      const all: LeaderEntry[] = snap.docs.map((d, idx) => {
-        const data = d.data();
-        return {
-          uid: d.id,
-          name: data.displayName || data.email || "Unknown",
-          avatar: data.photoURL,
-          department: data.department,
-          academicYear: data.academicYear,
-          points: data.points ?? 0,
-          streakDays: data.streakDays ?? 0,
-          resourceCount: data.resourceCount ?? 0,
-          battleWins: data.battleWins ?? 0,
-          rank: idx + 1,
-        };
-      });
-      setEntries(all);
+    if (!db || !user) {
       setLoading(false);
-    });
+      return;
+    }
+    const q = query(collection(db, "users"), orderBy("points", "desc"), limit(100));
+    const unsub = onSnapshot(
+      q,
+      (snap) => {
+        setTotalUsers(snap.size);
+        const all: LeaderEntry[] = snap.docs.map((d, idx) => {
+          const data = d.data();
+          return {
+            uid: d.id,
+            name: data.displayName || data.email || "Unknown",
+            avatar: data.photoURL,
+            department: data.department,
+            academicYear: data.academicYear,
+            points: data.points ?? 0,
+            streakDays: data.streakDays ?? 0,
+            resourceCount: data.resourceCount ?? 0,
+            battleWins: data.battleWins ?? 0,
+            rank: idx + 1,
+          };
+        });
+        setEntries(all);
+        setLoading(false);
+      },
+      (err) => {
+        console.error("Community leaderboard error:", err);
+        setLoading(false);
+      }
+    );
     return () => unsub();
-  }, []);
+  }, [user]);
 
   // Sort by active category
   const sorted = useMemo(() => {

@@ -127,20 +127,11 @@
   }
 
   /* Global Outline Animation for All Type Boxes (Inputs, Textareas, Selects) */
-  input:not([type="checkbox"]):not([type="radio"]),
-  textarea,
-  select {
-    caret-color: hsl(var(--primary));
-    transition:
-      color 0.2s ease,
-      background-color 0.2s ease,
-      border-color 0.2s ease,
-      box-shadow 0.2s ease;
-  }
-
-  input:not([type="checkbox"]):not([type="radio"]):not(.no-focus-ring):focus,
-  textarea:not(.no-focus-ring):focus,
-  select:not(.no-focus-ring):focus {
+  input:not([type="checkbox"]):not([type="radio"]):not(.no-focus-ring):not(.border-none):not(
+      .border-0
+    ):focus,
+  textarea:not(.no-focus-ring):not(.border-none):not(.border-0):focus,
+  select:not(.no-focus-ring):not(.border-none):not(.border-0):focus {
     outline: none !important;
     box-shadow:
       0 0 0 3px rgba(99, 102, 241, 0.3),

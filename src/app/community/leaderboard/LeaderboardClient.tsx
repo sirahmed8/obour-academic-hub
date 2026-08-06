@@ -54,23 +54,33 @@ export default function LeaderboardClient() {
   const isRtl = language === "ar";
 
   useEffect(() => {
-    if (!db) return () => {};
+    if (!db || !currentUser) {
+      setLoading(false);
+      return () => {};
+    }
 
     const q = query(collection(db, "users"), orderBy("points", "desc"), limit(100));
 
-    const unsubscribe = onSnapshot(q, (snapshot) => {
-      const usersData = snapshot.docs
-        .map((doc) => ({
-          uid: doc.id,
-          ...doc.data(),
-        }))
-        .filter((u: Partial<User>) => (u.points || 0) > 0) as User[];
-      setUsers(usersData);
-      setLoading(false);
-    });
+    const unsubscribe = onSnapshot(
+      q,
+      (snapshot) => {
+        const usersData = snapshot.docs
+          .map((doc) => ({
+            uid: doc.id,
+            ...doc.data(),
+          }))
+          .filter((u: Partial<User>) => (u.points || 0) > 0) as User[];
+        setUsers(usersData);
+        setLoading(false);
+      },
+      (err) => {
+        console.error("Leaderboard snapshot error:", err);
+        setLoading(false);
+      }
+    );
 
     return () => unsubscribe();
-  }, []);
+  }, [currentUser]);
 
   // Visual Podium placement: 2nd on left, 1st in center, 3rd on right
   const getPodiumList = () => {

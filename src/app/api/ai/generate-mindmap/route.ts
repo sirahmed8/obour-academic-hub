@@ -91,6 +91,26 @@ Return EXACTLY valid JSON formatted as follows (no markdown, no backticks):
 
     const mindmapData = JSON.parse(cleanJsonString);
 
+    try {
+      const { adminDb } = await import("@/lib/server/firebase-admin");
+      if (adminDb) {
+        const estimatedTokens = Math.max(
+          400,
+          Math.round((cleanJsonString.length + prompt.length) / 3)
+        );
+        await adminDb.collection("logs").add({
+          action: "AI_GENERATION",
+          type: "mindmap",
+          totalTokens: estimatedTokens,
+          userId: uid,
+          timestamp: new Date().toISOString(),
+          details: `Generated AI Mindmap: ${topic} (${estimatedTokens} tokens)`,
+        });
+      }
+    } catch {
+      // Ignore background log error
+    }
+
     return withCors(
       req,
       NextResponse.json({

@@ -51,13 +51,13 @@ export function VipGrantCelebrationModal() {
 
   return (
     <AnimatePresence>
-      <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-background/80 backdrop-blur-xl animate-in fade-in duration-300">
+      <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-background/80 backdrop-blur-xl animate-in fade-in duration-300 overflow-y-auto">
         <motion.div
           initial={{ opacity: 0, scale: 0.9, y: 20 }}
           animate={{ opacity: 1, scale: 1, y: 0 }}
           exit={{ opacity: 0, scale: 0.9, y: 20 }}
           transition={{ duration: 0.3, ease: [0.16, 1, 0.3, 1] }}
-          className="relative w-full max-w-xl rounded-4xl bg-card border border-amber-500/40 p-6 sm:p-8 shadow-2xl shadow-amber-500/10 overflow-hidden"
+          className="relative w-full max-w-xl max-h-[85vh] sm:max-h-[90vh] overflow-y-auto rounded-3xl sm:rounded-4xl bg-card border border-amber-500/40 p-5 sm:p-8 shadow-2xl shadow-amber-500/10 custom-scrollbar my-auto"
         >
           {/* Ambient Glows */}
           <div className="absolute -top-24 -right-24 w-64 h-64 bg-amber-500/20 rounded-full blur-3xl pointer-events-none" />

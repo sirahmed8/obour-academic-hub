@@ -5,15 +5,16 @@ import { useRouter } from "next/navigation";
 import { useLanguage, useAuth } from "@/contexts";
 import { notificationService } from "@/services/notification.service";
 import {
-  Bell,
-  Info,
-  AlertTriangle,
-  CheckCircle,
-  Trash2,
-  CheckCheck,
-  ExternalLink,
   Filter,
+  CheckCheck,
+  Trash2,
+  Bell,
+  AlertTriangle,
+  Info,
+  CheckCircle,
+  ExternalLink,
 } from "lucide-react";
+import { ScrollableTabs } from "@/components/ui/ScrollableTabs";
 import { ConfirmationModal } from "@/components/ui/ConfirmationModal";
 import { LoadingTable } from "@/components/ui/Loading";
 import { toast } from "sonner";
@@ -167,15 +168,15 @@ export default function NotificationsPage() {
         </div>
 
         {/* Filter Controls Bar */}
-        <div className="flex items-center gap-2 p-1.5 bg-card/40 backdrop-blur-md rounded-2xl border border-border/50 w-fit overflow-x-auto">
-          <div className="px-3 py-1 text-muted-foreground">
+        <ScrollableTabs className="p-1.5 bg-card/40 backdrop-blur-md rounded-2xl border border-border/50">
+          <div className="px-3 py-1 text-muted-foreground shrink-0">
             <Filter size={16} />
           </div>
 
           <button
             onClick={() => setActiveFilter("all")}
             className={cn(
-              "px-4 py-2 rounded-xl text-xs font-bold transition-all whitespace-nowrap",
+              "px-4 py-2 rounded-xl text-xs font-bold transition-all whitespace-nowrap shrink-0",
               activeFilter === "all"
                 ? "bg-primary text-primary-foreground shadow-sm"
                 : "text-muted-foreground hover:bg-muted hover:text-foreground"
@@ -187,7 +188,7 @@ export default function NotificationsPage() {
           <button
             onClick={() => setActiveFilter("unread")}
             className={cn(
-              "px-4 py-2 rounded-xl text-xs font-bold transition-all whitespace-nowrap",
+              "px-4 py-2 rounded-xl text-xs font-bold transition-all whitespace-nowrap shrink-0",
               activeFilter === "unread"
                 ? "bg-primary text-primary-foreground shadow-sm"
                 : "text-muted-foreground hover:bg-muted hover:text-foreground"
@@ -199,7 +200,7 @@ export default function NotificationsPage() {
           <button
             onClick={() => setActiveFilter("academic")}
             className={cn(
-              "px-4 py-2 rounded-xl text-xs font-bold transition-all whitespace-nowrap",
+              "px-4 py-2 rounded-xl text-xs font-bold transition-all whitespace-nowrap shrink-0",
               activeFilter === "academic"
                 ? "bg-primary text-primary-foreground shadow-sm"
                 : "text-muted-foreground hover:bg-muted hover:text-foreground"
@@ -207,7 +208,7 @@ export default function NotificationsPage() {
           >
             {language === "ar" ? "تحديثات المواد" : "Course Updates"}
           </button>
-        </div>
+        </ScrollableTabs>
 
         {loading ? (
           <LoadingTable rows={5} />

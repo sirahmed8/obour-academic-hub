@@ -44,7 +44,7 @@ export default function ObourPlusSubscriptionPage() {
   };
 
   return (
-    <div className="p-4 sm:p-6 lg:p-10 space-y-10 max-w-7xl mx-auto min-h-screen page-transition">
+    <div className="p-4 sm:p-6 lg:p-10 pb-28 space-y-10 max-w-7xl mx-auto min-h-screen page-transition">
       {/* ── Hero Banner ──────────────────────────────────────────────────── */}
       <FadeIn>
         <div className="relative rounded-3xl sm:rounded-4xl overflow-hidden bg-gradient-to-br from-[#0f172a] via-[#1e1b4b] to-[#090d16] border border-amber-500/40 p-8 sm:p-12 shadow-2xl text-center space-y-5 text-white">
@@ -66,8 +66,9 @@ export default function ObourPlusSubscriptionPage() {
               : "Upgrade your academic journey with unlimited AI lecture transcriptions, smart practice exams, 2x XP multipliers, and exclusive VIP perks."}
           </p>
 
-          {/* Owner / Admin Active Status */}
-          {isOwnerOrAdmin && (
+          {/* Regular VIP badge */}
+          {/* Regular VIP badge */}
+          {isVip && (
             <motion.div
               initial={{ scale: 0.9, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
@@ -76,22 +77,8 @@ export default function ObourPlusSubscriptionPage() {
               <Sparkles size={18} />
               <span>
                 {isAr
-                  ? "أنت صاحب المنصة / أدمن - جميع مميزات بلس مفعلة بحسابك تلقائياً 👑"
-                  : "You are Owner/Admin - All VIP perks permanently active 👑"}
-              </span>
-            </motion.div>
-          )}
-
-          {/* Regular VIP badge */}
-          {isVip && !isOwnerOrAdmin && (
-            <motion.div
-              initial={{ scale: 0.9, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-              className="mt-4 inline-flex items-center gap-2 px-6 py-2.5 rounded-2xl bg-gradient-to-r from-amber-500 to-yellow-400 text-black font-black text-sm shadow-xl"
-            >
-              <Sparkles size={18} />
-              <span>
-                {isAr ? "أنت الآن مشترك في العبور بلس 👑" : "You have an active Obour VIP Pass 👑"}
+                  ? "اشتراك العبور بلس مفعل في حسابك 👑"
+                  : "Obour VIP Pass Active on Your Account 👑"}
               </span>
             </motion.div>
           )}
@@ -193,9 +180,15 @@ export default function ObourPlusSubscriptionPage() {
               </ul>
             </div>
 
-            <div className="w-full py-4 rounded-2xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-600 dark:text-emerald-400 font-extrabold text-sm text-center">
-              {isAr ? "✅ باقتك الحالية - نشطة" : "✅ Your Current Plan - Active"}
-            </div>
+            {!isVip && !isOwnerOrAdmin ? (
+              <div className="w-full py-4 rounded-2xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-600 dark:text-emerald-400 font-extrabold text-sm text-center">
+                {isAr ? "✅ باقتك الحالية - نشطة" : "✅ Your Current Plan - Active"}
+              </div>
+            ) : (
+              <div className="w-full py-4 rounded-2xl bg-muted/40 border border-border text-muted-foreground font-bold text-sm text-center">
+                {isAr ? "الباقة الأساسية المجانية" : "Basic Free Plan"}
+              </div>
+            )}
           </div>
         </ScaleIn>
 
@@ -203,7 +196,7 @@ export default function ObourPlusSubscriptionPage() {
         <ScaleIn>
           <div className="p-8 rounded-3xl bg-gradient-to-b from-[#0f172a] via-[#1e1b4b] to-[#0f172a] border-2 border-amber-500/60 shadow-2xl flex flex-col justify-between space-y-6 relative overflow-hidden h-full text-white">
             <div className="absolute top-0 right-0 bg-gradient-to-l from-amber-500 to-yellow-400 text-black font-black text-[10px] uppercase tracking-wider px-4 py-1.5 rounded-bl-2xl shadow-lg">
-              {isAr ? "قريباً ⚡" : "Coming Soon ⚡"}
+              {isAr ? "مميزات النخبة ⚡" : "VIP Perks ⚡"}
             </div>
 
             <div className="space-y-4">
@@ -293,23 +286,22 @@ export default function ObourPlusSubscriptionPage() {
               </ul>
             </div>
 
-            {/* Coming Soon CTA — locked state */}
-            <div className="w-full py-4 rounded-2xl bg-white/10 border border-white/20 text-white/70 font-extrabold text-sm text-center flex items-center justify-center gap-2 cursor-default">
-              <Lock size={16} />
-              <span>
-                {isOwnerOrAdmin
-                  ? isAr
-                    ? "الاشتراك مفعل تلقائياً بحسابك 👑"
-                    : "Permanently Active on Your Account 👑"
-                  : isVip
-                    ? isAr
-                      ? "اشتراكك مفعل بالفعل 👑"
-                      : "VIP Pass Active 👑"
-                    : isAr
-                      ? "بوابة الدفع قريباً 🔜"
-                      : "Payment Gateway Coming Soon 🔜"}
-              </span>
-            </div>
+            {/* Active or Locked CTA state */}
+            {isVip || isOwnerOrAdmin ? (
+              <div className="w-full py-4 rounded-2xl bg-gradient-to-r from-amber-500/20 to-yellow-500/20 border border-amber-400/50 text-amber-300 font-black text-sm text-center flex items-center justify-center gap-2 shadow-lg">
+                <Crown size={18} className="text-amber-400" />
+                <span>
+                  {isAr
+                    ? "✅ باقتك الحالية - VIP مفعلة 👑"
+                    : "✅ Your Active Plan - VIP Pass Active 👑"}
+                </span>
+              </div>
+            ) : (
+              <div className="w-full py-4 rounded-2xl bg-white/10 border border-white/20 text-white/70 font-extrabold text-sm text-center flex items-center justify-center gap-2 cursor-default">
+                <Lock size={16} />
+                <span>{isAr ? "بوابة الدفع قريباً 🔜" : "Payment Gateway Coming Soon 🔜"}</span>
+              </div>
+            )}
           </div>
         </ScaleIn>
       </StaggerChildren>

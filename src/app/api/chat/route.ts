@@ -51,6 +51,26 @@ export async function POST(req: Request) {
 
     const responseText = await generateGeminiResponse(messages, uid);
 
+    try {
+      const { adminDb } = await import("@/lib/server/firebase-admin");
+      if (adminDb) {
+        const estimatedTokens = Math.max(
+          150,
+          Math.round((responseText.length + JSON.stringify(messages).length) / 3)
+        );
+        await adminDb.collection("logs").add({
+          action: "AI_GENERATION",
+          type: "qa",
+          totalTokens: estimatedTokens,
+          userId: uid,
+          timestamp: new Date().toISOString(),
+          details: `Q&A AI Assistant processed query (${estimatedTokens} tokens)`,
+        });
+      }
+    } catch {
+      // Ignore background log error
+    }
+
     return withCors(req, NextResponse.json({ role: "assistant", content: responseText }));
   } catch (error: unknown) {
     if (error && typeof error === "object" && "name" in error && error.name === "ZodError") {

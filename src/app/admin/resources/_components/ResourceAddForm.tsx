@@ -80,7 +80,7 @@ export function ResourceAddForm({
                 value={form.title}
                 onChange={(event) => setForm((prev) => ({ ...prev, title: event.target.value }))}
                 placeholder="e.g. Chapter 1 Notes"
-                className="w-full rounded-xl border border-white/10 bg-white/5 p-3 shadow-sm outline-none transition-all duration-300 placeholder:text-muted-foreground/50 focus:border-primary/50 focus:ring-4 focus:ring-primary/10 dark:bg-white/2"
+                className="w-full rounded-xl border border-white/10 bg-white/5 p-3 shadow-sm outline-none transition-all duration-300 placeholder:text-muted-foreground/50 no-focus-ring focus:border-primary/50 focus:ring-2 focus:ring-primary/20 dark:bg-white/2"
               />
             </div>
             <div>
@@ -92,7 +92,7 @@ export function ResourceAddForm({
                 value={form.titleAr}
                 onChange={(event) => setForm((prev) => ({ ...prev, titleAr: event.target.value }))}
                 placeholder="مثال: مذكرات الفصل الأول"
-                className="w-full rounded-xl border border-white/10 bg-white/5 p-3 shadow-sm outline-none transition-all duration-300 placeholder:text-muted-foreground/50 focus:border-primary/50 focus:ring-4 focus:ring-primary/10 dark:bg-white/2"
+                className="w-full rounded-xl border border-white/10 bg-white/5 p-3 shadow-sm outline-none transition-all duration-300 placeholder:text-muted-foreground/50 no-focus-ring focus:border-primary/50 focus:ring-2 focus:ring-primary/20 dark:bg-white/2"
                 dir="rtl"
               />
             </div>
@@ -111,7 +111,7 @@ export function ResourceAddForm({
                   setForm((prev) => ({ ...prev, description: event.target.value }))
                 }
                 placeholder="Brief description..."
-                className="h-24 w-full resize-none rounded-xl border border-white/10 bg-white/5 p-3 shadow-sm outline-none transition-all duration-300 placeholder:text-muted-foreground/50 focus:border-primary/50 focus:ring-4 focus:ring-primary/10 dark:bg-white/2"
+                className="h-24 w-full resize-none rounded-xl border border-white/10 bg-white/5 p-3 shadow-sm outline-none transition-all duration-300 placeholder:text-muted-foreground/50 no-focus-ring focus:border-primary/50 focus:ring-2 focus:ring-primary/20 dark:bg-white/2"
               />
             </div>
             <div>
@@ -124,7 +124,7 @@ export function ResourceAddForm({
                   setForm((prev) => ({ ...prev, descriptionAr: event.target.value }))
                 }
                 placeholder="وصف مختصر..."
-                className="h-24 w-full resize-none rounded-xl border border-white/10 bg-white/5 p-3 shadow-sm outline-none transition-all duration-300 placeholder:text-muted-foreground/50 focus:border-primary/50 focus:ring-4 focus:ring-primary/10 dark:bg-white/2"
+                className="h-24 w-full resize-none rounded-xl border border-white/10 bg-white/5 p-3 shadow-sm outline-none transition-all duration-300 placeholder:text-muted-foreground/50 no-focus-ring focus:border-primary/50 focus:ring-2 focus:ring-primary/20 dark:bg-white/2"
                 dir="rtl"
               />
             </div>

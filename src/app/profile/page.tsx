@@ -265,13 +265,13 @@ export default function ProfilePage() {
             </p>
           </div>
 
-          <div className="flex flex-wrap items-center justify-center md:justify-start gap-3 text-xs sm:text-sm font-semibold text-muted-foreground">
-            <div className="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-card border border-border/50">
-              <Mail className="w-4 h-4 text-primary" />
-              {activeUser.email}
+          <div className="flex flex-wrap items-center justify-center md:justify-start gap-2.5 text-xs sm:text-sm font-semibold text-muted-foreground max-w-full">
+            <div className="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-card border border-border/50 max-w-full overflow-hidden">
+              <Mail className="w-4 h-4 text-primary shrink-0" />
+              <span className="truncate max-w-[200px] sm:max-w-xs">{activeUser.email}</span>
             </div>
-            <div className="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-card border border-border/50">
-              <Shield className="w-4 h-4 text-primary" />
+            <div className="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-card border border-border/50 shrink-0">
+              <Shield className="w-4 h-4 text-primary shrink-0" />
               <span>{activeUser.studentCode || t("profile.codeLocked")}</span>
             </div>
           </div>

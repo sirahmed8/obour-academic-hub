@@ -105,6 +105,26 @@ Return EXACTLY valid JSON formatted as follows (no markdown backticks, no wrappi
 
     const quizData = JSON.parse(cleanJsonString);
 
+    try {
+      const { adminDb } = await import("@/lib/server/firebase-admin");
+      if (adminDb) {
+        const estimatedTokens = Math.max(
+          500,
+          Math.round((cleanJsonString.length + prompt.length) / 3)
+        );
+        await adminDb.collection("logs").add({
+          action: "AI_GENERATION",
+          type: "quiz",
+          totalTokens: estimatedTokens,
+          userId: uid,
+          timestamp: new Date().toISOString(),
+          details: `Generated AI Quiz: ${subjectName} (${questionCount} Qs, ${estimatedTokens} tokens)`,
+        });
+      }
+    } catch {
+      // Ignore background log error
+    }
+
     return withCors(
       req,
       NextResponse.json({

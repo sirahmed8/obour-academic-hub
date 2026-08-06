@@ -179,10 +179,10 @@ export function Dashboard() {
             </div>
 
             {/* Quick Action Launcher Pills */}
-            <div className="mt-8 pt-6 border-t border-white/10 flex flex-wrap items-center gap-3">
+            <div className="mt-6 pt-5 border-t border-white/10 grid grid-cols-1 sm:grid-cols-3 gap-2.5">
               <Link
                 href="/todo"
-                className="flex items-center gap-2 px-4 py-2.5 rounded-2xl bg-primary text-white text-xs sm:text-sm font-extrabold shadow-lg hover:shadow-primary/30 hover:scale-105 active:scale-95 transition-all"
+                className="flex items-center justify-center gap-2 px-4 py-2.5 rounded-2xl bg-primary text-white text-xs sm:text-sm font-extrabold shadow-lg hover:shadow-primary/30 hover:scale-105 active:scale-95 transition-all text-center"
               >
                 <Plus size={16} />
                 <span>{language === "ar" ? "إضافة مهمة دراسية" : "Add Homework Task"}</span>
@@ -190,7 +190,7 @@ export function Dashboard() {
 
               <Link
                 href="/subject"
-                className="flex items-center gap-2 px-4 py-2.5 rounded-2xl bg-white/10 hover:bg-white/20 text-white text-xs sm:text-sm font-extrabold border border-white/15 backdrop-blur-md transition-all hover:scale-105 active:scale-95"
+                className="flex items-center justify-center gap-2 px-4 py-2.5 rounded-2xl bg-white/10 hover:bg-white/20 text-white text-xs sm:text-sm font-extrabold border border-white/15 backdrop-blur-md transition-all hover:scale-105 active:scale-95 text-center"
               >
                 <BookOpen size={16} className="text-blue-400" />
                 <span>{language === "ar" ? "المواد الدراسية" : "Explore Subjects"}</span>
@@ -198,7 +198,7 @@ export function Dashboard() {
 
               <Link
                 href="/community"
-                className="flex items-center gap-2 px-4 py-2.5 rounded-2xl bg-white/10 hover:bg-white/20 text-white text-xs sm:text-sm font-extrabold border border-white/15 backdrop-blur-md transition-all hover:scale-105 active:scale-95"
+                className="flex items-center justify-center gap-2 px-4 py-2.5 rounded-2xl bg-white/10 hover:bg-white/20 text-white text-xs sm:text-sm font-extrabold border border-white/15 backdrop-blur-md transition-all hover:scale-105 active:scale-95 text-center"
               >
                 <MessageSquare size={16} className="text-emerald-400" />
                 <span>{language === "ar" ? "طرح سؤال مجتمعي" : "Ask Question"}</span>
@@ -206,21 +206,21 @@ export function Dashboard() {
             </div>
 
             {/* Quick Stats Pills */}
-            <div className="flex flex-wrap gap-3 mt-4">
-              <div className="flex items-center gap-2 bg-white/10 px-3 py-1.5 rounded-xl text-xs text-white font-bold border border-white/10 backdrop-blur-sm">
+            <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 mt-3">
+              <div className="flex items-center justify-center gap-1.5 bg-white/10 px-3 py-1.5 rounded-xl text-xs text-white font-bold border border-white/10 backdrop-blur-sm">
                 <span>📋</span>
                 <span>
                   {language === "ar" ? `${taskCount} مهمة اليوم` : `${taskCount} Tasks Today`}
                 </span>
               </div>
-              <div className="flex items-center gap-2 bg-white/10 px-3 py-1.5 rounded-xl text-xs text-white font-bold border border-white/10 backdrop-blur-sm">
+              <div className="flex items-center justify-center gap-1.5 bg-white/10 px-3 py-1.5 rounded-xl text-xs text-white font-bold border border-white/10 backdrop-blur-sm">
                 <span>🔥</span>
                 <span>
                   {language === "ar" ? `${streakCount} يوم متتالي` : `${streakCount} Day Streak`}
                 </span>
               </div>
               {daysUntilExam !== null ? (
-                <div className="flex items-center gap-2 bg-white/10 px-3 py-1.5 rounded-xl text-xs text-white font-bold border border-white/10 backdrop-blur-sm">
+                <div className="flex items-center justify-center gap-1.5 bg-white/10 px-3 py-1.5 rounded-xl text-xs text-white font-bold border border-white/10 backdrop-blur-sm col-span-2 sm:col-span-1">
                   <span>🎯</span>
                   <span>
                     {language === "ar"
@@ -229,7 +229,7 @@ export function Dashboard() {
                   </span>
                 </div>
               ) : (
-                <div className="flex items-center gap-2 bg-white/10 px-3 py-1.5 rounded-xl text-xs text-white font-bold border border-white/10 backdrop-blur-sm">
+                <div className="flex items-center justify-center gap-1.5 bg-white/10 px-3 py-1.5 rounded-xl text-xs text-white font-bold border border-white/10 backdrop-blur-sm col-span-2 sm:col-span-1">
                   <span>🎯</span>
                   <span>{language === "ar" ? "لا امتحانات قريبة" : "No Exam Scheduled"}</span>
                 </div>

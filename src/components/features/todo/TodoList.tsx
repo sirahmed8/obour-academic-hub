@@ -17,6 +17,7 @@ import { AnimatePresence, motion } from "framer-motion";
 import { TodoItem } from "./TodoItem";
 import { AddTodoModal } from "./AddTodoModal";
 import { AITaskAssistantModal } from "./AITaskAssistantModal";
+import { ScrollableTabs } from "@/components/ui/ScrollableTabs";
 import {
   Plus,
   CheckCircle2,
@@ -604,9 +605,9 @@ export function TodoList() {
       </div>
 
       {/* Secondary Filter & Search Card */}
-      <div className="flex flex-col md:flex-row gap-3 md:items-center bg-card border border-border dark:bg-card backdrop-blur-md p-3 rounded-3xl shadow-sm relative z-20">
+      <div className="flex flex-col lg:flex-row gap-3 lg:items-center bg-card border border-border dark:bg-card backdrop-blur-md p-3.5 rounded-3xl shadow-sm relative z-20 w-full">
         {/* Search Input */}
-        <div className="relative flex-1" dir={isRtl ? "rtl" : "ltr"}>
+        <div className="relative flex-1 min-w-[200px] w-full" dir={isRtl ? "rtl" : "ltr"}>
           <Search
             className={cn(
               "absolute top-1/2 -translate-y-1/2 text-muted-foreground w-4 h-4 pointer-events-none",
@@ -638,7 +639,7 @@ export function TodoList() {
         </div>
 
         {/* Priority Filter Pills (Scrollable) */}
-        <div className="flex items-center gap-1 p-1 bg-muted/30 rounded-xl overflow-x-auto scrollbar-hide shrink-0 max-w-full">
+        <ScrollableTabs className="w-full sm:w-auto p-1 bg-muted/30 rounded-xl">
           {priorityOptions.map((opt) => (
             <button
               key={opt.value}
@@ -651,25 +652,25 @@ export function TodoList() {
               className={cn(
                 "px-3 py-1.5 text-xs font-bold rounded-lg transition-all whitespace-nowrap shrink-0",
                 filters.priority === opt.value
-                  ? "bg-secondary text-foreground shadow-sm font-black"
+                  ? "bg-primary text-white font-black shadow-xs"
                   : "text-muted-foreground hover:bg-muted hover:text-foreground"
               )}
             >
               {opt.label}
             </button>
           ))}
-        </div>
+        </ScrollableTabs>
 
-        <div className="hidden md:block w-px h-6 bg-border/50 shrink-0" />
+        <div className="hidden lg:block w-px h-6 bg-border/50 shrink-0" />
 
         {/* Sort Dropdown */}
-        <div className="flex items-center gap-2 w-full md:w-52 shrink-0 relative">
+        <div className="flex items-center gap-2 w-full lg:w-48 shrink-0 relative">
           <ArrowUpDown className="w-4 h-4 text-muted-foreground shrink-0" />
           <CustomSelect
             options={sortOptions}
             value={sortBy}
             onChange={(v) => setSortBy(v as "dueDate" | "priority" | "newest")}
-            className="w-full flex-1"
+            className="w-full flex-1 min-w-0"
             compact
           />
         </div>

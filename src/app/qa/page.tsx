@@ -6,6 +6,7 @@ import { MessageSquare, ThumbsUp, ShieldCheck, Sparkles, Plus, Search } from "lu
 import { FadeIn, ScaleIn, StaggerChildren } from "@/components/ui/Animations";
 import { motion } from "framer-motion";
 import { toast } from "sonner";
+import { ScrollableTabs } from "@/components/ui/ScrollableTabs";
 import {
   collection,
   getDocs,
@@ -269,7 +270,7 @@ export default function QAForumPage() {
             />
           </div>
 
-          <div className="flex items-center gap-2 overflow-x-auto pb-1 scrollbar-hide">
+          <ScrollableTabs>
             {availableSubjects.map((sub) => (
               <button
                 key={sub}
@@ -284,7 +285,7 @@ export default function QAForumPage() {
                 {sub === "all" ? (isRtl ? "جميع المواد" : "All Subjects") : sub}
               </button>
             ))}
-          </div>
+          </ScrollableTabs>
         </div>
       </ScaleIn>
 
