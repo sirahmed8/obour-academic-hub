@@ -181,7 +181,7 @@ service cloud.firestore {
       allow create: if request.auth != null &&
         request.resource.data.keys().hasAll(['userId', 'timestamp']) &&
         request.resource.data.keys().size() < 15 &&
-        (request.resource.data.userId == request.auth.uid || request.resource.data.userId == 'guest');
+        (request.resource.data.userId == request.auth.uid || request.resource.data.userId == 'guest' || request.resource.data.userId.matches('^guest_.*$'));
     }
 
     match /user_stats/{userId} {
@@ -237,14 +237,42 @@ service cloud.firestore {
 
     match /exams/{examId} {
       allow read: if true;
-      allow create: if request.auth != null;
+      allow create: if request.auth != null &&
+        request.resource.data.keys().hasAll(['titleAr', 'titleEn', 'subject', 'year', 'type', 'downloadUrl']) &&
+        request.resource.data.titleAr is string && request.resource.data.titleAr.size() > 0 && request.resource.data.titleAr.size() < 100 &&
+        request.resource.data.titleEn is string && request.resource.data.titleEn.size() > 0 && request.resource.data.titleEn.size() < 100 &&
+        request.resource.data.subject is string && request.resource.data.subject.size() > 0 && request.resource.data.subject.size() < 100 &&
+        request.resource.data.year is string && request.resource.data.year.size() > 0 && request.resource.data.year.size() < 10 &&
+        request.resource.data.type in ['Midterm', 'Final'] &&
+        request.resource.data.downloadUrl is string && request.resource.data.downloadUrl.size() > 0 && request.resource.data.downloadUrl.size() < 1000;
       allow update, delete: if hasPermission('manage_subjects') || isOwner();
     }
 
     match /hagazSessions/{sessionId} {
       allow read: if true;
-      allow create: if request.auth != null;
-      allow update, delete: if request.auth != null && (resource.data.createdBy == request.auth.uid || isOwner());
+      allow create: if request.auth != null &&
+        request.resource.data.keys().hasAll(['titleAr', 'titleEn', 'subject', 'time', 'date', 'seats', 'bookedSeats', 'type', 'mentor', 'createdBy']) &&
+        request.resource.data.titleAr is string && request.resource.data.titleAr.size() > 0 && request.resource.data.titleAr.size() < 100 &&
+        request.resource.data.titleEn is string && request.resource.data.titleEn.size() > 0 && request.resource.data.titleEn.size() < 100 &&
+        request.resource.data.subject is string && request.resource.data.subject.size() > 0 && request.resource.data.subject.size() < 100 &&
+        request.resource.data.time is string && request.resource.data.time.size() > 0 && request.resource.data.time.size() < 50 &&
+        request.resource.data.date is string && request.resource.data.date.size() > 0 && request.resource.data.date.size() < 50 &&
+        request.resource.data.seats is int && request.resource.data.seats > 0 && request.resource.data.seats <= 50 &&
+        request.resource.data.bookedSeats is int && request.resource.data.bookedSeats >= 0 && request.resource.data.bookedSeats <= request.resource.data.seats &&
+        request.resource.data.type in ['group', 'battle', 'lab'] &&
+        request.resource.data.mentor is string && request.resource.data.mentor.size() > 0 && request.resource.data.mentor.size() < 100 &&
+        request.resource.data.createdBy == request.auth.uid;
+      allow update: if request.auth != null && (
+        isOwner() || 
+        resource.data.createdBy == request.auth.uid ||
+        (request.resource.data.diff(resource.data).affectedKeys().hasOnly(['bookedSeats']) && 
+         request.resource.data.bookedSeats is int &&
+         request.resource.data.bookedSeats >= 0 && 
+         request.resource.data.bookedSeats <= resource.data.seats &&
+         (request.resource.data.bookedSeats == resource.data.bookedSeats + 1 || request.resource.data.bookedSeats == resource.data.bookedSeats - 1)
+        )
+      );
+      allow delete: if request.auth != null && (resource.data.createdBy == request.auth.uid || isOwner());
     }
 
     match /subscription_requests/{requestId} {

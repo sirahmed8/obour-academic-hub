@@ -5,7 +5,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { collection, doc, onSnapshot, orderBy, query } from "firebase/firestore";
 import { toast } from "sonner";
 import { useAuth, useLanguage, useSolidMode } from "@/contexts";
-import { db } from "@/lib/firebase";
+import { db, auth } from "@/lib/firebase";
 import { apiFetch } from "@/lib/api-client";
 import {
   clearChatHistory,
@@ -467,7 +467,7 @@ export function useAIChatbot(): AIChatbotController {
 
           setIsGenerating(true);
           try {
-            const history = messagesRef.current.slice(-5).map((message): CoreMessage => {
+            const history = messagesRef.current.slice(-15).map((message): CoreMessage => {
               const role = (message.senderId === user.uid ? "user" : "assistant") as
                 | "user"
                 | "assistant";
@@ -540,21 +540,64 @@ export function useAIChatbot(): AIChatbotController {
               content: currentMessageContent,
             };
 
-            const data = await apiFetch<{ content: string }>("/api/chat", {
-              method: "POST",
-              body: {
-                messages: [...history, currentMessage],
-                model: "balanced",
-              },
-            });
-
             const isEnglishInput =
               /[a-zA-Z]/.test(textToSend) && !/[\u0600-\u06FF]/.test(textToSend);
-            let responseText =
-              data?.content?.trim() ||
-              (isEnglishInput
+
+            const botMsgId = "bot-" + Date.now();
+            const initialBotMsg = {
+              id: botMsgId,
+              text: "",
+              senderId: "bot",
+              senderName: languageRef.current === "ar" ? "المساعد الذكي" : "AI Assistant",
+              timestamp: null,
+              status: "sending",
+              context: "bot",
+              role: "assistant",
+            } as unknown as ChatMessage;
+
+            setAiMessages((prev) => [...prev, initialBotMsg]);
+
+            const firebaseUser = auth?.currentUser;
+            const userToken = firebaseUser ? await firebaseUser.getIdToken() : "";
+            const response = await fetch("/api/chat", {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+                Authorization: `Bearer ${userToken}`,
+              },
+              body: JSON.stringify({
+                messages: [...history, currentMessage],
+                model: "balanced",
+              }),
+            });
+
+            if (!response.ok || !response.body) {
+              throw new Error("Failed AI generation");
+            }
+
+            const reader = response.body.getReader();
+            const decoder = new TextDecoder("utf-8");
+            let responseText = "";
+
+            while (true) {
+              const { done, value } = await reader.read();
+              if (done) break;
+              responseText += decoder.decode(value, { stream: true });
+              setAiMessages((prev) =>
+                prev.map((msg) =>
+                  msg.id === botMsgId ? { ...msg, text: responseText, status: "sent" } : msg
+                )
+              );
+            }
+
+            if (!responseText.trim()) {
+              responseText = isEnglishInput
                 ? "I'm sorry, I couldn't generate a response right now. Please try asking again."
-                : "عذراً، لم أتمكن من الحصول على إجابة الآن. يرجى المحاولة مرة أخرى.");
+                : "عذراً، لم أتمكن من الحصول على إجابة الآن. يرجى المحاولة مرة أخرى.";
+              setAiMessages((prev) =>
+                prev.map((msg) => (msg.id === botMsgId ? { ...msg, text: responseText } : msg))
+              );
+            }
 
             // Parse & execute automated task creation if TASK_SPEC exists
             const taskMatch = responseText.match(/\[TASK_SPEC:\s*(\{[\s\S]*?\})\]/);
@@ -597,6 +640,9 @@ export function useAIChatbot(): AIChatbotController {
 
                 // Remove raw TASK_SPEC from response text for clean display
                 responseText = responseText.replace(/\[TASK_SPEC:\s*\{[\s\S]*?\}\]/, "").trim();
+                setAiMessages((prev) =>
+                  prev.map((msg) => (msg.id === botMsgId ? { ...msg, text: responseText } : msg))
+                );
 
                 toast.success(
                   languageRef.current === "ar"
@@ -613,18 +659,6 @@ export function useAIChatbot(): AIChatbotController {
               const { userService } = await import("@/services/user.service");
               await userService.awardUserXP(user.uid, 20, "ai_assistant_chat");
             } catch {}
-
-            const botLocalMsg = {
-              id: "bot-" + Date.now(),
-              text: responseText,
-              senderId: "bot",
-              senderName: languageRef.current === "ar" ? "المساعد الذكي" : "AI Assistant",
-              timestamp: null,
-              status: "sent",
-              context: "bot",
-              role: "assistant",
-            } as unknown as ChatMessage;
-            setAiMessages((prev) => [...prev, botLocalMsg]);
 
             await sendMessage(
               currentChatId,

@@ -23,6 +23,7 @@ import { db } from "@/lib/firebase";
 import { cn } from "@/lib/utils";
 import { UserProfileModal } from "@/components/ui/UserProfileModal";
 import { ScaleIn, StaggerChildren } from "@/components/ui/Animations";
+import { SkeletonCommunityFeed } from "@/components/ui/Skeleton";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 interface LeaderEntry {
@@ -412,6 +413,14 @@ export default function CommunityLeaderboardPage() {
 
   const [viewTab, setViewTab] = useState<"leaderboard" | "ceremony">("leaderboard");
 
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-background">
+        <SkeletonCommunityFeed />
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-background">
       <div className="max-w-7xl mx-auto px-4 py-6 space-y-6">
@@ -528,13 +537,8 @@ export default function CommunityLeaderboardPage() {
                   </span>
                 </div>
 
-                {loading ? (
-                  <div className="h-48 flex items-center justify-center">
-                    <div className="w-8 h-8 border-2 border-amber-500/50 border-t-amber-500 rounded-full animate-spin" />
-                  </div>
-                ) : (
-                  <Podium entries={sorted} onSelectUser={(uid) => setSelectedUserUid(uid)} />
-                )}
+                {/* Podium */}
+                <Podium entries={sorted} onSelectUser={(uid) => setSelectedUserUid(uid)} />
               </div>
             </FadeIn>
 
@@ -598,15 +602,7 @@ export default function CommunityLeaderboardPage() {
 
                 <div className="p-3 space-y-2 max-h-[600px] overflow-y-auto scrollbar-thin">
                   <AnimatePresence mode="popLayout">
-                    {loading ? (
-                      Array.from({ length: 10 }).map((_, i) => (
-                        <div
-                          key={i}
-                          className="h-[60px] rounded-2xl bg-muted/30 animate-pulse"
-                          style={{ animationDelay: `${i * 60}ms` }}
-                        />
-                      ))
-                    ) : sorted.length === 0 ? (
+                    {sorted.length === 0 ? (
                       <div className="text-center py-16 text-muted-foreground">
                         <Trophy className="w-10 h-10 mx-auto mb-3 opacity-30" />
                         <p className="text-sm font-medium">No rankings yet</p>

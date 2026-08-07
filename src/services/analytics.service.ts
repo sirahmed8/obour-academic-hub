@@ -41,6 +41,9 @@ interface ActivityLog {
 class AnalyticsService {
   private static instance: AnalyticsService;
 
+  private cache: Record<string, { data: unknown; timestamp: number }> = {};
+  private CACHE_DURATION_MS = 5 * 60 * 1000; // 5 minutes cache
+
   private constructor() {}
 
   public static getInstance(): AnalyticsService {
@@ -48,6 +51,24 @@ class AnalyticsService {
       AnalyticsService.instance = new AnalyticsService();
     }
     return AnalyticsService.instance;
+  }
+
+  /**
+   * Helper to set cache
+   */
+  private setCache(key: string, data: unknown) {
+    this.cache[key] = { data, timestamp: Date.now() };
+  }
+
+  /**
+   * Helper to get cache
+   */
+  private getCache(key: string) {
+    const cached = this.cache[key];
+    if (cached && Date.now() - cached.timestamp < this.CACHE_DURATION_MS) {
+      return cached.data;
+    }
+    return null;
   }
 
   /**
@@ -98,6 +119,13 @@ class AnalyticsService {
       }
 
       await batch.commit();
+
+      // Invalidate relevant cache on new activity write
+      delete this.cache[`stats_${data.userId}`];
+      delete this.cache[`daily_${data.userId}`];
+      if (data.type === "SUBJECT_OPEN") {
+        delete this.cache[`topSubjects_${data.userId}`];
+      }
     } catch (error: unknown) {
       // 🛡️ Silent fail on permission errors to keep console clean in production
       const firebaseError = error as { code?: string; message?: string };
@@ -190,16 +218,22 @@ class AnalyticsService {
   async getUserActivityStats(userId: string) {
     if (!db) return { pageViews: 0, fileOpens: 0, subjectOpens: 0, totalActions: 0 };
 
+    const cacheKey = `stats_${userId}`;
+    const cachedData = this.getCache(cacheKey);
+    if (cachedData) return cachedData;
+
     try {
       const statsDoc = await getDoc(doc(db, "user_stats", userId));
       if (statsDoc.exists()) {
         const data = statsDoc.data();
-        return {
+        const result = {
           pageViews: data.pageViews || 0,
           fileOpens: data.fileOpens || 0,
           subjectOpens: data.subjectOpens || 0,
           totalActions: data.totalActions || 0,
         };
+        this.setCache(cacheKey, result);
+        return result;
       }
     } catch (err) {
       errorLogger.capture(err, { context: "AnalyticsService.getUserActivityStats", userId });
@@ -227,12 +261,14 @@ class AnalyticsService {
       (snapshot) => {
         if (snapshot.exists()) {
           const data = snapshot.data();
-          onUpdate({
+          const stats = {
             pageViews: data.pageViews || 0,
             fileOpens: data.fileOpens || 0,
             subjectOpens: data.subjectOpens || 0,
             totalActions: data.totalActions || 0,
-          });
+          };
+          this.setCache(`stats_${userId}`, stats);
+          onUpdate(stats);
         } else {
           onUpdate({ pageViews: 0, fileOpens: 0, subjectOpens: 0, totalActions: 0 });
         }
@@ -286,6 +322,11 @@ class AnalyticsService {
    */
   async getDailyActivityData(userId: string) {
     if (!db) return [];
+
+    const cacheKey = `daily_${userId}`;
+    const cachedData = this.getCache(cacheKey);
+    if (cachedData) return cachedData;
+
     try {
       const fourteenDaysAgo = new Date();
       fourteenDaysAgo.setHours(0, 0, 0, 0);
@@ -310,7 +351,9 @@ class AnalyticsService {
         dayCounts[dateStr] = (dayCounts[dateStr] || 0) + 1;
       });
 
-      return Object.entries(dayCounts).map(([name, value]) => ({ name, value }));
+      const result = Object.entries(dayCounts).map(([name, value]) => ({ name, value }));
+      this.setCache(cacheKey, result);
+      return result;
     } catch (error) {
       errorLogger.capture(error, { context: "AnalyticsService.getDailyActivityData", userId });
       return [];
@@ -322,6 +365,11 @@ class AnalyticsService {
    */
   async getTopSubjects(userId: string) {
     if (!db) return [];
+
+    const cacheKey = `topSubjects_${userId}`;
+    const cachedData = this.getCache(cacheKey);
+    if (cachedData) return cachedData;
+
     try {
       const q = query(
         collection(db, "analytics_logs"),
@@ -338,10 +386,13 @@ class AnalyticsService {
         subjectCounts[name] = (subjectCounts[name] || 0) + 1;
       });
 
-      return Object.entries(subjectCounts)
+      const result = Object.entries(subjectCounts)
         .map(([name, value]) => ({ name, value }))
         .sort((a, b) => b.value - a.value)
         .slice(0, 5);
+
+      this.setCache(cacheKey, result);
+      return result;
     } catch (error) {
       errorLogger.capture(error, { context: "AnalyticsService.getTopSubjects", userId });
       return [];

@@ -236,14 +236,26 @@ export function TodoList() {
           completed: newStatus,
         });
 
-        // Update user points: 2x XP for VIP Pass users (+20), +10 for regular, -10 for uncompleted
+        // Update user points: VIP Pass users get +25, +10 for regular, -10 for uncompleted
         const isVipUser = user.isVip || user.role === "owner" || user.role === "admin";
-        const xpAmount = isVipUser ? 20 : 10;
+        const xpAmount = isVipUser ? 25 : 10;
 
         try {
           await updateDoc(doc(db!, "users", user.uid), {
             points: increment(newStatus ? xpAmount : -10),
           });
+
+          if (newStatus) {
+            import("firebase/firestore").then(({ addDoc, collection, serverTimestamp }) => {
+              addDoc(collection(db!, "analytics_logs"), {
+                userId: user.uid,
+                action: "task_completed",
+                taskId: task.id,
+                pointsEarned: xpAmount,
+                timestamp: serverTimestamp(),
+              }).catch(console.error);
+            });
+          }
         } catch (err) {
           console.error("Failed to update user points for task completion:", err);
         }
@@ -325,6 +337,15 @@ export function TodoList() {
           try {
             await updateDoc(doc(db!, "users", user.uid), {
               points: increment(xpAmount),
+            });
+            import("firebase/firestore").then(({ addDoc, collection, serverTimestamp }) => {
+              addDoc(collection(db!, "analytics_logs"), {
+                userId: user.uid,
+                action: "task_completed",
+                taskId: task.id,
+                pointsEarned: xpAmount,
+                timestamp: serverTimestamp(),
+              }).catch(console.error);
             });
           } catch (err) {
             console.error("Failed to update points:", err);

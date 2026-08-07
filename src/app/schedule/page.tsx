@@ -1,66 +1,18 @@
 "use client";
 
 import { useState } from "react";
-import { useLanguage } from "@/contexts";
-import { Calendar, Clock, CheckCircle2, BookOpen } from "lucide-react";
+import { useLanguage, useAuth } from "@/contexts";
+import { Calendar, Clock, CheckCircle2, BookOpen, Plus } from "lucide-react";
 import { FadeIn, ScaleIn, StaggerChildren } from "@/components/ui/Animations";
 import { motion } from "framer-motion";
 import { toast } from "sonner";
-
-interface LectureSlot {
-  id: string;
-  subjectAr: string;
-  subjectEn: string;
-  doctorAr: string;
-  doctorEn: string;
-  hall: string;
-  dayAr: string;
-  dayEn: string;
-  time: string;
-  attended: boolean;
-}
-
-const INITIAL_SCHEDULE: LectureSlot[] = [
-  {
-    id: "1",
-    subjectAr: "برمجة هيكلية (OOP)",
-    subjectEn: "OOP Programming",
-    doctorAr: "د. أحمد كمال",
-    doctorEn: "Dr. Ahmed Kamal",
-    hall: "مدرج 302",
-    dayAr: "الأحد",
-    dayEn: "Sunday",
-    time: "09:00 AM - 11:00 AM",
-    attended: true,
-  },
-  {
-    id: "2",
-    subjectAr: "قواعد البيانات (Databases)",
-    subjectEn: "Databases",
-    doctorAr: "د. مريم محمود",
-    doctorEn: "Dr. Maryam Mahmoud",
-    hall: "معمل حاسب 4",
-    dayAr: "الإثنين",
-    dayEn: "Monday",
-    time: "11:30 AM - 01:30 PM",
-    attended: false,
-  },
-  {
-    id: "3",
-    subjectAr: "رياضيات حاسب (Discrete Math)",
-    subjectEn: "Discrete Math",
-    doctorAr: "د. حسن السيد",
-    doctorEn: "Dr. Hassan El-Sayed",
-    hall: "مدرج 101",
-    dayAr: "الثلاثاء",
-    dayEn: "Tuesday",
-    time: "10:00 AM - 12:00 PM",
-    attended: true,
-  },
-];
+import { collection, addDoc, serverTimestamp } from "firebase/firestore";
+import { db } from "@/lib/firebase";
+import { LectureSlot, INITIAL_SCHEDULE } from "@/lib/scheduleConstants";
 
 export default function SchedulePage() {
   const { language } = useLanguage();
+  const { user } = useAuth();
   const isRtl = language === "ar";
 
   const [schedule, setSchedule] = useState<LectureSlot[]>(INITIAL_SCHEDULE);
@@ -85,6 +37,31 @@ export default function SchedulePage() {
         return slot;
       })
     );
+  };
+
+  const handleAddToPlanner = async (slot: LectureSlot) => {
+    if (!user || !db) {
+      toast.error(isRtl ? "يجب تسجيل الدخول أولاً" : "You must be logged in");
+      return;
+    }
+    try {
+      const newTask = {
+        title: isRtl ? `مراجعة محاضرة: ${slot.subjectAr}` : `Review Lecture: ${slot.subjectEn}`,
+        description: isRtl
+          ? `مراجعة وحل تكليفات محاضرة ${slot.subjectAr} مع ${slot.doctorAr}`
+          : `Review and solve assignments for ${slot.subjectEn} with ${slot.doctorEn}`,
+        priority: "medium",
+        status: "todo",
+        completed: false,
+        dueDate: new Date(Date.now() + 86400000).toISOString(), // Due in 1 day
+        createdAt: serverTimestamp(),
+        sourceName: isRtl ? "الجدول الدراسي" : "Schedule",
+      };
+      await addDoc(collection(db, `users/${user.uid}/tasks`), newTask);
+      toast.success(isRtl ? "تمت إضافة المهمة للجدول الدراسي!" : "Task added to planner!");
+    } catch {
+      toast.error(isRtl ? "حدث خطأ أثناء إضافة المهمة" : "Error adding task");
+    }
   };
 
   const filteredSchedule = schedule.filter((s) => {
@@ -132,6 +109,38 @@ export default function SchedulePage() {
         </div>
       </FadeIn>
 
+      {/* Upcoming Exams Highlight */}
+      <FadeIn delay={0.1}>
+        <div className="p-5 sm:p-6 rounded-3xl bg-red-500/10 border border-red-500/20 shadow-md flex flex-col sm:flex-row sm:items-center justify-between gap-4 relative overflow-hidden">
+          <div className="absolute top-0 right-0 w-32 h-32 bg-red-500/10 blur-3xl rounded-full translate-x-1/2 -translate-y-1/2 pointer-events-none" />
+
+          <div className="flex items-start sm:items-center gap-4 relative z-10">
+            <div className="p-3.5 bg-red-500/20 text-red-600 dark:text-red-400 rounded-2xl shrink-0">
+              <BookOpen size={24} className="animate-pulse" />
+            </div>
+            <div>
+              <h3 className="text-lg font-black text-red-700 dark:text-red-400">
+                {isRtl ? "امتحانات الميدتيرم تقترب! 🚨" : "Midterm Exams Approaching! 🚨"}
+              </h3>
+              <p className="text-xs sm:text-sm font-bold text-red-700/80 dark:text-red-400/80 mt-0.5">
+                {isRtl
+                  ? "امتحان (قواعد البيانات) يوم الإثنين القادم. لا تنسَ مراجعة بنك الأسئلة."
+                  : "Databases exam is next Monday. Don't forget to review past papers."}
+              </p>
+            </div>
+          </div>
+
+          <motion.button
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
+            className="w-full sm:w-auto px-6 py-3 rounded-2xl bg-red-600 hover:bg-red-700 text-white font-extrabold text-xs shadow-lg shadow-red-500/30 whitespace-nowrap shrink-0 relative z-10 transition-colors"
+            onClick={() => (window.location.href = "/exams")}
+          >
+            {isRtl ? "مراجعة بنك الأسئلة" : "Review Past Exams"}
+          </motion.button>
+        </div>
+      </FadeIn>
+
       {/* Day Filter Pills */}
       <ScaleIn>
         <div className="flex items-center gap-2 overflow-x-auto pb-1 scrollbar-hide">
@@ -163,7 +172,7 @@ export default function SchedulePage() {
         {filteredSchedule.map((slot) => (
           <ScaleIn key={slot.id}>
             <div className="p-6 rounded-3xl bg-card border border-border shadow-md hover:border-primary/40 hover:shadow-xl hover-lift transition-all duration-300 flex flex-col sm:flex-row sm:items-center justify-between gap-4 dark:bg-card">
-              <div className="flex items-start gap-4">
+              <div className="flex items-start gap-4 flex-1">
                 <div className="p-3.5 rounded-2xl bg-primary/10 text-primary font-black shrink-0 shadow-inner border border-primary/20">
                   <BookOpen size={24} />
                 </div>
@@ -187,28 +196,40 @@ export default function SchedulePage() {
                 </div>
               </div>
 
-              <motion.button
-                type="button"
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
-                onClick={() => toggleAttendance(slot.id)}
-                className={`px-5 py-2.5 rounded-2xl font-extrabold text-xs flex items-center justify-center gap-2 transition-all duration-300 shadow-md ${
-                  slot.attended
-                    ? "bg-emerald-500 text-white shadow-emerald-500/20"
-                    : "bg-muted text-muted-foreground hover:bg-muted/80"
-                }`}
-              >
-                <CheckCircle2 size={16} />
-                <span>
-                  {slot.attended
-                    ? isRtl
-                      ? "تم الحضور ✅"
-                      : "Attended ✅"
-                    : isRtl
-                      ? "تسجيل الحضور"
-                      : "Mark Attendance"}
-                </span>
-              </motion.button>
+              <div className="flex flex-col gap-2 shrink-0 w-full sm:w-auto">
+                <motion.button
+                  type="button"
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                  onClick={() => toggleAttendance(slot.id)}
+                  className={`px-5 py-2.5 rounded-2xl font-extrabold text-xs flex items-center justify-center gap-2 transition-all duration-300 shadow-md ${
+                    slot.attended
+                      ? "bg-emerald-500 text-white shadow-emerald-500/20"
+                      : "bg-muted text-muted-foreground hover:bg-muted/80"
+                  }`}
+                >
+                  <CheckCircle2 size={16} />
+                  <span>
+                    {slot.attended
+                      ? isRtl
+                        ? "تم الحضور ✅"
+                        : "Attended ✅"
+                      : isRtl
+                        ? "تسجيل الحضور"
+                        : "Mark Attendance"}
+                  </span>
+                </motion.button>
+                <motion.button
+                  type="button"
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                  onClick={() => handleAddToPlanner(slot)}
+                  className="px-5 py-2.5 rounded-2xl bg-primary/10 border border-primary/20 text-primary hover:bg-primary/20 font-extrabold text-xs flex items-center justify-center gap-2 transition-all duration-300 shadow-sm"
+                >
+                  <Plus size={14} />
+                  <span>{isRtl ? "إضافة تكليف للجدول" : "Add to Planner"}</span>
+                </motion.button>
+              </div>
             </div>
           </ScaleIn>
         ))}

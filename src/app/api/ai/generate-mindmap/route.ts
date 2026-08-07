@@ -81,7 +81,7 @@ Return EXACTLY valid JSON formatted as follows (no markdown, no backticks):
   ]
 }`;
 
-    const rawResponse = await generateText(prompt);
+    const rawResponse = await generateText(prompt, "json");
 
     let cleanJsonString = rawResponse.trim();
     const jsonMatch = cleanJsonString.match(/\{[\s\S]*\}/);

@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useLanguage } from "@/contexts";
 import { BookOpen, Users, CheckSquare, Sparkles, ArrowUpRight } from "lucide-react";
 import { motion } from "framer-motion";
+import { HoverScale, TapScale } from "@/components/ui/Animations";
 
 export function AcademicShortcutBar() {
   const { language } = useLanguage();
@@ -54,29 +55,35 @@ export function AcademicShortcutBar() {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.4, delay: index * 0.1 }}
           >
-            <Link
-              href={item.href}
-              className={`group relative flex flex-col justify-between p-4.5 rounded-3xl bg-card border border-border dark:bg-card shadow-md hover:shadow-xl hover-lift active:scale-97 transition-all duration-300`}
-            >
-              <div className="flex items-center justify-between mb-3">
-                <div className="p-2.5 rounded-2xl bg-white/60 dark:bg-black/40 shadow-sm border border-white/40 dark:border-white/10 group-hover:rotate-6 group-hover:scale-110 transition-transform duration-300">
-                  <Icon size={20} />
-                </div>
-                <ArrowUpRight
-                  size={18}
-                  className="opacity-0 group-hover:opacity-100 transition-all duration-300 transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5"
-                />
-              </div>
+            <HoverScale scale={1.03}>
+              <TapScale scale={0.97}>
+                <Link
+                  href={item.href}
+                  className={`group relative flex flex-col justify-between p-4.5 rounded-3xl bg-card border border-border dark:bg-card shadow-md hover:shadow-xl transition-all duration-300`}
+                >
+                  <div className="flex items-center justify-between mb-3">
+                    <div
+                      className={`p-2.5 rounded-2xl bg-gradient-to-br ${item.color} shadow-sm group-hover:rotate-6 group-hover:scale-110 transition-transform duration-300`}
+                    >
+                      <Icon size={20} className="text-current" />
+                    </div>
+                    <ArrowUpRight
+                      size={18}
+                      className="opacity-0 group-hover:opacity-100 transition-all duration-300 transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5"
+                    />
+                  </div>
 
-              <div>
-                <h4 className="text-sm font-black text-foreground group-hover:text-primary transition-colors">
-                  {item.title}
-                </h4>
-                <p className="text-[11px] text-muted-foreground font-medium truncate mt-0.5">
-                  {item.desc}
-                </p>
-              </div>
-            </Link>
+                  <div>
+                    <h4 className="text-sm font-black text-foreground group-hover:text-primary transition-colors">
+                      {item.title}
+                    </h4>
+                    <p className="text-[11px] text-muted-foreground font-medium truncate mt-0.5">
+                      {item.desc}
+                    </p>
+                  </div>
+                </Link>
+              </TapScale>
+            </HoverScale>
           </motion.div>
         );
       })}

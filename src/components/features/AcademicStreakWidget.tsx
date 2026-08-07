@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import { useAuth, useLanguage } from "@/contexts";
 import { Flame, Calendar, Award, Sparkles, Sun } from "lucide-react";
 import { motion } from "framer-motion";
+import { HoverScale, TapScale } from "@/components/ui/Animations";
 import { collection, query, where, orderBy, getDocs, Timestamp } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import { toDate } from "@/lib/utils";
@@ -114,8 +115,8 @@ export function AcademicStreakWidget() {
   const isAr = language === "ar";
   const [mounted, setMounted] = useState(false);
   const [streakDays, setStreakDays] = useState(1);
-  // heatmap: map of YYYY-MM-DD -> count
   const [heatmap, setHeatmap] = useState<Record<string, number>>({});
+  const [completedTasksCount, setCompletedTasksCount] = useState(0);
 
   useEffect(() => {
     setMounted(true);
@@ -158,7 +159,7 @@ export function AcademicStreakWidget() {
     }
   }, [user?.uid]);
 
-  // Fetch last-30-day activity from Firestore for the heatmap
+  // Fetch last-30-day activity from Firestore for the heatmap and completed tasks
   useEffect(() => {
     if (!user?.uid || !db) return;
     const uid = user.uid;
@@ -167,17 +168,25 @@ export function AcademicStreakWidget() {
     thirtyDaysAgo.setHours(0, 0, 0, 0);
     thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 29);
 
-    const q = query(
+    const sevenDaysAgo = new Date();
+    sevenDaysAgo.setHours(0, 0, 0, 0);
+    sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 6);
+
+    const qLogs = query(
       collection(db, "analytics_logs"),
       where("userId", "==", uid),
       where("timestamp", ">=", Timestamp.fromDate(thirtyDaysAgo)),
       orderBy("timestamp", "asc")
     );
 
-    getDocs(q)
-      .then((snapshot) => {
+    const qTasks = query(collection(db, `users/${uid}/tasks`), where("completed", "==", true));
+
+    Promise.all([getDocs(qLogs), getDocs(qTasks)])
+      .then(([logsSnapshot, tasksSnapshot]) => {
         const dayCounts: Record<string, number> = {};
-        snapshot.docs.forEach((docSnap) => {
+
+        // Process logs
+        logsSnapshot.docs.forEach((docSnap) => {
           const ts = docSnap.data().timestamp;
           if (!ts) return;
           const validDate = toDate(ts);
@@ -185,7 +194,28 @@ export function AcademicStreakWidget() {
           const key = validDate.toISOString().split("T")[0];
           dayCounts[key] = (dayCounts[key] || 0) + 1;
         });
+
+        // Process completed tasks
+        let tasksLast7Days = 0;
+        tasksSnapshot.docs.forEach((docSnap) => {
+          const data = docSnap.data();
+          const ts = data.completedAt || data.updatedAt;
+          if (!ts) return;
+          const validDate = toDate(ts);
+          if (isNaN(validDate.getTime())) return;
+
+          if (validDate >= sevenDaysAgo) {
+            tasksLast7Days++;
+          }
+
+          if (validDate >= thirtyDaysAgo) {
+            const key = validDate.toISOString().split("T")[0];
+            dayCounts[key] = (dayCounts[key] || 0) + 3; // Tasks give +3 weight in heatmap
+          }
+        });
+
         setHeatmap(dayCounts);
+        setCompletedTasksCount(tasksLast7Days);
       })
       .catch(() => {
         /* silently ignore */
@@ -197,38 +227,43 @@ export function AcademicStreakWidget() {
   if (!mounted) return null;
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-3 gap-4 my-6">
+    <div className="grid grid-cols-1 md:grid-cols-4 gap-4 my-6">
       {/* 1. Study Streak Card */}
       <motion.div
         initial={{ opacity: 0, y: 15 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.4, delay: 0.1 }}
-        className="p-5 rounded-3xl bg-card border border-amber-500/25 shadow-sm flex items-center gap-4 hover:border-amber-500/50 transition-all"
       >
-        <div className="p-3.5 rounded-2xl bg-amber-500/15 text-amber-500 border border-amber-500/25 shrink-0">
-          <Flame size={26} className="animate-pulse" />
-        </div>
-        <div>
-          <div className="flex items-center gap-1.5">
-            <span className="text-2xl font-black text-foreground">{streakDays}</span>
-            <span className="text-xs font-bold text-amber-500 uppercase tracking-wider">
-              {isAr ? "أيام متتالية 🔥" : "Day Streak 🔥"}
-            </span>
-          </div>
-          <p className="text-xs text-muted-foreground font-medium mt-0.5">
-            {streakDays >= 7
-              ? isAr
-                ? "أسبوع كامل متتالي! رائع 🏆"
-                : "Full week streak! Amazing 🏆"
-              : streakDays >= 3
-                ? isAr
-                  ? "تتابع دراسي ممتاز هذا الأسبوع"
-                  : "Great consecutive study habit!"
-                : isAr
-                  ? "ابدأ سلسلتك اليومية اليوم"
-                  : "Start your daily streak today"}
-          </p>
-        </div>
+        <HoverScale scale={1.03}>
+          <TapScale scale={0.97}>
+            <div className="p-5 rounded-3xl bg-card border border-amber-500/25 shadow-sm flex items-center gap-4 hover:border-amber-500/50 hover:shadow-xl transition-all cursor-default">
+              <div className="p-3.5 rounded-2xl bg-amber-500/15 text-amber-500 border border-amber-500/25 shrink-0">
+                <Flame size={26} className="animate-pulse" />
+              </div>
+              <div>
+                <div className="flex items-center gap-1.5">
+                  <span className="text-2xl font-black text-foreground">{streakDays}</span>
+                  <span className="text-xs font-bold text-amber-500 uppercase tracking-wider">
+                    {isAr ? "أيام متتالية 🔥" : "Day Streak 🔥"}
+                  </span>
+                </div>
+                <p className="text-xs text-muted-foreground font-medium mt-0.5">
+                  {streakDays >= 7
+                    ? isAr
+                      ? "أسبوع كامل متتالي! رائع 🏆"
+                      : "Full week streak! Amazing 🏆"
+                    : streakDays >= 3
+                      ? isAr
+                        ? "تتابع دراسي ممتاز هذا الأسبوع"
+                        : "Great consecutive study habit!"
+                      : isAr
+                        ? "ابدأ سلسلتك اليومية اليوم"
+                        : "Start your daily streak today"}
+                </p>
+              </div>
+            </div>
+          </TapScale>
+        </HoverScale>
       </motion.div>
 
       {/* 2. Semester Progress Card */}
@@ -236,128 +271,171 @@ export function AcademicStreakWidget() {
         initial={{ opacity: 0, y: 15 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.4, delay: 0.2 }}
-        className="p-5 rounded-3xl bg-card border border-blue-500/25 shadow-sm flex flex-col justify-between hover:border-blue-500/50 transition-all"
       >
-        <div className="flex items-center justify-between mb-2">
-          <div className="flex items-center gap-2">
-            <div className="p-2 rounded-xl bg-blue-500/15 text-blue-500 border border-blue-500/25">
-              {sem.isSummer ? <Sun size={18} /> : <Calendar size={18} />}
-            </div>
-            <span className="text-xs font-bold text-foreground">
-              {isAr ? sem.semesterNameAr : sem.semesterName}
-            </span>
-          </div>
-          {sem.isSummer ? (
-            <span className="text-xs font-black text-orange-400">☀️</span>
-          ) : (
-            <span className="text-xs font-black text-blue-500">{sem.progress}%</span>
-          )}
-        </div>
+        <HoverScale scale={1.03}>
+          <TapScale scale={0.97}>
+            <div className="p-5 rounded-3xl bg-card border border-blue-500/25 shadow-sm flex flex-col justify-between hover:border-blue-500/50 hover:shadow-xl transition-all cursor-default">
+              <div className="flex items-center justify-between mb-2">
+                <div className="flex items-center gap-2">
+                  <div className="p-2 rounded-xl bg-blue-500/15 text-blue-500 border border-blue-500/25">
+                    {sem.isSummer ? <Sun size={18} /> : <Calendar size={18} />}
+                  </div>
+                  <span className="text-xs font-bold text-foreground">
+                    {isAr ? sem.semesterNameAr : sem.semesterName}
+                  </span>
+                </div>
+                {sem.isSummer ? (
+                  <span className="text-xs font-black text-orange-400">☀️</span>
+                ) : (
+                  <span className="text-xs font-black text-blue-500">{sem.progress}%</span>
+                )}
+              </div>
 
-        {sem.isSummer ? (
-          <div className="space-y-1">
-            <p className="text-xs text-muted-foreground font-medium">
-              {isAr
-                ? `${sem.daysUntilNextSemester} يوم حتى بداية الفصل الجديد`
-                : `${sem.daysUntilNextSemester} days until next semester`}
-            </p>
-            <p className="text-xs font-bold text-orange-400">
-              {isAr ? "استمتع بإجازتك الصيفية 🌴" : "Enjoy your summer break 🌴"}
-            </p>
-          </div>
-        ) : (
-          <>
-            <div className="w-full bg-blue-500/10 h-2.5 rounded-full overflow-hidden border border-blue-500/20 my-1">
-              <div
-                className="bg-blue-500 h-full rounded-full transition-all duration-1000"
-                style={{ width: `${sem.progress}%` }}
-              />
+              {sem.isSummer ? (
+                <div className="space-y-1">
+                  <p className="text-xs text-muted-foreground font-medium">
+                    {isAr
+                      ? `${sem.daysUntilNextSemester} يوم حتى بداية الفصل الجديد`
+                      : `${sem.daysUntilNextSemester} days until next semester`}
+                  </p>
+                  <p className="text-xs font-bold text-orange-400">
+                    {isAr ? "استمتع بإجازتك الصيفية 🌴" : "Enjoy your summer break 🌴"}
+                  </p>
+                </div>
+              ) : (
+                <>
+                  <div className="w-full bg-blue-500/10 h-2.5 rounded-full overflow-hidden border border-blue-500/20 my-1">
+                    <div
+                      className="bg-blue-500 h-full rounded-full transition-all duration-1000"
+                      style={{ width: `${sem.progress}%` }}
+                    />
+                  </div>
+                  <div className="flex justify-between items-center text-[10px] text-muted-foreground font-medium mt-1">
+                    <span>
+                      {isAr
+                        ? `الأسبوع ${sem.currentWeek} من ${sem.totalWeeks}`
+                        : `Week ${sem.currentWeek} of ${sem.totalWeeks}`}
+                    </span>
+                    <span>{isAr ? sem.statusAr : sem.statusEn}</span>
+                  </div>
+                </>
+              )}
             </div>
-            <div className="flex justify-between items-center text-[10px] text-muted-foreground font-medium mt-1">
-              <span>
-                {isAr
-                  ? `الأسبوع ${sem.currentWeek} من ${sem.totalWeeks}`
-                  : `Week ${sem.currentWeek} of ${sem.totalWeeks}`}
-              </span>
-              <span>{isAr ? sem.statusAr : sem.statusEn}</span>
-            </div>
-          </>
-        )}
+          </TapScale>
+        </HoverScale>
       </motion.div>
 
-      {/* 3. Daily Academic Quote Card */}
+      {/* 3. Completed Tasks Card */}
       <motion.div
         initial={{ opacity: 0, y: 15 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.4, delay: 0.3 }}
-        className="p-5 rounded-3xl bg-card border border-purple-500/25 shadow-sm flex items-center gap-4 hover:border-purple-500/50 transition-all"
       >
-        <div className="p-3.5 rounded-2xl bg-purple-500/15 text-purple-500 border border-purple-500/25 shrink-0">
-          <Sparkles size={24} />
-        </div>
-        <div>
-          <span className="text-[10px] font-black uppercase tracking-wider text-purple-500 flex items-center gap-1">
-            <Award size={12} />
-            {isAr ? "حكمة اليوم الأكاديمية" : "Daily Academic Quote"}
-          </span>
-          <p className="text-xs font-bold text-foreground leading-snug mt-1 line-clamp-2">
-            {isAr
-              ? "«الاستمرار في المذاكرة اليومية الصغيرة يصنع التميز الكلي مع الأيام.»"
-              : "“Small daily study progress yields massive academic excellence.”"}
-          </p>
-        </div>
+        <HoverScale scale={1.03}>
+          <TapScale scale={0.97}>
+            <div className="p-5 rounded-3xl bg-card border border-emerald-500/25 shadow-sm flex items-center gap-4 hover:border-emerald-500/50 hover:shadow-xl transition-all cursor-default">
+              <div className="p-3.5 rounded-2xl bg-emerald-500/15 text-emerald-500 border border-emerald-500/25 shrink-0">
+                <Award size={26} />
+              </div>
+              <div>
+                <div className="flex items-center gap-1.5">
+                  <span className="text-2xl font-black text-foreground">{completedTasksCount}</span>
+                  <span className="text-xs font-bold text-emerald-500 uppercase tracking-wider">
+                    {isAr ? "مهام منجزة" : "Tasks Done"}
+                  </span>
+                </div>
+                <p className="text-xs text-muted-foreground font-medium mt-0.5">
+                  {isAr ? "في آخر 7 أيام 📅" : "in the last 7 days 📅"}
+                </p>
+              </div>
+            </div>
+          </TapScale>
+        </HoverScale>
+      </motion.div>
+
+      {/* 4. Daily Academic Quote Card */}
+      <motion.div
+        initial={{ opacity: 0, y: 15 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.4, delay: 0.4 }}
+      >
+        <HoverScale scale={1.03}>
+          <TapScale scale={0.97}>
+            <div className="p-5 rounded-3xl bg-card border border-purple-500/25 shadow-sm flex items-center gap-4 hover:border-purple-500/50 hover:shadow-xl transition-all cursor-default h-full">
+              <div className="p-3.5 rounded-2xl bg-purple-500/15 text-purple-500 border border-purple-500/25 shrink-0">
+                <Sparkles size={24} />
+              </div>
+              <div>
+                <span className="text-[10px] font-black uppercase tracking-wider text-purple-500 flex items-center gap-1">
+                  {isAr ? "حكمة اليوم الأكاديمية" : "Daily Academic Quote"}
+                </span>
+                <p className="text-xs font-bold text-foreground leading-snug mt-1 line-clamp-2">
+                  {isAr
+                    ? "«الاستمرار في المذاكرة اليومية الصغيرة يصنع التميز الكلي مع الأيام.»"
+                    : "“Small daily study progress yields massive academic excellence.”"}
+                </p>
+              </div>
+            </div>
+          </TapScale>
+        </HoverScale>
       </motion.div>
 
       {/* Study Calendar Heatmap — last 30 days */}
       <motion.div
         initial={{ opacity: 0, y: 15 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.4, delay: 0.4 }}
-        className="p-5 rounded-3xl bg-card border border-border shadow-sm"
+        transition={{ duration: 0.4, delay: 0.5 }}
+        className="col-span-1 md:col-span-4"
       >
-        <div className="flex items-center gap-2 mb-3">
-          <div className="p-2 rounded-xl bg-green-500/15 text-green-500 border border-green-500/25">
-            <Calendar size={16} />
-          </div>
-          <span className="text-xs font-black uppercase tracking-wider text-foreground">
-            {isAr ? "تقويم الدراسة — 30 يوماً الأخيرة" : "Study Calendar — Last 30 Days"}
-          </span>
-        </div>
-        <div
-          className="grid gap-1"
-          style={{ gridTemplateColumns: "repeat(6, 1fr)" }}
-          title={isAr ? "نشاط يومي" : "Daily activity"}
-        >
-          {Array.from({ length: 30 }, (_, i) => {
-            const d = new Date();
-            d.setDate(d.getDate() - (29 - i));
-            const key = d.toISOString().split("T")[0];
-            const count = heatmap[key] ?? 0;
-            const colorClass =
-              count === 0
-                ? "bg-muted border-border"
-                : count <= 2
-                  ? "bg-green-300/60 border-green-400/40"
-                  : count <= 5
-                    ? "bg-green-500/70 border-green-500/50"
-                    : "bg-green-600 border-green-700/60";
-            const label = `${key}: ${count} ${isAr ? "نشاط" : "actions"}`;
-            return (
+        <HoverScale scale={1.01}>
+          <TapScale scale={0.99}>
+            <div className="p-5 rounded-3xl bg-card border border-border shadow-sm hover:shadow-lg transition-all cursor-default">
+              <div className="flex items-center gap-2 mb-3">
+                <div className="p-2 rounded-xl bg-green-500/15 text-green-500 border border-green-500/25">
+                  <Calendar size={16} />
+                </div>
+                <span className="text-xs font-black uppercase tracking-wider text-foreground">
+                  {isAr ? "تقويم الدراسة — 30 يوماً الأخيرة" : "Study Calendar — Last 30 Days"}
+                </span>
+              </div>
               <div
-                key={key}
-                title={label}
-                className={`h-5 w-full rounded border ${colorClass} transition-colors cursor-default`}
-              />
-            );
-          })}
-        </div>
-        <div className="flex items-center gap-1.5 mt-2.5 justify-end">
-          <span className="text-[10px] text-muted-foreground">{isAr ? "أقل" : "Less"}</span>
-          {["bg-muted", "bg-green-300/60", "bg-green-500/70", "bg-green-600"].map((c) => (
-            <div key={c} className={`h-3 w-3 rounded-sm ${c}`} />
-          ))}
-          <span className="text-[10px] text-muted-foreground">{isAr ? "أكثر" : "More"}</span>
-        </div>
+                className="grid gap-1"
+                style={{ gridTemplateColumns: "repeat(6, 1fr)" }}
+                title={isAr ? "نشاط يومي" : "Daily activity"}
+              >
+                {Array.from({ length: 30 }, (_, i) => {
+                  const d = new Date();
+                  d.setDate(d.getDate() - (29 - i));
+                  const key = d.toISOString().split("T")[0];
+                  const count = heatmap[key] ?? 0;
+                  const colorClass =
+                    count === 0
+                      ? "bg-muted border-border"
+                      : count <= 2
+                        ? "bg-green-300/60 border-green-400/40"
+                        : count <= 5
+                          ? "bg-green-500/70 border-green-500/50"
+                          : "bg-green-600 border-green-700/60";
+                  const label = `${key}: ${count} ${isAr ? "نشاط" : "actions"}`;
+                  return (
+                    <div
+                      key={key}
+                      title={label}
+                      className={`h-5 w-full rounded border ${colorClass} transition-colors cursor-default`}
+                    />
+                  );
+                })}
+              </div>
+              <div className="flex items-center gap-1.5 mt-2.5 justify-end">
+                <span className="text-[10px] text-muted-foreground">{isAr ? "أقل" : "Less"}</span>
+                {["bg-muted", "bg-green-300/60", "bg-green-500/70", "bg-green-600"].map((c) => (
+                  <div key={c} className={`h-3 w-3 rounded-sm ${c}`} />
+                ))}
+                <span className="text-[10px] text-muted-foreground">{isAr ? "أكثر" : "More"}</span>
+              </div>
+            </div>
+          </TapScale>
+        </HoverScale>
       </motion.div>
     </div>
   );

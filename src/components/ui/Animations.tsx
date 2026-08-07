@@ -1,22 +1,22 @@
 "use client";
 
-import { motion, Variants, HTMLMotionProps } from "framer-motion";
-import { ReactNode } from "react";
+import { motion, Variants, HTMLMotionProps, useMotionValue, useSpring } from "framer-motion";
+import React, { ReactNode, useRef } from "react";
 import { useSolidMode } from "@/contexts";
 import { cn } from "@/lib/utils";
 
 // --- Configuration ---
 export const springConfig = {
   type: "spring" as const,
-  stiffness: 100,
-  damping: 20,
+  stiffness: 260, // Snappier pop
+  damping: 25,
   mass: 1,
 };
 
 export const smoothSpring = {
   type: "spring" as const,
-  stiffness: 85,
-  damping: 14,
+  stiffness: 100, // Smoother glide
+  damping: 15,
   mass: 1,
 };
 
@@ -37,10 +37,26 @@ interface SlideInProps extends AnimationProps {
 
 /**
  * PageTransition
- * Simple wrapper for page content without animation.
+ * Wraps page content with a seamless fade and slight slide.
  */
 export function PageTransition({ children }: { children: ReactNode }) {
-  return <div className="w-full h-full flex flex-col">{children}</div>;
+  const { isSolid } = useSolidMode();
+
+  if (isSolid) {
+    return <div className="w-full h-full flex flex-col">{children}</div>;
+  }
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 15 }}
+      animate={{ opacity: 1, y: 0 }}
+      exit={{ opacity: 0, y: -15 }}
+      transition={{ duration: 0.4, ease: easeConfig }}
+      className="w-full h-full flex flex-col transform-gpu"
+    >
+      {children}
+    </motion.div>
+  );
 }
 
 /**
@@ -115,9 +131,9 @@ export function ScaleIn({
   return (
     <motion.div
       layout={layout}
-      initial={{ opacity: 0, scale: 0.92 }}
+      initial={{ opacity: 0, scale: 0.95 }}
       animate={{ opacity: 1, scale: 1 }}
-      exit={{ opacity: 0, scale: 0.92, transition: { duration: 0.2 } }}
+      exit={{ opacity: 0, scale: 0.95, transition: { duration: 0.2 } }}
       whileInView={{ opacity: 1, scale: 1 }}
       viewport={{ once: true }}
       transition={{ ...(props.transition || springConfig), delay }}
@@ -152,7 +168,7 @@ export function SlideIn({ children, direction = "up", delay = 0, className = "" 
       initial={{ opacity: 0, ...directionMap[direction] }}
       whileInView={{ opacity: 1, x: 0, y: 0 }}
       viewport={{ once: true, margin: "-50px" }}
-      transition={{ ...springConfig, delay }}
+      transition={{ ...smoothSpring, delay }}
       className={cn("transform-gpu", className)}
     >
       {children}
@@ -186,7 +202,7 @@ export function StaggerChildren({
       opacity: 1,
       transition: {
         staggerChildren: staggerDelay,
-        delayChildren: 0.1,
+        delayChildren: 0.05,
       },
     },
   };
@@ -236,7 +252,7 @@ export function Reveal({ children, delay = 0, className = "" }: AnimationProps) 
 export function HoverScale({
   children,
   className = "",
-  scale = 1.05,
+  scale = 1.03, // Toned down slightly for elegance
 }: {
   children: ReactNode;
   className?: string;
@@ -266,7 +282,7 @@ export function HoverScale({
 export function TapScale({
   children,
   className = "",
-  scale = 0.95,
+  scale = 0.97,
 }: {
   children: ReactNode;
   className?: string;
@@ -312,7 +328,61 @@ export function SmoothTransition({
     <motion.div
       layout
       layoutId={layoutId}
-      transition={springConfig}
+      transition={smoothSpring}
+      className={cn("transform-gpu", className)}
+    >
+      {children}
+    </motion.div>
+  );
+}
+
+/**
+ * MagneticWrapper
+ * A premium micro-interaction that pulls the element slightly towards the mouse pointer.
+ */
+export function MagneticWrapper({
+  children,
+  className = "",
+  strength = 15,
+}: {
+  children: ReactNode;
+  className?: string;
+  strength?: number;
+}) {
+  const { isSolid } = useSolidMode();
+  const ref = useRef<HTMLDivElement>(null);
+  const x = useMotionValue(0);
+  const y = useMotionValue(0);
+
+  const springConfigM = { damping: 15, stiffness: 150, mass: 0.1 };
+  const springX = useSpring(x, springConfigM);
+  const springY = useSpring(y, springConfigM);
+
+  if (isSolid) {
+    return <div className={className}>{children}</div>;
+  }
+
+  const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
+    if (!ref.current) return;
+    const { clientX, clientY } = e;
+    const { height, width, left, top } = ref.current.getBoundingClientRect();
+    const middleX = clientX - (left + width / 2);
+    const middleY = clientY - (top + height / 2);
+    x.set((middleX / width) * strength);
+    y.set((middleY / height) * strength);
+  };
+
+  const handleMouseLeave = () => {
+    x.set(0);
+    y.set(0);
+  };
+
+  return (
+    <motion.div
+      ref={ref}
+      onMouseMove={handleMouseMove}
+      onMouseLeave={handleMouseLeave}
+      style={{ x: springX, y: springY }}
       className={cn("transform-gpu", className)}
     >
       {children}

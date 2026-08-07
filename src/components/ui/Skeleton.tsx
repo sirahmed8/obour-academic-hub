@@ -12,6 +12,7 @@ interface SkeletonProps {
 
 /**
  * Skeleton loading placeholder component.
+ * Upgraded to look incredibly premium with glowing shimmer.
  */
 export function Skeleton({
   className,
@@ -20,17 +21,18 @@ export function Skeleton({
   height,
   animation = "shimmer",
 }: SkeletonProps) {
-  const baseClasses = "bg-muted";
+  const baseClasses =
+    "bg-muted/80 dark:bg-muted/30 backdrop-blur-sm border border-white/5 dark:border-white/5";
 
   const variantClasses = {
     text: "rounded-md",
     circular: "rounded-full",
-    rectangular: "rounded-lg",
+    rectangular: "rounded-2xl", // softer corners for rectangular
   };
 
   const animationClasses = {
     pulse: "animate-pulse",
-    shimmer: "animate-shimmer",
+    shimmer: "animate-shimmer shadow-inner",
     none: "",
   };
 

@@ -22,6 +22,7 @@ import { db } from "@/lib/firebase";
 import { cn } from "@/lib/utils";
 import { pastExamSchema } from "@/lib/zod-schemas";
 import { ScrollableTabs } from "@/components/ui/ScrollableTabs";
+import { SkeletonExamCards } from "@/components/ui/Skeleton";
 
 interface PastExam {
   id: string;
@@ -162,6 +163,32 @@ export default function PastExamsPage() {
           },
           ...exams,
         ]);
+
+        if (user) {
+          try {
+            const newTask = {
+              title: isRtl ? `مراجعة: ${sanitizedTitle}` : `Study: ${sanitizedTitle}`,
+              description: isRtl
+                ? `مراجعة وحل امتحان ${sanitizedSubject} - ${validation.data.year}`
+                : `Study and solve ${sanitizedSubject} - ${validation.data.year} past exam.`,
+              priority: "high",
+              status: "todo",
+              completed: false,
+              dueDate: new Date(Date.now() + 86400000 * 7).toISOString(), // Due in 7 days
+              createdAt: serverTimestamp(),
+              sourceUrl: validation.data.downloadUrl || "#",
+              sourceName: isRtl ? "امتحان سابق تم رفعه" : "Uploaded Past Exam",
+            };
+            await addDoc(collection(db, `users/${user.uid}/tasks`), newTask);
+            toast.success(
+              isRtl
+                ? "تم إضافة المهمة الدراسية للجدول بنجاح!"
+                : "Study task auto-generated in your planner!"
+            );
+          } catch (taskErr) {
+            console.error("Error auto-generating task:", taskErr);
+          }
+        }
       } else {
         setExams([
           {
@@ -286,8 +313,8 @@ export default function PastExamsPage() {
       </ScaleIn>
 
       {loading ? (
-        <div className="flex items-center justify-center py-12">
-          <div className="w-8 h-8 rounded-full border-4 border-primary border-t-transparent animate-spin" />
+        <div className="py-12">
+          <SkeletonExamCards />
         </div>
       ) : filteredExams.length === 0 ? (
         <div className="p-10 rounded-3xl bg-card border border-border text-center space-y-3 shadow-md">
@@ -326,29 +353,67 @@ export default function PastExamsPage() {
                   <p className="text-xs font-bold text-muted-foreground">{exam.subject}</p>
                 </div>
 
-                <div className="flex items-center gap-2 pt-2">
-                  <motion.button
-                    type="button"
-                    whileHover={{ scale: 1.02 }}
-                    whileTap={{ scale: 0.96 }}
-                    onClick={() => setPreviewDrawerExam(exam)}
-                    className="flex-1 py-3 rounded-2xl bg-card border border-border hover:bg-muted text-foreground font-extrabold text-xs transition-all duration-300 flex items-center justify-center gap-1.5 shadow-sm"
-                  >
-                    <Eye size={15} className="text-primary" />
-                    <span>{isRtl ? "معاينة الإجابات" : "Preview Key"}</span>
-                  </motion.button>
+                <div className="flex flex-col gap-2 pt-2">
+                  <div className="flex items-center gap-2">
+                    <motion.button
+                      type="button"
+                      whileHover={{ scale: 1.02 }}
+                      whileTap={{ scale: 0.96 }}
+                      onClick={() => setPreviewDrawerExam(exam)}
+                      className="flex-1 py-3 rounded-2xl bg-card border border-border hover:bg-muted text-foreground font-extrabold text-xs transition-all duration-300 flex items-center justify-center gap-1.5 shadow-sm"
+                    >
+                      <Eye size={15} className="text-primary" />
+                      <span>{isRtl ? "معاينة الإجابات" : "Preview Key"}</span>
+                    </motion.button>
 
+                    <motion.button
+                      type="button"
+                      whileHover={{ scale: 1.02 }}
+                      whileTap={{ scale: 0.96 }}
+                      onClick={() =>
+                        toast.success(isRtl ? "جاري تحميل الملف..." : "Downloading exam PDF...")
+                      }
+                      className="flex-1 py-3 rounded-2xl bg-gradient-to-r from-primary to-indigo-600 text-white font-extrabold text-xs transition-all duration-300 hover:opacity-95 flex items-center justify-center gap-1.5 shadow-lg hover:shadow-primary/20"
+                    >
+                      <Download size={15} />
+                      <span>{isRtl ? "تحميل PDF" : "Download PDF"}</span>
+                    </motion.button>
+                  </div>
                   <motion.button
                     type="button"
                     whileHover={{ scale: 1.02 }}
                     whileTap={{ scale: 0.96 }}
-                    onClick={() =>
-                      toast.success(isRtl ? "جاري تحميل الملف..." : "Downloading exam PDF...")
-                    }
-                    className="flex-1 py-3 rounded-2xl bg-gradient-to-r from-primary to-indigo-600 text-white font-extrabold text-xs transition-all duration-300 hover:opacity-95 flex items-center justify-center gap-1.5 shadow-lg hover:shadow-primary/20"
+                    onClick={async () => {
+                      if (!user || !db) {
+                        toast.error(isRtl ? "يجب تسجيل الدخول أولاً" : "You must be logged in");
+                        return;
+                      }
+                      try {
+                        const newTask = {
+                          title: isRtl ? `مراجعة: ${exam.titleAr}` : `Study: ${exam.titleEn}`,
+                          description: isRtl
+                            ? `مراجعة وحل امتحان ${exam.subject} - ${exam.year}`
+                            : `Study and solve ${exam.subject} - ${exam.year} past exam.`,
+                          priority: "high",
+                          status: "todo",
+                          completed: false,
+                          dueDate: new Date(Date.now() + 86400000 * 3).toISOString(), // Due in 3 days
+                          createdAt: serverTimestamp(),
+                          sourceUrl: exam.downloadUrl,
+                          sourceName: isRtl ? "امتحان سابق" : "Past Exam",
+                        };
+                        await addDoc(collection(db, `users/${user.uid}/tasks`), newTask);
+                        toast.success(
+                          isRtl ? "تمت إضافة المهمة للجدول الدراسي!" : "Task added to planner!"
+                        );
+                      } catch {
+                        toast.error(isRtl ? "حدث خطأ أثناء إضافة المهمة" : "Error adding task");
+                      }
+                    }}
+                    className="w-full py-2.5 rounded-2xl bg-muted/30 border border-border hover:bg-primary/10 text-primary font-bold text-xs transition-all duration-300 flex items-center justify-center gap-1.5 shadow-sm"
                   >
-                    <Download size={15} />
-                    <span>{isRtl ? "تحميل PDF" : "Download PDF"}</span>
+                    <Plus size={14} />
+                    <span>{isRtl ? "إضافة لجدول المهام" : "Add to Planner"}</span>
                   </motion.button>
                 </div>
               </div>

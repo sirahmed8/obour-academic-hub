@@ -4,7 +4,7 @@ import { corsOptions, withCors } from "@/lib/server/cors";
 import { getRequestContext, handleRouteError } from "@/lib/server/auth";
 import { rateLimit } from "@/lib/server/rate-limit";
 import { logServerError } from "@/lib/server/error-sanitizer";
-import { generateGeminiResponse, ChatHistoryMessage } from "@/lib/aiService";
+import { streamAIResponse, ChatHistoryMessage } from "@/lib/aiService";
 
 export const runtime = "nodejs";
 
@@ -49,29 +49,33 @@ export async function POST(req: Request) {
     const json = chatRequestSchema.parse(await req.json());
     const messages = json.messages as ChatHistoryMessage[];
 
-    const responseText = await generateGeminiResponse(messages, uid);
+    const stream = streamAIResponse(messages, uid);
 
     try {
       const { adminDb } = await import("@/lib/server/firebase-admin");
       if (adminDb) {
-        const estimatedTokens = Math.max(
-          150,
-          Math.round((responseText.length + JSON.stringify(messages).length) / 3)
-        );
+        const estimatedTokens = Math.max(150, Math.round(JSON.stringify(messages).length / 3));
         await adminDb.collection("logs").add({
           action: "AI_GENERATION",
           type: "qa",
           totalTokens: estimatedTokens,
           userId: uid,
           timestamp: new Date().toISOString(),
-          details: `Q&A AI Assistant processed query (${estimatedTokens} tokens)`,
+          details: `Q&A AI Assistant processed streaming query`,
         });
       }
     } catch {
       // Ignore background log error
     }
 
-    return withCors(req, NextResponse.json({ role: "assistant", content: responseText }));
+    const response = new NextResponse(stream, {
+      headers: {
+        "Content-Type": "text/plain; charset=utf-8",
+        "Transfer-Encoding": "chunked",
+      },
+    });
+
+    return withCors(req, response);
   } catch (error: unknown) {
     if (error && typeof error === "object" && "name" in error && error.name === "ZodError") {
       return withCors(req, NextResponse.json({ error: "Invalid chat payload" }, { status: 400 }));

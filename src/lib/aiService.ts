@@ -249,16 +249,242 @@ async function recordAiUsageLog(
   }
 }
 
-export async function generateText(prompt: string): Promise<string> {
-  return generateGeminiResponse([{ role: "user", content: prompt }]);
+export async function generateText(
+  prompt: string,
+  responseFormat: "text" | "json" = "text"
+): Promise<string> {
+  return generateGeminiResponse(
+    [{ role: "user", content: prompt }],
+    undefined,
+    undefined,
+    responseFormat
+  );
+}
+
+export function streamAIResponse(
+  messages: ChatHistoryMessage[],
+  userUid?: string,
+  customSystemPrompt?: string
+): ReadableStream {
+  const encoder = new TextEncoder();
+  const decoder = new TextDecoder("utf-8");
+
+  return new ReadableStream({
+    async start(controller) {
+      const writeText = (text: string) => controller.enqueue(encoder.encode(text));
+      let fullOutput = "";
+
+      try {
+        const dbContext = await getLiveDatabaseContext(userUid);
+        const baseSystemPrompt = customSystemPrompt || GEMINI_SYSTEM_PROMPT;
+        const systemInstructionText = `${baseSystemPrompt}\n\n${dbContext}`;
+
+        async function processOpenAIStream(response: Response) {
+          const reader = response.body?.getReader();
+          if (!reader) return false;
+          let buffer = "";
+          let gotContent = false;
+          while (true) {
+            const { done, value } = await reader.read();
+            if (done) break;
+            buffer += decoder.decode(value, { stream: true });
+            const lines = buffer.split("\n");
+            buffer = lines.pop() || "";
+            for (const line of lines) {
+              if (line.startsWith("data: ") && !line.includes("[DONE]")) {
+                try {
+                  const data = JSON.parse(line.slice(6));
+                  const text = data.choices?.[0]?.delta?.content;
+                  if (text) {
+                    writeText(text);
+                    fullOutput += text;
+                    gotContent = true;
+                  }
+                } catch {}
+              }
+            }
+          }
+          return gotContent;
+        }
+
+        // 1. OpenRouter
+        const openRouterKey = process.env.OPENROUTER_API_KEY;
+        if (openRouterKey) {
+          const openRouterModels = [
+            "meta-llama/llama-3.1-8b-instruct:free",
+            "google/gemma-2-9b-it:free",
+            "qwen/qwen-2-7b-instruct:free",
+          ];
+          const openRouterMessages = [
+            { role: "system", content: systemInstructionText },
+            ...messages.map((m) => ({
+              role: m.role === "assistant" ? "assistant" : "user",
+              content: typeof m.content === "string" ? m.content : String(m.content),
+            })),
+          ];
+
+          for (const model of openRouterModels) {
+            try {
+              const abort = new AbortController();
+              const timeoutId = setTimeout(() => abort.abort(), 12000);
+              const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
+                method: "POST",
+                headers: {
+                  "Content-Type": "application/json",
+                  Authorization: `Bearer ${openRouterKey}`,
+                  "HTTP-Referer": "https://obour-academic-hub.web.app",
+                  "X-Title": "Obour Academic Hub",
+                },
+                body: JSON.stringify({ model, messages: openRouterMessages, stream: true }),
+                signal: abort.signal,
+              });
+              clearTimeout(timeoutId);
+              if (response.ok) {
+                const success = await processOpenAIStream(response);
+                if (success) {
+                  void recordAiUsageLog(userUid, systemInstructionText, messages, fullOutput);
+                  controller.close();
+                  return;
+                }
+              }
+            } catch {}
+          }
+        }
+
+        // 2. DeepSeek
+        const deepseekKey = process.env.DEEPSEEK_API_KEY;
+        if (deepseekKey && deepseekKey.startsWith("sk-")) {
+          try {
+            const abort = new AbortController();
+            const timeoutId = setTimeout(() => abort.abort(), 12000);
+            const response = await fetch("https://api.deepseek.com/chat/completions", {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+                Authorization: `Bearer ${deepseekKey}`,
+              },
+              body: JSON.stringify({
+                model: "deepseek-chat",
+                messages: [
+                  { role: "system", content: systemInstructionText },
+                  ...messages.map((m) => ({
+                    role: m.role === "assistant" ? "assistant" : "user",
+                    content: typeof m.content === "string" ? m.content : String(m.content),
+                  })),
+                ],
+                stream: true,
+              }),
+              signal: abort.signal,
+            });
+            clearTimeout(timeoutId);
+            if (response.ok) {
+              const success = await processOpenAIStream(response);
+              if (success) {
+                void recordAiUsageLog(userUid, systemInstructionText, messages, fullOutput);
+                controller.close();
+                return;
+              }
+            }
+          } catch {}
+        }
+
+        // 3. Gemini Stream
+        const geminiContents: GeminiContentMessage[] = [];
+        for (const m of messages) {
+          if (m.role === "system") continue;
+          const role = m.role === "assistant" ? "model" : "user";
+          const parts: GeminiMessagePart[] = [];
+          if (typeof m.content === "string" && m.content.trim()) {
+            parts.push({ text: m.content });
+          } else if (Array.isArray(m.content)) {
+            for (const p of m.content) {
+              if (p.type === "text" && p.text) parts.push({ text: p.text });
+            }
+          }
+          if (parts.length > 0) geminiContents.push({ role, parts });
+        }
+        if (geminiContents.length === 0)
+          geminiContents.push({ role: "user", parts: [{ text: "." }] });
+
+        for (const model of GEMINI_MODEL_FALLBACK_CHAIN) {
+          try {
+            const abort = new AbortController();
+            const timeoutId = setTimeout(() => abort.abort(), 12000);
+            const response = await fetch(
+              `https://generativelanguage.googleapis.com/v1beta/models/${model}:streamGenerateContent?alt=sse`,
+              {
+                method: "POST",
+                headers: {
+                  "Content-Type": "application/json",
+                  "x-goog-api-key": GEMINI_API_KEY,
+                },
+                body: JSON.stringify({
+                  contents: geminiContents,
+                  systemInstruction: { parts: [{ text: systemInstructionText }] },
+                  generationConfig: { temperature: 0.3, maxOutputTokens: 1024 },
+                }),
+                signal: abort.signal,
+              }
+            );
+            clearTimeout(timeoutId);
+
+            if (response.ok) {
+              const reader = response.body?.getReader();
+              if (!reader) continue;
+              let buffer = "";
+              let gotContent = false;
+              while (true) {
+                const { done, value } = await reader.read();
+                if (done) break;
+                buffer += decoder.decode(value, { stream: true });
+                const lines = buffer.split("\n");
+                buffer = lines.pop() || "";
+                for (const line of lines) {
+                  if (line.startsWith("data: ") && !line.includes("[DONE]")) {
+                    try {
+                      const data = JSON.parse(line.slice(6));
+                      const text = data.candidates?.[0]?.content?.parts?.[0]?.text;
+                      if (text) {
+                        writeText(text);
+                        fullOutput += text;
+                        gotContent = true;
+                      }
+                    } catch {}
+                  }
+                }
+              }
+              if (gotContent) {
+                void recordAiUsageLog(userUid, systemInstructionText, messages, fullOutput);
+                controller.close();
+                return;
+              }
+            }
+          } catch {}
+        }
+
+        // Fallback
+        writeText("أهلاً بك! أنا المساعد الأكاديمي التفاعلي. كيف يمكنني مساعدتك اليوم؟");
+        controller.close();
+      } catch {
+        writeText("عذراً، حدث خطأ أثناء التفكير.");
+        controller.close();
+      }
+    },
+  });
 }
 
 export async function generateGeminiResponse(
   messages: ChatHistoryMessage[],
   userUid?: string,
-  customSystemPrompt?: string
+  customSystemPrompt?: string,
+  responseFormat: "text" | "json" = "text"
 ): Promise<string> {
-  const cacheKey = JSON.stringify({ messages: messages.slice(-4), userUid, customSystemPrompt });
+  const cacheKey = JSON.stringify({
+    messages: messages.slice(-4),
+    userUid,
+    customSystemPrompt,
+    responseFormat,
+  });
   const cachedResponse = responseCache.get(cacheKey);
   if (cachedResponse) {
     void recordAiUsageLog(userUid, "Cached System Context", messages, cachedResponse);
@@ -308,6 +534,7 @@ export async function generateGeminiResponse(
             messages: openRouterMessages,
             max_tokens: 1024,
             temperature: 0.3,
+            ...(responseFormat === "json" ? { response_format: { type: "json_object" } } : {}),
           }),
           signal: controller.signal,
         });
@@ -363,6 +590,7 @@ export async function generateGeminiResponse(
           ],
           max_tokens: 1024,
           temperature: 0.3,
+          ...(responseFormat === "json" ? { response_format: { type: "json_object" } } : {}),
         }),
         signal: controller.signal,
       });
@@ -418,7 +646,11 @@ export async function generateGeminiResponse(
           body: JSON.stringify({
             contents: geminiContents,
             systemInstruction: { parts: [{ text: systemInstructionText }] },
-            generationConfig: { temperature: 0.3, maxOutputTokens: 1024 },
+            generationConfig: {
+              temperature: 0.3,
+              maxOutputTokens: 1024,
+              ...(responseFormat === "json" ? { responseMimeType: "application/json" } : {}),
+            },
           }),
           signal: controller.signal,
         }

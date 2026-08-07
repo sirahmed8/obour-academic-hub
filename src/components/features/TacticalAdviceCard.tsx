@@ -4,6 +4,7 @@ import { useState, useEffect, useCallback } from "react";
 import { useAuth, useLanguage } from "@/contexts";
 import { Sparkles, Clock, Lightbulb, Loader2, RefreshCw } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
+import { HoverScale, TapScale } from "@/components/ui/Animations";
 import { apiFetch } from "@/lib/api-client";
 
 const ONE_HOUR_MS = 60 * 60 * 1000;
@@ -142,17 +143,27 @@ export function TacticalAdviceCard() {
         ) : (
           <div>
             {!isCooldown ? (
-              <button
-                type="button"
-                onClick={handleGetAdvice}
-                disabled={loading}
-                className="flex items-center justify-center gap-2 w-full py-4 bg-primary text-primary-foreground text-sm font-bold rounded-2xl shadow-lg shadow-primary/20 hover:scale-[1.01] active:scale-95 transition-all disabled:opacity-50"
-              >
-                {loading ? <Loader2 size={18} className="animate-spin" /> : <Lightbulb size={18} />}
-                <span>
-                  {language === "ar" ? "💡 احصل على نصيحة الذكاء الاصطناعي" : "💡 Get AI Advice"}
-                </span>
-              </button>
+              <HoverScale scale={1.02}>
+                <TapScale scale={0.96}>
+                  <button
+                    type="button"
+                    onClick={handleGetAdvice}
+                    disabled={loading}
+                    className="flex items-center justify-center gap-2 w-full py-4 bg-primary text-primary-foreground text-sm font-bold rounded-2xl shadow-lg shadow-primary/20 transition-all disabled:opacity-50"
+                  >
+                    {loading ? (
+                      <Loader2 size={18} className="animate-spin" />
+                    ) : (
+                      <Lightbulb size={18} />
+                    )}
+                    <span>
+                      {language === "ar"
+                        ? "💡 احصل على نصيحة الذكاء الاصطناعي"
+                        : "💡 Get AI Advice"}
+                    </span>
+                  </button>
+                </TapScale>
+              </HoverScale>
             ) : (
               <button
                 type="button"

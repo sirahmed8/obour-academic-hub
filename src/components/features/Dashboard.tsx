@@ -5,7 +5,7 @@ import Link from "next/link";
 import { useAuth, useLanguage } from "@/contexts";
 import { Sparkles, Plus, BookOpen, MessageSquare } from "lucide-react";
 
-import { FadeIn } from "@/components/ui/Animations";
+import { FadeIn, HoverScale, TapScale } from "@/components/ui/Animations";
 import { TacticalAdviceCard } from "@/components/features/TacticalAdviceCard";
 import { AcademicShortcutBar } from "@/components/features/AcademicShortcutBar";
 import { AcademicStreakWidget } from "@/components/features/AcademicStreakWidget";
@@ -115,16 +115,17 @@ export function Dashboard() {
               </div>
 
               {isAdmin && (
-                <motion.div
-                  whileHover={{ scale: 1.05 }}
-                  className="flex items-center gap-2 px-4 py-1.5 bg-foreground text-background dark:bg-white dark:text-black rounded-full text-xs font-black shadow-lg border border-white/10"
-                >
-                  <span className="relative flex h-2.5 w-2.5">
-                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
-                    <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-green-500 shadow-[0_0_8px_rgba(34,197,94,0.8)]"></span>
-                  </span>
-                  <span className="uppercase tracking-wider">{t("dashboard.adminMode")}</span>
-                </motion.div>
+                <HoverScale scale={1.05}>
+                  <TapScale scale={0.97}>
+                    <div className="flex items-center gap-2 px-4 py-1.5 bg-foreground text-background dark:bg-white dark:text-black rounded-full text-xs font-black shadow-lg border border-white/10">
+                      <span className="relative flex h-2.5 w-2.5">
+                        <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
+                        <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-green-500 shadow-[0_0_8px_rgba(34,197,94,0.8)]"></span>
+                      </span>
+                      <span className="uppercase tracking-wider">{t("dashboard.adminMode")}</span>
+                    </div>
+                  </TapScale>
+                </HoverScale>
               )}
             </div>
 
@@ -180,29 +181,41 @@ export function Dashboard() {
 
             {/* Quick Action Launcher Pills */}
             <div className="mt-6 pt-5 border-t border-white/10 grid grid-cols-1 sm:grid-cols-3 gap-2.5">
-              <Link
-                href="/todo"
-                className="flex items-center justify-center gap-2 px-4 py-2.5 rounded-2xl bg-primary text-white text-xs sm:text-sm font-extrabold shadow-lg hover:shadow-primary/30 hover:scale-105 active:scale-95 transition-all text-center"
-              >
-                <Plus size={16} />
-                <span>{language === "ar" ? "إضافة مهمة دراسية" : "Add Homework Task"}</span>
-              </Link>
+              <HoverScale scale={1.03}>
+                <TapScale scale={0.97}>
+                  <Link
+                    href="/todo"
+                    className="flex items-center justify-center gap-2 px-4 py-2.5 rounded-2xl bg-primary text-white text-xs sm:text-sm font-extrabold shadow-lg hover:shadow-primary/30 transition-all text-center"
+                  >
+                    <Plus size={16} />
+                    <span>{language === "ar" ? "إضافة مهمة دراسية" : "Add Homework Task"}</span>
+                  </Link>
+                </TapScale>
+              </HoverScale>
 
-              <Link
-                href="/subject"
-                className="flex items-center justify-center gap-2 px-4 py-2.5 rounded-2xl bg-white/10 hover:bg-white/20 text-white text-xs sm:text-sm font-extrabold border border-white/15 backdrop-blur-md transition-all hover:scale-105 active:scale-95 text-center"
-              >
-                <BookOpen size={16} className="text-blue-400" />
-                <span>{language === "ar" ? "المواد الدراسية" : "Explore Subjects"}</span>
-              </Link>
+              <HoverScale scale={1.03}>
+                <TapScale scale={0.97}>
+                  <Link
+                    href="/subject"
+                    className="flex items-center justify-center gap-2 px-4 py-2.5 rounded-2xl bg-white/10 hover:bg-white/20 text-white text-xs sm:text-sm font-extrabold border border-white/15 backdrop-blur-md transition-all text-center"
+                  >
+                    <BookOpen size={16} className="text-blue-400" />
+                    <span>{language === "ar" ? "المواد الدراسية" : "Explore Subjects"}</span>
+                  </Link>
+                </TapScale>
+              </HoverScale>
 
-              <Link
-                href="/community"
-                className="flex items-center justify-center gap-2 px-4 py-2.5 rounded-2xl bg-white/10 hover:bg-white/20 text-white text-xs sm:text-sm font-extrabold border border-white/15 backdrop-blur-md transition-all hover:scale-105 active:scale-95 text-center"
-              >
-                <MessageSquare size={16} className="text-emerald-400" />
-                <span>{language === "ar" ? "طرح سؤال مجتمعي" : "Ask Question"}</span>
-              </Link>
+              <HoverScale scale={1.03}>
+                <TapScale scale={0.97}>
+                  <Link
+                    href="/community"
+                    className="flex items-center justify-center gap-2 px-4 py-2.5 rounded-2xl bg-white/10 hover:bg-white/20 text-white text-xs sm:text-sm font-extrabold border border-white/15 backdrop-blur-md transition-all text-center"
+                  >
+                    <MessageSquare size={16} className="text-emerald-400" />
+                    <span>{language === "ar" ? "طرح سؤال مجتمعي" : "Ask Question"}</span>
+                  </Link>
+                </TapScale>
+              </HoverScale>
             </div>
 
             {/* Quick Stats Pills */}
