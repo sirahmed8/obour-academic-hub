@@ -35,7 +35,6 @@ interface PastExam {
   hasAnswerKey: boolean;
 }
 
- 
 const ExamCard = memo(
   ({
     exam,

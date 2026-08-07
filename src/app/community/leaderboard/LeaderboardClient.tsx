@@ -45,7 +45,6 @@ function getLeague(points: number, rank?: number) {
   return LEAGUES.find((league) => (points || 0) >= league.minPoints) || LEAGUES[3];
 }
 
- 
 const LeaderboardRow = memo(
   ({
     user,

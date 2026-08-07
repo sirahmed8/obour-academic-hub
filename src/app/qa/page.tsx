@@ -34,7 +34,6 @@ interface QAQuestion {
   doctorAnswerEn?: string;
 }
 
- 
 const QuestionCard = memo(
   ({
     q,
