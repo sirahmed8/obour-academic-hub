@@ -11,6 +11,7 @@ import { cn } from "@/lib/utils";
 
 import Image from "next/image";
 import { useRef, useEffect, useState } from "react";
+import { Send } from "lucide-react";
 
 import { ChatInput } from "@/components/features/chatbot/ChatInput";
 import { LoadingChat } from "@/components/ui/Loading";
@@ -295,6 +296,27 @@ export function ChatWindow({
               )}
 
               <div ref={bottomRef} />
+            </div>
+
+            {/* Quick Replies Area */}
+            <div className="px-4 pb-2 flex items-center gap-2 overflow-x-auto hide-scrollbar">
+              {[
+                language === "ar" ? "جاري مراجعة طلبك الآن." : "We are reviewing your request.",
+                language === "ar" ? "تم حل المشكلة، شكراً لتواصلك." : "Issue resolved, thank you.",
+                language === "ar" ? "مرحباً، كيف يمكنني مساعدتك؟" : "Hello, how can I help you?",
+                language === "ar"
+                  ? "يرجى تزويدي بمزيد من التفاصيل."
+                  : "Please provide more details.",
+              ].map((reply, i) => (
+                <button
+                  key={i}
+                  onClick={() => onSendMessage(reply)}
+                  className="shrink-0 text-[11px] px-3 py-1.5 rounded-full bg-primary/10 text-primary hover:bg-primary hover:text-white transition-colors border border-primary/20 flex items-center gap-1.5 font-medium"
+                >
+                  <Send size={10} />
+                  {reply}
+                </button>
+              ))}
             </div>
 
             {/* Input Area */}

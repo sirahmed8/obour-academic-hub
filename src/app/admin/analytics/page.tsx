@@ -49,6 +49,7 @@ import {
   Receipt,
   ListFilter,
   ChevronDown,
+  Download,
 } from "lucide-react";
 import dynamic from "next/dynamic";
 import { motion, AnimatePresence } from "framer-motion";
@@ -737,6 +738,34 @@ export default function AdminAnalyticsPage() {
       setRefreshing(false);
       toast.info(language === "ar" ? "تم تحديث البيانات" : "Data synchronized");
     }, 800);
+  };
+
+  const handleExportLogsToCSV = () => {
+    if (data.recentLogs.length === 0) {
+      toast.error(language === "ar" ? "لا توجد سجلات للتصدير" : "No logs to export");
+      return;
+    }
+    const headers = ["Action", "Details", "User Email", "Timestamp"];
+    const csvRows = [headers.join(",")];
+    data.recentLogs.forEach((log) => {
+      const row = [
+        `"${log.action}"`,
+        `"${log.details?.replace(/"/g, '""') || ""}"`,
+        `"${log.userEmail || ""}"`,
+        `"${log.timestamp ? new Date(normalizeDate(log.timestamp)).toLocaleString() : ""}"`,
+      ];
+      csvRows.push(row.join(","));
+    });
+    const csvString = csvRows.join("\n");
+    const blob = new Blob(["\ufeff" + csvString], { type: "text/csv;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.setAttribute("download", `audit_logs_${new Date().toISOString().split("T")[0]}.csv`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    toast.success(language === "ar" ? "تم تصدير السجلات" : "Logs exported to CSV");
   };
 
   const handleDeleteLog = async (logId: string) => {
@@ -1957,13 +1986,22 @@ export default function AdminAnalyticsPage() {
                     </h2>
                   </div>
                   {data.recentLogs.length > 0 && (
-                    <button
-                      onClick={handleClearAllLogs}
-                      className="px-3 py-1.5 rounded-xl bg-destructive/10 text-destructive hover:bg-destructive hover:text-destructive-foreground transition-all active:scale-95 text-xs font-bold border border-destructive/20 shadow-sm flex items-center gap-2"
-                    >
-                      <Trash2 size={14} />
-                      {language === "ar" ? "مسح الكل" : "Clear All"}
-                    </button>
+                    <div className="flex items-center gap-2">
+                      <button
+                        onClick={handleExportLogsToCSV}
+                        className="px-3 py-1.5 rounded-xl bg-blue-500/10 text-blue-600 hover:bg-blue-500 hover:text-white transition-all active:scale-95 text-xs font-bold border border-blue-500/20 shadow-sm flex items-center gap-2"
+                      >
+                        <Download size={14} />
+                        {language === "ar" ? "تصدير CSV" : "Export CSV"}
+                      </button>
+                      <button
+                        onClick={handleClearAllLogs}
+                        className="px-3 py-1.5 rounded-xl bg-destructive/10 text-destructive hover:bg-destructive hover:text-destructive-foreground transition-all active:scale-95 text-xs font-bold border border-destructive/20 shadow-sm flex items-center gap-2"
+                      >
+                        <Trash2 size={14} />
+                        {language === "ar" ? "مسح الكل" : "Clear All"}
+                      </button>
+                    </div>
                   )}
                 </div>
 

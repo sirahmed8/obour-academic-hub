@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, memo } from "react";
 import { useLanguage, useAuth } from "@/contexts";
 import {
   BookOpen,
@@ -34,6 +34,114 @@ interface PastExam {
   downloadUrl: string;
   hasAnswerKey: boolean;
 }
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const ExamCard = memo(
+  ({
+    exam,
+    isRtl,
+    setPreviewDrawerExam,
+    user,
+    db,
+    toast,
+  }: {
+    exam: PastExam;
+    isRtl: boolean;
+    setPreviewDrawerExam: any;
+    user: any;
+    db: any;
+    toast: any;
+  }) => {
+    return (
+      <ScaleIn>
+        <div className="p-6 rounded-3xl bg-card border border-border shadow-md hover:border-primary/40 hover:shadow-xl hover-lift transition-all duration-300 space-y-4 flex flex-col justify-between group dark:bg-card">
+          <div className="space-y-2">
+            <div className="flex items-center justify-between">
+              <span className="px-3 py-1 rounded-full bg-primary/10 text-primary font-extrabold text-xs border border-primary/20">
+                {exam.type} • {exam.year}
+              </span>
+              {exam.hasAnswerKey && (
+                <span className="px-2.5 py-0.5 rounded-full bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 font-bold text-[11px] border border-emerald-500/20 shadow-sm">
+                  {isRtl ? "يتضمن الإجابات النموذجية ✅" : "Answer Key Included ✅"}
+                </span>
+              )}
+            </div>
+
+            <h3 className="font-extrabold text-lg text-foreground group-hover:text-primary transition-colors">
+              {isRtl ? exam.titleAr : exam.titleEn}
+            </h3>
+            <p className="text-xs font-bold text-muted-foreground">{exam.subject}</p>
+          </div>
+
+          <div className="flex flex-col gap-2 pt-2">
+            <div className="flex items-center gap-2">
+              <motion.button
+                type="button"
+                whileHover={{ scale: 1.02 }}
+                whileTap={{ scale: 0.96 }}
+                onClick={() => setPreviewDrawerExam(exam)}
+                className="flex-1 py-3 rounded-2xl bg-card border border-border hover:bg-muted text-foreground font-extrabold text-xs transition-all duration-300 flex items-center justify-center gap-1.5 shadow-sm"
+              >
+                <Eye size={15} className="text-primary" />
+                <span>{isRtl ? "معاينة الإجابات" : "Preview Key"}</span>
+              </motion.button>
+
+              <motion.button
+                type="button"
+                whileHover={{ scale: 1.02 }}
+                whileTap={{ scale: 0.96 }}
+                onClick={() =>
+                  toast.success(isRtl ? "جاري تحميل الملف..." : "Downloading exam PDF...")
+                }
+                className="flex-1 py-3 rounded-2xl bg-gradient-to-r from-primary to-indigo-600 text-white font-extrabold text-xs transition-all duration-300 hover:opacity-95 flex items-center justify-center gap-1.5 shadow-lg hover:shadow-primary/20"
+              >
+                <Download size={15} />
+                <span>{isRtl ? "تحميل PDF" : "Download PDF"}</span>
+              </motion.button>
+            </div>
+            <motion.button
+              type="button"
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.96 }}
+              onClick={async () => {
+                if (!user || !db) {
+                  toast.error(isRtl ? "يجب تسجيل الدخول أولاً" : "You must be logged in");
+                  return;
+                }
+                try {
+                  const newTask = {
+                    title: isRtl ? `مراجعة: ${exam.titleAr}` : `Study: ${exam.titleEn}`,
+                    description: isRtl
+                      ? `مراجعة وحل امتحان ${exam.subject} - ${exam.year}`
+                      : `Study and solve ${exam.subject} - ${exam.year} past exam.`,
+                    priority: "high",
+                    status: "todo",
+                    completed: false,
+                    dueDate: new Date(Date.now() + 86400000 * 3).toISOString(), // Due in 3 days
+                    createdAt: serverTimestamp(),
+                    sourceUrl: exam.downloadUrl,
+                    sourceName: isRtl ? "امتحان سابق" : "Past Exam",
+                  };
+                  await addDoc(collection(db, `users/${user.uid}/tasks`), newTask);
+                  toast.success(
+                    isRtl ? "تمت إضافة المهمة للجدول الدراسي!" : "Task added to planner!"
+                  );
+                } catch {
+                  toast.error(isRtl ? "حدث خطأ أثناء إضافة المهمة" : "Error adding task");
+                }
+              }}
+              className="w-full py-2.5 rounded-2xl bg-muted/30 border border-border hover:bg-primary/10 text-primary font-bold text-xs transition-all duration-300 flex items-center justify-center gap-1.5 shadow-sm"
+            >
+              <Plus size={14} />
+              <span>{isRtl ? "إضافة لجدول المهام" : "Add to Planner"}</span>
+            </motion.button>
+          </div>
+        </div>
+      </ScaleIn>
+    );
+  }
+);
+ExamCard.displayName = "ExamCard";
 
 export default function PastExamsPage() {
   const { language } = useLanguage();
@@ -333,91 +441,15 @@ export default function PastExamsPage() {
       ) : (
         <StaggerChildren className="grid grid-cols-1 md:grid-cols-2 gap-6">
           {filteredExams.map((exam) => (
-            <ScaleIn key={exam.id}>
-              <div className="p-6 rounded-3xl bg-card border border-border shadow-md hover:border-primary/40 hover:shadow-xl hover-lift transition-all duration-300 space-y-4 flex flex-col justify-between group dark:bg-card">
-                <div className="space-y-2">
-                  <div className="flex items-center justify-between">
-                    <span className="px-3 py-1 rounded-full bg-primary/10 text-primary font-extrabold text-xs border border-primary/20">
-                      {exam.type} • {exam.year}
-                    </span>
-                    {exam.hasAnswerKey && (
-                      <span className="px-2.5 py-0.5 rounded-full bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 font-bold text-[11px] border border-emerald-500/20 shadow-sm">
-                        {isRtl ? "يتضمن الإجابات النموذجية ✅" : "Answer Key Included ✅"}
-                      </span>
-                    )}
-                  </div>
-
-                  <h3 className="font-extrabold text-lg text-foreground group-hover:text-primary transition-colors">
-                    {isRtl ? exam.titleAr : exam.titleEn}
-                  </h3>
-                  <p className="text-xs font-bold text-muted-foreground">{exam.subject}</p>
-                </div>
-
-                <div className="flex flex-col gap-2 pt-2">
-                  <div className="flex items-center gap-2">
-                    <motion.button
-                      type="button"
-                      whileHover={{ scale: 1.02 }}
-                      whileTap={{ scale: 0.96 }}
-                      onClick={() => setPreviewDrawerExam(exam)}
-                      className="flex-1 py-3 rounded-2xl bg-card border border-border hover:bg-muted text-foreground font-extrabold text-xs transition-all duration-300 flex items-center justify-center gap-1.5 shadow-sm"
-                    >
-                      <Eye size={15} className="text-primary" />
-                      <span>{isRtl ? "معاينة الإجابات" : "Preview Key"}</span>
-                    </motion.button>
-
-                    <motion.button
-                      type="button"
-                      whileHover={{ scale: 1.02 }}
-                      whileTap={{ scale: 0.96 }}
-                      onClick={() =>
-                        toast.success(isRtl ? "جاري تحميل الملف..." : "Downloading exam PDF...")
-                      }
-                      className="flex-1 py-3 rounded-2xl bg-gradient-to-r from-primary to-indigo-600 text-white font-extrabold text-xs transition-all duration-300 hover:opacity-95 flex items-center justify-center gap-1.5 shadow-lg hover:shadow-primary/20"
-                    >
-                      <Download size={15} />
-                      <span>{isRtl ? "تحميل PDF" : "Download PDF"}</span>
-                    </motion.button>
-                  </div>
-                  <motion.button
-                    type="button"
-                    whileHover={{ scale: 1.02 }}
-                    whileTap={{ scale: 0.96 }}
-                    onClick={async () => {
-                      if (!user || !db) {
-                        toast.error(isRtl ? "يجب تسجيل الدخول أولاً" : "You must be logged in");
-                        return;
-                      }
-                      try {
-                        const newTask = {
-                          title: isRtl ? `مراجعة: ${exam.titleAr}` : `Study: ${exam.titleEn}`,
-                          description: isRtl
-                            ? `مراجعة وحل امتحان ${exam.subject} - ${exam.year}`
-                            : `Study and solve ${exam.subject} - ${exam.year} past exam.`,
-                          priority: "high",
-                          status: "todo",
-                          completed: false,
-                          dueDate: new Date(Date.now() + 86400000 * 3).toISOString(), // Due in 3 days
-                          createdAt: serverTimestamp(),
-                          sourceUrl: exam.downloadUrl,
-                          sourceName: isRtl ? "امتحان سابق" : "Past Exam",
-                        };
-                        await addDoc(collection(db, `users/${user.uid}/tasks`), newTask);
-                        toast.success(
-                          isRtl ? "تمت إضافة المهمة للجدول الدراسي!" : "Task added to planner!"
-                        );
-                      } catch {
-                        toast.error(isRtl ? "حدث خطأ أثناء إضافة المهمة" : "Error adding task");
-                      }
-                    }}
-                    className="w-full py-2.5 rounded-2xl bg-muted/30 border border-border hover:bg-primary/10 text-primary font-bold text-xs transition-all duration-300 flex items-center justify-center gap-1.5 shadow-sm"
-                  >
-                    <Plus size={14} />
-                    <span>{isRtl ? "إضافة لجدول المهام" : "Add to Planner"}</span>
-                  </motion.button>
-                </div>
-              </div>
-            </ScaleIn>
+            <ExamCard
+              key={exam.id}
+              exam={exam}
+              isRtl={isRtl}
+              setPreviewDrawerExam={setPreviewDrawerExam}
+              user={user}
+              db={db}
+              toast={toast}
+            />
           ))}
         </StaggerChildren>
       )}

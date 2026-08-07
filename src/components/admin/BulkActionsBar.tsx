@@ -38,10 +38,10 @@ export function BulkActionsBar({
         initial={{ y: 100, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
         exit={{ y: 100, opacity: 0 }}
-        className="fixed bottom-4 left-1/2 -translate-x-1/2 z-40 bg-primary/70 backdrop-blur-xl backdrop-saturate-150 text-primary-foreground rounded-full shadow-2xl px-6 py-4 flex items-center gap-4 border border-white/20"
+        className="fixed bottom-4 left-1/2 -translate-x-1/2 z-40 bg-primary/70 backdrop-blur-xl backdrop-saturate-150 text-primary-foreground rounded-full shadow-2xl px-4 sm:px-6 py-3 sm:py-4 flex items-center gap-2 sm:gap-4 border border-white/20 w-[max-content] max-w-[95vw] overflow-x-auto hide-scrollbar"
       >
         {/* Selection count */}
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
           {allSelected ? (
             <CheckSquare className="w-5 h-5" />
           ) : someSelected ? (
@@ -55,7 +55,7 @@ export function BulkActionsBar({
         </div>
 
         {/* Actions */}
-        <div className="flex items-center gap-2 border-l border-primary-foreground/30 pl-4">
+        <div className="flex items-center gap-1.5 sm:gap-2 border-l border-primary-foreground/30 pl-3 sm:pl-4 shrink-0">
           {/* Change role */}
           <div className="relative">
             <button

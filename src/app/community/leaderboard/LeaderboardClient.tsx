@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { memo, useState, useEffect } from "react";
 import { collection, query, orderBy, limit, onSnapshot } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import { User } from "@/types";
@@ -44,6 +44,105 @@ function getLeague(points: number, rank?: number) {
   if (rank === 3) return (points || 0) >= 100 ? LEAGUES[2] : LEAGUES[3];
   return LEAGUES.find((league) => (points || 0) >= league.minPoints) || LEAGUES[3];
 }
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const LeaderboardRow = memo(
+  ({
+    user,
+    rank,
+    league,
+    isCurrentUser,
+    t,
+  }: {
+    user: any;
+    rank: number;
+    league: any;
+    isCurrentUser: boolean;
+    t: any;
+  }) => {
+    return (
+      <tr
+        className={`transition-colors hover:bg-muted/20 ${
+          isCurrentUser ? "bg-primary/10 hover:bg-primary/15" : ""
+        }`}
+      >
+        {/* Rank */}
+        <td className="py-4 px-6 text-center">
+          {rank === 1 ? (
+            <div className="w-7 h-7 mx-auto bg-yellow-500/20 text-yellow-500 rounded-full flex items-center justify-center font-black text-sm border border-yellow-500/30">
+              1
+            </div>
+          ) : rank === 2 ? (
+            <div className="w-7 h-7 mx-auto bg-slate-400/20 text-slate-400 rounded-full flex items-center justify-center font-black text-sm border border-slate-400/30">
+              2
+            </div>
+          ) : rank === 3 ? (
+            <div className="w-7 h-7 mx-auto bg-amber-600/20 text-amber-500 rounded-full flex items-center justify-center font-black text-sm border border-amber-600/30">
+              3
+            </div>
+          ) : (
+            <span className="text-muted-foreground font-semibold text-sm">{rank}</span>
+          )}
+        </td>
+
+        {/* Student Name */}
+        <td className="py-4 px-6">
+          <div className="flex items-center gap-3">
+            <div className="w-9 h-9 rounded-full bg-primary/10 border border-primary/20 flex items-center justify-center text-primary font-bold uppercase shrink-0 text-sm">
+              {user.displayName?.charAt(0) || user.email?.charAt(0) || "?"}
+            </div>
+            <div className="min-w-0 flex-1">
+              <div className="font-semibold text-sm text-foreground flex items-center gap-2">
+                <span
+                  className="truncate max-w-[180px] sm:max-w-xs md:max-w-md"
+                  title={user.displayName || "Anonymous Student"}
+                >
+                  {user.displayName || "Anonymous Student"}
+                </span>
+                {user.username && (
+                  <span className="text-xs text-primary font-bold">@{user.username}</span>
+                )}
+                {isCurrentUser && (
+                  <span className="text-[10px] bg-primary/20 text-primary px-2 py-0.5 rounded-full font-bold animate-pulse shrink-0">
+                    {t("leaderboard.you")}
+                  </span>
+                )}
+              </div>
+              <div className="text-xs text-muted-foreground truncate max-w-[180px] sm:max-w-xs">
+                {user.email?.split("@")[0] || "Student"}
+              </div>
+            </div>
+          </div>
+        </td>
+
+        {/* League */}
+        <td className="py-4 px-6">
+          <span
+            className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold border ${league.bg} ${league.color}`}
+          >
+            {league.key === "Diamond" ? (
+              <Star className="w-3.5 h-3.5 fill-current" />
+            ) : (
+              <Medal className="w-3.5 h-3.5" />
+            )}
+            {t("leaderboard.league." + league.key)}
+          </span>
+        </td>
+
+        {/* Points */}
+        <td className="py-4 px-6 text-right">
+          <div className="font-extrabold text-sm text-foreground flex justify-end items-center gap-1">
+            <span>{user.points || 0}</span>
+            <span className="text-muted-foreground text-xs font-medium">
+              {t("leaderboard.pts")}
+            </span>
+          </div>
+        </td>
+      </tr>
+    );
+  }
+);
+LeaderboardRow.displayName = "LeaderboardRow";
 
 export default function LeaderboardClient() {
   const [users, setUsers] = useState<User[]>([]);
@@ -242,89 +341,14 @@ export default function LeaderboardClient() {
                     const isCurrentUser = currentUser?.uid === user.uid;
 
                     return (
-                      <tr
+                      <LeaderboardRow
                         key={user.uid}
-                        className={`transition-colors hover:bg-muted/20 ${
-                          isCurrentUser ? "bg-primary/10 hover:bg-primary/15" : ""
-                        }`}
-                      >
-                        {/* Rank */}
-                        <td className="py-4 px-6 text-center">
-                          {rank === 1 ? (
-                            <div className="w-7 h-7 mx-auto bg-yellow-500/20 text-yellow-500 rounded-full flex items-center justify-center font-black text-sm border border-yellow-500/30">
-                              1
-                            </div>
-                          ) : rank === 2 ? (
-                            <div className="w-7 h-7 mx-auto bg-slate-400/20 text-slate-400 rounded-full flex items-center justify-center font-black text-sm border border-slate-400/30">
-                              2
-                            </div>
-                          ) : rank === 3 ? (
-                            <div className="w-7 h-7 mx-auto bg-amber-600/20 text-amber-500 rounded-full flex items-center justify-center font-black text-sm border border-amber-600/30">
-                              3
-                            </div>
-                          ) : (
-                            <span className="text-muted-foreground font-semibold text-sm">
-                              {rank}
-                            </span>
-                          )}
-                        </td>
-
-                        {/* Student Name */}
-                        <td className="py-4 px-6">
-                          <div className="flex items-center gap-3">
-                            <div className="w-9 h-9 rounded-full bg-primary/10 border border-primary/20 flex items-center justify-center text-primary font-bold uppercase shrink-0 text-sm">
-                              {user.displayName?.charAt(0) || user.email?.charAt(0) || "?"}
-                            </div>
-                            <div className="min-w-0 flex-1">
-                              <div className="font-semibold text-sm text-foreground flex items-center gap-2">
-                                <span
-                                  className="truncate max-w-[180px] sm:max-w-xs md:max-w-md"
-                                  title={user.displayName || "Anonymous Student"}
-                                >
-                                  {user.displayName || "Anonymous Student"}
-                                </span>
-                                {user.username && (
-                                  <span className="text-xs text-primary font-bold">
-                                    @{user.username}
-                                  </span>
-                                )}
-                                {isCurrentUser && (
-                                  <span className="text-[10px] bg-primary/20 text-primary px-2 py-0.5 rounded-full font-bold animate-pulse shrink-0">
-                                    {t("leaderboard.you")}
-                                  </span>
-                                )}
-                              </div>
-                              <div className="text-xs text-muted-foreground truncate max-w-[180px] sm:max-w-xs">
-                                {user.email?.split("@")[0] || "Student"}
-                              </div>
-                            </div>
-                          </div>
-                        </td>
-
-                        {/* League */}
-                        <td className="py-4 px-6">
-                          <span
-                            className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold border ${league.bg} ${league.color}`}
-                          >
-                            {league.key === "Diamond" ? (
-                              <Star className="w-3.5 h-3.5 fill-current" />
-                            ) : (
-                              <Medal className="w-3.5 h-3.5" />
-                            )}
-                            {t("leaderboard.league." + league.key)}
-                          </span>
-                        </td>
-
-                        {/* Points */}
-                        <td className="py-4 px-6 text-right">
-                          <div className="font-extrabold text-sm text-foreground flex justify-end items-center gap-1">
-                            <span>{user.points || 0}</span>
-                            <span className="text-muted-foreground text-xs font-medium">
-                              {t("leaderboard.pts")}
-                            </span>
-                          </div>
-                        </td>
-                      </tr>
+                        user={user}
+                        rank={rank}
+                        league={league}
+                        isCurrentUser={isCurrentUser}
+                        t={t}
+                      />
                     );
                   })}
                 </tbody>
