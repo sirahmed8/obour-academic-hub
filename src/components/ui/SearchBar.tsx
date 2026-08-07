@@ -92,10 +92,12 @@ const CommandListItem = React.memo(function CommandListItem({
           {item.icon}
         </div>
         <div className="min-w-0 flex-1">
-          <div className="leading-snug truncate font-bold text-foreground flex items-center gap-2">
-            <span>{isAr ? item.labelAr : item.labelEn}</span>
+          <div className="flex items-center gap-2 min-w-0">
+            <span className="truncate font-bold text-foreground leading-snug">
+              {isAr ? item.labelAr : item.labelEn}
+            </span>
             {item.badge && (
-              <span className="text-[10px] px-2 py-0.5 rounded-full bg-primary/15 text-primary border border-primary/20 font-black">
+              <span className="text-[10px] leading-none px-2 py-0.5 rounded-full bg-primary/15 text-primary border border-primary/20 font-black shrink-0">
                 {item.badge}
               </span>
             )}

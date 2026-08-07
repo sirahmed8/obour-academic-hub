@@ -41,6 +41,7 @@ import { useReducedMotion } from "@/hooks/useReducedMotion";
 import { listContainer, getMotionProps } from "@/lib/motion";
 import { ConfirmationModal } from "@/components/ui/ConfirmationModal";
 import { CustomSelect } from "@/components/ui/CustomSelect";
+import { HoverScale, TapScale } from "@/components/ui/Animations";
 
 export function TodoList() {
   const { user } = useAuth();
@@ -540,32 +541,38 @@ export function TodoList() {
         </div>
 
         <div className="flex flex-wrap items-center gap-3">
-          <motion.button
-            onClick={() => setIsAIAssistantOpen(true)}
-            whileHover={{ scale: 1.02 }}
-            whileTap={{ scale: 0.95 }}
-            className="relative overflow-hidden bg-gradient-to-r from-purple-600 via-indigo-600 to-purple-600 hover:from-purple-500 hover:to-indigo-500 text-white shadow-lg shadow-purple-500/25 hover:shadow-purple-500/40 transition-all rounded-2xl px-5 py-3.5 flex items-center justify-center gap-2 text-sm font-black border border-purple-400/30"
-          >
-            <Sparkles size={18} className="animate-pulse text-purple-200" />
-            <span>{language === "ar" ? "مساعد المهام بالذكاء الاصطناعي" : "AI Task Planner"}</span>
-          </motion.button>
+          <HoverScale scale={1.02}>
+            <TapScale scale={0.95}>
+              <button
+                onClick={() => setIsAIAssistantOpen(true)}
+                className="relative overflow-hidden bg-gradient-to-r from-purple-600 via-indigo-600 to-purple-600 hover:from-purple-500 hover:to-indigo-500 text-white shadow-lg shadow-purple-500/25 hover:shadow-purple-500/40 transition-all rounded-2xl px-5 py-3.5 flex items-center justify-center gap-2 text-sm font-black border border-purple-400/30"
+              >
+                <Sparkles size={18} className="animate-pulse text-purple-200" />
+                <span>
+                  {language === "ar" ? "مساعد المهام بالذكاء الاصطناعي" : "AI Task Planner"}
+                </span>
+              </button>
+            </TapScale>
+          </HoverScale>
 
-          <motion.button
-            onClick={() => {
-              setEditingTask(undefined);
-              setIsModalOpen(true);
-            }}
-            whileHover={{ scale: 1.02 }}
-            whileTap={{ scale: 0.95 }}
-            className={cn(
-              "group relative overflow-hidden shadow-lg shadow-primary/25 hover:shadow-primary/40 transition-all rounded-2xl px-5 py-3.5",
-              buttonVariants({ variant: "primary", size: "lg" }),
-              "flex items-center justify-center gap-2 text-sm font-black"
-            )}
-          >
-            <Plus size={20} />
-            <span>{language === "ar" ? "إضافة مهمة جديدة" : "New Task"}</span>
-          </motion.button>
+          <HoverScale scale={1.02}>
+            <TapScale scale={0.95}>
+              <button
+                onClick={() => {
+                  setEditingTask(undefined);
+                  setIsModalOpen(true);
+                }}
+                className={cn(
+                  "group relative overflow-hidden shadow-lg shadow-primary/25 hover:shadow-primary/40 transition-all rounded-2xl px-5 py-3.5",
+                  buttonVariants({ variant: "primary", size: "lg" }),
+                  "flex items-center justify-center gap-2 text-sm font-black"
+                )}
+              >
+                <Plus size={20} />
+                <span>{language === "ar" ? "إضافة مهمة جديدة" : "New Task"}</span>
+              </button>
+            </TapScale>
+          </HoverScale>
         </div>
       </div>
 

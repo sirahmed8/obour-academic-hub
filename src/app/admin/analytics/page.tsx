@@ -10,6 +10,8 @@ import {
   query,
   orderBy,
   limit,
+  deleteDoc,
+  doc,
 } from "firebase/firestore";
 import { ref, onValue } from "firebase/database";
 import { useLanguage } from "@/contexts";
@@ -737,6 +739,41 @@ export default function AdminAnalyticsPage() {
     }, 800);
   };
 
+  const handleDeleteLog = async (logId: string) => {
+    if (!db) return;
+    try {
+      await deleteDoc(doc(db, "logs", logId));
+      toast.success(language === "ar" ? "تم حذف السجل بنجاح" : "Audit log deleted");
+    } catch (error) {
+      console.error("Error deleting log:", error);
+      toast.error(language === "ar" ? "فشل حذف السجل" : "Failed to delete log");
+    }
+  };
+
+  const handleClearAllLogs = async () => {
+    if (!db) return;
+    if (
+      !confirm(
+        language === "ar"
+          ? "هل أنت متأكد من مسح جميع السجلات؟ هذا الإجراء لا يمكن التراجع عنه."
+          : "Are you sure you want to clear all audit logs? This action cannot be undone."
+      )
+    )
+      return;
+    try {
+      const logsSnapshot = await getDocs(collection(db, "logs"));
+      const batch = writeBatch(db);
+      logsSnapshot.forEach((d) => {
+        batch.delete(d.ref);
+      });
+      await batch.commit();
+      toast.success(language === "ar" ? "تم مسح جميع السجلات" : "All audit logs cleared");
+    } catch (error) {
+      console.error("Error clearing logs:", error);
+      toast.error(language === "ar" ? "فشل مسح السجلات" : "Failed to clear audit logs");
+    }
+  };
+
   const handleResetStats = async () => {
     const firestore = db;
     if (!firestore) return;
@@ -909,62 +946,64 @@ export default function AdminAnalyticsPage() {
                       animate={{ opacity: 1, y: 0, scale: 1 }}
                       exit={{ opacity: 0, y: -10, scale: 0.96 }}
                       transition={{ duration: 0.2, ease: [0.16, 1, 0.3, 1] }}
-                      className="absolute left-0 right-0 top-full mt-2 z-50 rounded-3xl bg-card/95 border border-border shadow-2xl backdrop-blur-2xl p-2 space-y-1.5 max-h-96 overflow-y-auto"
+                      className="absolute left-0 right-0 top-full mt-2 z-50 rounded-3xl bg-card/95 border border-border shadow-2xl backdrop-blur-2xl p-2"
                     >
-                      {analyticsSections.map((sec) => {
-                        const SecIcon = sec.icon;
-                        const isSelected = activeTab === sec.id;
-                        return (
-                          <button
-                            key={sec.id}
-                            type="button"
-                            onClick={() => {
-                              setActiveTab(sec.id as typeof activeTab);
-                              setDropdownOpen(false);
-                            }}
-                            className={cn(
-                              "w-full flex items-center justify-between gap-3 p-3 rounded-2xl text-left rtl:text-right transition-all duration-200 group cursor-pointer",
-                              isSelected
-                                ? "bg-primary text-primary-foreground font-black shadow-lg shadow-primary/25"
-                                : "hover:bg-muted/70 text-foreground font-bold"
-                            )}
-                          >
-                            <div className="flex items-center gap-3 min-w-0">
-                              <span
-                                className={cn(
-                                  "p-2 rounded-xl border transition-colors shrink-0",
-                                  isSelected
-                                    ? "bg-white/20 text-white border-white/30"
-                                    : "bg-muted text-muted-foreground border-border group-hover:text-primary group-hover:bg-primary/10"
-                                )}
-                              >
-                                <SecIcon size={18} />
-                              </span>
-                              <div className="min-w-0">
-                                <p
+                      <div className="max-h-96 overflow-y-auto pe-1 space-y-1.5 custom-scrollbar">
+                        {analyticsSections.map((sec) => {
+                          const SecIcon = sec.icon;
+                          const isSelected = activeTab === sec.id;
+                          return (
+                            <button
+                              key={sec.id}
+                              type="button"
+                              onClick={() => {
+                                setActiveTab(sec.id as typeof activeTab);
+                                setDropdownOpen(false);
+                              }}
+                              className={cn(
+                                "w-full flex items-center justify-between gap-3 p-3 rounded-2xl text-left rtl:text-right transition-all duration-200 group cursor-pointer",
+                                isSelected
+                                  ? "bg-primary text-primary-foreground font-black shadow-lg shadow-primary/25"
+                                  : "hover:bg-muted/70 text-foreground font-bold"
+                              )}
+                            >
+                              <div className="flex items-center gap-3 min-w-0">
+                                <span
                                   className={cn(
-                                    "text-xs sm:text-sm font-black truncate",
-                                    isSelected ? "text-white" : "text-foreground"
+                                    "p-2 rounded-xl border transition-colors shrink-0",
+                                    isSelected
+                                      ? "bg-white/20 text-white border-white/30"
+                                      : "bg-muted text-muted-foreground border-border group-hover:text-primary group-hover:bg-primary/10"
                                   )}
                                 >
-                                  {sec.label}
-                                </p>
-                                <p
-                                  className={cn(
-                                    "text-[10px] truncate font-medium",
-                                    isSelected ? "text-white/80" : "text-muted-foreground"
-                                  )}
-                                >
-                                  {sec.desc}
-                                </p>
+                                  <SecIcon size={18} />
+                                </span>
+                                <div className="min-w-0">
+                                  <p
+                                    className={cn(
+                                      "text-xs sm:text-sm font-black truncate",
+                                      isSelected ? "text-white" : "text-foreground"
+                                    )}
+                                  >
+                                    {sec.label}
+                                  </p>
+                                  <p
+                                    className={cn(
+                                      "text-[10px] truncate font-medium",
+                                      isSelected ? "text-white/80" : "text-muted-foreground"
+                                    )}
+                                  >
+                                    {sec.desc}
+                                  </p>
+                                </div>
                               </div>
-                            </div>
-                            {isSelected && (
-                              <span className="w-2.5 h-2.5 rounded-full bg-white shrink-0 shadow-sm animate-pulse" />
-                            )}
-                          </button>
-                        );
-                      })}
+                              {isSelected && (
+                                <span className="w-2.5 h-2.5 rounded-full bg-white shrink-0 shadow-sm animate-pulse" />
+                              )}
+                            </button>
+                          );
+                        })}
+                      </div>
                     </motion.div>
                   )}
                 </AnimatePresence>
@@ -1917,6 +1956,15 @@ export default function AdminAnalyticsPage() {
                         : "Administrative Audit Trail"}
                     </h2>
                   </div>
+                  {data.recentLogs.length > 0 && (
+                    <button
+                      onClick={handleClearAllLogs}
+                      className="px-3 py-1.5 rounded-xl bg-destructive/10 text-destructive hover:bg-destructive hover:text-destructive-foreground transition-all active:scale-95 text-xs font-bold border border-destructive/20 shadow-sm flex items-center gap-2"
+                    >
+                      <Trash2 size={14} />
+                      {language === "ar" ? "مسح الكل" : "Clear All"}
+                    </button>
+                  )}
                 </div>
 
                 <div className="space-y-3">
@@ -1964,13 +2012,22 @@ export default function AdminAnalyticsPage() {
                             {log.userEmail}
                           </p>
                         </div>
-                        <div className="text-xs font-mono font-black text-primary/40 whitespace-nowrap hidden sm:block">
-                          {log.timestamp
-                            ? new Date(normalizeDate(log.timestamp)).toLocaleTimeString([], {
-                                hour: "2-digit",
-                                minute: "2-digit",
-                              })
-                            : "-"}
+                        <div className="flex flex-col sm:flex-row items-end sm:items-center gap-2 sm:gap-4 shrink-0">
+                          <div className="text-xs font-mono font-black text-primary/40 whitespace-nowrap">
+                            {log.timestamp
+                              ? new Date(normalizeDate(log.timestamp)).toLocaleTimeString([], {
+                                  hour: "2-digit",
+                                  minute: "2-digit",
+                                })
+                              : "-"}
+                          </div>
+                          <button
+                            onClick={() => handleDeleteLog(log.id)}
+                            className="p-2 rounded-xl text-muted-foreground hover:bg-destructive/10 hover:text-destructive transition-colors opacity-0 group-hover/log:opacity-100"
+                            title={language === "ar" ? "حذف" : "Delete"}
+                          >
+                            <Trash2 size={16} />
+                          </button>
                         </div>
                       </div>
                     ))
