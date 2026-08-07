@@ -77,46 +77,7 @@ export function HagazView() {
             mentor: data.mentor || "Peer Mentor",
           });
         });
-        if (list.length === 0) {
-          list.push(
-            {
-              id: "hagaz-1",
-              titleAr: "ورشة عمل تصميم قواعد البيانات (ERD)",
-              titleEn: "Database ERD Design Workshop",
-              subject: "Database Systems",
-              time: "02:00 PM - 04:00 PM",
-              date: new Date().toISOString().split("T")[0],
-              seats: 12,
-              bookedSeats: 8,
-              type: "lab",
-              mentor: "Eng. Ahmed Hassan",
-            },
-            {
-              id: "hagaz-2",
-              titleAr: "تحدي حل أسئلة البرمجة الهيكلية (Quiz Battle)",
-              titleEn: "OOP Programming Quiz Battle",
-              subject: "Computer Science",
-              time: "05:00 PM - 06:30 PM",
-              date: new Date().toISOString().split("T")[0],
-              seats: 16,
-              bookedSeats: 12,
-              type: "battle",
-              mentor: "Dr. Mohamed El-Sayed",
-            },
-            {
-              id: "hagaz-3",
-              titleAr: "مراجعة شاملة لأساسيات الرياضيات الحاسوبية",
-              titleEn: "Discrete Mathematics Exam Review",
-              subject: "Mathematics",
-              time: "07:00 PM - 09:00 PM",
-              date: new Date().toISOString().split("T")[0],
-              seats: 20,
-              bookedSeats: 15,
-              type: "group",
-              mentor: "Obour Study Club",
-            }
-          );
-        }
+
         setSlots(list);
       } catch (err) {
         console.error("Error loading hagaz sessions:", err);
