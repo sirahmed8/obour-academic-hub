@@ -43,9 +43,7 @@
     "rules": "firestore.rules",
     "indexes": "firestore.indexes.json"
   },
-  "functions": {
-    "source": "functions"
-  },
+
   "database": {
     "rules": "database.rules.json"
   }
