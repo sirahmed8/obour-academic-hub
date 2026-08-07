@@ -1,6 +1,6 @@
 # Agent Handoff & Single Source of Truth
 
-> **LIVE SYSTEM STATUS**: Checkpoint 37 — Phase 7 Master Refinement Complete. Universal UI/UX polished, Advanced Admin Controls added (Export CSV, Quick Replies), and React Frontend Performance Optimized (`React.memo` on heavy lists). Firebase Production Deployment is stable.
+> **LIVE SYSTEM STATUS**: Checkpoint 38 — Phase 8 Complete (Backend Firebase Cloud Functions & UX Hardening). Firebase Cloud Functions (v2) implemented for automated data cascading, weekly leaderboard reset, Q&A trending, and student authentication gating. Offline indicator banner and rich empty states added. Next.js 16 build passed (61/61 routes).
 
 ---
 
@@ -15,7 +15,16 @@
 
 ## Completed Overhauls & New Modules Created
 
-1. **Phase 7: The Master Refinement** (Checkpoint 37):
+1. **Phase 8: Firebase Cloud Functions & UX Polish** (Checkpoint 38):
+   - **Firebase Cloud Functions (Gen 2)**: Added backend functions in `functions/src/index.ts` with full TypeScript support:
+     - `cascadeDeleteUser`: Automatically cascades sub-collection cleanup (`tasks`, `logs`, `notifications`, `chat_messages`) on user deletion.
+     - `recalculateQuestionTrending`: Recalculates trending score upon upvote change on questions.
+     - `enforceStudentRole`: Before user creation hook enforcing allowed institute emails and default claims.
+     - `resetWeeklyLeaderboard`: CRON scheduled job resetting weekly points every Sunday at midnight.
+   - **Network & State Resilience**: Added `OfflineBanner.tsx` in root layout for instant network disconnection alerts with auto-reconnection toast.
+   - **Empty States & Accessibility**: Polished empty state designs with action buttons across `/exams`, `/qa`, and `/todo`. Added `aria-label` attributes to icon-only modal close buttons. Consolidated repetitive toasts.
+   - **Verification**: `npm run build` code 0 (61/61 routes compiled), `npm run build` in `functions` code 0.
+2. **Phase 7: The Master Refinement** (Checkpoint 37):
    - **Universal UI/UX Polish**: Fixed mobile horizontal overflow on Admin Bulk Actions Bar using `max-w-[95vw]` and custom scrollbars. Confirmed consistent Modals and Drawers.
    - **Advanced Admin Controls**: Completed Audit Logs "Export to CSV" wired perfectly to client-side download in `AdminAnalyticsPage`. Added quick reply templates to the `ChatWindow` for Admin Inbox ticketing.
    - **Frontend Performance Optimization**: Added `React.memo` to `LeaderboardRow`, `QuestionCard`, and `ExamCard` inside mapping loops across `LeaderboardClient`, `QAForumPage`, and `PastExamsPage` to eliminate redundant layout recalculations and expensive React re-renders.

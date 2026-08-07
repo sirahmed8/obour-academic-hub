@@ -35,7 +35,7 @@ interface PastExam {
   hasAnswerKey: boolean;
 }
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
+ 
 const ExamCard = memo(
   ({
     exam,
@@ -47,9 +47,13 @@ const ExamCard = memo(
   }: {
     exam: PastExam;
     isRtl: boolean;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     setPreviewDrawerExam: any;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     user: any;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     db: any;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     toast: any;
   }) => {
     return (

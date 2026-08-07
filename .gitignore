@@ -1,7 +1,8 @@
 # See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
 
 # dependencies
-/node_modules
+node_modules/
+/node_modules/
 /.pnp
 .pnp.*
 .yarn/*
@@ -32,18 +33,10 @@ yarn-error.log*
 
 # env files (can opt-in for committing if needed)
 .env*
-# !.env.example
-# !.env.production
-
-# vercel
-.vercel
 
 # typescript
 *.tsbuildinfo
 next-env.d.ts
-
-.vercel
-.env*.local
 
 # logs
 server.log
@@ -51,21 +44,11 @@ server.log
 *log.txt
 build_output*.txt
 
-
-#Ignore vscode AI rules
-.github\instructions\codacy.instructions.md
-
-# firebase
-firebase-debug.log
-build_output*.txt
-
-
-#Ignore vscode AI rules
-.github\instructions\codacy.instructions.md
-
 # firebase
 firebase-debug.log
 .firebase/
+functions/node_modules/
+functions/lib/
 
 # local environment overrides
 .vercel

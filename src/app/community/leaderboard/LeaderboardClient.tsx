@@ -45,7 +45,7 @@ function getLeague(points: number, rank?: number) {
   return LEAGUES.find((league) => (points || 0) >= league.minPoints) || LEAGUES[3];
 }
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
+ 
 const LeaderboardRow = memo(
   ({
     user,
@@ -54,10 +54,13 @@ const LeaderboardRow = memo(
     isCurrentUser,
     t,
   }: {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     user: any;
     rank: number;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     league: any;
     isCurrentUser: boolean;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     t: any;
   }) => {
     return (

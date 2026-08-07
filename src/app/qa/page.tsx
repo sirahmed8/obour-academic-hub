@@ -34,7 +34,7 @@ interface QAQuestion {
   doctorAnswerEn?: string;
 }
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
+ 
 const QuestionCard = memo(
   ({
     q,
@@ -45,6 +45,7 @@ const QuestionCard = memo(
     q: QAQuestion;
     isRtl: boolean;
     upvotedIds: string[];
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     handleUpvote: any;
   }) => {
     return (

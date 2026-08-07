@@ -28,6 +28,7 @@
     └── Backend / Cloud Infrastructure:
           ├── Firebase Firestore (Real-time DB)
           ├── Firebase Admin SDK (Server side & Admin APIs)
+          ├── Firebase Cloud Functions (v2 Serverless triggers, CRON schedules & Identity hooks)
           ├── Upstash Redis & Rate Limiter (AI caching & security)
           ├── Cloudinary (Academic resource file storage & uploads)
           ├── Nodemailer (Email notifications & verification)
