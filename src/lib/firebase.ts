@@ -124,9 +124,14 @@ export const googleProvider = new GoogleAuthProvider();
 export let analytics: Analytics | null = null;
 export let perf: FirebasePerformance | null = null;
 
-if (typeof window !== "undefined" && app && firebaseConfig.measurementId) {
+function initAnalyticsIfConsented() {
+  if (typeof window === "undefined" || !app || !firebaseConfig.measurementId) return;
+  const consent = localStorage.getItem("cookie_consent");
+  if (consent !== "true") return;
+  if (analytics) return;
+
   isSupported().then((supported) => {
-    if (supported) {
+    if (supported && app) {
       try {
         analytics = getAnalytics(app);
         perf = getPerformance(app);
@@ -135,6 +140,11 @@ if (typeof window !== "undefined" && app && firebaseConfig.measurementId) {
       }
     }
   });
+}
+
+if (typeof window !== "undefined") {
+  initAnalyticsIfConsented();
+  window.addEventListener("cookie_consent_updated", initAnalyticsIfConsented);
 }
 
 export default app;

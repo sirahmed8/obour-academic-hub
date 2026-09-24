@@ -86,12 +86,12 @@ export function GpaGoalPlannerWidget() {
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 relative z-10">
         <div className="flex items-center gap-3">
-          <div className="p-3.5 rounded-2xl bg-gradient-to-br from-primary to-purple-600 text-white shadow-md shadow-primary/20">
+          <div className="p-3.5 rounded-2xl bg-primary text-primary-foreground shadow-md shadow-primary/20">
             <Target size={24} />
           </div>
           <div>
             <h2 className="text-xl font-black text-foreground font-harman">
-              {isRtl ? "مخطط المعدل الأكاديمي المستهدف 🎯" : "GPA Target Goal Planner 🎯"}
+              {isRtl ? "مخطط المعدل الأكاديمي المستهدف" : "GPA Target Goal Planner"}
             </h2>
             <p className="text-xs text-muted-foreground font-medium mt-0.5">
               {isRtl
@@ -134,12 +134,12 @@ export function GpaGoalPlannerWidget() {
         <div className="p-4 rounded-2xl bg-muted/20 border border-border/40 space-y-3">
           <div className="flex items-center justify-between">
             <span className="text-xs font-black text-foreground flex items-center gap-1.5">
-              <Award className="w-4 h-4 text-purple-400" />
+              <Award className="w-4 h-4 text-primary" />
               {isRtl ? "المعدل المستهدف" : "Target GPA"}
             </span>
             <span
               className={cn(
-                "text-base font-black px-2.5 py-0.5 rounded-xl bg-purple-500/10 border border-purple-500/20",
+                "text-base font-black px-2.5 py-0.5 rounded-xl bg-primary/10 border border-primary/20",
                 targetGrade.color
               )}
             >
@@ -157,7 +157,7 @@ export function GpaGoalPlannerWidget() {
               setTargetGpa(v);
               persist({ targetGpa: v });
             }}
-            className="w-full h-2.5 bg-muted rounded-lg appearance-none cursor-pointer accent-purple-500 focus:outline-none"
+            className="w-full h-2.5 bg-muted rounded-lg appearance-none cursor-pointer accent-primary focus:outline-none"
           />
           <div className="flex justify-between text-[10px] text-muted-foreground font-bold">
             <span>2.00 (Passing)</span>
@@ -241,8 +241,8 @@ export function GpaGoalPlannerWidget() {
           <AlertTriangle className="w-5 h-5 flex-shrink-0" />
           <span>
             {isRtl
-              ? "⚠️ المعدل المطلوب يتجاوز 4.00 — حاول تقليل المعدل المستهدف أو إضافة ساعات متبقية."
-              : "⚠️ Required GPA exceeds 4.00 — try adjusting your target or adding more remaining credit hours."}
+              ? "المعدل المطلوب يتجاوز 4.00، حاول تقليل المعدل المستهدف أو إضافة ساعات متبقية."
+              : "Required GPA exceeds 4.00. Try adjusting your target or adding more remaining credit hours."}
           </span>
         </div>
       )}

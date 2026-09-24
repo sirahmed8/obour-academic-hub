@@ -423,7 +423,7 @@ export function ProfileMenu({ onClose, triggerRef, direction }: ProfileMenuProps
                 <span
                   className={cn(
                     "w-2.5 h-2.5 rounded-full transition-all",
-                    isSolid ? "bg-purple-500 shadow-[0_0_8px_rgba(168,85,247,0.5)]" : "bg-gray-400"
+                    isSolid ? "bg-primary shadow-[0_0_8px_rgba(var(--primary),0.5)]" : "bg-gray-400"
                   )}
                 />
                 <span className="flex flex-col items-start text-xs">
@@ -437,9 +437,7 @@ export function ProfileMenu({ onClose, triggerRef, direction }: ProfileMenuProps
               <div
                 className={cn(
                   "w-12 h-7 rounded-full p-1 transition-colors duration-300 flex items-center",
-                  isSolid
-                    ? "bg-purple-500 justify-end"
-                    : "bg-gray-300 dark:bg-gray-600 justify-start"
+                  isSolid ? "bg-primary justify-end" : "bg-gray-300 dark:bg-gray-600 justify-start"
                 )}
               >
                 <motion.div
@@ -490,7 +488,7 @@ export function ProfileMenu({ onClose, triggerRef, direction }: ProfileMenuProps
                   className={cn(
                     "w-2.5 h-2.5 rounded-full transition-all",
                     notifPermission === "granted"
-                      ? "bg-purple-500 shadow-[0_0_8px_rgba(168,85,247,0.5)]"
+                      ? "bg-primary shadow-[0_0_8px_rgba(var(--primary),0.5)]"
                       : "bg-gray-400"
                   )}
                 />
@@ -501,7 +499,7 @@ export function ProfileMenu({ onClose, triggerRef, direction }: ProfileMenuProps
                 className={cn(
                   "w-12 h-7 rounded-full p-1 transition-colors duration-300 flex items-center",
                   notifPermission === "granted"
-                    ? "bg-purple-500 justify-end"
+                    ? "bg-primary justify-end"
                     : "bg-gray-300 dark:bg-gray-600 justify-start"
                 )}
               >
@@ -553,7 +551,7 @@ export function ProfileMenu({ onClose, triggerRef, direction }: ProfileMenuProps
                   className={cn(
                     "w-2.5 h-2.5 rounded-full transition-all",
                     user.notificationSettings?.email
-                      ? "bg-purple-500 shadow-[0_0_8px_rgba(168,85,247,0.5)]"
+                      ? "bg-primary shadow-[0_0_8px_rgba(var(--primary),0.5)]"
                       : "bg-gray-400"
                   )}
                 />
@@ -564,7 +562,7 @@ export function ProfileMenu({ onClose, triggerRef, direction }: ProfileMenuProps
                 className={cn(
                   "w-12 h-7 rounded-full p-1 transition-colors duration-300 flex items-center",
                   user.notificationSettings?.email
-                    ? "bg-purple-500 justify-end"
+                    ? "bg-primary justify-end"
                     : "bg-gray-300 dark:bg-gray-600 justify-start"
                 )}
               >

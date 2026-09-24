@@ -134,9 +134,9 @@ export function BannerManagerTab({ banners, language }: BannerManagerTabProps) {
           )}
         >
           <div className="mb-4 space-y-4 rounded-2xl border border-border bg-card p-6 shadow-sm">
-            <div className="flex items-center justify-between p-3.5 rounded-xl bg-purple-500/10 border border-purple-500/20">
+            <div className="flex items-center justify-between p-3.5 rounded-xl bg-primary/5 border border-primary/20">
               <div className="flex items-center gap-2">
-                <Sparkles className="w-4 h-4 text-purple-400 animate-pulse" />
+                <Sparkles className="w-4 h-4 text-primary animate-pulse" />
                 <span className="text-xs font-bold text-foreground">
                   {language === "ar"
                     ? "تحسين وتدقيق شريط الإعلان بالذكاء الاصطناعي"
@@ -147,14 +147,14 @@ export function BannerManagerTab({ banners, language }: BannerManagerTabProps) {
                 type="button"
                 disabled={isEnhancing}
                 onClick={handleAIEnhanceBanner}
-                className="px-3 py-1.5 rounded-lg bg-purple-600 hover:bg-purple-500 text-white font-bold text-xs flex items-center gap-1.5 transition-all cursor-pointer disabled:opacity-50"
+                className="px-3 py-1.5 rounded-lg bg-primary hover:bg-primary/90 text-primary-foreground font-bold text-xs flex items-center gap-1.5 transition-all cursor-pointer disabled:opacity-50"
               >
                 {isEnhancing ? (
                   <Loader2 className="w-3.5 h-3.5 animate-spin" />
                 ) : (
                   <Sparkles className="w-3.5 h-3.5" />
                 )}
-                <span>{language === "ar" ? "تحسين النص ✨" : "Polish Text ✨"}</span>
+                <span>{language === "ar" ? "تحسين النص" : "Polish Text"}</span>
               </button>
             </div>
 

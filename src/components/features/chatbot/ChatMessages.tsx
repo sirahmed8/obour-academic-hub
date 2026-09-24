@@ -2,7 +2,7 @@
 
 import * as React from "react";
 import { useEffect, useRef, memo } from "react";
-import { Headphones } from "lucide-react";
+import { Headphones, Bot } from "lucide-react";
 import { useLanguage } from "@/contexts";
 import { ChatMessageItem } from "@/components/chat/ChatMessage";
 import { cn } from "@/lib/utils";
@@ -88,8 +88,8 @@ function ChatMessages({
     >
       {isGeneratingWelcome && (
         <div className="flex gap-3 items-start my-2">
-          <div className="w-8 h-8 rounded-full bg-purple-500/20 flex items-center justify-center text-purple-400 font-bold text-xs shrink-0 animate-pulse">
-            🤖
+          <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center text-primary shrink-0">
+            <Bot className="w-4 h-4 animate-pulse" />
           </div>
           <div className="bg-card border border-white/10 p-4 rounded-2xl rounded-tl-sm space-y-2 max-w-[80%] shadow-sm animate-pulse">
             <div className="h-3.5 bg-primary/20 rounded-full w-48" />

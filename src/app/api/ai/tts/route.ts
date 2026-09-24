@@ -1,7 +1,20 @@
 import { NextResponse } from "next/server";
 import { corsOptions, withCors } from "@/lib/server/cors";
+import { rateLimit } from "@/lib/server/rate-limit";
 
 export const runtime = "nodejs";
+
+function getClientIdentifier(req: Request): string {
+  const forwarded = req.headers.get("x-forwarded-for");
+  if (forwarded) {
+    return forwarded.split(",")[0].trim();
+  }
+  const realIp = req.headers.get("x-real-ip");
+  if (realIp) {
+    return realIp.trim();
+  }
+  return "anonymous";
+}
 
 export async function OPTIONS(request: Request) {
   return corsOptions(request);
@@ -9,9 +22,29 @@ export async function OPTIONS(request: Request) {
 
 export async function GET(req: Request) {
   try {
+    const identifier = getClientIdentifier(req);
+    const limiter = await rateLimit({
+      key: `api:tts:${identifier}`,
+      limit: 30,
+      windowMs: 60_000,
+    });
+
+    if (!limiter.allowed) {
+      return withCors(
+        req,
+        NextResponse.json(
+          { error: "Too many TTS requests. Please try again shortly." },
+          { status: 429 }
+        )
+      );
+    }
+
     const { searchParams } = new URL(req.url);
     const text = searchParams.get("text") || "";
-    const cleanText = text.trim().slice(0, 180);
+    const cleanText = text
+      .replace(/[\x00-\x1F\x7F]/g, "")
+      .trim()
+      .slice(0, 180);
 
     if (!cleanText) {
       return withCors(
@@ -60,9 +93,29 @@ export async function GET(req: Request) {
 
 export async function POST(req: Request) {
   try {
+    const identifier = getClientIdentifier(req);
+    const limiter = await rateLimit({
+      key: `api:tts:${identifier}`,
+      limit: 30,
+      windowMs: 60_000,
+    });
+
+    if (!limiter.allowed) {
+      return withCors(
+        req,
+        NextResponse.json(
+          { error: "Too many TTS requests. Please try again shortly." },
+          { status: 429 }
+        )
+      );
+    }
+
     const body = await req.json().catch(() => ({}));
-    const text = body.text || "";
-    const cleanText = text.trim().slice(0, 180);
+    const text = typeof body.text === "string" ? body.text : "";
+    const cleanText = text
+      .replace(/[\x00-\x1F\x7F]/g, "")
+      .trim()
+      .slice(0, 180);
 
     if (!cleanText) {
       return withCors(

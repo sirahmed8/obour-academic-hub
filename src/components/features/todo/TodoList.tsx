@@ -545,9 +545,9 @@ export function TodoList() {
             <TapScale scale={0.95}>
               <button
                 onClick={() => setIsAIAssistantOpen(true)}
-                className="relative overflow-hidden bg-gradient-to-r from-purple-600 via-indigo-600 to-purple-600 hover:from-purple-500 hover:to-indigo-500 text-white shadow-lg shadow-purple-500/25 hover:shadow-purple-500/40 transition-all rounded-2xl px-5 py-3.5 flex items-center justify-center gap-2 text-sm font-black border border-purple-400/30"
+                className="relative overflow-hidden bg-primary hover:bg-primary/90 text-primary-foreground shadow-md transition-all rounded-2xl px-5 py-3.5 flex items-center justify-center gap-2 text-sm font-bold border border-primary/20"
               >
-                <Sparkles size={18} className="animate-pulse text-purple-200" />
+                <Sparkles size={18} className="animate-pulse text-primary-foreground/80" />
                 <span>
                   {language === "ar" ? "مساعد المهام بالذكاء الاصطناعي" : "AI Task Planner"}
                 </span>

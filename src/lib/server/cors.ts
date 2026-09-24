@@ -33,11 +33,20 @@ export function getCorsHeaders(request: Request) {
     (allowedOrigins.includes(normalizedOrigin) ||
       /^https:\/\/obourinstitutes\d*\.(web\.app|firebaseapp\.com)$/.test(normalizedOrigin));
 
-  const allowedOrigin = isAllowed ? origin! : "https://obourinstitutes1.web.app";
+  if (isAllowed) {
+    return {
+      "Access-Control-Allow-Origin": origin!,
+      "Access-Control-Allow-Credentials": "true",
+      "Access-Control-Allow-Methods": "GET,POST,PATCH,PUT,DELETE,OPTIONS",
+      "Access-Control-Allow-Headers":
+        "Authorization, Content-Type, X-CSRF-Token, X-Requested-With, Accept, Accept-Version, Content-Length, Content-MD5, Date, X-Api-Version, X-App-Version",
+      "Access-Control-Max-Age": "86400",
+      Vary: "Origin",
+    };
+  }
 
   return {
-    "Access-Control-Allow-Origin": allowedOrigin,
-    "Access-Control-Allow-Credentials": "true",
+    "Access-Control-Allow-Origin": "https://obourinstitutes1.web.app",
     "Access-Control-Allow-Methods": "GET,POST,PATCH,PUT,DELETE,OPTIONS",
     "Access-Control-Allow-Headers":
       "Authorization, Content-Type, X-CSRF-Token, X-Requested-With, Accept, Accept-Version, Content-Length, Content-MD5, Date, X-Api-Version, X-App-Version",

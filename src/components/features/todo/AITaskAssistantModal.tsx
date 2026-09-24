@@ -252,18 +252,18 @@ export function AITaskAssistantModal({
             initial={{ scale: 0.95, opacity: 0, y: 10 }}
             animate={{ scale: 1, opacity: 1, y: 0 }}
             exit={{ scale: 0.95, opacity: 0, y: 10 }}
-            className="w-full max-w-2xl h-[85vh] max-h-[720px] bg-background/95 border border-purple-500/30 rounded-3xl shadow-2xl flex flex-col overflow-hidden relative"
+            className="w-full max-w-2xl h-[85vh] max-h-[720px] bg-background border border-border/80 rounded-3xl shadow-2xl flex flex-col overflow-hidden relative"
           >
             {/* Modal Header */}
-            <div className="px-5 py-4 border-b border-border/50 bg-gradient-to-r from-purple-900/30 via-indigo-900/20 to-background flex items-center justify-between shrink-0">
+            <div className="px-5 py-4 border-b border-border/50 bg-card flex items-center justify-between shrink-0">
               <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-2xl bg-gradient-to-tr from-purple-600 to-indigo-600 flex items-center justify-center text-white shadow-lg shadow-purple-500/25">
+                <div className="w-10 h-10 rounded-2xl bg-primary flex items-center justify-center text-primary-foreground shadow-sm">
                   <Sparkles className="w-5 h-5 animate-pulse" />
                 </div>
                 <div>
                   <h3 className="font-bold text-base text-foreground flex items-center gap-2">
                     {isRtl ? "مساعد المهام الذكي" : "AI Task Planner"}
-                    <span className="text-[10px] px-2 py-0.5 rounded-full bg-purple-500/20 text-purple-300 font-bold border border-purple-500/30">
+                    <span className="text-[10px] px-2 py-0.5 rounded-full bg-primary/10 text-primary font-bold border border-primary/20">
                       AI Powered
                     </span>
                   </h3>
@@ -297,10 +297,10 @@ export function AITaskAssistantModal({
                 >
                   <div
                     className={cn(
-                      "w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold shrink-0 shadow-md",
+                      "w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold shrink-0 shadow-sm",
                       msg.role === "user"
-                        ? "bg-gradient-to-tr from-indigo-500 to-purple-500 text-white"
-                        : "bg-purple-600/20 text-purple-400 border border-purple-500/30"
+                        ? "bg-primary text-primary-foreground"
+                        : "bg-muted text-muted-foreground border border-border/60"
                     )}
                   >
                     {msg.role === "user" ? (
@@ -315,7 +315,7 @@ export function AITaskAssistantModal({
                       className={cn(
                         "p-4 rounded-2xl text-sm leading-relaxed whitespace-pre-wrap shadow-sm",
                         msg.role === "user"
-                          ? "bg-purple-600 text-white rounded-tr-none font-medium"
+                          ? "bg-primary text-primary-foreground rounded-tr-none font-medium"
                           : "bg-card/90 border border-border/60 text-card-foreground rounded-tl-none"
                       )}
                     >
@@ -327,11 +327,11 @@ export function AITaskAssistantModal({
                       <motion.div
                         initial={{ opacity: 0, y: 8 }}
                         animate={{ opacity: 1, y: 0 }}
-                        className="bg-gradient-to-br from-purple-950/40 via-background to-indigo-950/30 border border-purple-500/40 p-4 rounded-2xl shadow-lg space-y-3"
+                        className="bg-card border border-border/80 p-4 rounded-2xl shadow-sm space-y-3"
                       >
                         <div className="flex items-start justify-between gap-2">
                           <div className="flex items-center gap-2">
-                            <ListTodo className="w-5 h-5 text-purple-400 shrink-0" />
+                            <ListTodo className="w-5 h-5 text-primary shrink-0" />
                             <h4 className="font-bold text-sm text-foreground">
                               {msg.taskSpec.title}
                             </h4>
@@ -377,7 +377,7 @@ export function AITaskAssistantModal({
                         )}
 
                         {msg.taskSpec.dueDate && (
-                          <div className="flex items-center gap-1.5 text-xs text-purple-300">
+                          <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
                             <Calendar className="w-3.5 h-3.5" />
                             <span>
                               {isRtl ? "تاريخ الاستحقاق: " : "Due: "}
@@ -406,7 +406,7 @@ export function AITaskAssistantModal({
                                   key={idx}
                                   className="flex items-center gap-2 text-xs text-foreground/90 bg-muted/30 px-2.5 py-1 rounded-lg"
                                 >
-                                  <CheckCircle2 className="w-3.5 h-3.5 text-purple-400 shrink-0" />
+                                  <CheckCircle2 className="w-3.5 h-3.5 text-primary shrink-0" />
                                   <span>{st}</span>
                                 </div>
                               ))}
@@ -419,10 +419,10 @@ export function AITaskAssistantModal({
                           disabled={msg.isAdded || addingTaskId === msg.id}
                           onClick={() => handleAddTaskToFirestore(msg.id, msg.taskSpec!)}
                           className={cn(
-                            "w-full py-2.5 px-4 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-2 shadow-md",
+                            "w-full py-2.5 px-4 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-2 shadow-sm",
                             msg.isAdded
                               ? "bg-emerald-600/20 text-emerald-400 border border-emerald-500/30 cursor-default"
-                              : "bg-gradient-to-r from-purple-600 to-indigo-600 text-white hover:from-purple-500 hover:to-indigo-500 active:scale-[0.98] shadow-purple-500/25"
+                              : "bg-primary text-primary-foreground hover:bg-primary/90 active:scale-[0.98]"
                           )}
                         >
                           {addingTaskId === msg.id ? (
@@ -452,21 +452,21 @@ export function AITaskAssistantModal({
 
               {isGenerating && (
                 <div className="flex gap-3 items-start max-w-[80%] mr-auto">
-                  <div className="w-8 h-8 rounded-full bg-purple-600/20 text-purple-400 border border-purple-500/30 flex items-center justify-center text-xs font-bold shrink-0 animate-pulse">
-                    🤖
+                  <div className="w-8 h-8 rounded-full bg-primary/10 text-primary border border-primary/20 flex items-center justify-center shrink-0">
+                    <Bot className="w-4 h-4 animate-pulse" />
                   </div>
                   <div className="p-4 bg-card/90 border border-border/60 rounded-2xl rounded-tl-none space-y-2">
                     <div className="flex gap-1.5 items-center">
                       <div
-                        className="w-2 h-2 rounded-full bg-purple-500 animate-bounce"
+                        className="w-2 h-2 rounded-full bg-primary animate-bounce"
                         style={{ animationDelay: "0ms" }}
                       />
                       <div
-                        className="w-2 h-2 rounded-full bg-purple-500 animate-bounce"
+                        className="w-2 h-2 rounded-full bg-primary animate-bounce"
                         style={{ animationDelay: "150ms" }}
                       />
                       <div
-                        className="w-2 h-2 rounded-full bg-purple-500 animate-bounce"
+                        className="w-2 h-2 rounded-full bg-primary animate-bounce"
                         style={{ animationDelay: "300ms" }}
                       />
                       <span className="text-xs text-muted-foreground ml-2">
@@ -492,7 +492,7 @@ export function AITaskAssistantModal({
                       key={idx}
                       type="button"
                       onClick={() => handleSend(prompt)}
-                      className="text-xs px-3 py-1.5 rounded-xl bg-purple-500/10 hover:bg-purple-500/20 text-purple-300 border border-purple-500/20 transition-all text-left"
+                      className="text-xs px-3 py-1.5 rounded-xl bg-muted/40 hover:bg-muted/70 text-foreground border border-border/50 transition-all text-left"
                     >
                       {prompt}
                     </button>
@@ -519,14 +519,14 @@ export function AITaskAssistantModal({
                       ? "اشرح مهمتك أو خطتك هنا (مثال: عندي مشروع مادة البرمجة الخميس القادم)..."
                       : "Describe your task or goal (e.g. Database project due next Thursday)..."
                   }
-                  className="flex-1 bg-muted/30 border border-border/50 focus:border-purple-500/60 rounded-2xl px-4 py-2.5 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-purple-500/20 transition-all"
+                  className="flex-1 bg-muted/30 border border-border/50 focus:border-primary/60 rounded-2xl px-4 py-2.5 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all"
                   disabled={isGenerating}
                 />
 
                 <button
                   type="submit"
                   disabled={!input.trim() || isGenerating}
-                  className="w-10 h-10 rounded-2xl bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 disabled:opacity-40 disabled:hover:from-purple-600 disabled:hover:to-indigo-600 text-white flex items-center justify-center shrink-0 shadow-md shadow-purple-500/25 transition-all"
+                  className="w-10 h-10 rounded-2xl bg-primary hover:bg-primary/90 disabled:opacity-40 text-primary-foreground flex items-center justify-center shrink-0 shadow-sm transition-all"
                 >
                   <Send className={cn("w-4 h-4", isRtl && "rotate-180")} />
                 </button>

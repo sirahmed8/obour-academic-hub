@@ -51,7 +51,7 @@ export function StatsSection({ liveStats }: StatsSectionProps) {
               suffix: liveStats.subjects > 0 ? "+" : "",
               key: "welcome.stats.totalSubjects",
             },
-            { value: liveStats.uptime, suffix: "%", key: "welcome.stats.uptime" },
+            { value: liveStats.online, suffix: "", key: "welcome.stats.online" },
           ].map((stat, i) => (
             <motion.div
               key={stat.key}

@@ -44,14 +44,14 @@ export function LoginScreen({ embedded = false }: { embedded?: boolean }) {
       {/* Background Ambient Aura */}
       {!embedded && (
         <div className="absolute inset-0 pointer-events-none overflow-hidden">
-          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-gradient-to-tr from-primary/20 via-indigo-600/10 to-purple-600/20 rounded-full blur-[150px] -z-10" />
+          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-gradient-to-tr from-primary/20 via-blue-600/10 to-primary/10 rounded-full blur-[150px] -z-10" />
         </div>
       )}
 
       <ScaleIn className="w-full max-w-md relative z-10 p-4 sm:p-6">
         <div className="relative group">
           {/* Subtle Glow Ring */}
-          <div className="absolute -inset-1 bg-gradient-to-r from-primary/30 via-indigo-500/20 to-purple-500/30 rounded-[2.5rem] blur-xl opacity-75 group-hover:opacity-100 transition duration-500 pointer-events-none" />
+          <div className="absolute -inset-1 bg-gradient-to-r from-primary/20 via-sky-500/20 to-primary/20 rounded-[2.5rem] blur-xl opacity-75 group-hover:opacity-100 transition duration-500 pointer-events-none" />
 
           <div className="relative bg-black/60 backdrop-blur-2xl backdrop-saturate-150 border border-white/15 rounded-[2.25rem] p-6 sm:p-10 shadow-2xl ring-1 ring-white/10">
             {/* Header / Brand */}
@@ -61,7 +61,7 @@ export function LoginScreen({ embedded = false }: { embedded?: boolean }) {
                 transition={{ type: "spring", stiffness: 300, damping: 15 }}
                 className="relative cursor-pointer"
               >
-                <div className="absolute -inset-2 bg-gradient-to-tr from-primary to-purple-600 rounded-2xl blur-md opacity-50" />
+                <div className="absolute -inset-2 bg-gradient-to-tr from-primary to-blue-600 rounded-2xl blur-md opacity-50" />
                 <Image
                   src="/obour-logo.png"
                   alt="Obour Logo"
@@ -176,9 +176,9 @@ export function LoginScreen({ embedded = false }: { embedded?: boolean }) {
                 {[
                   {
                     key: "login.secure",
-                    label: language === "ar" ? "آمن 100%" : "100% Secure",
+                    label: language === "ar" ? "بوابة معتمدة" : "Verified Portal",
                     icon: ShieldCheck,
-                    tip: "Firebase Popup Auth Protection",
+                    tip: "Official Obour Institutes Authentication",
                   },
                   {
                     key: "login.private",
@@ -200,7 +200,6 @@ export function LoginScreen({ embedded = false }: { embedded?: boolean }) {
                         type="button"
                         onClick={() =>
                           toast.success(item.label + ": " + item.tip, {
-                            icon: "🛡️",
                             duration: 3000,
                           })
                         }
@@ -226,6 +225,7 @@ export function LoginScreen({ embedded = false }: { embedded?: boolean }) {
                 { key: "login.privacy", href: "/legal/privacy" },
                 { key: "login.terms", href: "/legal/terms" },
                 { key: "login.cookies", href: "/legal/cookies" },
+                { key: "login.refund", href: "/legal/refund" },
               ].map((item, i) => (
                 <div key={i} className="flex items-center gap-3">
                   <Link
@@ -234,7 +234,7 @@ export function LoginScreen({ embedded = false }: { embedded?: boolean }) {
                   >
                     {t(item.key)}
                   </Link>
-                  {i < 2 && <span className="opacity-20">•</span>}
+                  {i < 3 && <span className="opacity-20">•</span>}
                 </div>
               ))}
             </div>

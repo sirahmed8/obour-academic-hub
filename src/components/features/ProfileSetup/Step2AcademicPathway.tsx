@@ -1,3 +1,5 @@
+import { useState } from "react";
+import Link from "next/link";
 import { motion } from "framer-motion";
 import {
   Building2,
@@ -33,6 +35,8 @@ export function Step2AcademicPathway({
   loading,
   onBack,
 }: Step2AcademicPathwayProps) {
+  const [consentAgreed, setConsentAgreed] = useState(false);
+
   return (
     <motion.div
       key="step2"
@@ -90,6 +94,64 @@ export function Step2AcademicPathway({
         />
       </div>
 
+      {/* Mandatory Statutory Data Processing Consent */}
+      <div className="p-3.5 rounded-2xl bg-muted/40 border border-border space-y-2">
+        <label className="flex items-start gap-2.5 cursor-pointer text-xs text-muted-foreground select-none leading-relaxed">
+          <input
+            type="checkbox"
+            checked={consentAgreed}
+            onChange={(e) => setConsentAgreed(e.target.checked)}
+            className="mt-0.5 h-4 w-4 rounded border-border text-primary focus:ring-primary/40"
+            required
+          />
+          <span>
+            {language === "ar" ? (
+              <>
+                أوافق بموجب القانون رقم 151 لسنة 2020 على معالجة بياناتي الأكاديمية والشخصية وفقاً
+                لـ{" "}
+                <Link
+                  href="/legal/privacy"
+                  target="_blank"
+                  className="font-bold text-primary hover:underline"
+                >
+                  سياسة الخصوصية
+                </Link>{" "}
+                و{" "}
+                <Link
+                  href="/legal/terms"
+                  target="_blank"
+                  className="font-bold text-primary hover:underline"
+                >
+                  شروط الاستخدام
+                </Link>
+                .
+              </>
+            ) : (
+              <>
+                I consent to the processing of my academic and personal data under Law No. 151/2020
+                in accordance with the{" "}
+                <Link
+                  href="/legal/privacy"
+                  target="_blank"
+                  className="font-bold text-primary hover:underline"
+                >
+                  Privacy Policy
+                </Link>{" "}
+                and{" "}
+                <Link
+                  href="/legal/terms"
+                  target="_blank"
+                  className="font-bold text-primary hover:underline"
+                >
+                  Terms of Service
+                </Link>
+                .
+              </>
+            )}
+          </span>
+        </label>
+      </div>
+
       {/* Step 2 Actions */}
       <div className="flex items-center gap-3 pt-2">
         <motion.button
@@ -105,10 +167,10 @@ export function Step2AcademicPathway({
 
         <motion.button
           type="submit"
-          disabled={loading}
+          disabled={loading || !consentAgreed}
           whileHover={{ scale: 1.02 }}
           whileTap={{ scale: 0.98 }}
-          className="flex-1 py-3.5 bg-primary text-primary-foreground font-extrabold text-sm rounded-2xl hover:bg-primary/90 transition shadow-lg shadow-primary/25 flex items-center justify-center gap-2 disabled:opacity-50"
+          className="flex-1 py-3.5 bg-primary text-primary-foreground font-extrabold text-sm rounded-2xl hover:bg-primary/90 transition shadow-lg shadow-primary/25 flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
         >
           <CheckCircle2 size={16} />
           <span>

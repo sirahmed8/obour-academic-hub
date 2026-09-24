@@ -1157,10 +1157,10 @@ export default function AdminAnalyticsPage() {
                   </div>
                 </ScaleIn>
 
-                <ScaleIn className="p-6 rounded-3xl bg-gradient-to-br from-purple-500/10 via-purple-500/5 to-transparent border border-purple-500/30 shadow-md space-y-4">
+                <ScaleIn className="p-6 rounded-3xl bg-card border border-border shadow-sm space-y-4">
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-3">
-                      <Cpu className="text-purple-500" size={28} />
+                      <Cpu className="text-primary" size={28} />
                       <div>
                         <h2 className="text-lg font-black text-foreground">
                           {language === "ar" ? "تكاليف الذكاء الاصطناعي" : "AI API Costs & Tokens"}
@@ -1174,7 +1174,7 @@ export default function AdminAnalyticsPage() {
                     </div>
                     <button
                       onClick={() => setActiveTab("ai_analytics")}
-                      className="px-3 py-1.5 text-xs font-bold rounded-xl bg-purple-500/20 text-purple-600 dark:text-purple-400 hover:bg-purple-500/30 transition-all"
+                      className="px-3 py-1.5 text-xs font-bold rounded-xl bg-primary/10 text-primary hover:bg-primary/20 transition-all"
                     >
                       {language === "ar" ? "الحاسبة والاستهلاك ←" : "AI Calculator →"}
                     </button>
@@ -1184,7 +1184,7 @@ export default function AdminAnalyticsPage() {
                       <p className="text-xs text-muted-foreground font-semibold">
                         {language === "ar" ? "الطلبات" : "AI Requests"}
                       </p>
-                      <p className="text-xl font-black text-purple-500">
+                      <p className="text-xl font-black text-primary">
                         {aiCalculatedMetrics.totalRequests.toLocaleString()}
                       </p>
                     </div>
@@ -1227,7 +1227,7 @@ export default function AdminAnalyticsPage() {
                 <ScaleIn className="bg-card rounded-[2.5rem] p-8 border border-border/50 shadow-sm flex flex-col gap-6 group">
                   <div className="border-b border-border pb-6">
                     <h2 className="text-xl font-bold flex items-center gap-3">
-                      <PieChartIcon className="w-6 h-6 text-purple-500 group-hover:rotate-12 transition-transform" />
+                      <PieChartIcon className="w-6 h-6 text-primary group-hover:rotate-12 transition-transform" />
                       {language === "ar" ? "توزيع الأدوار" : "Member Segments"}
                     </h2>
                   </div>
@@ -1443,8 +1443,8 @@ export default function AdminAnalyticsPage() {
             <div className="space-y-8 animate-in slide-in-from-bottom-4 duration-500">
               {/* AI Headline Metric Cards */}
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-                <ScaleIn className="p-6 rounded-3xl bg-gradient-to-br from-purple-500/15 via-purple-500/5 to-transparent border border-purple-500/30 shadow-md space-y-2">
-                  <Zap className="text-purple-500" size={28} />
+                <ScaleIn className="p-6 rounded-3xl bg-card border border-border shadow-sm space-y-2">
+                  <Zap className="text-primary" size={28} />
                   <p className="text-3xl font-black text-foreground">
                     {aiCalculatedMetrics.totalRequests.toLocaleString()}
                   </p>
@@ -1507,7 +1507,7 @@ export default function AdminAnalyticsPage() {
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
                 <div className="p-6 rounded-3xl bg-card border border-border shadow-md space-y-3">
                   <div className="flex items-center gap-3">
-                    <span className="p-2.5 rounded-xl bg-purple-500/10 text-purple-500">
+                    <span className="p-2.5 rounded-xl bg-primary/10 text-primary">
                       <Sparkles size={20} />
                     </span>
                     <div>
@@ -1847,7 +1847,7 @@ export default function AdminAnalyticsPage() {
                               </span>
                             )}
                             {student.role === "admin" && (
-                              <span className="text-[9px] px-1.5 py-0.5 rounded-full bg-purple-500/10 text-purple-600 font-bold border border-purple-500/20">
+                              <span className="text-[9px] px-1.5 py-0.5 rounded-full bg-amber-500/10 text-amber-600 font-bold border border-amber-500/20">
                                 ADMIN
                               </span>
                             )}
@@ -1917,8 +1917,8 @@ export default function AdminAnalyticsPage() {
                     ).toFixed(1)}
                   </p>
                 </div>
-                <div className="bg-purple-500/5 border border-purple-500/20 rounded-3xl p-6 text-center">
-                  <p className="text-xs font-bold text-purple-600 uppercase mb-2">
+                <div className="bg-primary/5 border border-primary/20 rounded-3xl p-6 text-center">
+                  <p className="text-xs font-bold text-primary uppercase mb-2">
                     {language === "ar" ? "المواد النشطة" : "Active Modules"}
                   </p>
                   <p className="text-3xl font-black">

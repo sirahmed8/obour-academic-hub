@@ -1,7 +1,7 @@
 "use client";
 import * as React from "react";
 import { motion } from "framer-motion";
-import { Headphones, Trash2, X, GripVertical } from "lucide-react";
+import { Headphones, Trash2, X, GripVertical, Bot, MessageSquare } from "lucide-react";
 import { ChatMessages } from "./ChatMessages";
 import { ChatInput } from "./ChatInput";
 import { ChatMessage, User } from "@/types";
@@ -181,12 +181,10 @@ export function ChatbotPanel({
             <div
               className={cn(
                 "flex h-10 w-10 items-center justify-center rounded-xl shadow-sm transition-transform duration-300 hover:scale-110",
-                mode === "bot"
-                  ? "bg-purple-500/15 text-purple-500"
-                  : "bg-green-500/15 text-green-500"
+                mode === "bot" ? "bg-primary/15 text-primary" : "bg-emerald-500/15 text-emerald-500"
               )}
             >
-              {mode === "bot" ? "🧠" : <Headphones className="h-5 w-5" />}
+              {mode === "bot" ? <Bot className="h-5 w-5" /> : <Headphones className="h-5 w-5" />}
             </div>
             <div>
               <h3 className="text-sm font-bold tracking-tight text-foreground">
@@ -202,7 +200,7 @@ export function ChatbotPanel({
                 <span
                   className={cn(
                     "h-1.5 w-1.5 rounded-full shadow-[0_0_8px_rgba(34,197,94,0.5)]",
-                    mode === "live" ? "bg-green-500" : "bg-purple-500"
+                    mode === "live" ? "bg-emerald-500" : "bg-primary"
                   )}
                 />
                 {mode === "live"
@@ -254,11 +252,11 @@ export function ChatbotPanel({
             {mode === "bot" && (
               <motion.div
                 layoutId="activeModeTabPill"
-                className="absolute inset-0 bg-gradient-to-r from-purple-600 to-indigo-600 rounded-xl shadow-md shadow-purple-500/25 z-0"
+                className="absolute inset-0 bg-primary rounded-xl shadow-md shadow-primary/25 z-0"
                 transition={{ type: "spring", stiffness: 450, damping: 35 }}
               />
             )}
-            <span className="relative z-10 text-sm pointer-events-none">🤖</span>
+            <Bot size={15} className="relative z-10 shrink-0 pointer-events-none" />
             <span className="relative z-10 pointer-events-none hidden sm:inline">
               {language === "ar" ? "الذكي" : "AI"}
             </span>
@@ -280,7 +278,7 @@ export function ChatbotPanel({
                   transition={{ type: "spring", stiffness: 450, damping: 35 }}
                 />
               )}
-              <span className="relative z-10 text-sm pointer-events-none">🎧</span>
+              <Headphones size={15} className="relative z-10 shrink-0 pointer-events-none" />
               <span className="relative z-10 pointer-events-none hidden sm:inline">
                 {language === "ar" ? "الدعم" : "Support"}
               </span>
@@ -302,7 +300,7 @@ export function ChatbotPanel({
                 transition={{ type: "spring", stiffness: 450, damping: 35 }}
               />
             )}
-            <span className="relative z-10 text-sm pointer-events-none">💬</span>
+            <MessageSquare size={15} className="relative z-10 shrink-0 pointer-events-none" />
             <span className="relative z-10 pointer-events-none hidden sm:inline">
               {language === "ar" ? "المجتمع" : "Chat"}
             </span>
@@ -330,15 +328,15 @@ export function ChatbotPanel({
             <div className="flex items-center gap-2 px-4 py-2 text-xs text-muted-foreground">
               <div className="flex gap-1">
                 <div
-                  className="h-1.5 w-1.5 animate-bounce rounded-full bg-purple-500"
+                  className="h-1.5 w-1.5 animate-bounce rounded-full bg-primary"
                   style={{ animationDelay: "0ms" }}
                 />
                 <div
-                  className="h-1.5 w-1.5 animate-bounce rounded-full bg-purple-500"
+                  className="h-1.5 w-1.5 animate-bounce rounded-full bg-primary"
                   style={{ animationDelay: "150ms" }}
                 />
                 <div
-                  className="h-1.5 w-1.5 animate-bounce rounded-full bg-purple-500"
+                  className="h-1.5 w-1.5 animate-bounce rounded-full bg-primary"
                   style={{ animationDelay: "300ms" }}
                 />
               </div>

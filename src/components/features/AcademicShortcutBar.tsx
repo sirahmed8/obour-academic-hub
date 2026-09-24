@@ -39,8 +39,7 @@ export function AcademicShortcutBar() {
       desc: language === "ar" ? "استراتيجيات فورية" : "Instant study strategies",
       href: "/community/chat",
       icon: Sparkles,
-      color:
-        "from-purple-500/20 to-pink-500/20 text-purple-600 dark:text-purple-400 border-purple-500/30",
+      color: "from-sky-500/20 to-blue-500/20 text-sky-600 dark:text-sky-400 border-sky-500/30",
     },
   ];
 

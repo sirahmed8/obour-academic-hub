@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import Link from "next/link";
 import { useAuth, useLanguage } from "@/contexts";
 import { FadeIn, ScaleIn, StaggerChildren } from "@/components/ui/Animations";
 import {
@@ -16,6 +17,9 @@ import {
   Lock,
   Clock,
   Bell,
+  CreditCard,
+  Smartphone,
+  ShieldCheck,
 } from "lucide-react";
 import { motion } from "framer-motion";
 import { cn } from "@/lib/utils";
@@ -28,6 +32,7 @@ export default function ObourPlusSubscriptionPage() {
 
   const [billingCycle, setBillingCycle] = useState<"monthly" | "semester">("semester");
   const [notifyEmail, setNotifyEmail] = useState("");
+  const [notifyConsent, setNotifyConsent] = useState(false);
   const [notifySubmitted, setNotifySubmitted] = useState(false);
 
   const isOwnerOrAdmin =
@@ -39,7 +44,14 @@ export default function ObourPlusSubscriptionPage() {
   const handleNotify = (e: React.FormEvent) => {
     e.preventDefault();
     if (!notifyEmail.trim()) return;
-    // Store locally — will be wired to real notification list when gateway is ready
+    if (!notifyConsent) {
+      toast.error(
+        isAr
+          ? "يرجى الموافقة على سياسة الخصوصية للاشتراك في الإشعارات"
+          : "Please consent to the privacy policy to subscribe to notifications"
+      );
+      return;
+    }
     setNotifySubmitted(true);
   };
 
@@ -47,9 +59,9 @@ export default function ObourPlusSubscriptionPage() {
     <div className="p-4 sm:p-6 lg:p-10 pb-28 space-y-10 max-w-7xl mx-auto min-h-screen page-transition">
       {/* ── Hero Banner ──────────────────────────────────────────────────── */}
       <FadeIn>
-        <div className="relative rounded-3xl sm:rounded-4xl overflow-hidden bg-gradient-to-br from-[#0f172a] via-[#1e1b4b] to-[#090d16] border border-amber-500/40 p-8 sm:p-12 shadow-2xl text-center space-y-5 text-white">
+        <div className="relative rounded-3xl sm:rounded-4xl overflow-hidden bg-gradient-to-br from-[#0f172a] via-[#111c33] to-[#090d16] border border-amber-500/40 p-8 sm:p-12 shadow-2xl text-center space-y-5 text-white">
           <div className="absolute top-0 right-0 w-96 h-96 bg-amber-500/10 blur-3xl rounded-full pointer-events-none" />
-          <div className="absolute bottom-0 left-0 w-96 h-96 bg-purple-500/10 blur-3xl rounded-full pointer-events-none" />
+          <div className="absolute bottom-0 left-0 w-96 h-96 bg-blue-500/10 blur-3xl rounded-full pointer-events-none" />
 
           <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-amber-500/20 text-amber-300 font-extrabold text-xs uppercase tracking-widest border border-amber-500/40 backdrop-blur-md">
             <Crown size={16} className="text-amber-400 animate-pulse" />
@@ -62,11 +74,10 @@ export default function ObourPlusSubscriptionPage() {
 
           <p className="text-white/70 text-sm sm:text-base max-w-3xl mx-auto font-medium leading-relaxed">
             {isAr
-              ? "استثمر في تفوقك الأكاديمي واستمتع بالذكاء الاصطناعي غير المحدود لتحويل المحاضرات، واختبارات المراجعة الذكية، وضاعف نقاط الخبرة XP للوصول إلى قمة لوحة الصدارة."
-              : "Upgrade your academic journey with unlimited AI lecture transcriptions, smart practice exams, 2x XP multipliers, and exclusive VIP perks."}
+              ? "استثمر في تفوقك الأكاديمي واستمتع بالذكاء الاصطناعي لتحويل المحاضرات، واختبارات المراجعة، وضاعف نقاط الخبرة XP للوصول إلى قمة لوحة الصدارة."
+              : "Upgrade your academic journey with AI lecture transcriptions, smart practice exams, 2x XP multipliers, and exclusive VIP perks."}
           </p>
 
-          {/* Regular VIP badge */}
           {/* Regular VIP badge */}
           {isVip && (
             <motion.div
@@ -76,9 +87,7 @@ export default function ObourPlusSubscriptionPage() {
             >
               <Sparkles size={18} />
               <span>
-                {isAr
-                  ? "اشتراك العبور بلس مفعل في حسابك 👑"
-                  : "Obour VIP Pass Active on Your Account 👑"}
+                {isAr ? "اشتراك العبور بلس مفعل في حسابك" : "Obour VIP Pass Active on Your Account"}
               </span>
             </motion.div>
           )}
@@ -175,14 +184,15 @@ export default function ObourPlusSubscriptionPage() {
                 </li>
                 <li className="flex items-center gap-2 text-muted-foreground/40">
                   <XCircle size={16} className="shrink-0" />
-                  <span>{isAr ? "وسام النخبة الذهبي 👑" : "Golden VIP badge 👑"}</span>
+                  <span>{isAr ? "وسام النخبة الذهبي" : "Golden VIP badge"}</span>
                 </li>
               </ul>
             </div>
 
             {!isVip && !isOwnerOrAdmin ? (
-              <div className="w-full py-4 rounded-2xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-600 dark:text-emerald-400 font-extrabold text-sm text-center">
-                {isAr ? "✅ باقتك الحالية - نشطة" : "✅ Your Current Plan - Active"}
+              <div className="w-full py-4 rounded-2xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-600 dark:text-emerald-400 font-extrabold text-sm text-center flex items-center justify-center gap-2">
+                <CheckCircle2 size={16} />
+                <span>{isAr ? "باقتك الحالية - نشطة" : "Your Current Plan - Active"}</span>
               </div>
             ) : (
               <div className="w-full py-4 rounded-2xl bg-muted/40 border border-border text-muted-foreground font-bold text-sm text-center">
@@ -194,9 +204,9 @@ export default function ObourPlusSubscriptionPage() {
 
         {/* VIP Pass Plan */}
         <ScaleIn>
-          <div className="p-8 rounded-3xl bg-gradient-to-b from-[#0f172a] via-[#1e1b4b] to-[#0f172a] border-2 border-amber-500/60 shadow-2xl flex flex-col justify-between space-y-6 relative overflow-hidden h-full text-white">
+          <div className="p-8 rounded-3xl bg-gradient-to-b from-[#0f172a] via-slate-900 to-[#0f172a] border-2 border-amber-500/60 shadow-2xl flex flex-col justify-between space-y-6 relative overflow-hidden h-full text-white">
             <div className="absolute top-0 right-0 bg-gradient-to-l from-amber-500 to-yellow-400 text-black font-black text-[10px] uppercase tracking-wider px-4 py-1.5 rounded-bl-2xl shadow-lg">
-              {isAr ? "مميزات النخبة ⚡" : "VIP Perks ⚡"}
+              {isAr ? "مميزات النخبة" : "VIP Perks"}
             </div>
 
             <div className="space-y-4">
@@ -205,7 +215,7 @@ export default function ObourPlusSubscriptionPage() {
                 <span>{isAr ? "العبور بلس PRO" : "VIP Pass PRO"}</span>
               </div>
               <h3 className="text-3xl font-black text-white font-harman">
-                {isAr ? "باقة النخبة 👑" : "VIP Elite Pass 👑"}
+                {isAr ? "باقة النخبة" : "VIP Elite Pass"}
               </h3>
               <div className="flex items-baseline gap-1">
                 <span className="text-4xl font-black text-amber-400 font-harman">
@@ -239,48 +249,46 @@ export default function ObourPlusSubscriptionPage() {
                   <Check size={16} className="text-amber-400 shrink-0 font-bold" />
                   <span className="font-extrabold text-amber-300">
                     {isAr
-                      ? "تفريغ المحاضرات بالذكاء الاصطناعي غير محدود 🎙️"
-                      : "Unlimited AI Lecture Transcriptions 🎙️"}
+                      ? "تفريغ المحاضرات بالذكاء الاصطناعي"
+                      : "Unlimited AI Lecture Transcriptions"}
                   </span>
                 </li>
                 <li className="flex items-center gap-2">
                   <Check size={16} className="text-amber-400 shrink-0 font-bold" />
                   <span className="font-extrabold text-amber-300">
                     {isAr
-                      ? "تولد اختبارات المراجعة 20 سؤالاً مع الإجابات ⚡"
-                      : "Unlimited 20-Question AI Exams ⚡"}
+                      ? "توليد اختبارات المراجعة 20 سؤالاً مع الإجابات"
+                      : "Unlimited 20-Question AI Exams"}
+                  </span>
+                </li>
+                <li className="flex items-center gap-2">
+                  <Check size={16} className="text-amber-400 shrink-0 font-bold" />
+                  <span>
+                    {isAr ? "مضاعفة نقاط XP مرتين (2x Multiplier)" : "2x XP Points Multiplier"}
                   </span>
                 </li>
                 <li className="flex items-center gap-2">
                   <Check size={16} className="text-amber-400 shrink-0 font-bold" />
                   <span>
                     {isAr
-                      ? "مضاعفة نقاط XP مرتين (2x Multiplier) 🚀"
-                      : "2x XP Points Multiplier 🚀"}
+                      ? "وسام النخبة الذهبي على البروفايل ولوحة الصدارة"
+                      : "Golden VIP Crown Badge"}
                   </span>
                 </li>
                 <li className="flex items-center gap-2">
                   <Check size={16} className="text-amber-400 shrink-0 font-bold" />
                   <span>
                     {isAr
-                      ? "وسام النخبة الذهبي 👑 على البروفايل ولوحة الصدارة"
-                      : "Golden VIP Crown Badge 👑"}
+                      ? "تصدير الملخصات والخطط بصيغة PDF معتمدة"
+                      : "PDF Summary & Report Exports"}
                   </span>
                 </li>
                 <li className="flex items-center gap-2">
                   <Check size={16} className="text-amber-400 shrink-0 font-bold" />
                   <span>
                     {isAr
-                      ? "تصدير الملخصات والخطط بصيغة PDF معتمدة 📄"
-                      : "PDF Summary & Report Exports 📄"}
-                  </span>
-                </li>
-                <li className="flex items-center gap-2">
-                  <Check size={16} className="text-amber-400 shrink-0 font-bold" />
-                  <span>
-                    {isAr
-                      ? "أولوية في حجز مجموعات المذاكرة والـ Buddies ⚔️"
-                      : "Priority Study Buddies Matching ⚔️"}
+                      ? "أولوية في حجز مجموعات المذاكرة والزملاء"
+                      : "Priority Study Buddies Matching"}
                   </span>
                 </li>
               </ul>
@@ -291,15 +299,13 @@ export default function ObourPlusSubscriptionPage() {
               <div className="w-full py-4 rounded-2xl bg-gradient-to-r from-amber-500/20 to-yellow-500/20 border border-amber-400/50 text-amber-300 font-black text-sm text-center flex items-center justify-center gap-2 shadow-lg">
                 <Crown size={18} className="text-amber-400" />
                 <span>
-                  {isAr
-                    ? "✅ باقتك الحالية - VIP مفعلة 👑"
-                    : "✅ Your Active Plan - VIP Pass Active 👑"}
+                  {isAr ? "باقتك الحالية - VIP مفعلة" : "Your Active Plan - VIP Pass Active"}
                 </span>
               </div>
             ) : (
               <div className="w-full py-4 rounded-2xl bg-white/10 border border-white/20 text-white/70 font-extrabold text-sm text-center flex items-center justify-center gap-2 cursor-default">
                 <Lock size={16} />
-                <span>{isAr ? "بوابة الدفع قريباً 🔜" : "Payment Gateway Coming Soon 🔜"}</span>
+                <span>{isAr ? "بوابة الدفع قريباً" : "Payment Gateway Coming Soon"}</span>
               </div>
             )}
           </div>
@@ -325,36 +331,34 @@ export default function ObourPlusSubscriptionPage() {
 
               {/* Title */}
               <h2 className="text-2xl sm:text-3xl font-black text-foreground">
-                {isAr
-                  ? "🔜 بوابة الدفع الآمنة قريباً جداً!"
-                  : "🔜 Secure Payment Gateway — Coming Soon!"}
+                {isAr ? "بوابة الدفع الآمنة قريباً" : "Secure Payment Gateway: Coming Soon"}
               </h2>
 
               <p className="text-sm text-muted-foreground font-medium max-w-xl mx-auto leading-relaxed">
                 {isAr
-                  ? "نحن نعمل على دمج بوابة دفع آمنة ومتكاملة لتتمكن من الاشتراك في العبور بلس بكل سهولة ويُسر. حتى ذلك الحين، جميع الطلاب على الباقة المجانية."
-                  : "We're integrating a secure, seamless payment gateway so you can subscribe to Obour VIP Pass with ease. Until then, all students remain on the free plan."}
+                  ? "نحن نعمل على دمج بوابة دفع آمنة ومعتمدة لتتمكن من تفعيل اشتراك العبور بلس بكل سهولة. حتى ذلك الحين، جميع الطلاب على الباقة المجانية."
+                  : "We are integrating an official secure payment gateway for effortless activation of the Obour VIP Pass. Until then, all students remain on the free plan."}
               </p>
 
               {/* What's coming */}
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 text-left mt-4">
                 {[
                   {
-                    icon: "💳",
+                    icon: CreditCard,
                     titleAr: "فيزا / ماستركارد",
                     titleEn: "Visa / Mastercard",
                     descAr: "دفع آمن مباشر",
                     descEn: "Direct secure checkout",
                   },
                   {
-                    icon: "📱",
+                    icon: Smartphone,
                     titleAr: "فودافون كاش & إنستا باي",
                     titleEn: "Vodafone Cash & InstaPay",
                     descAr: "دفع محلي سريع",
                     descEn: "Local fast payment",
                   },
                   {
-                    icon: "🔒",
+                    icon: ShieldCheck,
                     titleAr: "حماية كاملة للبيانات",
                     titleEn: "Full Data Security",
                     descAr: "تشفير بنكي معتمد",
@@ -363,9 +367,11 @@ export default function ObourPlusSubscriptionPage() {
                 ].map((item, i) => (
                   <div
                     key={i}
-                    className="p-4 rounded-2xl bg-card border border-border space-y-1.5 text-center"
+                    className="p-4 rounded-2xl bg-card border border-border space-y-2 text-center"
                   >
-                    <div className="text-2xl">{item.icon}</div>
+                    <div className="flex justify-center text-primary py-1">
+                      <item.icon size={26} />
+                    </div>
                     <p className="font-extrabold text-xs text-foreground">
                       {isAr ? item.titleAr : item.titleEn}
                     </p>
@@ -427,8 +433,8 @@ export default function ObourPlusSubscriptionPage() {
                         localStorage.removeItem(`vip-celebration-seen-${user.uid}`);
                         toast.success(
                           isAr
-                            ? "مبروك! تم تفعيل اشتراك العبور بلس بنجاح 👑"
-                            : "Congratulations! Obour VIP Pass Activated 👑"
+                            ? "تم تفعيل اشتراك العبور بلس بنجاح"
+                            : "Obour VIP Pass activated successfully"
                         );
                       } catch {
                         toast.error(
@@ -462,37 +468,104 @@ export default function ObourPlusSubscriptionPage() {
                     <CheckCircle2 size={18} />
                     <span>
                       {isAr
-                        ? "تم! سنُخبرك فور إطلاق الاشتراكات 🎉"
-                        : "Done! We'll notify you when subscriptions launch 🎉"}
+                        ? "تم تسجيل بريدك بنجاح، سنُخطركم فور إطلاق الاشتراكات"
+                        : "Email registered successfully. We'll notify you upon launch"}
                     </span>
                   </div>
                 ) : (
                   <form
                     onSubmit={handleNotify}
-                    className="flex flex-col sm:flex-row items-center gap-3 justify-center max-w-md mx-auto"
+                    className="flex flex-col gap-3 justify-center max-w-md mx-auto"
                   >
-                    <input
-                      type="email"
-                      value={notifyEmail}
-                      onChange={(e) => setNotifyEmail(e.target.value)}
-                      placeholder={
-                        isAr
-                          ? "أدخل بريدك الإلكتروني للتنبيه عند الإطلاق"
-                          : "Enter your email to be notified at launch"
-                      }
-                      className="flex-1 w-full px-4 py-3 rounded-2xl bg-background border border-border text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-amber-500/50 placeholder:text-muted-foreground/60"
-                    />
-                    <motion.button
-                      type="submit"
-                      whileHover={{ scale: 1.02 }}
-                      whileTap={{ scale: 0.97 }}
-                      className="flex items-center gap-2 px-6 py-3 rounded-2xl bg-gradient-to-r from-amber-400 to-yellow-500 text-black font-extrabold text-sm shadow-lg hover:shadow-amber-500/25 transition-all whitespace-nowrap"
-                    >
-                      <Bell size={16} />
-                      {isAr ? "نبّهني عند الإطلاق" : "Notify Me at Launch"}
-                    </motion.button>
+                    <div className="flex flex-col sm:flex-row items-center gap-2">
+                      <input
+                        type="email"
+                        value={notifyEmail}
+                        onChange={(e) => setNotifyEmail(e.target.value)}
+                        placeholder={
+                          isAr
+                            ? "أدخل بريدك الإلكتروني للتنبيه عند الإطلاق"
+                            : "Enter your email to be notified at launch"
+                        }
+                        className="flex-1 w-full px-4 py-3 rounded-2xl bg-background border border-border text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-amber-500/50 placeholder:text-muted-foreground/60"
+                      />
+                      <motion.button
+                        type="submit"
+                        disabled={!notifyConsent || !notifyEmail.trim()}
+                        whileHover={{ scale: 1.02 }}
+                        whileTap={{ scale: 0.97 }}
+                        className="flex items-center justify-center gap-2 px-6 py-3 rounded-2xl bg-gradient-to-r from-amber-400 to-yellow-500 text-black font-extrabold text-sm shadow-lg hover:shadow-amber-500/25 transition-all whitespace-nowrap disabled:opacity-50 disabled:cursor-not-allowed"
+                      >
+                        <Bell size={16} />
+                        <span>{isAr ? "نبّهني عند الإطلاق" : "Notify Me at Launch"}</span>
+                      </motion.button>
+                    </div>
+
+                    <label className="flex items-start gap-2 text-xs text-muted-foreground cursor-pointer select-none text-right">
+                      <input
+                        type="checkbox"
+                        checked={notifyConsent}
+                        onChange={(e) => setNotifyConsent(e.target.checked)}
+                        className="mt-0.5 h-4 w-4 rounded border-border text-primary focus:ring-primary/40"
+                        required
+                      />
+                      <span>
+                        {isAr ? (
+                          <>
+                            أوافق على استلام إشعارات التحديثات الرسمية وفقاً لـ{" "}
+                            <Link
+                              href="/legal/privacy"
+                              className="font-bold text-primary hover:underline"
+                            >
+                              سياسة الخصوصية
+                            </Link>
+                            .
+                          </>
+                        ) : (
+                          <>
+                            I consent to receive official launch notifications in accordance with
+                            the{" "}
+                            <Link
+                              href="/legal/privacy"
+                              className="font-bold text-primary hover:underline"
+                            >
+                              Privacy Policy
+                            </Link>
+                            .
+                          </>
+                        )}
+                      </span>
+                    </label>
                   </form>
                 )}
+
+                <div className="pt-2 text-center text-xs text-muted-foreground">
+                  {isAr ? (
+                    <>
+                      تخضع كافة الاشتراكات وباقات العبور بلس لـ{" "}
+                      <Link href="/legal/terms" className="font-bold text-primary hover:underline">
+                        شروط الاستخدام
+                      </Link>{" "}
+                      و{" "}
+                      <Link href="/legal/refund" className="font-bold text-primary hover:underline">
+                        سياسة الاسترجاع
+                      </Link>
+                      .
+                    </>
+                  ) : (
+                    <>
+                      All subscriptions are governed by our{" "}
+                      <Link href="/legal/terms" className="font-bold text-primary hover:underline">
+                        Terms of Service
+                      </Link>{" "}
+                      and{" "}
+                      <Link href="/legal/refund" className="font-bold text-primary hover:underline">
+                        Refund Policy
+                      </Link>
+                      .
+                    </>
+                  )}
+                </div>
               </div>
             </div>
           </motion.div>
@@ -529,7 +602,7 @@ export default function ObourPlusSubscriptionPage() {
                 titleEn: "AI Practice Exam Gen",
                 descAr: "أنشئ امتحانات متكاملة بـ 20 سؤالاً مع توضيح خطوات الحل بالتفصيل.",
                 descEn: "Generate 20-question practice exams with full solution steps.",
-                color: "text-purple-500 bg-purple-500/10 border-purple-500/20",
+                color: "text-sky-500 bg-sky-500/10 border-sky-500/20",
               },
               {
                 icon: Flame,
@@ -577,8 +650,8 @@ export default function ObourPlusSubscriptionPage() {
         <div className="text-center py-6 space-y-2">
           <p className="text-xs text-muted-foreground font-medium">
             {isAr
-              ? "جميع الطلاب على الباقة المجانية حتى إطلاق بوابة الدفع الرسمية. ترقبوا الإعلان قريباً! 🚀"
-              : "All students are on the Free Plan until the official payment gateway launches. Stay tuned! 🚀"}
+              ? "جميع الطلاب على الباقة المجانية حتى إطلاق بوابة الدفع الرسمية. ترقبوا الإعلان قريباً."
+              : "All students are on the Free Plan until the official payment gateway launches. Stay tuned."}
           </p>
         </div>
       </FadeIn>

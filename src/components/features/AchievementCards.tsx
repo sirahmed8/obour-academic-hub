@@ -65,7 +65,7 @@ export function AchievementCards() {
             <div
               className={`p-6 rounded-[2.5rem] border backdrop-blur-2xl shadow-xl flex flex-col justify-between space-y-4 relative overflow-hidden transition-transform hover:scale-105 duration-300 ${
                 badge.unlocked
-                  ? "bg-gradient-to-tr from-amber-500/20 via-primary/20 to-purple-600/20 border-amber-500/30"
+                  ? "bg-gradient-to-tr from-amber-500/20 via-primary/20 to-amber-500/10 border-amber-500/30"
                   : "bg-card/40 border-border/50 opacity-60"
               }`}
             >

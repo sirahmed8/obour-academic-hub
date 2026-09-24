@@ -7,7 +7,6 @@ export interface LiveStats {
   students: number;
   resources: number;
   subjects: number;
-  uptime: number;
   online: number;
 }
 
@@ -16,7 +15,6 @@ export function useLiveStats(): LiveStats {
     students: 0,
     resources: 0,
     subjects: 0,
-    uptime: 99.9,
     online: 0,
   });
 

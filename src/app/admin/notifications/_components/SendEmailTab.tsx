@@ -105,9 +105,9 @@ export function SendEmailTab({ language }: SendEmailTabProps) {
   return (
     <ScaleIn delay={0.1} className="rounded-xl border border-border bg-card p-6 shadow-sm">
       <form onSubmit={handleSubmit} className="space-y-6">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-4 rounded-2xl bg-purple-500/10 border border-purple-500/20">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-4 rounded-2xl bg-primary/5 border border-primary/20">
           <div className="flex items-center gap-2">
-            <Sparkles className="w-5 h-5 text-purple-400 animate-pulse shrink-0" />
+            <Sparkles className="w-5 h-5 text-primary animate-pulse shrink-0" />
             <div>
               <h4 className="text-sm font-bold text-foreground">
                 {language === "ar" ? "مساعد الإيميلات الأكاديمية" : "AI Academic Email Assistant"}
@@ -124,16 +124,14 @@ export function SendEmailTab({ language }: SendEmailTabProps) {
             type="button"
             disabled={isEnhancing}
             onClick={handleAIEnhance}
-            className="px-4 py-2 rounded-xl bg-gradient-to-r from-purple-600 via-indigo-600 to-purple-600 hover:from-purple-500 hover:to-indigo-500 text-white font-bold text-xs flex items-center justify-center gap-2 shadow-lg shadow-purple-500/20 border border-purple-400/30 transition-all cursor-pointer disabled:opacity-50 shrink-0"
+            className="px-4 py-2 rounded-xl bg-primary hover:bg-primary/90 text-primary-foreground font-bold text-xs flex items-center justify-center gap-2 shadow-sm border border-primary/20 transition-all cursor-pointer disabled:opacity-50 shrink-0"
           >
             {isEnhancing ? (
-              <Loader2 className="w-4 h-4 animate-spin text-purple-200" />
+              <Loader2 className="w-4 h-4 animate-spin text-primary-foreground/80" />
             ) : (
-              <Sparkles className="w-4 h-4 text-purple-200" />
+              <Sparkles className="w-4 h-4 text-primary-foreground/80" />
             )}
-            <span>
-              {language === "ar" ? "صياغة وتدقيق بالذكاء الاصطناعي ✨" : "Polish with AI ✨"}
-            </span>
+            <span>{language === "ar" ? "صياغة وتدقيق بالذكاء الاصطناعي" : "Polish with AI"}</span>
           </button>
         </div>
 

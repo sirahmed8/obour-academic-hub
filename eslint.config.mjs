@@ -14,6 +14,7 @@ const eslintConfig = defineConfig([
     "dist/**",
     "build/**",
     "next-env.d.ts",
+    "functions/**",
   ]),
   {
     rules: {

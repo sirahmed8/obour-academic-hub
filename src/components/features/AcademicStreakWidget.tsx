@@ -361,12 +361,12 @@ export function AcademicStreakWidget() {
       >
         <HoverScale scale={1.03}>
           <TapScale scale={0.97}>
-            <div className="p-5 rounded-3xl bg-card border border-purple-500/25 shadow-sm flex items-center gap-4 hover:border-purple-500/50 hover:shadow-xl transition-all cursor-default h-full">
-              <div className="p-3.5 rounded-2xl bg-purple-500/15 text-purple-500 border border-purple-500/25 shrink-0">
+            <div className="p-5 rounded-3xl bg-card border border-primary/20 shadow-sm flex items-center gap-4 hover:border-primary/40 hover:shadow-md transition-all cursor-default h-full">
+              <div className="p-3.5 rounded-2xl bg-primary/10 text-primary border border-primary/20 shrink-0">
                 <Sparkles size={24} />
               </div>
               <div>
-                <span className="text-[10px] font-black uppercase tracking-wider text-purple-500 flex items-center gap-1">
+                <span className="text-[10px] font-black uppercase tracking-wider text-primary flex items-center gap-1">
                   {isAr ? "حكمة اليوم الأكاديمية" : "Daily Academic Quote"}
                 </span>
                 <p className="text-xs font-bold text-foreground leading-snug mt-1 line-clamp-2">
@@ -395,7 +395,7 @@ export function AcademicStreakWidget() {
                   <Calendar size={16} />
                 </div>
                 <span className="text-xs font-black uppercase tracking-wider text-foreground">
-                  {isAr ? "تقويم الدراسة — 30 يوماً الأخيرة" : "Study Calendar — Last 30 Days"}
+                  {isAr ? "تقويم الدراسة: آخر 30 يوماً" : "Study Calendar: Last 30 Days"}
                 </span>
               </div>
               <div

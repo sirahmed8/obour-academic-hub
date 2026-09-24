@@ -2,7 +2,6 @@ import Image from "next/image";
 import { motion, MotionValue } from "framer-motion";
 import { useLanguage } from "@/contexts";
 import { Sparkles, ArrowRight, ChevronDown, ShieldCheck, Zap } from "lucide-react";
-import { FloatingParticles } from "./FloatingParticles";
 import { AnimatedNumber } from "./AnimatedNumber";
 import { LiveStats } from "./useLiveStats";
 
@@ -22,9 +21,7 @@ export function HeroSection({ heroOpacity, heroY, liveStats, scrollToContent }: 
       className="relative min-h-dvh flex flex-col items-center justify-center px-4 sm:px-6 overflow-hidden pt-24 pb-16 md:pb-0"
     >
       {/* Radiant Background Aura */}
-      <div className="absolute top-1/4 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] sm:w-[700px] h-[350px] sm:h-[450px] bg-gradient-to-tr from-primary/30 via-purple-600/20 to-indigo-500/30 rounded-full blur-[140px] pointer-events-none -z-10" />
-
-      <FloatingParticles />
+      <div className="absolute top-1/4 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] sm:w-[700px] h-[350px] sm:h-[450px] bg-gradient-to-tr from-primary/20 via-sky-600/10 to-primary/20 rounded-full blur-[140px] pointer-events-none -z-10" />
 
       {/* Hero Content */}
       <div className="relative z-10 text-center px-4 sm:px-6 max-w-5xl mx-auto">
@@ -52,7 +49,7 @@ export function HeroSection({ heroOpacity, heroY, liveStats, scrollToContent }: 
             transition={{ type: "spring", stiffness: 300, damping: 15 }}
             className="relative inline-block mb-6 cursor-pointer group"
           >
-            <div className="absolute -inset-2 bg-gradient-to-r from-primary via-indigo-500 to-purple-600 rounded-3xl blur-md opacity-40 group-hover:opacity-80 transition duration-500" />
+            <div className="absolute -inset-2 bg-gradient-to-r from-primary via-blue-500 to-sky-600 rounded-3xl blur-md opacity-40 group-hover:opacity-80 transition duration-500" />
             <Image
               src="/obour-logo.png"
               alt="Obour Hub"
@@ -71,7 +68,7 @@ export function HeroSection({ heroOpacity, heroY, liveStats, scrollToContent }: 
           className="text-4xl sm:text-6xl lg:text-7xl font-black text-white tracking-tighter leading-[1.05] mb-6 drop-shadow-lg font-harman"
         >
           {t("welcome.hero.title")}{" "}
-          <span className="bg-gradient-to-r from-indigo-300 via-white to-purple-300 bg-clip-text text-transparent">
+          <span className="bg-gradient-to-r from-sky-300 via-white to-primary bg-clip-text text-transparent">
             {t("welcome.hero.titleHighlight")}
           </span>
         </motion.h1>
@@ -132,13 +129,12 @@ export function HeroSection({ heroOpacity, heroY, liveStats, scrollToContent }: 
               {
                 label: t("welcome.stats.totalSubjects"),
                 val: liveStats.subjects || 0,
-                color: "from-purple-400 to-pink-400",
+                color: "from-cyan-400 to-blue-400",
               },
               {
-                label: t("welcome.stats.uptime"),
-                val: liveStats.uptime,
-                color: "from-amber-400 to-orange-400",
-                suffix: "%",
+                label: t("welcome.stats.online"),
+                val: liveStats.online || 0,
+                color: "from-amber-400 to-yellow-400",
               },
             ].map((stat, i) => (
               <div
@@ -157,7 +153,7 @@ export function HeroSection({ heroOpacity, heroY, liveStats, scrollToContent }: 
                 <div
                   className={`text-2xl sm:text-3xl font-black bg-gradient-to-r ${stat.color} bg-clip-text text-transparent tabular-nums text-center`}
                 >
-                  <AnimatedNumber value={stat.val} suffix={stat.suffix} />
+                  <AnimatedNumber value={stat.val} />
                 </div>
               </div>
             ))}

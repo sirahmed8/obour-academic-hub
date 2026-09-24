@@ -61,7 +61,7 @@ export function VipGrantCelebrationModal() {
         >
           {/* Ambient Glows */}
           <div className="absolute -top-24 -right-24 w-64 h-64 bg-amber-500/20 rounded-full blur-3xl pointer-events-none" />
-          <div className="absolute -bottom-24 -left-24 w-64 h-64 bg-purple-500/20 rounded-full blur-3xl pointer-events-none" />
+          <div className="absolute -bottom-24 -left-24 w-64 h-64 bg-primary/20 rounded-full blur-3xl pointer-events-none" />
 
           {/* Close Button */}
           <button
@@ -97,12 +97,12 @@ export function VipGrantCelebrationModal() {
                 {isAr ? "تم إهداؤك اشتراك مميز!" : "Complimentary VIP Pass Activated!"}
               </span>
               <h2 className="text-2xl sm:text-3xl font-black text-foreground tracking-tight">
-                {isAr ? "🎉 أهلاً بك في النخبة الأكاديمية!" : "🎉 Welcome to the Academic Elite!"}
+                {isAr ? "أهلاً بك في النخبة الأكاديمية!" : "Welcome to the Academic Elite!"}
               </h2>
               <p className="text-xs sm:text-sm text-muted-foreground max-w-md mx-auto leading-relaxed">
                 {isAr
-                  ? `تهانينا! تم منحك اشتراك "العبور بلس 👑 VIP Pass" مجاناً بفضل (${grantedByText}). استمتع بكافة المميزات الاستثنائية فائقة السرعة!`
-                  : `Congratulations! You were granted complimentary Obour VIP Pass 👑 access courtesy of (${grantedByText}). Enjoy all premium features!`}
+                  ? `تهانينا! تم منحك اشتراك "العبور بلس VIP Pass" مجاناً بفضل (${grantedByText}). استمتع بكافة المميزات الاستثنائية فائقة السرعة!`
+                  : `Congratulations! You were granted complimentary Obour VIP Pass access courtesy of (${grantedByText}). Enjoy all premium features!`}
               </p>
             </div>
 
@@ -122,8 +122,8 @@ export function VipGrantCelebrationModal() {
                 </div>
               </div>
 
-              <div className="p-3.5 rounded-2xl bg-purple-500/5 border border-purple-500/20 flex items-center gap-3">
-                <span className="p-2 rounded-xl bg-purple-500/10 text-purple-500 shrink-0">
+              <div className="p-3.5 rounded-2xl bg-primary/5 border border-primary/20 flex items-center gap-3">
+                <span className="p-2 rounded-xl bg-primary/10 text-primary shrink-0">
                   <BrainCircuit size={18} />
                 </span>
                 <div>
@@ -172,7 +172,7 @@ export function VipGrantCelebrationModal() {
                 onClick={handleDismiss}
                 className="w-full sm:flex-1 py-3 px-4 rounded-2xl bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 text-black font-black text-xs sm:text-sm shadow-xl shadow-amber-500/25 flex items-center justify-center gap-2 transition-all active:scale-95"
               >
-                <span>{isAr ? "استكشف مميزات بلس 🚀" : "Explore VIP Features 🚀"}</span>
+                <span>{isAr ? "استكشف مميزات بلس" : "Explore VIP Features"}</span>
                 <ArrowRight size={16} className="rtl:rotate-180" />
               </Link>
               <button

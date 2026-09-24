@@ -267,7 +267,7 @@ export const ChatMessageItem = memo(function ChatMessageItem({
             "px-4 py-2.5 shadow-sm text-sm relative z-10 cursor-pointer select-text",
             // Shape styling based on sender
             isUser
-              ? "bg-linear-to-br from-primary via-purple-600 to-indigo-600 text-white rounded-3xl rounded-tr-md shadow-indigo-500/20"
+              ? "bg-primary text-primary-foreground rounded-3xl rounded-tr-md shadow-primary/20"
               : isBot
                 ? "bg-linear-to-br from-slate-800 to-slate-900 border border-white/10 text-white rounded-3xl rounded-tl-md shadow-md"
                 : "bg-background border border-border text-foreground rounded-3xl rounded-tl-md shadow-md"

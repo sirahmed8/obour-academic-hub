@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useLanguage } from "@/contexts";
 
 export default function PrivacyPage() {
@@ -7,109 +8,106 @@ export default function PrivacyPage() {
   const ar = language === "ar";
 
   return (
-    <div className="max-w-4xl mx-auto p-8 space-y-10 animate-in fade-in duration-500">
+    <div className="max-w-4xl mx-auto p-6 sm:p-8 space-y-10 animate-in fade-in duration-500 text-foreground">
       <header className="space-y-4 border-b border-border pb-6">
-        <h1 className="text-3xl font-bold text-primary">
-          {ar ? "سياسة الخصوصية" : "Privacy Policy"}
+        <h1 className="text-3xl font-black text-foreground">
+          {ar ? "سياسة الخصوصية وحماية البيانات" : "Privacy & Data Protection Policy"}
         </h1>
-        <p className="text-muted-foreground font-medium">
-          {ar ? "آخر تحديث: 1 أغسطس 2026" : "Last Updated: August 1, 2026"}
-        </p>
-        <p className="text-muted-foreground leading-relaxed">
+        <p className="text-muted-foreground font-medium text-xs sm:text-sm">
           {ar
-            ? "تُطبَّق هذه السياسة على منصة معاهد العبور الأكاديمية (Obour Academic Hub) المتاحة على الرابط https://obourinstitutes1.web.app وتُعرِّف المستخدم بكيفية جمع بياناته واستخدامها وحمايتها."
-            : "This Privacy Policy applies to the Obour Academic Hub platform available at https://obourinstitutes1.web.app and informs users about how their data is collected, used, and protected."}
+            ? "آخر تحديث: 24 سبتمبر 2026 : متوافقة مع قانون حماية البيانات الشخصية المصري رقم 151 لسنة 2020"
+            : "Last Updated: September 24, 2026 : In compliance with Egyptian Personal Data Protection Law No. 151 of 2020"}
+        </p>
+        <p className="text-muted-foreground leading-relaxed text-sm">
+          {ar
+            ? "تُطبَّق هذه السياسة على منصة معاهد العبور الأكاديمية (Obour Academic Hub) المتاحة على الرابط https://obourinstitutes1.web.app وتُعرِّف الطلاب والمستخدمين بكيفية جمع بياناتهم ومعالجتها وحمايتها وحقوقهم القانونية الكاملة."
+            : "This Privacy Policy applies to the Obour Academic Hub platform available at https://obourinstitutes1.web.app and informs students and users about how their data is collected, processed, protected, and their full statutory rights."}
         </p>
       </header>
 
       {/* Section 1 */}
       <section className="space-y-4">
-        <h2 className="text-xl font-semibold">1. {ar ? "من نحن" : "Who We Are"}</h2>
-        <p className="text-muted-foreground leading-relaxed">
+        <h2 className="text-xl font-bold">
+          1. {ar ? "الجهة المسؤولة عن معالجة البيانات" : "Data Controller & Institution Identity"}
+        </h2>
+        <p className="text-muted-foreground leading-relaxed text-sm">
           {ar
-            ? "منصة معاهد العبور الأكاديمية هي منصة رقمية تعليمية تخدم طلاب معاهد العبور للحاسبات والمعلومات في مصر. المسؤول عن معالجة البيانات هو فريق تطوير المنصة التابع لمعاهد العبور."
-            : "Obour Academic Hub is a digital educational platform serving students of the Obour Institutes of Computer Science and Information in Egypt. The party responsible for data processing is the platform development team affiliated with Obour Institutes."}
+            ? "الجهة المسؤولة عن جمع ومعالجة البيانات هي إدارة منصة معاهد العبور الأكاديمية، التابعة لمعاهد العبور العليا (معهد العبور العالي للهندسة والتكنولوجيا ومعهد الإدارة والحاسبات ونظم المعلومات)، المعتمدة رسمياً من وزارة التعليم العالي والبحث العلمي بجمهورية مصر العربية. المقر: الكيلو 21 طريق القاهرة بلبيس الصحراوي، مدينة العبور، محافظة القليوبية، مصر. البريد الإلكتروني المعتمد لشؤون الخصوصية: privacy@obour-academic.hub."
+            : "The data controller responsible for personal data processing is the administrative and engineering team of Obour Academic Hub, affiliated with the Obour Higher Institutes (Engineering, Technology, Management & Computer Science), officially accredited by the Ministry of Higher Education and Scientific Research in Egypt. Campus: Km 21 Cairo-Belbeis Desert Road, Obour City, Qalyubia Governorate, Egypt. Inquiries: privacy@obour-academic.hub."}
         </p>
       </section>
 
       {/* Section 2 */}
       <section className="space-y-4">
-        <h2 className="text-xl font-semibold">
-          2. {ar ? "البيانات التي نجمعها" : "Data We Collect"}
+        <h2 className="text-xl font-bold">
+          2.{" "}
+          {ar ? "مبدأ تقليل البيانات والبيانات التي نجمعها" : "Data Minimization & Data We Collect"}
         </h2>
-        <div className="space-y-3 text-muted-foreground">
+        <div className="space-y-3 text-muted-foreground text-sm">
           <p>
             {ar
-              ? "نجمع الأنواع التالية من البيانات:"
-              : "We collect the following categories of data:"}
+              ? "نلتزم بمبدأ 'تقليل البيانات' (Data Minimization) المنصوص عليه قانوناً، فلا نجمع سوى البيانات الضرورية حصراً لتقديم الخدمة التعليمية:"
+              : "We strictly adhere to the principle of data minimization, collecting only data strictly necessary to deliver academic services:"}
           </p>
           <div className="space-y-4">
             <div>
               <p className="font-semibold text-foreground mb-1">
-                {ar ? "أ. بيانات الهوية والحساب" : "a. Identity & Account Data"}
+                {ar ? "أ. بيانات الهوية والحساب الأكاديمي" : "a. Identity & Academic Account Data"}
               </p>
               <ul className="list-disc list-inside space-y-1 ml-4">
                 <li>
                   {ar
-                    ? "الاسم الكامل وعنوان البريد الإلكتروني (من حساب Google)"
-                    : "Full name and email address (from Google account)"}
+                    ? "الاسم الكامل وعنوان البريد الإلكتروني الرسمي (عبر Google OAuth 2.0)"
+                    : "Full official name and email address (via Google OAuth 2.0)"}
                 </li>
                 <li>
                   {ar
-                    ? "صورة الملف الشخصي (من حساب Google إذا وُجدت)"
-                    : "Profile picture (from Google account if available)"}
+                    ? "كود الطالب، الفرقة الدراسية، والتخصص الأكاديمي داخل معاهد العبور"
+                    : "Student code, academic year, and department within Obour Institutes"}
                 </li>
                 <li>
                   {ar
-                    ? "تاريخ التسجيل والرقم التعريفي للمستخدم (UID)"
-                    : "Registration date and User ID (UID)"}
+                    ? "معرّف المستخدم الفريد (UID) وتاريخ إنشاء الحساب"
+                    : "Unique User ID (UID) and account creation timestamp"}
                 </li>
               </ul>
             </div>
             <div>
               <p className="font-semibold text-foreground mb-1">
-                {ar ? "ب. بيانات الاستخدام الأكاديمي" : "b. Academic Usage Data"}
+                {ar ? "ب. بيانات النشاط الأكاديمي" : "b. Academic Interaction Data"}
               </p>
               <ul className="list-disc list-inside space-y-1 ml-4">
                 <li>
                   {ar
-                    ? "المواد الدراسية والاختبارات وبطاقات الملاحظات التي تُنشئها"
-                    : "Subjects, quizzes, and notes you create"}
+                    ? "المقررات المسجلة، المهام في قائمة المهام، وسجل الاختبارات التجريبية"
+                    : "Enrolled subjects, personal to-do tasks, and practice quiz history"}
                 </li>
                 <li>
                   {ar
-                    ? "الأسئلة والإجابات التي تنشرها في قسم الأسئلة والأجوبة"
-                    : "Questions and answers you post in the Q&A section"}
+                    ? "المشاركات والأسئلة المنشورة في منتدى الأسئلة والأجوبة والمشاريع الطلابية"
+                    : "Student questions, answers posted in academic Q&A, and showcase projects"}
                 </li>
                 <li>
                   {ar
-                    ? "المهام والجداول الدراسية في قائمة المهام"
-                    : "Tasks and schedules in your to-do list"}
-                </li>
-                <li>
-                  {ar ? "نقاط المتصدرين وتاريخ النشاط" : "Leaderboard points and activity history"}
+                    ? "نقاط التحصيل الأكاديمي المكتسبة في لوحة المتصدرين"
+                    : "Academic XP points earned for leaderboard participation"}
                 </li>
               </ul>
             </div>
             <div>
               <p className="font-semibold text-foreground mb-1">
-                {ar ? "ج. البيانات التقنية" : "c. Technical Data"}
+                {ar ? "ج. البيانات التقنية والتشغيلية" : "c. Technical & Operational Telemetry"}
               </p>
               <ul className="list-disc list-inside space-y-1 ml-4">
                 <li>
                   {ar
-                    ? "نوع الجهاز والمتصفح وإصداراتهما"
-                    : "Device type, browser type and versions"}
+                    ? "عنوان IP التقريبي، نوع المتصفح، ونظام التشغيل لحماية الحساب من محاولات الاختراق"
+                    : "Approximate IP, browser type, and operating system to secure accounts against unauthorized intrusions"}
                 </li>
                 <li>
                   {ar
-                    ? "عنوان IP والموقع الجغرافي التقريبي"
-                    : "IP address and approximate geographic location"}
-                </li>
-                <li>
-                  {ar
-                    ? "بيانات الأداء والأخطاء (عبر Sentry)"
-                    : "Performance and error data (via Sentry)"}
+                    ? "سجلات الأعطال البرمجية غير الشخصية عبر Sentry لإصلاح المشكلات التقنية"
+                    : "Non-identifiable crash telemetry via Sentry to resolve software bugs"}
                 </li>
               </ul>
             </div>
@@ -119,214 +117,165 @@ export default function PrivacyPage() {
 
       {/* Section 3 */}
       <section className="space-y-4">
-        <h2 className="text-xl font-semibold">
-          3. {ar ? "كيف نستخدم بياناتك" : "How We Use Your Data"}
+        <h2 className="text-xl font-bold">
+          3. {ar ? "الأغراض القانونية لمعالجة البيانات" : "Lawful Purposes of Processing"}
         </h2>
-        <ul className="list-disc list-inside space-y-2 ml-4 text-muted-foreground">
+        <ul className="list-disc list-inside space-y-2 ml-4 text-muted-foreground text-sm">
           <li>
             {ar
-              ? "توفير خدمات المنصة التعليمية وتشغيلها"
-              : "Providing and operating the educational platform services"}
+              ? "تشغيل المنصة التعليمية وتوفير المواد والمحاضرات للطلاب المستحقين"
+              : "Operating the educational portal and delivering course materials to verified students"}
           </li>
           <li>
             {ar
-              ? "إرسال الإشعارات والتنبيهات الأكاديمية ذات الصلة"
-              : "Sending relevant academic notifications and alerts"}
+              ? "التحقق من الهوية الأكاديمية ومنع تسجيل أفراد من خارج المعهد"
+              : "Verifying academic eligibility and preventing unauthorized access by non-institute parties"}
           </li>
           <li>
             {ar
-              ? "تحسين أداء المنصة وإصلاح الأخطاء التقنية"
-              : "Improving platform performance and fixing technical bugs"}
-          </li>
-          <li>
-            {ar ? "منع الاستخدام غير المصرح به والاحتيال" : "Preventing unauthorized use and fraud"}
+              ? "إرسال التنبيهات والإشعارات الأكاديمية العاجلة بشأن الجداول والامتحانات"
+              : "Transmitting critical academic notices concerning schedules and examinations"}
           </li>
           <li>
             {ar
-              ? "الامتثال للمتطلبات القانونية عند الاقتضاء"
-              : "Complying with legal requirements when necessary"}
+              ? "حماية البنية التحتية من الهجمات السيبرانية ومحاولات الهندسة العكسية"
+              : "Protecting platform infrastructure from cyberattacks and abuse"}
           </li>
         </ul>
-        <p className="text-muted-foreground leading-relaxed">
+        <p className="text-muted-foreground leading-relaxed text-sm font-semibold">
           {ar
-            ? "لا نبيع بياناتك لأي طرف ثالث ولا نستخدمها لأغراض إعلانية تجارية."
-            : "We do not sell your data to any third party or use it for commercial advertising purposes."}
+            ? "نؤكد التزامنا التام بعدم بيع أو تأجير أو مشاركة أي بيانات شخصية مع أي جهات إعلانية أو تجارية خارجية."
+            : "We unequivocally commit to never selling, leasing, or sharing personal data with third-party advertisers or commercial brokers."}
         </p>
       </section>
 
       {/* Section 4 */}
       <section className="space-y-4">
-        <h2 className="text-xl font-semibold">
-          4. {ar ? "الأطراف الثالثة ومشاركة البيانات" : "Third Parties & Data Sharing"}
+        <h2 className="text-xl font-bold">
+          4. {ar ? "معالجو البيانات من الأطراف الثالثة" : "Authorized Third-Party Processors"}
         </h2>
-        <p className="text-muted-foreground leading-relaxed">
+        <p className="text-muted-foreground leading-relaxed text-sm">
           {ar
-            ? "تعتمد المنصة على الخدمات الخارجية التالية، وكل منها له سياسة خصوصية خاصة به:"
-            : "The platform relies on the following external services, each with their own privacy policy:"}
+            ? "تتعامل المنصة مع مزودي خدمات سحابية معتمدين دولياً خاضعين لاتفاقيات سرية وحماية بيانات صارمة:"
+            : "The platform contracts with globally recognized infrastructure providers bound by strict data processing agreements:"}
         </p>
-        <ul className="list-disc list-inside space-y-2 ml-4 text-muted-foreground">
+        <ul className="list-disc list-inside space-y-2 ml-4 text-muted-foreground text-sm">
           <li>
-            <strong>Google Firebase</strong> —{" "}
+            <strong>Google Firebase</strong> :{" "}
             {ar
-              ? "قاعدة البيانات والمصادقة وتخزين الملفات. "
-              : "Database, authentication, and file storage. "}
-            <a
-              href="https://firebase.google.com/support/privacy"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="text-primary underline"
-            >
-              {ar ? "سياسة خصوصية Firebase" : "Firebase Privacy Policy"}
-            </a>
+              ? "قاعدة البيانات السحابية ونظام المصادقة والتخزين الآمن."
+              : "Encrypted database, authentication, and secure file storage."}
           </li>
           <li>
-            <strong>Google Analytics</strong> —{" "}
-            {ar ? "إحصاءات الزوار وتحليل الاستخدام. " : "Visitor statistics and usage analytics. "}
-            <a
-              href="https://policies.google.com/privacy"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="text-primary underline"
-            >
-              {ar ? "سياسة خصوصية Google" : "Google Privacy Policy"}
-            </a>
+            <strong>Google Analytics & Vercel Analytics</strong> :{" "}
+            {ar
+              ? "تحليل حركة الزوار والأداء (لا يتم تفعيلها إلا بموافقة صريحة من المستخدم عبر شريط ملفات تعريف الارتباط)."
+              : "Visitor traffic and performance analytics (strictly gated on user consent via the cookie preferences banner)."}
           </li>
           <li>
-            <strong>Cloudinary</strong> —{" "}
-            {ar ? "تخزين الصور والملفات المرفوعة. " : "Storage for uploaded images and files. "}
-            <a
-              href="https://cloudinary.com/privacy"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="text-primary underline"
-            >
-              {ar ? "سياسة خصوصية Cloudinary" : "Cloudinary Privacy Policy"}
-            </a>
+            <strong>Cloudinary</strong> :{" "}
+            {ar
+              ? "تخزين ومعالجة صور الأنشطة الطلابية والمشاريع المعتمدة."
+              : "Approved student activity and showcase image storage."}
           </li>
           <li>
-            <strong>Sentry</strong> —{" "}
-            {ar ? "رصد الأخطاء وأداء التطبيق. " : "Error monitoring and application performance. "}
-            <a
-              href="https://sentry.io/privacy/"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="text-primary underline"
-            >
-              {ar ? "سياسة خصوصية Sentry" : "Sentry Privacy Policy"}
-            </a>
-          </li>
-          <li>
-            <strong>Vercel</strong> —{" "}
-            {ar ? "استضافة الواجهة الأمامية للتطبيق. " : "Frontend application hosting. "}
-            <a
-              href="https://vercel.com/legal/privacy-policy"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="text-primary underline"
-            >
-              {ar ? "سياسة خصوصية Vercel" : "Vercel Privacy Policy"}
-            </a>
+            <strong>Sentry</strong> :{" "}
+            {ar
+              ? "رصد أخطاء النظام البرمجية دون تسجيل بيانات شخصية حساسة."
+              : "Application exception tracking without collecting sensitive PII."}
           </li>
         </ul>
       </section>
 
       {/* Section 5 */}
       <section className="space-y-4">
-        <h2 className="text-xl font-semibold">5. {ar ? "أمن البيانات" : "Data Security"}</h2>
-        <p className="text-muted-foreground leading-relaxed">
+        <h2 className="text-xl font-bold">
+          5. {ar ? "التدابير الأمنية وحماية الأنظمة" : "Security Measures & Encryption"}
+        </h2>
+        <p className="text-muted-foreground leading-relaxed text-sm">
           {ar
-            ? "نطبق إجراءات أمنية متعددة الطبقات تشمل: تشفير البيانات أثناء النقل (TLS/HTTPS)، قواعد أمان Firestore المقيدة، المصادقة عبر Google OAuth 2.0 الموثوقة، ومراقبة الأخطاء في الوقت الحقيقي. على الرغم من هذه الإجراءات، لا يمكن ضمان الأمان المطلق عبر الإنترنت."
-            : "We implement multi-layer security measures including: data encryption in transit (TLS/HTTPS), restrictive Firestore security rules, authentication via trusted Google OAuth 2.0, and real-time error monitoring. Despite these measures, no absolute security over the internet can be guaranteed."}
+            ? "نطبق أعلى المعايير الهندسية لحماية البيانات، وتتضمن: التشفير الشامل أثناء النقل (TLS 1.3 / HTTPS)، التشفير في وضع السكون (AES-256)، قواعد أمان سحابية مقيدة (Firestore Security Rules) مع التحقق من الهوية على مستوى الخادم (Role-Based Access Control)، ونظام تحديد معدل الطلبات (Rate Limiting) لمنع الهجمات الموجهة."
+            : "We enforce rigorous engineering safeguards including: in-transit encryption (TLS 1.3 / HTTPS), at-rest database encryption (AES-256), fine-grained Firestore security rules with server-side role validation, and distributed rate limiting to neutralize automated attacks."}
         </p>
       </section>
 
       {/* Section 6 */}
       <section className="space-y-4">
-        <h2 className="text-xl font-semibold">
-          6. {ar ? "مدة الاحتفاظ بالبيانات" : "Data Retention"}
+        <h2 className="text-xl font-bold">
+          6. {ar ? "حقوق الطالب بموجب القانون المصري" : "Student Rights Under Law No. 151/2020"}
         </h2>
-        <p className="text-muted-foreground leading-relaxed">
-          {ar
-            ? "نحتفظ ببياناتك طوال مدة وجود حسابك النشط على المنصة. عند طلب حذف الحساب نهائياً من خلال 'منطقة الخطر' في الإعدادات، يتم حذف جميع بياناتك الشخصية والأكاديمية فوراً ولا يمكن استردادها. قد تُحتفظ بعض البيانات المجهولة الهوية لأغراض إحصائية بعد الحذف."
-            : "We retain your data for the duration your account is active on the platform. Upon requesting permanent account deletion via the 'Danger Zone' in settings, all your personal and academic data is immediately deleted and cannot be recovered. Some anonymized data may be retained for statistical purposes after deletion."}
-        </p>
-      </section>
-
-      {/* Section 7 */}
-      <section className="space-y-4">
-        <h2 className="text-xl font-bold">7. {ar ? "حقوقك القانونية" : "Your Legal Rights"}</h2>
-        <div className="space-y-3 text-muted-foreground leading-relaxed">
+        <div className="space-y-3 text-muted-foreground leading-relaxed text-sm">
           <p>
             {ar
-              ? "وفقاً للقوانين المعمول بها، يحق لك:"
-              : "Under applicable law, you have the right to:"}
+              ? "بموجب قانون حماية البيانات الشخصية المصري رقم 151 لسنة 2020، يتمتع كل طالب بالحقوق الآتية:"
+              : "Under Egyptian Law No. 151 of 2020, students retain the following statutory rights:"}
           </p>
           <ul className="list-disc list-inside space-y-2 ml-4">
             <li>
               {ar
-                ? "الوصول إلى بياناتك الشخصية التي نحتفظ بها"
-                : "Access the personal data we hold about you"}
+                ? "الحق في الاطلاع على كافة البيانات الشخصية المخزنة عنه وطلب نسخة منها."
+                : "Right to access and inspect all held personal data."}
             </li>
-            <li>{ar ? "تصحيح البيانات غير الدقيقة" : "Correct inaccurate data"}</li>
             <li>
               {ar
-                ? "طلب حذف بياناتك (الحق في النسيان)"
-                : "Request deletion of your data (right to be forgotten)"}
+                ? "الحق في تصحيح أو تحديث أي بيانات غير دقيقة أو ناقصة."
+                : "Right to rectify or update inaccurate academic records."}
             </li>
-            <li>{ar ? "الاعتراض على معالجة بياناتك" : "Object to the processing of your data"}</li>
             <li>
               {ar
-                ? "نقل بياناتك إلى خدمة أخرى عند الإمكان"
-                : "Port your data to another service where possible"}
+                ? "الحق في حذف الحساب والبيانات نهائياً (الحق في النسيان) ذاتياً من إعدادات الحساب."
+                : "Right to permanent account deletion (right to be forgotten) directly via Account Settings."}
+            </li>
+            <li>
+              {ar
+                ? "الحق في سحب الموافقة على ملفات تعريف الارتباط أو التتبع في أي وقت."
+                : "Right to revoke cookie or analytics consent at any time."}
             </li>
           </ul>
-          <p className="p-4 bg-amber-500/5 border border-amber-500/20 rounded-2xl text-amber-600 dark:text-amber-400 font-medium text-sm">
-            {ar
-              ? "ملاحظة: حذف الحساب إجراء نهائي لا يمكن التراجع عنه. يؤدي إلى مسح جميع سجلاتك الأكاديمية ونشاطاتك في المنصة بشكل دائم."
-              : "Note: Account deletion is a permanent and irreversible action. It will permanently erase all your academic records and platform activities."}
-          </p>
         </div>
       </section>
 
-      {/* Section 8 */}
+      {/* Section 7 */}
       <section className="space-y-4">
-        <h2 className="text-xl font-semibold">
-          8. {ar ? "خصوصية القاصرين" : "Children's Privacy"}
+        <h2 className="text-xl font-bold">
+          7. {ar ? "سياسة الاسترداد والروابط القانونية" : "Related Policies & Refund Terms"}
         </h2>
-        <p className="text-muted-foreground leading-relaxed">
+        <p className="text-muted-foreground leading-relaxed text-sm">
           {ar
-            ? "المنصة مخصصة لطلاب المعاهد العليا (18 عاماً فأكثر). لا نجمع عن قصد بيانات من أشخاص دون 16 عاماً. إن اكتشفنا أن مستخدماً دون هذا العمر قد سجّل حسابه، سنقوم بحذف حسابه فوراً."
-            : "The platform is intended for higher institute students (18 years and older). We do not knowingly collect data from persons under 16 years of age. If we discover that a user under this age has registered, we will immediately delete their account."}
+            ? "تتكامل هذه السياسة مع شروط الاستخدام وسياسة ملفات تعريف الارتباط وسياسة الاسترداد الخاصة بالمنصة:"
+            : "This policy works in tandem with the platform Terms of Service, Cookie Policy, and Refund Policy:"}
         </p>
+        <div className="flex flex-wrap gap-4 text-sm font-semibold text-primary">
+          <Link href="/legal/terms" className="hover:underline">
+            {ar ? "شروط الاستخدام" : "Terms of Service"}
+          </Link>
+          <span>•</span>
+          <Link href="/legal/cookies" className="hover:underline">
+            {ar ? "سياسة ملفات تعريف الارتباط" : "Cookie Policy"}
+          </Link>
+          <span>•</span>
+          <Link href="/legal/refund" className="hover:underline">
+            {ar ? "سياسة الاسترداد والإلغاء" : "Refund Policy"}
+          </Link>
+        </div>
       </section>
 
-      {/* Section 9 */}
-      <section className="space-y-4">
-        <h2 className="text-xl font-semibold">
-          9. {ar ? "التغييرات على هذه السياسة" : "Changes to This Policy"}
-        </h2>
-        <p className="text-muted-foreground leading-relaxed">
+      {/* Official Business Details Footer Card */}
+      <div className="p-6 bg-card rounded-2xl border border-border text-center space-y-2 mt-8">
+        <p className="text-xs font-bold text-foreground">
           {ar
-            ? "نحتفظ بالحق في تعديل هذه السياسة في أي وقت. سيتم إخطار المستخدمين بالتغييرات الجوهرية عبر إشعار داخل المنصة. يُشكّل استمرار استخدامك للمنصة بعد نشر التعديلات موافقةً على السياسة المحدثة."
-            : "We reserve the right to modify this policy at any time. Users will be notified of material changes via an in-platform notification. Continued use of the platform after changes are published constitutes acceptance of the updated policy."}
+            ? "معاهد العبور العليا - معهد العبور العالي للهندسة والتكنولوجيا ومعهد الإدارة والحاسبات"
+            : "Obour Higher Institutes - Engineering, Technology, Management & Computer Science"}
         </p>
-      </section>
-
-      {/* Section 10 — Contact */}
-      <section className="space-y-4">
-        <h2 className="text-xl font-semibold">10. {ar ? "التواصل معنا" : "Contact Us"}</h2>
-        <p className="text-muted-foreground leading-relaxed">
+        <p className="text-xs text-muted-foreground">
           {ar
-            ? "لأي استفسارات تتعلق بالخصوصية أو طلبات البيانات، يمكنك التواصل معنا من خلال نظام الدعم الفني داخل المنصة، أو عبر البريد الإلكتروني لإدارة معاهد العبور."
-            : "For any privacy inquiries or data requests, you can contact us through the in-platform support system, or via the Obour Institutes administration email."}
+            ? "معتمدة من وزارة التعليم العالي والبحث العلمي - جمهورية مصر العربية"
+            : "Accredited by the Ministry of Higher Education & Scientific Research - Arab Republic of Egypt"}
         </p>
-      </section>
-
-      <div className="p-6 bg-muted/40 rounded-2xl border border-border text-center mt-8">
-        <p className="text-sm text-muted-foreground">
+        <p className="text-[11px] text-muted-foreground/70">
           {ar
-            ? "© 2026 معاهد العبور للحاسبات والمعلومات. جميع الحقوق محفوظة. هذه السياسة خاضعة للقانون المصري."
-            : "© 2026 Obour Institutes of Computer Science and Information. All rights reserved. This policy is governed by Egyptian law."}
+            ? "العنوان: الكيلو 21 طريق القاهرة بلبيس الصحراوي، مدينة العبور، محافظة القليوبية، مصر"
+            : "Campus: Km 21 Cairo-Belbeis Desert Road, Obour City, Qalyubia Governorate, Egypt"}
         </p>
       </div>
     </div>

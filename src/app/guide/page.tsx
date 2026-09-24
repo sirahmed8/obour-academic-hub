@@ -53,8 +53,8 @@ const RULES = [
     descEn:
       "Your personal data and 6-digit student code are secured under enterprise encryption standards.",
     icon: Lock,
-    color: "text-purple-500",
-    bg: "bg-purple-500/10",
+    color: "text-primary",
+    bg: "bg-primary/10",
   },
   {
     titleAr: "جودة المحتوى الأكاديمي",
@@ -86,7 +86,7 @@ const FEATURES = [
     descAr: "أنشئ اختبارات شخصية بالذكاء الاصطناعي لأي مادة وراجع بكفاءة.",
     descEn: "Generate personalized AI-powered quizzes for any subject and review efficiently.",
     href: "/quiz",
-    color: "from-purple-600 to-pink-600",
+    color: "from-blue-600 to-cyan-600",
   },
   {
     icon: Trophy,
@@ -131,7 +131,7 @@ const FEATURES = [
     descAr: "تبادل الكتب والأدوات الهندسية ومعدات المعامل مع الزملاء.",
     descEn: "Exchange textbooks, engineering tools, and lab kits with fellow students.",
     href: "/market",
-    color: "from-violet-600 to-purple-600",
+    color: "from-amber-600 to-orange-600",
   },
   {
     icon: GraduationCap,
@@ -248,7 +248,7 @@ export default function GuidePage() {
           </div>
 
           <h1 className="text-3xl sm:text-5xl font-black text-foreground font-harman">
-            {isAr ? "دليل استخدام منصة العبور الأكاديمية" : "Obour Academic Hub — Complete Guide"}
+            {isAr ? "دليل استخدام منصة العبور الأكاديمية" : "Obour Academic Hub: Complete Guide"}
           </h1>
 
           <p className="text-muted-foreground text-sm sm:text-base font-medium max-w-3xl">

@@ -159,7 +159,7 @@ export function Dashboard() {
                     ))}
                     {language === "ar" ? "،" : ","}{" "}
                     <span className="inline-block whitespace-nowrap">
-                      <span className="bg-gradient-to-r from-indigo-400 via-white to-purple-300 bg-clip-text text-transparent inline-block hover:scale-105 transition-transform duration-300 cursor-default font-extrabold">
+                      <span className="bg-gradient-to-r from-primary via-sky-400 to-primary bg-clip-text text-transparent inline-block hover:scale-105 transition-transform duration-300 cursor-default font-extrabold">
                         {user?.displayName?.split(" ")[0]}
                       </span>
                       <motion.span

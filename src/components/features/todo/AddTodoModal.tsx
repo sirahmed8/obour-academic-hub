@@ -517,15 +517,15 @@ export function AddTodoModal({
                     type="button"
                     disabled={!title.trim() || isGeneratingSubtasks}
                     onClick={handleAISubtaskBreakdown}
-                    className="inline-flex items-center gap-1.5 text-xs px-2.5 py-1 rounded-lg bg-purple-500/10 hover:bg-purple-500/20 text-purple-300 border border-purple-500/20 transition-all font-bold disabled:opacity-40"
+                    className="inline-flex items-center gap-1.5 text-xs px-2.5 py-1 rounded-lg bg-primary/10 hover:bg-primary/20 text-primary border border-primary/20 transition-all font-bold disabled:opacity-40"
                   >
                     {isGeneratingSubtasks ? (
                       <Loader2 className="w-3.5 h-3.5 animate-spin" />
                     ) : (
-                      <Sparkles className="w-3.5 h-3.5 text-purple-400" />
+                      <Sparkles className="w-3.5 h-3.5 text-primary" />
                     )}
                     <span>
-                      {language === "ar" ? "تقسيم بالذكاء الاصطناعي ✨" : "AI Auto-Breakdown ✨"}
+                      {language === "ar" ? "تقسيم بالذكاء الاصطناعي" : "AI Auto-Breakdown"}
                     </span>
                   </button>
                 </div>

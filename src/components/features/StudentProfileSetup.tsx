@@ -102,8 +102,8 @@ export function StudentProfileSetup({ onComplete }: StudentProfileSetupProps) {
       await updateProfile(updates);
       toast.success(
         language === "ar"
-          ? "🎉 تم حفظ ملفك الشخصي بنجاح! مرحباً بك في معهد العبور"
-          : "🎉 Profile saved successfully! Welcome to Obour Hub",
+          ? "تم حفظ ملفك الشخصي بنجاح. مرحباً بك في معهد العبور"
+          : "Profile saved successfully. Welcome to Obour Hub",
         { duration: 4000 }
       );
       onComplete();
@@ -131,7 +131,7 @@ export function StudentProfileSetup({ onComplete }: StudentProfileSetupProps) {
             initial={{ width: "50%" }}
             animate={{ width: step === 1 ? "50%" : "100%" }}
             transition={{ duration: 0.4 }}
-            className="h-full bg-gradient-to-r from-primary via-indigo-500 to-purple-600"
+            className="h-full bg-primary"
           />
         </div>
 

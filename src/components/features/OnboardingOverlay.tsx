@@ -21,8 +21,8 @@ const slides = [
   {
     key: "slide2",
     icon: Rocket,
-    color: "from-primary to-purple-500",
-    title: { en: "Get started!", ar: "يلا نبدأ!" },
+    color: "from-primary to-blue-600",
+    title: { en: "Get started", ar: "ابدأ الآن" },
     desc: { en: "", ar: "" },
   },
 ];

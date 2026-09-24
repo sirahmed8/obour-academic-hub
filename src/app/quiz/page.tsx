@@ -290,7 +290,7 @@ export default function QuizPage() {
                       initial={{ width: 0 }}
                       animate={{ width: `${((currentIndex + 1) / quiz.questions.length) * 100}%` }}
                       transition={{ duration: 0.4 }}
-                      className="h-full bg-gradient-to-r from-primary via-indigo-500 to-purple-600 rounded-full"
+                      className="h-full bg-primary rounded-full"
                     />
                   </div>
 

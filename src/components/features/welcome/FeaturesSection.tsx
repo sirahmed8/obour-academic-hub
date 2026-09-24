@@ -176,7 +176,7 @@ export function FeaturesSection() {
               {activeTab === "community" && (
                 <div className="flex flex-col md:flex-row items-center gap-8">
                   <div className="flex-1 space-y-4">
-                    <div className="inline-flex items-center gap-2 px-3 py-1 rounded-lg bg-purple-500/20 text-purple-400 font-bold text-xs">
+                    <div className="inline-flex items-center gap-2 px-3 py-1 rounded-lg bg-amber-500/20 text-amber-400 font-bold text-xs">
                       <Award size={14} /> Student Hall of Fame
                     </div>
                     <h3 className="text-2xl font-bold text-white">

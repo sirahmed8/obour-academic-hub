@@ -183,7 +183,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
           label: "Activate Solid Mode",
           onClick: () => {
             toggleSolidMode();
-            toast.success("Solid Mode Activated 🚀");
+            toast.success(language === "ar" ? "تم تفعيل الوضع الخفيف" : "Solid Mode Activated");
           },
         },
         duration: 8000,
@@ -209,7 +209,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
     }
 
     return () => clearTimeout(timeTimer);
-  }, [user, isSolid, toggleSolidMode, isLagging, isLowEndDevice]);
+  }, [user, isSolid, toggleSolidMode, isLagging, isLowEndDevice, language]);
 
   if (loading) {
     return <LoadingPage />;
@@ -261,7 +261,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                   href="https://linktr.ee/sir.ahmed"
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="inline-flex items-center gap-2 px-6 py-3 bg-primary text-primary-foreground rounded-full font-medium hover:bg-primary/90 transition-all shadow-lg"
+                  className="inline-flex items-center gap-2 px-6 py-3 bg-primary text-primary-foreground rounded-xl font-medium hover:bg-primary/90 transition-all shadow-lg"
                 >
                   <ExternalLink className="w-4 h-4" />
                   {language === "ar" ? "تواصل مع المطور" : "Connect with Developer"}
@@ -278,6 +278,23 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                   <Link href="/legal/cookies" className="hover:text-primary transition-colors">
                     {language === "ar" ? "ملفات الارتباط" : "Cookie Policy"}
                   </Link>
+                  <span>•</span>
+                  <Link href="/legal/refund" className="hover:text-primary transition-colors">
+                    {language === "ar" ? "سياسة الاسترجاع" : "Refund Policy"}
+                  </Link>
+                </div>
+
+                <div className="max-w-3xl mx-auto px-4 text-[11px] text-muted-foreground/60 space-y-1 leading-relaxed">
+                  <p className="font-semibold text-foreground/75">
+                    {language === "ar"
+                      ? "معاهد العبور العليا (معهد العبور العالي للهندسة والتكنولوجيا - معهد العبور العالي للإدارة والحاسبات ونظم المعلومات)"
+                      : "Obour Higher Institutes (Higher Institute for Engineering & Technology - Higher Institute for Management & Computer Science)"}
+                  </p>
+                  <p>
+                    {language === "ar"
+                      ? "معتمدة من وزارة التعليم العالي والبحث العلمي - جمهورية مصر العربية | الكيلو 21 طريق القاهرة بلبيس الصحراوي، مدينة العبور"
+                      : "Accredited by the Ministry of Higher Education & Scientific Research - Arab Republic of Egypt | Km 21 Cairo-Belbeis Desert Road, Obour City"}
+                  </p>
                 </div>
 
                 <p className="text-[10px] text-muted-foreground/40">

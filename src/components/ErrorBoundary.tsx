@@ -68,7 +68,7 @@ export class ErrorBoundary extends Component<Props, State> {
         <div className="min-h-screen w-full flex items-center justify-center bg-background relative overflow-hidden">
           {/* Background Decorative Elements */}
           <div className="absolute top-[-10%] right-[-10%] w-[40%] h-[40%] bg-primary/10 blur-[120px] rounded-full" />
-          <div className="absolute bottom-[-10%] left-[-10%] w-[40%] h-[40%] bg-purple-500/10 blur-[120px] rounded-full" />
+          <div className="absolute bottom-[-10%] left-[-10%] w-[40%] h-[40%] bg-primary/5 blur-[120px] rounded-full" />
 
           <div className="relative z-10 w-full max-w-md p-8 mx-4">
             <div className="bg-card/40 backdrop-blur-3xl border border-border/50 rounded-[2.5rem] p-10 shadow-2xl flex flex-col items-center text-center gap-8">

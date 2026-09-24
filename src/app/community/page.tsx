@@ -55,13 +55,13 @@ const CATEGORIES = [
     label: "XP Points",
     labelAr: "نقاط الخبرة",
     icon: Zap,
-    color: "from-purple-600 to-indigo-600",
-    accent: "purple",
+    color: "from-sky-600 to-blue-600",
+    accent: "blue",
   },
   {
     id: "streak",
-    label: "Streaks 🔥",
-    labelAr: "السلاسل 🔥",
+    label: "Streaks",
+    labelAr: "السلاسل",
     icon: Flame,
     color: "from-orange-600 to-red-600",
     accent: "orange",
@@ -76,8 +76,8 @@ const CATEGORIES = [
   },
   {
     id: "battles",
-    label: "Battles ⚔️",
-    labelAr: "المعارك ⚔️",
+    label: "Battles",
+    labelAr: "المعارك",
     icon: Swords,
     color: "from-blue-600 to-cyan-600",
     accent: "blue",
@@ -181,7 +181,7 @@ function Podium({
           {/* Name */}
           <div className="text-center">
             <p className="text-xs font-bold text-foreground truncate max-w-[72px] group-hover:text-primary transition-colors">
-              {entry?.name?.split(" ")[0] ?? "—"}
+              {entry?.name?.split(" ")[0] ?? "-"}
             </p>
             <p className="text-[10px] text-muted-foreground font-semibold">
               {(entry?.points ?? 0).toLocaleString()} XP
@@ -260,7 +260,7 @@ function LeaderRow({
       <div
         className={cn(
           "w-9 h-9 rounded-full flex items-center justify-center text-white font-black text-sm flex-shrink-0",
-          `bg-gradient-to-br ${CATEGORIES.find((c) => c.id === category)?.color ?? "from-purple-600 to-indigo-600"}`
+          `bg-gradient-to-br ${CATEGORIES.find((c) => c.id === category)?.color ?? "from-sky-600 to-blue-600"}`
         )}
       >
         {entry.name?.[0]?.toUpperCase() ?? "?"}
@@ -485,7 +485,7 @@ export default function CommunityLeaderboardPage() {
                     label: isAr ? "متوسط XP" : "Avg XP",
                     value: avgXP.toLocaleString(),
                     icon: Zap,
-                    color: "text-purple-400",
+                    color: "text-primary",
                   },
                   {
                     label: isAr ? "أعلى سلسلة" : "Top Streak",
@@ -495,7 +495,7 @@ export default function CommunityLeaderboardPage() {
                   },
                   {
                     label: isAr ? "ترتيبك" : "Your Rank",
-                    value: myRank > 0 ? `#${myRank}` : "—",
+                    value: myRank > 0 ? `#${myRank}` : "-",
                     icon: Target,
                     color: "text-emerald-400",
                   },
@@ -570,7 +570,7 @@ export default function CommunityLeaderboardPage() {
                   onClick={() => user?.uid && setSelectedUserUid(user.uid)}
                   className="bg-primary/10 border border-primary/30 rounded-2xl px-4 py-3 flex items-center gap-3 shadow-sm cursor-pointer hover:bg-primary/15 transition-colors"
                 >
-                  <div className="w-8 h-8 rounded-full bg-gradient-to-br from-primary to-purple-600 flex items-center justify-center text-white font-black text-sm">
+                  <div className="w-8 h-8 rounded-full bg-primary flex items-center justify-center text-primary-foreground font-black text-sm">
                     {user?.displayName?.[0]?.toUpperCase() ?? "?"}
                   </div>
                   <div className="flex-1 min-w-0">
@@ -728,7 +728,7 @@ export default function CommunityLeaderboardPage() {
                       xp: "+100 XP",
                       progress: 0,
                       total: 1,
-                      color: "bg-purple-500",
+                      color: "bg-primary",
                     },
                   ].map((challenge, i) => (
                     <motion.div

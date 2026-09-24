@@ -384,18 +384,18 @@ export default function TranscribePage() {
                   <div className="flex items-center gap-2 flex-wrap">
                     <Link
                       href={`/quiz?subject=${encodeURIComponent(subjectName)}&topic=${encodeURIComponent(lectureTitle || "Lecture Summary")}`}
-                      className="px-3 py-1.5 rounded-xl bg-purple-500/10 hover:bg-purple-500/20 text-purple-600 dark:text-purple-400 font-extrabold text-xs flex items-center gap-1 border border-purple-500/20 transition active:scale-95"
+                      className="px-3 py-1.5 rounded-xl bg-primary/10 hover:bg-primary/20 text-primary font-bold text-xs flex items-center gap-1 border border-primary/20 transition active:scale-95"
                     >
                       <Sparkles size={14} />
-                      <span>{isRtl ? "إنشاء اختبار 🎯" : "Generate Quiz 🎯"}</span>
+                      <span>{isRtl ? "إنشاء اختبار" : "Generate Quiz"}</span>
                     </Link>
 
                     <Link
                       href={`/mindmap?subject=${encodeURIComponent(subjectName)}&topic=${encodeURIComponent(lectureTitle || "Lecture Summary")}`}
-                      className="px-3 py-1.5 rounded-xl bg-indigo-500/10 hover:bg-indigo-500/20 text-indigo-600 dark:text-indigo-400 font-extrabold text-xs flex items-center gap-1 border border-indigo-500/20 transition active:scale-95"
+                      className="px-3 py-1.5 rounded-xl bg-indigo-500/10 hover:bg-indigo-500/20 text-indigo-600 dark:text-indigo-400 font-bold text-xs flex items-center gap-1 border border-indigo-500/20 transition active:scale-95"
                     >
                       <Layers size={14} />
-                      <span>{isRtl ? "خريطة ذهنية 🧠" : "Mind Map 🧠"}</span>
+                      <span>{isRtl ? "خريطة ذهنية" : "Mind Map"}</span>
                     </Link>
 
                     <button

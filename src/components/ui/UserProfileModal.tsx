@@ -255,7 +255,7 @@ export function UserProfileModal({ uid, onClose }: UserProfileModalProps) {
                             className="w-14 h-14 rounded-full object-cover border-2 border-primary/30"
                           />
                         ) : (
-                          <div className="w-14 h-14 rounded-full bg-gradient-to-br from-primary to-purple-600 flex items-center justify-center text-white font-black text-lg">
+                          <div className="w-14 h-14 rounded-full bg-primary flex items-center justify-center text-primary-foreground font-black text-lg">
                             {initials}
                           </div>
                         )}
@@ -309,7 +309,7 @@ export function UserProfileModal({ uid, onClose }: UserProfileModalProps) {
                         icon={Zap}
                         label="XP"
                         value={profile.points.toLocaleString()}
-                        color="text-purple-400"
+                        color="text-primary"
                       />
                       <StatBadge
                         icon={Flame}
