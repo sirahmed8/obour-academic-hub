@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import { useLanguage } from "@/contexts";
 import { ChatSession } from "@/types";
 import { cn } from "@/lib/utils";
-import { MessageSquare, Pin, Search, CheckCheck, Trash2 } from "lucide-react";
+import { MessageSquare, Pin, Search, CheckCheck, Trash2, Headphones, Bot } from "lucide-react";
 import Image from "next/image";
 import { motion, AnimatePresence } from "framer-motion";
 import { ScaleIn } from "@/components/ui/Animations";
@@ -175,12 +175,14 @@ export function ChatList({
                           {session.userName}
                         </h3>
                         {session.userId.endsWith("_support") ? (
-                          <span className="text-[10px] bg-green-500/10 text-green-400 px-2 py-0.5 rounded-full border border-green-500/20 shrink-0 w-fit mt-1">
-                            🎧 Live Support
+                          <span className="text-[10px] bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 px-2 py-0.5 rounded-full border border-emerald-500/20 shrink-0 w-fit mt-1 flex items-center gap-1 font-semibold">
+                            <Headphones size={10} />
+                            <span>Live Support</span>
                           </span>
                         ) : (
-                          <span className="text-[10px] bg-purple-500/10 text-purple-400 px-2 py-0.5 rounded-full border border-purple-500/20 shrink-0 w-fit mt-1">
-                            🧠 AI Chat
+                          <span className="text-[10px] bg-primary/10 text-primary px-2 py-0.5 rounded-full border border-primary/20 shrink-0 w-fit mt-1 flex items-center gap-1 font-semibold">
+                            <Bot size={10} />
+                            <span>AI Chat</span>
                           </span>
                         )}
                       </div>

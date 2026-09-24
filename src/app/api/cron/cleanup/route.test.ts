@@ -46,6 +46,7 @@ vi.mock("@/lib/server/cors", () => ({
 vi.mock("@/lib/server/error-sanitizer", () => ({
   logServerError: vi.fn(),
   logServerInfo: vi.fn(),
+  logServerWarning: vi.fn(),
 }));
 
 describe("GET /api/cron/cleanup", () => {

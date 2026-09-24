@@ -16,6 +16,9 @@ import {
   BarChart2,
   Target,
   Sparkles,
+  Gem,
+  Medal,
+  Brain,
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { collection, query, orderBy, limit, onSnapshot, getDocs } from "firebase/firestore";
@@ -95,7 +98,7 @@ const LEAGUES = [
     bg: "bg-cyan-500/10",
     border: "border-cyan-500/30",
     min: 5000,
-    emoji: "💎",
+    icon: Gem,
   },
   {
     name: "Gold",
@@ -104,7 +107,7 @@ const LEAGUES = [
     bg: "bg-amber-500/10",
     border: "border-amber-500/30",
     min: 2000,
-    emoji: "🥇",
+    icon: Trophy,
   },
   {
     name: "Silver",
@@ -113,7 +116,7 @@ const LEAGUES = [
     bg: "bg-slate-500/10",
     border: "border-slate-500/30",
     min: 1000,
-    emoji: "🥈",
+    icon: Medal,
   },
   {
     name: "Bronze",
@@ -122,7 +125,7 @@ const LEAGUES = [
     bg: "bg-orange-500/10",
     border: "border-orange-500/30",
     min: 0,
-    emoji: "🥉",
+    icon: Award,
   },
 ];
 
@@ -148,7 +151,6 @@ function Podium({
     "from-amber-500 to-yellow-400",
     "from-orange-600 to-amber-500",
   ];
-  const crowns = ["🥈", "🥇", "🥉"];
 
   return (
     <div className="flex items-end justify-center gap-3 pt-4 pb-2 px-2">
@@ -176,7 +178,15 @@ function Podium({
             >
               {entry?.name?.[0]?.toUpperCase() ?? "?"}
             </div>
-            <span className="absolute -top-2 -right-1 text-base">{crowns[idx]}</span>
+            <span className="absolute -top-2 -right-1 p-1 rounded-full bg-card shadow-sm border border-border">
+              {idx === 1 ? (
+                <Trophy size={14} className="text-amber-400" />
+              ) : idx === 0 ? (
+                <Medal size={14} className="text-slate-300" />
+              ) : (
+                <Award size={14} className="text-orange-400" />
+              )}
+            </span>
           </div>
           {/* Name */}
           <div className="text-center">
@@ -232,7 +242,7 @@ function LeaderRow({
           ? `${entry.resourceCount} files`
           : `${entry.battleWins} wins`;
 
-  const medal = entry.rank === 1 ? "🥇" : entry.rank === 2 ? "🥈" : entry.rank === 3 ? "🥉" : null;
+  const LeagueIcon = league.icon;
 
   return (
     <motion.div
@@ -248,9 +258,13 @@ function LeaderRow({
       )}
     >
       {/* Rank */}
-      <div className="w-8 text-center flex-shrink-0">
-        {medal ? (
-          <span className="text-xl">{medal}</span>
+      <div className="w-8 flex items-center justify-center flex-shrink-0">
+        {entry.rank === 1 ? (
+          <Trophy size={18} className="text-amber-400" />
+        ) : entry.rank === 2 ? (
+          <Medal size={18} className="text-slate-300" />
+        ) : entry.rank === 3 ? (
+          <Award size={18} className="text-orange-400" />
         ) : (
           <span className="text-sm font-black text-muted-foreground">#{entry.rank}</span>
         )}
@@ -289,7 +303,7 @@ function LeaderRow({
           league.color
         )}
       >
-        <span>{league.emoji}</span>
+        <LeagueIcon size={12} />
         <span>{league.name}</span>
       </div>
 
@@ -321,11 +335,11 @@ export default function CommunityLeaderboardPage() {
     getDocs(query(collection(db, "users"), orderBy("points", "desc"), limit(10)))
       .then((snap) => {
         const badges = [
-          isAr ? "كأس التخرج الذهبي 🏆" : "Golden Graduation Trophy 🏆",
-          isAr ? "بطل التركيز 🥇" : "Focus Master 🥇",
-          isAr ? "رائد المجتمع الأكاديمي 🥈" : "Community Pioneer 🥈",
-          isAr ? "نجم الفصل الدراسي ⭐" : "Semester Star ⭐",
-          isAr ? "مثابر ممتاز 💪" : "Top Perseverer 💪",
+          isAr ? "كأس التخرج الذهبي" : "Golden Graduation Trophy",
+          isAr ? "بطل التركيز" : "Focus Master",
+          isAr ? "رائد المجتمع الأكاديمي" : "Community Pioneer",
+          isAr ? "نجم الفصل الدراسي" : "Semester Star",
+          isAr ? "مثابر ممتاز" : "Top Perseverer",
         ];
         const list: HallOfFameUser[] = [];
         let r = 1;
@@ -582,7 +596,14 @@ export default function CommunityLeaderboardPage() {
                       {myEntry.points.toLocaleString()} XP • {myEntry.streakDays} day streak
                     </p>
                   </div>
-                  <div className="text-2xl">{getLeague(myEntry.points).emoji}</div>
+                  {(() => {
+                    const LeagueIcon = getLeague(myEntry.points).icon;
+                    return (
+                      <div className="p-2 rounded-xl bg-card border border-border/50 shadow-xs">
+                        <LeagueIcon className={cn("w-6 h-6", getLeague(myEntry.points).color)} />
+                      </div>
+                    );
+                  })()}
                 </div>
               </FadeIn>
             )}
@@ -660,7 +681,14 @@ export default function CommunityLeaderboardPage() {
                           userInLeague ? "ring-1 ring-primary/40" : ""
                         )}
                       >
-                        <span className="text-xl">{league.emoji}</span>
+                        {(() => {
+                          const LeagueIcon = league.icon;
+                          return (
+                            <div className="p-1.5 rounded-xl bg-card/60 border border-border/40 shrink-0">
+                              <LeagueIcon className={cn("w-5 h-5", league.color)} />
+                            </div>
+                          );
+                        })()}
                         <div className="flex-1 min-w-0">
                           <p className={cn("text-sm font-black", league.color)}>{league.name}</p>
                           <p className="text-[11px] text-muted-foreground">
@@ -695,7 +723,7 @@ export default function CommunityLeaderboardPage() {
                 <div className="p-3 space-y-3">
                   {[
                     {
-                      emoji: "📚",
+                      icon: BookOpen,
                       title: "Upload 3 resources",
                       desc: "Share notes or slides",
                       xp: "+150 XP",
@@ -704,7 +732,7 @@ export default function CommunityLeaderboardPage() {
                       color: "bg-emerald-500",
                     },
                     {
-                      emoji: "🔥",
+                      icon: Flame,
                       title: "5-day study streak",
                       desc: "Study every day this week",
                       xp: "+200 XP",
@@ -713,7 +741,7 @@ export default function CommunityLeaderboardPage() {
                       color: "bg-orange-500",
                     },
                     {
-                      emoji: "⚔️",
+                      icon: Swords,
                       title: "Win 2 study battles",
                       desc: "Defeat opponents in 1v1",
                       xp: "+300 XP",
@@ -722,7 +750,7 @@ export default function CommunityLeaderboardPage() {
                       color: "bg-blue-500",
                     },
                     {
-                      emoji: "🧠",
+                      icon: Brain,
                       title: "Complete a quiz",
                       desc: "Score 80%+ on any quiz",
                       xp: "+100 XP",
@@ -730,39 +758,49 @@ export default function CommunityLeaderboardPage() {
                       total: 1,
                       color: "bg-primary",
                     },
-                  ].map((challenge, i) => (
-                    <motion.div
-                      key={i}
-                      initial={{ opacity: 0, y: 12 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      transition={{ delay: i * 0.08, type: "spring", stiffness: 300, damping: 25 }}
-                      className="bg-background/50 rounded-2xl p-3 border border-border/30"
-                    >
-                      <div className="flex items-start gap-2 mb-2">
-                        <span className="text-base">{challenge.emoji}</span>
-                        <div className="flex-1 min-w-0">
-                          <p className="text-xs font-black text-foreground">{challenge.title}</p>
-                          <p className="text-[10px] text-muted-foreground">{challenge.desc}</p>
+                  ].map((challenge, i) => {
+                    const ChallengeIcon = challenge.icon;
+                    return (
+                      <motion.div
+                        key={i}
+                        initial={{ opacity: 0, y: 12 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{
+                          delay: i * 0.08,
+                          type: "spring",
+                          stiffness: 300,
+                          damping: 25,
+                        }}
+                        className="bg-background/50 rounded-2xl p-3 border border-border/30"
+                      >
+                        <div className="flex items-start gap-2.5 mb-2">
+                          <ChallengeIcon size={16} className="text-primary mt-0.5 shrink-0" />
+                          <div className="flex-1 min-w-0">
+                            <p className="text-xs font-black text-foreground">{challenge.title}</p>
+                            <p className="text-[10px] text-muted-foreground">{challenge.desc}</p>
+                          </div>
+                          <span className="text-[10px] font-black text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded-full border border-emerald-500/20 flex-shrink-0">
+                            {challenge.xp}
+                          </span>
                         </div>
-                        <span className="text-[10px] font-black text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded-full border border-emerald-500/20 flex-shrink-0">
-                          {challenge.xp}
-                        </span>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <div className="flex-1 bg-muted/40 rounded-full h-1.5 overflow-hidden">
-                          <motion.div
-                            initial={{ width: 0 }}
-                            animate={{ width: `${(challenge.progress / challenge.total) * 100}%` }}
-                            transition={{ delay: 0.5 + i * 0.1, duration: 0.6 }}
-                            className={cn("h-full rounded-full", challenge.color)}
-                          />
+                        <div className="flex items-center gap-2">
+                          <div className="flex-1 bg-muted/40 rounded-full h-1.5 overflow-hidden">
+                            <motion.div
+                              initial={{ width: 0 }}
+                              animate={{
+                                width: `${(challenge.progress / challenge.total) * 100}%`,
+                              }}
+                              transition={{ delay: 0.5 + i * 0.1, duration: 0.6 }}
+                              className={cn("h-full rounded-full", challenge.color)}
+                            />
+                          </div>
+                          <span className="text-[10px] text-muted-foreground font-semibold">
+                            {challenge.progress}/{challenge.total}
+                          </span>
                         </div>
-                        <span className="text-[10px] text-muted-foreground font-semibold">
-                          {challenge.progress}/{challenge.total}
-                        </span>
-                      </div>
-                    </motion.div>
-                  ))}
+                      </motion.div>
+                    );
+                  })}
                 </div>
               </div>
             </FadeIn>
@@ -848,30 +886,33 @@ export default function CommunityLeaderboardPage() {
                   <div className="mt-4 pt-4 border-t border-white/10 grid grid-cols-3 gap-2">
                     {[
                       {
-                        emoji: "🎯",
+                        icon: Target,
                         label: isAr ? "+50 XP" : "+50 XP",
                         desc: isAr ? "اختبارات" : "Quizzes",
                       },
                       {
-                        emoji: "🔥",
+                        icon: Flame,
                         label: isAr ? "+30 XP" : "+30 XP",
                         desc: isAr ? "سلسلة يومية" : "Daily streak",
                       },
                       {
-                        emoji: "📖",
+                        icon: BookOpen,
                         label: isAr ? "+20 XP" : "+20 XP",
                         desc: isAr ? "ملفات" : "Resources",
                       },
-                    ].map((r) => (
-                      <div
-                        key={r.desc}
-                        className="p-2 rounded-xl bg-white/5 border border-white/10 text-center"
-                      >
-                        <p className="text-base">{r.emoji}</p>
-                        <p className="text-xs font-black text-amber-400">{r.label}</p>
-                        <p className="text-[9px] text-white/50">{r.desc}</p>
-                      </div>
-                    ))}
+                    ].map((r) => {
+                      const RuleIcon = r.icon;
+                      return (
+                        <div
+                          key={r.desc}
+                          className="p-2 rounded-xl bg-white/5 border border-white/10 text-center flex flex-col items-center justify-center gap-1"
+                        >
+                          <RuleIcon size={18} className="text-amber-400" />
+                          <p className="text-xs font-black text-amber-400">{r.label}</p>
+                          <p className="text-[9px] text-white/50">{r.desc}</p>
+                        </div>
+                      );
+                    })}
                   </div>
                 </div>
               </div>

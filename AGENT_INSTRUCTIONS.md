@@ -181,19 +181,34 @@
     - Exported input sanitization function (`sanitizeString`) in `src/lib/zod-schemas.ts`.
     - Verified clean dynamic imports for heavy chart components (`recharts`) and confetti (`canvas-confetti`).
     - Verified zero ESLint errors (0 errors, 0 warnings) and 100% test suite pass rate (131/131 vitest tests passed).
+36. **Legal Compliance, Security Hardening & Cookie Consent** (Checkpoint 40):
+    - Statutory Refund Policy (`/legal/refund`) under Egyptian Consumer Protection Law No. 181 of 2018 with 14-day right of withdrawal.
+    - Statutory Privacy Policy (`/legal/privacy`) under Law 151/2020 and Terms of Service (`/legal/terms`) under Law 175/2018.
+    - Animated `CookieConsent.tsx` component gating non-essential analytics tracking.
+    - Security headers (CSP, HSTS, frame-ancestors, X-Content-Type-Options) in `next.config.ts` and `firebase.json`.
+37. **Zero-Emoji Overhaul, Anti-Sharp Corners UI/UX & Live Deployment** (Checkpoint 41):
+    - Replaced all emojis across community standing, division rows, feature guide pills, student stats, profile badges, focus timer, and todo with high-contrast Lucide icons (`Gem`, `Trophy`, `Medal`, `Award`, `GraduationCap`, `BookOpen`, `BrainCircuit`, `Lock`).
+    - Eliminated sharp corners (`rounded-none`, `rounded-tr-none`, `rounded-tl-none`) across modals and chat speech bubbles, standardizing on smooth `rounded-xl`, `rounded-2xl`, and `rounded-3xl` radii.
+    - Wrapped dialogs in proper `<AnimatePresence>` structures on `VipGrantCelebrationModal`, `UsernameSetupModal`, and `CookieConsent` to ensure smooth open and close exit transitions.
+    - Enforced Upstash/memory rate limiting on `/api/admin/notifications/ai-enhance`, `/api/user/delete`, `/api/admin/users/[uid]/alert`, and `/api/cron/cleanup`.
+    - Static export and live production deployment to Firebase Hosting (`https://obourinstitutes1.web.app`).
 
 ---
 
 ## Verification Metrics
 
 1. **ESLint**:
-   - `npx eslint` -> **0 errors, 0 warnings** (100% clean across all targets).
-2. **Prettier Formatting**:
+   - `npx eslint src/` -> **0 errors, 0 warnings** (100% clean across all targets).
+2. **TypeScript Compilation**:
+   - `npx tsc --noEmit` -> **0 errors** (100% clean across all targets).
+3. **Prettier Formatting**:
    - `npx prettier --check .` -> **All matched files use Prettier code style!**
-3. **Vitest Unit Test Suite**:
+4. **Vitest Unit Test Suite**:
    - `npx vitest run` -> **37 test files passed / 37 total (131 tests passed / 131 total)**.
-4. **Next.js Production Build**:
+5. **Next.js Production Build**:
    - `npm run build` -> **62 / 62 static & dynamic routes compiled cleanly**.
+6. **Firebase Hosting Deploy**:
+   - `npm run deploy:firebase` -> **492 files deployed, version finalized and released**.
 
 ---
 

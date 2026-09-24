@@ -132,11 +132,11 @@ export function UserTableRow({
                   title={
                     language === "ar"
                       ? user.isVip
-                        ? "إلغاء بلس 👑"
-                        : "منح بلس 👑"
+                        ? "إلغاء بلس"
+                        : "منح بلس"
                       : user.isVip
-                        ? "Revoke VIP 👑"
-                        : "Grant VIP 👑"
+                        ? "Revoke VIP"
+                        : "Grant VIP"
                   }
                   className={cn(
                     "flex items-center gap-1 rounded-lg px-2.5 py-1 text-[10px] font-bold transition-all active:scale-95",

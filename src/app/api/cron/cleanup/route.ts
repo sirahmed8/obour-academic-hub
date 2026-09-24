@@ -2,8 +2,8 @@ import { NextResponse } from "next/server";
 import { adminDb, Timestamp } from "@/lib/server/firebase-admin";
 import { logServerError, logServerInfo } from "@/lib/server/error-sanitizer";
 import crypto from "crypto";
-
 import { withCors, corsOptions } from "@/lib/server/cors";
+import { rateLimit } from "@/lib/server/rate-limit";
 
 export async function OPTIONS(request: Request) {
   return corsOptions(request);
@@ -14,11 +14,36 @@ export async function OPTIONS(request: Request) {
  * Triggered by Vercel Cron to clean up old data.
  */
 export async function GET(request: Request) {
-  // 1. Verify Authorization
+  // Rate limit cron invocation
+  const limiter = await rateLimit({
+    key: "api:cron:cleanup",
+    limit: 10,
+    windowMs: 60_000,
+  });
+
+  if (!limiter.allowed) {
+    return withCors(
+      request,
+      NextResponse.json({ error: "Too many cron invocations" }, { status: 429 })
+    );
+  }
+
+  // 1. Verify Authorization - Fail Closed
   const authHeader = request.headers.get("Authorization");
   const cronSecret = process.env.CRON_SECRET;
 
-  if (cronSecret) {
+  if (!cronSecret) {
+    if (process.env.NODE_ENV === "production") {
+      logServerError(
+        "CRON_SECRET is not configured in production",
+        new Error("Missing CRON_SECRET")
+      );
+      return withCors(request, NextResponse.json({ error: "Unauthorized" }, { status: 401 }));
+    }
+    if (authHeader !== "Bearer local-dev-cron") {
+      return withCors(request, NextResponse.json({ error: "Unauthorized" }, { status: 401 }));
+    }
+  } else {
     const expectedAuth = `Bearer ${cronSecret}`;
     const providedAuth = authHeader || "";
     // Avoid timing attacks
@@ -30,8 +55,6 @@ export async function GET(request: Request) {
     ) {
       return withCors(request, NextResponse.json({ error: "Unauthorized" }, { status: 401 }));
     }
-  } else if (authHeader) {
-    return withCors(request, NextResponse.json({ error: "Unauthorized" }, { status: 401 }));
   }
 
   const results: Record<string, number> = {};

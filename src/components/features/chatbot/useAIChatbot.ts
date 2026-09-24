@@ -279,8 +279,8 @@ export function useAIChatbot(): AIChatbotController {
           const welcomeText =
             data.content?.replace(/\[SUGGESTIONS:.*?\]/g, "").trim() ||
             (language === "ar"
-              ? `أهلاً بك يا ${userName}! 🎓 أنا المساعد الذكي لمعاهد العبور، كيف يمكنني مساعدتك اليوم؟`
-              : `Welcome ${userName}! 🎓 I'm your Obour AI Assistant. How can I help you today?`);
+              ? `أهلاً بك يا ${userName}! أنا المساعد الذكي لمعاهد العبور، كيف يمكنني مساعدتك اليوم؟`
+              : `Welcome ${userName}! I'm your Obour AI Assistant. How can I help you today?`);
 
           try {
             sessionStorage.setItem(
@@ -311,8 +311,8 @@ export function useAIChatbot(): AIChatbotController {
           console.error("Failed to generate AI welcome:", err);
           const fallbackText =
             language === "ar"
-              ? `أهلاً بك يا ${userName}! 🎓 كيف يمكنني مساعدتك اليوم في دراستك؟`
-              : `Welcome ${userName}! 🎓 How can I assist you with your studies today?`;
+              ? `أهلاً بك يا ${userName}! كيف يمكنني مساعدتك اليوم في دراستك؟`
+              : `Welcome ${userName}! How can I assist you with your studies today?`;
           setAiMessages(() => [
             {
               id: "ai-welcome-fallback",
@@ -646,8 +646,8 @@ export function useAIChatbot(): AIChatbotController {
 
                 toast.success(
                   languageRef.current === "ar"
-                    ? `📋 تمت إضافة المهمة "${taskTitle}" إلى قائمة مهامك بنجاح!`
-                    : `📋 Task "${taskTitle}" added to your To-Do list!`
+                    ? `تمت إضافة المهمة "${taskTitle}" إلى قائمة مهامك بنجاح!`
+                    : `Task "${taskTitle}" added to your To-Do list!`
                 );
               } catch (parseErr) {
                 console.error("Failed to parse TASK_SPEC from AI:", parseErr);

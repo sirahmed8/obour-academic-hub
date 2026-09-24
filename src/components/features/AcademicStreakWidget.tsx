@@ -244,14 +244,14 @@ export function AcademicStreakWidget() {
                 <div className="flex items-center gap-1.5">
                   <span className="text-2xl font-black text-foreground">{streakDays}</span>
                   <span className="text-xs font-bold text-amber-500 uppercase tracking-wider">
-                    {isAr ? "أيام متتالية 🔥" : "Day Streak 🔥"}
+                    {isAr ? "أيام متتالية" : "Day Streak"}
                   </span>
                 </div>
                 <p className="text-xs text-muted-foreground font-medium mt-0.5">
                   {streakDays >= 7
                     ? isAr
-                      ? "أسبوع كامل متتالي! رائع 🏆"
-                      : "Full week streak! Amazing 🏆"
+                      ? "أسبوع كامل متتالي! رائع"
+                      : "Full week streak! Amazing"
                     : streakDays >= 3
                       ? isAr
                         ? "تتابع دراسي ممتاز هذا الأسبوع"

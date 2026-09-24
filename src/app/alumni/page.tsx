@@ -4,7 +4,8 @@ import { useState, useEffect, useMemo } from "react";
 import { useLanguage, useAuth } from "@/contexts";
 import { GraduationCap, Briefcase, Sparkles, Plus, Search, X } from "lucide-react";
 import { FadeIn, ScaleIn, StaggerChildren } from "@/components/ui/Animations";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
+import Link from "next/link";
 import { toast } from "sonner";
 import { collection, getDocs, query, limit, addDoc, serverTimestamp } from "firebase/firestore";
 import { db } from "@/lib/firebase";
@@ -200,9 +201,7 @@ export default function AlumniPage() {
         ]);
       }
 
-      toast.success(
-        isRtl ? "🎉 تم إدراج فرصة التدريب بنجاح!" : "🎉 Internship posted successfully!"
-      );
+      toast.success(isRtl ? "تم إدراج فرصة التدريب بنجاح!" : "Internship posted successfully!");
       setIsModalOpen(false);
       resetForm();
     } catch (err) {
@@ -412,175 +411,221 @@ export default function AlumniPage() {
       )}
 
       {/* ── Post Internship Modal ────────────────────────────────────────── */}
-      {isModalOpen && (
-        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="bg-card border border-border rounded-3xl p-6 sm:p-8 max-w-md w-full shadow-2xl space-y-6 animate-scale-in max-h-[90vh] overflow-y-auto">
-            <div className="flex items-center justify-between">
-              <h3 className="text-xl font-black text-foreground">
-                {isRtl ? "إدراج فرصة تدريب / إرشاد مهني" : "Post Internship / Mentorship"}
-              </h3>
-              <button
-                onClick={() => {
-                  setIsModalOpen(false);
-                  resetForm();
-                }}
-                className="text-muted-foreground hover:text-foreground text-sm font-bold"
-              >
-                ✕
-              </button>
-            </div>
+      <AnimatePresence>
+        {isModalOpen && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+            {/* Backdrop */}
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.2 }}
+              onClick={() => {
+                setIsModalOpen(false);
+                resetForm();
+              }}
+              className="fixed inset-0 bg-black/60 backdrop-blur-sm"
+            />
 
-            <form onSubmit={handlePostInternship} className="space-y-4 text-xs sm:text-sm">
-              {/* Company */}
-              <div>
-                <label className="block text-xs font-bold text-muted-foreground mb-1">
-                  {isRtl ? "اسم الشركة / المؤسسة" : "Company / Organization"}
-                  <span className="text-red-500 ms-0.5">*</span>
-                </label>
-                <input
-                  type="text"
-                  required
-                  placeholder={
-                    isRtl ? "مثال: Fawry / Vodafone / MicroEngineering" : "e.g. Fawry / Vodafone"
-                  }
-                  value={newCompany}
-                  onChange={(e) => setNewCompany(e.target.value)}
-                  className="w-full px-4 py-2.5 rounded-xl border border-border bg-background text-foreground font-medium focus:ring-2 focus:ring-primary/40 outline-none"
-                />
-                {formErrors.company && (
-                  <p className="text-xs text-red-500 mt-1 font-medium">{formErrors.company}</p>
-                )}
-              </div>
-
-              {/* Role */}
-              <div>
-                <label className="block text-xs font-bold text-muted-foreground mb-1">
-                  {isRtl ? "المسار الوظيفي / دور التدريب" : "Internship Role / Domain"}
-                  <span className="text-red-500 ms-0.5">*</span>
-                </label>
-                <input
-                  type="text"
-                  required
-                  placeholder={
-                    isRtl
-                      ? "مثال: Frontend Intern / DevOps Trainee"
-                      : "e.g. Frontend Engineer Trainee"
-                  }
-                  value={newRole}
-                  onChange={(e) => setNewRole(e.target.value)}
-                  className="w-full px-4 py-2.5 rounded-xl border border-border bg-background text-foreground font-medium focus:ring-2 focus:ring-primary/40 outline-none"
-                />
-                {formErrors.role && (
-                  <p className="text-xs text-red-500 mt-1 font-medium">{formErrors.role}</p>
-                )}
-              </div>
-
-              {/* Location + Type */}
-              <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <label className="block text-xs font-bold text-muted-foreground mb-1">
-                    {isRtl ? "الموقع" : "Location"}
-                  </label>
-                  <input
-                    type="text"
-                    placeholder={isRtl ? "القاهرة / عن بعد" : "Cairo / Remote"}
-                    value={newLocation}
-                    onChange={(e) => setNewLocation(e.target.value)}
-                    className="w-full px-3 py-2.5 rounded-xl border border-border bg-background text-foreground font-medium focus:ring-2 focus:ring-primary/40 outline-none"
-                  />
-                </div>
-                <div>
-                  <label className="block text-xs font-bold text-muted-foreground mb-1">
-                    {isRtl ? "نوع الفرصة" : "Type"}
-                    <span className="text-red-500 ms-0.5">*</span>
-                  </label>
-                  <select
-                    value={newType}
-                    onChange={(e) =>
-                      setNewType(
-                        e.target.value as "Summer Internship" | "Mentorship" | "Junior Job"
-                      )
-                    }
-                    className="w-full px-3 py-2.5 rounded-xl border border-border bg-card text-foreground font-medium focus:ring-2 focus:ring-primary/40 outline-none"
-                  >
-                    <option value="Summer Internship">
-                      {isRtl ? "تدريب صيفي" : "Summer Internship"}
-                    </option>
-                    <option value="Mentorship">{isRtl ? "إرشاد مهني" : "Mentorship Slot"}</option>
-                    <option value="Junior Job">
-                      {isRtl ? "وظيفة مبتدئ" : "Junior Entry Level"}
-                    </option>
-                  </select>
-                  {formErrors.type && (
-                    <p className="text-xs text-red-500 mt-1 font-medium">{formErrors.type}</p>
-                  )}
-                </div>
-              </div>
-
-              {/* Department + Graduation Year */}
-              <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <label className="block text-xs font-bold text-muted-foreground mb-1">
-                    {isRtl ? "القسم الأكاديمي" : "Department"}
-                  </label>
-                  <input
-                    type="text"
-                    placeholder={isRtl ? "علوم الحاسب" : "Computer Science"}
-                    value={newDepartment}
-                    onChange={(e) => setNewDepartment(e.target.value)}
-                    className="w-full px-3 py-2.5 rounded-xl border border-border bg-background text-foreground font-medium focus:ring-2 focus:ring-primary/40 outline-none"
-                  />
-                </div>
-                <div>
-                  <label className="block text-xs font-bold text-muted-foreground mb-1">
-                    {isRtl ? "سنة تخرجك" : "Your Grad Year"}
-                  </label>
-                  <input
-                    type="text"
-                    maxLength={4}
-                    placeholder="2024"
-                    value={newGradYear}
-                    onChange={(e) => setNewGradYear(e.target.value)}
-                    className="w-full px-3 py-2.5 rounded-xl border border-border bg-background text-foreground font-medium focus:ring-2 focus:ring-primary/40 outline-none"
-                  />
-                  {formErrors.graduationYear && (
-                    <p className="text-xs text-red-500 mt-1 font-medium">
-                      {formErrors.graduationYear}
-                    </p>
-                  )}
-                </div>
-              </div>
-
-              {/* Actions */}
-              <div className="flex gap-3 pt-2">
+            {/* Modal Dialog */}
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95, y: 15 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.95, y: 15 }}
+              transition={{ duration: 0.2, ease: "easeOut" }}
+              className="relative bg-card border border-border rounded-3xl p-6 sm:p-8 max-w-md w-full shadow-2xl space-y-6 z-10 max-h-[90vh] overflow-y-auto"
+              dir={isRtl ? "rtl" : "ltr"}
+            >
+              <div className="flex items-center justify-between pb-2 border-b border-border/40">
+                <h3 className="text-xl font-black text-foreground">
+                  {isRtl ? "إدراج فرصة تدريب / إرشاد مهني" : "Post Internship / Mentorship"}
+                </h3>
                 <button
                   type="button"
                   onClick={() => {
                     setIsModalOpen(false);
                     resetForm();
                   }}
-                  className="flex-1 py-3 rounded-xl border border-border font-bold text-muted-foreground hover:bg-muted"
+                  aria-label={isRtl ? "إغلاق النافذة" : "Close modal"}
+                  className="w-8 h-8 rounded-full bg-muted/60 hover:bg-muted text-muted-foreground hover:text-foreground flex items-center justify-center transition-colors"
                 >
-                  {isRtl ? "إلغاء" : "Cancel"}
-                </button>
-                <button
-                  type="submit"
-                  disabled={isSubmitting}
-                  className="flex-1 py-3 rounded-xl bg-primary text-white font-extrabold shadow-md hover:bg-primary/90 disabled:opacity-50"
-                >
-                  {isSubmitting
-                    ? isRtl
-                      ? "جاري النشر..."
-                      : "Posting..."
-                    : isRtl
-                      ? "نشر الفرصة"
-                      : "Post Opportunity"}
+                  <X size={18} />
                 </button>
               </div>
-            </form>
+
+              <form onSubmit={handlePostInternship} className="space-y-4 text-xs sm:text-sm">
+                {/* Company */}
+                <div>
+                  <label className="block text-xs font-bold text-muted-foreground mb-1">
+                    {isRtl ? "اسم الشركة / المؤسسة" : "Company / Organization"}
+                    <span className="text-red-500 ms-0.5">*</span>
+                  </label>
+                  <input
+                    type="text"
+                    required
+                    placeholder={
+                      isRtl ? "مثال: Fawry / Vodafone / MicroEngineering" : "e.g. Fawry / Vodafone"
+                    }
+                    value={newCompany}
+                    onChange={(e) => setNewCompany(e.target.value)}
+                    className="w-full px-4 py-2.5 rounded-xl border border-border bg-background text-foreground font-medium focus:ring-2 focus:ring-primary/40 outline-none transition-all"
+                  />
+                  {formErrors.company && (
+                    <p className="text-xs text-red-500 mt-1 font-medium">{formErrors.company}</p>
+                  )}
+                </div>
+
+                {/* Role */}
+                <div>
+                  <label className="block text-xs font-bold text-muted-foreground mb-1">
+                    {isRtl ? "المسار الوظيفي / دور التدريب" : "Internship Role / Domain"}
+                    <span className="text-red-500 ms-0.5">*</span>
+                  </label>
+                  <input
+                    type="text"
+                    required
+                    placeholder={
+                      isRtl
+                        ? "مثال: Frontend Intern / DevOps Trainee"
+                        : "e.g. Frontend Engineer Trainee"
+                    }
+                    value={newRole}
+                    onChange={(e) => setNewRole(e.target.value)}
+                    className="w-full px-4 py-2.5 rounded-xl border border-border bg-background text-foreground font-medium focus:ring-2 focus:ring-primary/40 outline-none transition-all"
+                  />
+                  {formErrors.role && (
+                    <p className="text-xs text-red-500 mt-1 font-medium">{formErrors.role}</p>
+                  )}
+                </div>
+
+                {/* Location + Type */}
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <label className="block text-xs font-bold text-muted-foreground mb-1">
+                      {isRtl ? "الموقع" : "Location"}
+                    </label>
+                    <input
+                      type="text"
+                      placeholder={isRtl ? "القاهرة / عن بعد" : "Cairo / Remote"}
+                      value={newLocation}
+                      onChange={(e) => setNewLocation(e.target.value)}
+                      className="w-full px-3 py-2.5 rounded-xl border border-border bg-background text-foreground font-medium focus:ring-2 focus:ring-primary/40 outline-none transition-all"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-bold text-muted-foreground mb-1">
+                      {isRtl ? "نوع الفرصة" : "Type"}
+                      <span className="text-red-500 ms-0.5">*</span>
+                    </label>
+                    <select
+                      value={newType}
+                      onChange={(e) =>
+                        setNewType(
+                          e.target.value as "Summer Internship" | "Mentorship" | "Junior Job"
+                        )
+                      }
+                      className="w-full px-3 py-2.5 rounded-xl border border-border bg-card text-foreground font-medium focus:ring-2 focus:ring-primary/40 outline-none transition-all"
+                    >
+                      <option value="Summer Internship">
+                        {isRtl ? "تدريب صيفي" : "Summer Internship"}
+                      </option>
+                      <option value="Mentorship">{isRtl ? "إرشاد مهني" : "Mentorship Slot"}</option>
+                      <option value="Junior Job">
+                        {isRtl ? "وظيفة مبتدئ" : "Junior Entry Level"}
+                      </option>
+                    </select>
+                    {formErrors.type && (
+                      <p className="text-xs text-red-500 mt-1 font-medium">{formErrors.type}</p>
+                    )}
+                  </div>
+                </div>
+
+                {/* Department + Graduation Year */}
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <label className="block text-xs font-bold text-muted-foreground mb-1">
+                      {isRtl ? "القسم الأكاديمي" : "Department"}
+                    </label>
+                    <input
+                      type="text"
+                      placeholder={isRtl ? "علوم الحاسب" : "Computer Science"}
+                      value={newDepartment}
+                      onChange={(e) => setNewDepartment(e.target.value)}
+                      className="w-full px-3 py-2.5 rounded-xl border border-border bg-background text-foreground font-medium focus:ring-2 focus:ring-primary/40 outline-none transition-all"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-bold text-muted-foreground mb-1">
+                      {isRtl ? "سنة تخرجك" : "Your Grad Year"}
+                    </label>
+                    <input
+                      type="text"
+                      maxLength={4}
+                      placeholder="2024"
+                      value={newGradYear}
+                      onChange={(e) => setNewGradYear(e.target.value)}
+                      className="w-full px-3 py-2.5 rounded-xl border border-border bg-background text-foreground font-medium focus:ring-2 focus:ring-primary/40 outline-none transition-all"
+                    />
+                    {formErrors.graduationYear && (
+                      <p className="text-xs text-red-500 mt-1 font-medium">
+                        {formErrors.graduationYear}
+                      </p>
+                    )}
+                  </div>
+                </div>
+
+                {/* Legal compliance notice */}
+                <p className="text-[11px] text-muted-foreground/75 leading-relaxed pt-1">
+                  {isRtl ? (
+                    <>
+                      بالنشر، فإنك تؤكد صحة البيانات والالتزام بـ
+                      <Link href="/legal/terms" className="text-primary underline ms-1">
+                        شروط الاستخدام
+                      </Link>
+                      .
+                    </>
+                  ) : (
+                    <>
+                      By posting, you affirm data accuracy and agree to our{" "}
+                      <Link href="/legal/terms" className="text-primary underline">
+                        Terms of Service
+                      </Link>
+                      .
+                    </>
+                  )}
+                </p>
+
+                {/* Actions */}
+                <div className="flex gap-3 pt-2">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setIsModalOpen(false);
+                      resetForm();
+                    }}
+                    className="flex-1 py-3 rounded-xl border border-border font-bold text-muted-foreground hover:bg-muted transition-colors"
+                  >
+                    {isRtl ? "إلغاء" : "Cancel"}
+                  </button>
+                  <button
+                    type="submit"
+                    disabled={isSubmitting}
+                    className="flex-1 py-3 rounded-xl bg-primary text-primary-foreground font-extrabold shadow-md hover:bg-primary/90 disabled:opacity-50 transition-all"
+                  >
+                    {isSubmitting
+                      ? isRtl
+                        ? "جاري النشر..."
+                        : "Posting..."
+                      : isRtl
+                        ? "نشر الفرصة"
+                        : "Post Opportunity"}
+                  </button>
+                </div>
+              </form>
+            </motion.div>
           </div>
-        </div>
-      )}
+        )}
+      </AnimatePresence>
     </div>
   );
 }

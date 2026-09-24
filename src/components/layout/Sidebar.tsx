@@ -151,7 +151,7 @@ export const Sidebar = memo(function Sidebar({ isOpen, onClose }: SidebarProps) 
         ],
       },
       {
-        label: language === "ar" ? "📚 الأكاديميات" : "📚 Academics",
+        label: language === "ar" ? "الأكاديميات" : "Academics",
         items: [
           {
             name: t("nav.subjects"),
@@ -184,7 +184,7 @@ export const Sidebar = memo(function Sidebar({ isOpen, onClose }: SidebarProps) 
         ],
       },
       {
-        label: language === "ar" ? "🤖 أدوات الذكاء الاصطناعي" : "🤖 AI Tools",
+        label: language === "ar" ? "أدوات الذكاء الاصطناعي" : "AI Tools",
         items: [
           {
             name: language === "ar" ? "مولد الاختبارات" : "AI Quiz Generator",

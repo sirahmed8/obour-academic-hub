@@ -319,7 +319,7 @@ export function ChatInput({
               "p-1.5 rounded-full transition-all text-muted-foreground hover:text-foreground shrink-0",
               isListening && "bg-red-500/20 text-red-500 animate-pulse ring-2 ring-red-500/50"
             )}
-            title={language === "ar" ? "إدخال صوتي 🎙️" : "Voice Input 🎙️"}
+            title={language === "ar" ? "إدخال صوتي" : "Voice Input"}
             aria-label="Voice input"
           >
             <Mic className={cn("w-4 h-4", isListening && "text-red-500")} />

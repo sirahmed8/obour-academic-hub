@@ -1697,7 +1697,7 @@ export default function AdminAnalyticsPage() {
                       {data.giftedVipUsers} {language === "ar" ? "طلاب" : "students"}
                     </p>
                     <p className="text-[10px] text-muted-foreground">
-                      {language === "ar" ? "حسابات نشطة مجانية 👑" : "Active gifted VIP accounts"}
+                      {language === "ar" ? "حسابات نشطة مجانية" : "Active gifted VIP accounts"}
                     </p>
                   </div>
 

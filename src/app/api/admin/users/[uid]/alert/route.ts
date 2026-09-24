@@ -5,6 +5,7 @@ import { adminDb, Timestamp } from "@/lib/server/firebase-admin";
 import { corsOptions, withCors } from "@/lib/server/cors";
 import { assertCanManageUser, handleRouteError, requirePermission } from "@/lib/server/auth";
 import { logServerWarning, logServerError } from "@/lib/server/error-sanitizer";
+import { rateLimit } from "@/lib/server/rate-limit";
 import type { UserPermission } from "@/types";
 
 export const runtime = "nodejs";
@@ -31,6 +32,23 @@ export async function OPTIONS(request: Request) {
 export async function POST(request: Request, { params }: { params: Promise<{ uid: string }> }) {
   try {
     const context = await requirePermission(request, "manage_users");
+
+    const limiter = await rateLimit({
+      key: `api:admin:alert:${context.uid}`,
+      limit: 30,
+      windowMs: 60_000,
+    });
+
+    if (!limiter.allowed) {
+      return withCors(
+        request,
+        NextResponse.json(
+          { error: "Too many alert requests. Please wait a moment." },
+          { status: 429 }
+        )
+      );
+    }
+
     const { uid } = await params;
     const body = await request.json();
     const { title, message } = body;

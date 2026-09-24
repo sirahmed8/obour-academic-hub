@@ -3,7 +3,7 @@
 import { useLanguage } from "@/contexts";
 import { ChatSession, ChatMessage } from "@/types";
 import { MessageBubble } from "./MessageBubble";
-import { Trash2, ArrowLeft, X } from "lucide-react";
+import { Trash2, ArrowLeft, X, MessageSquare, MessageCircle } from "lucide-react";
 import { AnimatePresence, motion, HTMLMotionProps } from "framer-motion";
 import { rtdb } from "@/lib/firebase";
 import { ref, onValue } from "firebase/database";
@@ -129,8 +129,8 @@ export function ChatWindow({
             transition={{ duration: 0.2 }}
             className="flex-1 flex flex-col items-center justify-center p-8 text-center space-y-4 h-full w-full"
           >
-            <div className="w-32 h-32 bg-primary/10 rounded-full flex items-center justify-center">
-              <span className="text-6xl">💬</span>
+            <div className="w-24 h-24 bg-primary/10 rounded-2xl flex items-center justify-center text-primary">
+              <MessageSquare className="w-12 h-12" />
             </div>
             <h2 className="text-2xl font-bold text-foreground">
               {language === "ar" ? "مرحباً بك في المحادثات" : "Welcome to Inbox"}
@@ -241,9 +241,9 @@ export function ChatWindow({
               {loadingMessages ? (
                 <LoadingChat />
               ) : messages.length === 0 ? (
-                <div className="flex flex-col items-center justify-center h-full gap-4 text-center opacity-40">
-                  <div className="w-16 h-16 bg-muted rounded-2xl flex items-center justify-center">
-                    <span className="text-3xl">👋</span>
+                <div className="flex flex-col items-center justify-center h-full gap-4 text-center opacity-60">
+                  <div className="w-14 h-14 bg-muted rounded-2xl flex items-center justify-center text-primary">
+                    <MessageCircle className="w-7 h-7" />
                   </div>
                   <p>
                     {language === "ar"

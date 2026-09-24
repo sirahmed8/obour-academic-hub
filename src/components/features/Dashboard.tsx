@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import { useAuth, useLanguage } from "@/contexts";
-import { Sparkles, Plus, BookOpen, MessageSquare } from "lucide-react";
+import { Sparkles, Plus, BookOpen, MessageSquare, CheckSquare, Flame, Target } from "lucide-react";
 
 import { FadeIn, HoverScale, TapScale } from "@/components/ui/Animations";
 import { TacticalAdviceCard } from "@/components/features/TacticalAdviceCard";
@@ -221,20 +221,20 @@ export function Dashboard() {
             {/* Quick Stats Pills */}
             <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 mt-3">
               <div className="flex items-center justify-center gap-1.5 bg-white/10 px-3 py-1.5 rounded-xl text-xs text-white font-bold border border-white/10 backdrop-blur-sm">
-                <span>📋</span>
+                <CheckSquare size={14} className="text-white/80" />
                 <span>
                   {language === "ar" ? `${taskCount} مهمة اليوم` : `${taskCount} Tasks Today`}
                 </span>
               </div>
               <div className="flex items-center justify-center gap-1.5 bg-white/10 px-3 py-1.5 rounded-xl text-xs text-white font-bold border border-white/10 backdrop-blur-sm">
-                <span>🔥</span>
+                <Flame size={14} className="text-orange-400" />
                 <span>
                   {language === "ar" ? `${streakCount} يوم متتالي` : `${streakCount} Day Streak`}
                 </span>
               </div>
               {daysUntilExam !== null ? (
                 <div className="flex items-center justify-center gap-1.5 bg-white/10 px-3 py-1.5 rounded-xl text-xs text-white font-bold border border-white/10 backdrop-blur-sm col-span-2 sm:col-span-1">
-                  <span>🎯</span>
+                  <Target size={14} className="text-emerald-400" />
                   <span>
                     {language === "ar"
                       ? `امتحان بعد ${daysUntilExam} يوم`
@@ -243,7 +243,7 @@ export function Dashboard() {
                 </div>
               ) : (
                 <div className="flex items-center justify-center gap-1.5 bg-white/10 px-3 py-1.5 rounded-xl text-xs text-white font-bold border border-white/10 backdrop-blur-sm col-span-2 sm:col-span-1">
-                  <span>🎯</span>
+                  <Target size={14} className="text-emerald-400" />
                   <span>{language === "ar" ? "لا امتحانات قريبة" : "No Exam Scheduled"}</span>
                 </div>
               )}

@@ -97,8 +97,8 @@ export function AITaskAssistantModal({
         id: "init-welcome",
         role: "assistant",
         text: isRtl
-          ? `أهلاً بك يا ${userName}! 🎓 أنا مساعد التخطيط الذكي للمهام. أخبرني ماذا ترغب في إنجازه أو مذاكرته اليوم، وسأساعدك في صياغته وتقسيمه إلى خطوات وإضافته لجدولك فوراً!`
-          : `Welcome ${userName}! 🎓 I am your AI Task Assistant. Tell me what you'd like to accomplish or study today, and I'll help you structure it, break it into subtasks, and add it directly to your To-Do list!`,
+          ? `أهلاً بك يا ${userName}! أنا مساعد التخطيط الذكي للمهام. أخبرني ماذا ترغب في إنجازه أو مذاكرته اليوم، وسأساعدك في صياغته وتقسيمه إلى خطوات وإضافته لجدولك فوراً!`
+          : `Welcome ${userName}! I am your AI Task Assistant. Tell me what you'd like to accomplish or study today, and I'll help you structure it, break it into subtasks, and add it directly to your To-Do list!`,
       };
       setMessages([initialGreeting]);
     }
@@ -210,7 +210,7 @@ export function AITaskAssistantModal({
       } catch {}
 
       toast.success(
-        isRtl ? `🎉 تم إضافة المهمة "${spec.title}" بنجاح!` : `🎉 Task "${spec.title}" added!`
+        isRtl ? `تمت إضافة المهمة "${spec.title}" بنجاح!` : `Task "${spec.title}" added!`
       );
 
       setMessages((prev) => prev.map((m) => (m.id === msgId ? { ...m, isAdded: true } : m)));
@@ -226,14 +226,14 @@ export function AITaskAssistantModal({
 
   const starterPrompts = isRtl
     ? [
-        "💡 أريد تنظيم جدول مذاكرتي لمادة جديدة",
-        "📝 عندي تسليم مشروع أكاديمي محتاج تقسيم الخطوات",
-        "⏰ إضافة مهمة مراجعة سريعة قبل الاختبار القادم",
+        "أريد تنظيم جدول مذاكرتي لمادة جديدة",
+        "عندي تسليم مشروع أكاديمي محتاج تقسيم الخطوات",
+        "إضافة مهمة مراجعة سريعة قبل الاختبار القادم",
       ]
     : [
-        "💡 Help me plan my study schedule for a new course",
-        "📝 I have an academic project due soon, break it into steps",
-        "⏰ Remind me to review for my upcoming exam",
+        "Help me plan my study schedule for a new course",
+        "I have an academic project due soon, break it into steps",
+        "Remind me to review for my upcoming exam",
       ];
 
   if (!mounted) return null;
@@ -315,8 +315,8 @@ export function AITaskAssistantModal({
                       className={cn(
                         "p-4 rounded-2xl text-sm leading-relaxed whitespace-pre-wrap shadow-sm",
                         msg.role === "user"
-                          ? "bg-primary text-primary-foreground rounded-tr-none font-medium"
-                          : "bg-card/90 border border-border/60 text-card-foreground rounded-tl-none"
+                          ? "bg-primary text-primary-foreground rounded-tr-md font-medium"
+                          : "bg-card/90 border border-border/60 text-card-foreground rounded-tl-md"
                       )}
                     >
                       {msg.text}
@@ -455,7 +455,7 @@ export function AITaskAssistantModal({
                   <div className="w-8 h-8 rounded-full bg-primary/10 text-primary border border-primary/20 flex items-center justify-center shrink-0">
                     <Bot className="w-4 h-4 animate-pulse" />
                   </div>
-                  <div className="p-4 bg-card/90 border border-border/60 rounded-2xl rounded-tl-none space-y-2">
+                  <div className="p-4 bg-card/90 border border-border/60 rounded-2xl rounded-tl-md space-y-2">
                     <div className="flex gap-1.5 items-center">
                       <div
                         className="w-2 h-2 rounded-full bg-primary animate-bounce"

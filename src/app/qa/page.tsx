@@ -2,9 +2,10 @@
 
 import { useState, useEffect, useMemo, memo } from "react";
 import { useLanguage, useAuth } from "@/contexts";
-import { MessageSquare, ThumbsUp, ShieldCheck, Sparkles, Plus, Search } from "lucide-react";
+import { MessageSquare, ThumbsUp, ShieldCheck, Sparkles, Plus, Search, X } from "lucide-react";
 import { FadeIn, ScaleIn, StaggerChildren } from "@/components/ui/Animations";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
+import Link from "next/link";
 import { toast } from "sonner";
 import { ScrollableTabs } from "@/components/ui/ScrollableTabs";
 import {
@@ -87,9 +88,7 @@ const QuestionCard = memo(
             <div className="p-4 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 space-y-1 shadow-sm">
               <div className="flex items-center gap-1.5 text-xs font-black text-emerald-600 dark:text-emerald-400">
                 <ShieldCheck size={16} />
-                <span>
-                  {isRtl ? "إجابة معتمدة من هيئة التدريس 👑" : "Verified Staff Answer 👑"}
-                </span>
+                <span>{isRtl ? "إجابة معتمدة من هيئة التدريس" : "Verified Staff Answer"}</span>
               </div>
               <p className="text-xs sm:text-sm font-medium text-foreground leading-relaxed">
                 {isRtl ? q.doctorAnswerAr : q.doctorAnswerEn}
@@ -277,7 +276,7 @@ export default function QAForumPage() {
         ]);
       }
 
-      toast.success(isRtl ? "🎉 تم نشر السؤال بنجاح!" : "🎉 Question posted successfully!");
+      toast.success(isRtl ? "تم نشر السؤال بنجاح!" : "Question posted successfully!");
       setIsModalOpen(false);
       setNewTitle("");
       setNewSubject("");
@@ -389,82 +388,125 @@ export default function QAForumPage() {
       )}
 
       {/* Ask Question Modal */}
-      {isModalOpen && (
-        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="bg-card border border-border rounded-3xl p-6 sm:p-8 max-w-md w-full shadow-2xl space-y-6 animate-scale-in">
-            <div className="flex items-center justify-between">
-              <h3 className="text-xl font-black text-foreground">
-                {isRtl ? "طرح سؤال أكاديمي جديد" : "Ask Academic Question"}
-              </h3>
-              <button
-                onClick={() => setIsModalOpen(false)}
-                className="text-muted-foreground hover:text-foreground text-sm font-bold"
-              >
-                ✕
-              </button>
-            </div>
+      <AnimatePresence>
+        {isModalOpen && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+            {/* Backdrop */}
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.2 }}
+              onClick={() => setIsModalOpen(false)}
+              className="fixed inset-0 bg-black/60 backdrop-blur-sm"
+            />
 
-            <form onSubmit={handleAskQuestion} className="space-y-4 text-xs sm:text-sm">
-              <div>
-                <label className="block text-xs font-bold text-muted-foreground mb-1">
-                  {isRtl ? "المادة الدراسية" : "Subject Name"}
-                </label>
-                <input
-                  type="text"
-                  required
-                  placeholder={
-                    isRtl ? "مثال: قواعد بيانات / شبكات" : "e.g. Databases / Computer Networks"
-                  }
-                  value={newSubject}
-                  onChange={(e) => setNewSubject(e.target.value)}
-                  className="w-full px-4 py-2.5 rounded-xl border border-border bg-background text-foreground font-medium focus:ring-2 focus:ring-primary/40 outline-none"
-                />
-              </div>
-
-              <div>
-                <label className="block text-xs font-bold text-muted-foreground mb-1">
-                  {isRtl ? "سؤالك الأكاديمي أو التفاصيل" : "Your Question / Inquiry Details"}
-                </label>
-                <textarea
-                  rows={4}
-                  required
-                  placeholder={
-                    isRtl
-                      ? "اكتب سؤالك بالتفصيل ليتسنى للأساتذة والزملاء الإجابة..."
-                      : "Describe your inquiry in detail for faculty and peers..."
-                  }
-                  value={newTitle}
-                  onChange={(e) => setNewTitle(e.target.value)}
-                  className="w-full px-4 py-2.5 rounded-xl border border-border bg-background text-foreground font-medium focus:ring-2 focus:ring-primary/40 outline-none resize-none"
-                />
-              </div>
-
-              <div className="flex gap-3 pt-2">
+            {/* Modal Dialog */}
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95, y: 15 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.95, y: 15 }}
+              transition={{ duration: 0.2, ease: "easeOut" }}
+              className="relative bg-card border border-border rounded-3xl p-6 sm:p-8 max-w-md w-full shadow-2xl space-y-6 z-10 max-h-[90vh] overflow-y-auto"
+              dir={isRtl ? "rtl" : "ltr"}
+            >
+              <div className="flex items-center justify-between pb-2 border-b border-border/40">
+                <h3 className="text-xl font-black text-foreground">
+                  {isRtl ? "طرح سؤال أكاديمي جديد" : "Ask Academic Question"}
+                </h3>
                 <button
                   type="button"
                   onClick={() => setIsModalOpen(false)}
-                  className="flex-1 py-3 rounded-xl border border-border font-bold text-muted-foreground hover:bg-muted"
+                  aria-label={isRtl ? "إغلاق النافذة" : "Close modal"}
+                  className="w-8 h-8 rounded-full bg-muted/60 hover:bg-muted text-muted-foreground hover:text-foreground flex items-center justify-center transition-colors"
                 >
-                  {isRtl ? "إلغاء" : "Cancel"}
-                </button>
-                <button
-                  type="submit"
-                  disabled={isSubmitting}
-                  className="flex-1 py-3 rounded-xl bg-primary text-white font-extrabold shadow-md hover:bg-primary/90 disabled:opacity-50"
-                >
-                  {isSubmitting
-                    ? isRtl
-                      ? "جاري النشر..."
-                      : "Posting..."
-                    : isRtl
-                      ? "نشر السؤال"
-                      : "Post Question"}
+                  <X size={18} />
                 </button>
               </div>
-            </form>
+
+              <form onSubmit={handleAskQuestion} className="space-y-4 text-xs sm:text-sm">
+                <div>
+                  <label className="block text-xs font-bold text-muted-foreground mb-1">
+                    {isRtl ? "المادة الدراسية" : "Subject Name"}
+                  </label>
+                  <input
+                    type="text"
+                    required
+                    placeholder={
+                      isRtl ? "مثال: قواعد بيانات / شبكات" : "e.g. Databases / Computer Networks"
+                    }
+                    value={newSubject}
+                    onChange={(e) => setNewSubject(e.target.value)}
+                    className="w-full px-4 py-2.5 rounded-xl border border-border bg-background text-foreground font-medium focus:ring-2 focus:ring-primary/40 outline-none transition-all"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-xs font-bold text-muted-foreground mb-1">
+                    {isRtl ? "سؤالك الأكاديمي أو التفاصيل" : "Your Question / Inquiry Details"}
+                  </label>
+                  <textarea
+                    rows={4}
+                    required
+                    placeholder={
+                      isRtl
+                        ? "اكتب سؤالك بالتفصيل ليتسنى للأساتذة والزملاء الإجابة..."
+                        : "Describe your inquiry in detail for faculty and peers..."
+                    }
+                    value={newTitle}
+                    onChange={(e) => setNewTitle(e.target.value)}
+                    className="w-full px-4 py-2.5 rounded-xl border border-border bg-background text-foreground font-medium focus:ring-2 focus:ring-primary/40 outline-none resize-none transition-all"
+                  />
+                </div>
+
+                {/* Legal compliance notice */}
+                <p className="text-[11px] text-muted-foreground/75 leading-relaxed pt-1">
+                  {isRtl ? (
+                    <>
+                      بطرح السؤال، فإنك تؤكد الالتزام بمعايير الحوار الأكاديمي و
+                      <Link href="/legal/terms" className="text-primary underline ms-1">
+                        شروط الاستخدام
+                      </Link>
+                      .
+                    </>
+                  ) : (
+                    <>
+                      By asking, you agree to academic community guidelines and our{" "}
+                      <Link href="/legal/terms" className="text-primary underline">
+                        Terms of Service
+                      </Link>
+                      .
+                    </>
+                  )}
+                </p>
+
+                <div className="flex gap-3 pt-2">
+                  <button
+                    type="button"
+                    onClick={() => setIsModalOpen(false)}
+                    className="flex-1 py-3 rounded-xl border border-border font-bold text-muted-foreground hover:bg-muted transition-colors"
+                  >
+                    {isRtl ? "إلغاء" : "Cancel"}
+                  </button>
+                  <button
+                    type="submit"
+                    disabled={isSubmitting}
+                    className="flex-1 py-3 rounded-xl bg-primary text-primary-foreground font-extrabold shadow-md hover:bg-primary/90 disabled:opacity-50 transition-all"
+                  >
+                    {isSubmitting
+                      ? isRtl
+                        ? "جاري النشر..."
+                        : "Posting..."
+                      : isRtl
+                        ? "نشر السؤال"
+                        : "Post Question"}
+                  </button>
+                </div>
+              </form>
+            </motion.div>
           </div>
-        </div>
-      )}
+        )}
+      </AnimatePresence>
     </div>
   );
 }

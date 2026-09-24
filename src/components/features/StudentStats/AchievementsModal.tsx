@@ -1,11 +1,12 @@
 import { motion, AnimatePresence } from "framer-motion";
 import { Trophy, X, Award } from "lucide-react";
+import React from "react";
 
 export interface Achievement {
   title: string;
   desc: string;
   unlocked: boolean;
-  icon: string;
+  icon: React.ReactNode;
 }
 
 interface AchievementsModalProps {
@@ -58,7 +59,12 @@ export function AchievementsModal({
                   </p>
                 </div>
               </div>
-              <button onClick={onClose} className="p-2 hover:bg-muted rounded-xl transition-colors">
+              <button
+                type="button"
+                onClick={onClose}
+                aria-label={language === "ar" ? "إغلاق النافذة" : "Close modal"}
+                className="p-2 hover:bg-muted rounded-xl transition-colors"
+              >
                 <X size={18} />
               </button>
             </div>
@@ -78,8 +84,10 @@ export function AchievementsModal({
                   }`}
                 >
                   <div
-                    className={`w-12 h-12 rounded-xl flex items-center justify-center text-xl ${
-                      achievement.unlocked ? "bg-primary/10 shadow-lg" : "bg-muted/30 grayscale"
+                    className={`w-12 h-12 rounded-xl flex items-center justify-center ${
+                      achievement.unlocked
+                        ? "bg-primary/10 text-primary shadow-sm"
+                        : "bg-muted/30 text-muted-foreground/50"
                     }`}
                   >
                     {achievement.icon}

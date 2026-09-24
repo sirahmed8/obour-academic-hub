@@ -4,7 +4,8 @@ import { useState, useEffect, useMemo } from "react";
 import { useLanguage, useAuth } from "@/contexts";
 import { ExternalLink, ThumbsUp, Laptop, Sparkles, Plus, Search, X } from "lucide-react";
 import { FadeIn, ScaleIn, StaggerChildren } from "@/components/ui/Animations";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
+import Link from "next/link";
 import { toast } from "sonner";
 import { collection, getDocs, query, limit, addDoc, serverTimestamp } from "firebase/firestore";
 import { db } from "@/lib/firebase";
@@ -198,7 +199,7 @@ export default function ShowcasePage() {
       }
 
       toast.success(
-        isRtl ? "🎉 تم إضافة مشروعك إلى المعرض بنجاح!" : "🎉 Project submitted successfully!"
+        isRtl ? "تم إضافة مشروعك إلى المعرض بنجاح!" : "Project submitted successfully!"
       );
       setIsModalOpen(false);
       resetForm();
@@ -227,7 +228,7 @@ export default function ShowcasePage() {
             </div>
 
             <h1 className="text-3xl sm:text-5xl font-black text-foreground font-harman">
-              {isRtl ? "معرض ابتكارات ومشاريع التخرج الطلابية 🚀" : "Showcase & Portfolio Hall"}
+              {isRtl ? "معرض ابتكارات ومشاريع التخرج الطلابية" : "Showcase & Portfolio Hall"}
             </h1>
 
             <p className="text-muted-foreground text-sm sm:text-base font-medium max-w-2xl">
@@ -382,147 +383,198 @@ export default function ShowcasePage() {
       )}
 
       {/* ── Submit Project Modal ─────────────────────────────────────────── */}
-      {isModalOpen && (
-        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="bg-card border border-border rounded-3xl p-6 sm:p-8 max-w-md w-full shadow-2xl space-y-6 animate-scale-in max-h-[90vh] overflow-y-auto">
-            <div className="flex items-center justify-between">
-              <h3 className="text-xl font-black text-foreground">
-                {isRtl ? "نشر مشروع تخرج أو ابتكار جديد" : "Submit Student Project"}
-              </h3>
-              <button
-                onClick={() => {
-                  setIsModalOpen(false);
-                  resetForm();
-                }}
-                className="text-muted-foreground hover:text-foreground text-sm font-bold"
-              >
-                ✕
-              </button>
-            </div>
+      <AnimatePresence>
+        {isModalOpen && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+            {/* Backdrop */}
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.2 }}
+              onClick={() => {
+                setIsModalOpen(false);
+                resetForm();
+              }}
+              className="fixed inset-0 bg-black/60 backdrop-blur-sm"
+            />
 
-            <form onSubmit={handleSubmitProject} className="space-y-4 text-xs sm:text-sm">
-              {/* Title */}
-              <div>
-                <label className="block text-xs font-bold text-muted-foreground mb-1">
-                  {isRtl ? "عنوان المشروع" : "Project Title"}
-                  <span className="text-red-500 ms-0.5">*</span>
-                </label>
-                <input
-                  type="text"
-                  required
-                  placeholder={
-                    isRtl ? "مثال: نظام إدارة العبور الذكي" : "e.g. Obour Smart Hub Platform"
-                  }
-                  value={newTitle}
-                  onChange={(e) => setNewTitle(e.target.value)}
-                  className="w-full px-4 py-2.5 rounded-xl border border-border bg-background text-foreground font-medium focus:ring-2 focus:ring-primary/40 outline-none"
-                />
-                {formErrors.title && (
-                  <p className="text-xs text-red-500 mt-1 font-medium">{formErrors.title}</p>
-                )}
-              </div>
-
-              {/* Description */}
-              <div>
-                <label className="block text-xs font-bold text-muted-foreground mb-1">
-                  {isRtl ? "وصف المشروع" : "Project Description"}
-                  <span className="text-red-500 ms-0.5">*</span>
-                </label>
-                <textarea
-                  rows={3}
-                  required
-                  placeholder={
-                    isRtl
-                      ? "وصف مختصر للمشروع والتقنيات المستخدمة..."
-                      : "Brief project overview and tech stack used..."
-                  }
-                  value={newDesc}
-                  onChange={(e) => setNewDesc(e.target.value)}
-                  className="w-full px-4 py-2.5 rounded-xl border border-border bg-background text-foreground font-medium focus:ring-2 focus:ring-primary/40 outline-none resize-none"
-                />
-                {formErrors.description && (
-                  <p className="text-xs text-red-500 mt-1 font-medium">{formErrors.description}</p>
-                )}
-              </div>
-
-              {/* Department + Tags */}
-              <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <label className="block text-xs font-bold text-muted-foreground mb-1">
-                    {isRtl ? "القسم الأكاديمي" : "Department"}
-                  </label>
-                  <input
-                    type="text"
-                    placeholder={isRtl ? "علوم الحاسب" : "Computer Science"}
-                    value={newDept}
-                    onChange={(e) => setNewDept(e.target.value)}
-                    className="w-full px-3 py-2.5 rounded-xl border border-border bg-background text-foreground font-medium focus:ring-2 focus:ring-primary/40 outline-none"
-                  />
-                  {formErrors.department && (
-                    <p className="text-xs text-red-500 mt-1 font-medium">{formErrors.department}</p>
-                  )}
-                </div>
-                <div>
-                  <label className="block text-xs font-bold text-muted-foreground mb-1">
-                    {isRtl ? "الوسوم (مفصولة بفواصل)" : "Tags (Comma separated)"}
-                  </label>
-                  <input
-                    type="text"
-                    placeholder="Next.js, AI, IoT"
-                    value={newTags}
-                    onChange={(e) => setNewTags(e.target.value)}
-                    className="w-full px-3 py-2.5 rounded-xl border border-border bg-background text-foreground font-medium focus:ring-2 focus:ring-primary/40 outline-none"
-                  />
-                </div>
-              </div>
-
-              {/* Demo URL */}
-              <div>
-                <label className="block text-xs font-bold text-muted-foreground mb-1">
-                  {isRtl ? "رابط المعاينة المباشرة أو GitHub" : "Demo or GitHub URL"}
-                </label>
-                <input
-                  type="url"
-                  placeholder="https://..."
-                  value={newDemoUrl}
-                  onChange={(e) => setNewDemoUrl(e.target.value)}
-                  className="w-full px-4 py-2.5 rounded-xl border border-border bg-background text-foreground font-medium focus:ring-2 focus:ring-primary/40 outline-none"
-                />
-                {formErrors.demoUrl && (
-                  <p className="text-xs text-red-500 mt-1 font-medium">{formErrors.demoUrl}</p>
-                )}
-              </div>
-
-              {/* Actions */}
-              <div className="flex gap-3 pt-2">
+            {/* Modal Dialog */}
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95, y: 15 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.95, y: 15 }}
+              transition={{ duration: 0.2, ease: "easeOut" }}
+              className="relative bg-card border border-border rounded-3xl p-6 sm:p-8 max-w-md w-full shadow-2xl space-y-6 z-10 max-h-[90vh] overflow-y-auto"
+              dir={isRtl ? "rtl" : "ltr"}
+            >
+              <div className="flex items-center justify-between pb-2 border-b border-border/40">
+                <h3 className="text-xl font-black text-foreground">
+                  {isRtl ? "نشر مشروع تخرج أو ابتكار جديد" : "Submit Student Project"}
+                </h3>
                 <button
                   type="button"
                   onClick={() => {
                     setIsModalOpen(false);
                     resetForm();
                   }}
-                  className="flex-1 py-3 rounded-xl border border-border font-bold text-muted-foreground hover:bg-muted"
+                  aria-label={isRtl ? "إغلاق النافذة" : "Close modal"}
+                  className="w-8 h-8 rounded-full bg-muted/60 hover:bg-muted text-muted-foreground hover:text-foreground flex items-center justify-center transition-colors"
                 >
-                  {isRtl ? "إلغاء" : "Cancel"}
-                </button>
-                <button
-                  type="submit"
-                  disabled={isSubmitting}
-                  className="flex-1 py-3 rounded-xl bg-primary text-white font-extrabold shadow-md hover:bg-primary/90 disabled:opacity-50"
-                >
-                  {isSubmitting
-                    ? isRtl
-                      ? "جاري النشر..."
-                      : "Publishing..."
-                    : isRtl
-                      ? "نشر المشروع"
-                      : "Publish Project"}
+                  <X size={18} />
                 </button>
               </div>
-            </form>
+
+              <form onSubmit={handleSubmitProject} className="space-y-4 text-xs sm:text-sm">
+                {/* Title */}
+                <div>
+                  <label className="block text-xs font-bold text-muted-foreground mb-1">
+                    {isRtl ? "عنوان المشروع" : "Project Title"}
+                    <span className="text-red-500 ms-0.5">*</span>
+                  </label>
+                  <input
+                    type="text"
+                    required
+                    placeholder={
+                      isRtl ? "مثال: نظام إدارة العبور الذكي" : "e.g. Obour Smart Hub Platform"
+                    }
+                    value={newTitle}
+                    onChange={(e) => setNewTitle(e.target.value)}
+                    className="w-full px-4 py-2.5 rounded-xl border border-border bg-background text-foreground font-medium focus:ring-2 focus:ring-primary/40 outline-none transition-all"
+                  />
+                  {formErrors.title && (
+                    <p className="text-xs text-red-500 mt-1 font-medium">{formErrors.title}</p>
+                  )}
+                </div>
+
+                {/* Description */}
+                <div>
+                  <label className="block text-xs font-bold text-muted-foreground mb-1">
+                    {isRtl ? "وصف المشروع" : "Project Description"}
+                    <span className="text-red-500 ms-0.5">*</span>
+                  </label>
+                  <textarea
+                    rows={3}
+                    required
+                    placeholder={
+                      isRtl
+                        ? "وصف مختصر للمشروع والتقنيات المستخدمة..."
+                        : "Brief project overview and tech stack used..."
+                    }
+                    value={newDesc}
+                    onChange={(e) => setNewDesc(e.target.value)}
+                    className="w-full px-4 py-2.5 rounded-xl border border-border bg-background text-foreground font-medium focus:ring-2 focus:ring-primary/40 outline-none resize-none transition-all"
+                  />
+                  {formErrors.description && (
+                    <p className="text-xs text-red-500 mt-1 font-medium">
+                      {formErrors.description}
+                    </p>
+                  )}
+                </div>
+
+                {/* Department + Tags */}
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <label className="block text-xs font-bold text-muted-foreground mb-1">
+                      {isRtl ? "القسم الأكاديمي" : "Department"}
+                    </label>
+                    <input
+                      type="text"
+                      placeholder={isRtl ? "علوم الحاسب" : "Computer Science"}
+                      value={newDept}
+                      onChange={(e) => setNewDept(e.target.value)}
+                      className="w-full px-3 py-2.5 rounded-xl border border-border bg-background text-foreground font-medium focus:ring-2 focus:ring-primary/40 outline-none transition-all"
+                    />
+                    {formErrors.department && (
+                      <p className="text-xs text-red-500 mt-1 font-medium">
+                        {formErrors.department}
+                      </p>
+                    )}
+                  </div>
+                  <div>
+                    <label className="block text-xs font-bold text-muted-foreground mb-1">
+                      {isRtl ? "الوسوم (مفصولة بفواصل)" : "Tags (Comma separated)"}
+                    </label>
+                    <input
+                      type="text"
+                      placeholder="Next.js, AI, IoT"
+                      value={newTags}
+                      onChange={(e) => setNewTags(e.target.value)}
+                      className="w-full px-3 py-2.5 rounded-xl border border-border bg-background text-foreground font-medium focus:ring-2 focus:ring-primary/40 outline-none transition-all"
+                    />
+                  </div>
+                </div>
+
+                {/* Demo URL */}
+                <div>
+                  <label className="block text-xs font-bold text-muted-foreground mb-1">
+                    {isRtl ? "رابط المعاينة المباشرة أو GitHub" : "Demo or GitHub URL"}
+                  </label>
+                  <input
+                    type="url"
+                    placeholder="https://..."
+                    value={newDemoUrl}
+                    onChange={(e) => setNewDemoUrl(e.target.value)}
+                    className="w-full px-4 py-2.5 rounded-xl border border-border bg-background text-foreground font-medium focus:ring-2 focus:ring-primary/40 outline-none transition-all"
+                  />
+                  {formErrors.demoUrl && (
+                    <p className="text-xs text-red-500 mt-1 font-medium">{formErrors.demoUrl}</p>
+                  )}
+                </div>
+
+                {/* Legal compliance notice */}
+                <p className="text-[11px] text-muted-foreground/75 leading-relaxed pt-1">
+                  {isRtl ? (
+                    <>
+                      بنشر المشروع، فإنك تقر بأنه عمل طلابي أصلي وفقاً لـ
+                      <Link href="/legal/terms" className="text-primary underline ms-1">
+                        شروط الاستخدام
+                      </Link>{" "}
+                      وقانون حماية الملكية الفكرية رقم 82 لسنة 2002.
+                    </>
+                  ) : (
+                    <>
+                      By showcasing, you affirm this is original student work complying with IP Law
+                      No. 82 of 2002 and our{" "}
+                      <Link href="/legal/terms" className="text-primary underline">
+                        Terms of Service
+                      </Link>
+                      .
+                    </>
+                  )}
+                </p>
+
+                {/* Actions */}
+                <div className="flex gap-3 pt-2">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setIsModalOpen(false);
+                      resetForm();
+                    }}
+                    className="flex-1 py-3 rounded-xl border border-border font-bold text-muted-foreground hover:bg-muted transition-colors"
+                  >
+                    {isRtl ? "إلغاء" : "Cancel"}
+                  </button>
+                  <button
+                    type="submit"
+                    disabled={isSubmitting}
+                    className="flex-1 py-3 rounded-xl bg-primary text-primary-foreground font-extrabold shadow-md hover:bg-primary/90 disabled:opacity-50 transition-all"
+                  >
+                    {isSubmitting
+                      ? isRtl
+                        ? "جاري النشر..."
+                        : "Publishing..."
+                      : isRtl
+                        ? "نشر المشروع"
+                        : "Publish Project"}
+                  </button>
+                </div>
+              </form>
+            </motion.div>
           </div>
-        </div>
-      )}
+        )}
+      </AnimatePresence>
     </div>
   );
 }

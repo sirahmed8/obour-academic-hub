@@ -241,18 +241,18 @@ export default function TranscribePage() {
               <span>
                 {user?.isVip || user?.role === "owner"
                   ? isRtl
-                    ? "غير محدود 👑 PRO"
-                    : "Unlimited 👑 PRO"
+                    ? "غير محدود PRO"
+                    : "Unlimited PRO"
                   : isRtl
-                    ? "ترقية للبث المباشر ⚡"
-                    : "Upgrade to Pro ⚡"}
+                    ? "ترقية للبث المباشر"
+                    : "Upgrade to Pro"}
               </span>
             </Link>
           </div>
 
           <h1 className="text-3xl sm:text-5xl font-black text-foreground font-harman">
             {isRtl
-              ? "حول التسجيلات الصوتية إلى ملخصات مكتوبة 🎙️"
+              ? "حول التسجيلات الصوتية إلى ملخصات مكتوبة"
               : "Transform Lecture Audio to Smart Notes"}
           </h1>
 

@@ -4,6 +4,7 @@ import { useState, useEffect, useMemo } from "react";
 import { useLanguage, useAuth } from "@/contexts";
 import { ShoppingBag, MessageSquare, Sparkles, Plus, Search, X } from "lucide-react";
 import { FadeIn, ScaleIn, StaggerChildren } from "@/components/ui/Animations";
+import { motion, AnimatePresence } from "framer-motion";
 import Link from "next/link";
 import { collection, getDocs, query, limit, addDoc, serverTimestamp } from "firebase/firestore";
 import { db } from "@/lib/firebase";
@@ -207,7 +208,7 @@ export default function MarketPage() {
         ]);
       }
 
-      toast.success(isRtl ? "🎉 تم عرض مستلزماتك للتبادل بنجاح!" : "🎉 Item listed successfully!");
+      toast.success(isRtl ? "تم عرض مستلزماتك للتبادل بنجاح!" : "Item listed successfully!");
       setIsModalOpen(false);
       resetForm();
     } catch (err) {
@@ -408,159 +409,207 @@ export default function MarketPage() {
       )}
 
       {/* ── List Item Modal ──────────────────────────────────────────────── */}
-      {isModalOpen && (
-        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="bg-card border border-border rounded-3xl p-6 sm:p-8 max-w-md w-full shadow-2xl space-y-6 animate-scale-in max-h-[90vh] overflow-y-auto">
-            <div className="flex items-center justify-between">
-              <h3 className="text-xl font-black text-foreground">
-                {isRtl ? "عرض كتاب أو أداة دراسية للتبادل" : "List Academic Gear"}
-              </h3>
-              <button
-                onClick={() => {
-                  setIsModalOpen(false);
-                  resetForm();
-                }}
-                className="text-muted-foreground hover:text-foreground text-sm font-bold"
-              >
-                ✕
-              </button>
-            </div>
+      <AnimatePresence>
+        {isModalOpen && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+            {/* Backdrop */}
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.2 }}
+              onClick={() => {
+                setIsModalOpen(false);
+                resetForm();
+              }}
+              className="fixed inset-0 bg-black/60 backdrop-blur-sm"
+            />
 
-            <form onSubmit={handleListItem} className="space-y-4 text-xs sm:text-sm">
-              {/* Title */}
-              <div>
-                <label className="block text-xs font-bold text-muted-foreground mb-1">
-                  {isRtl ? "اسم الكتاب / الأداة" : "Item / Book Title"}
-                  <span className="text-red-500 ms-0.5">*</span>
-                </label>
-                <input
-                  type="text"
-                  required
-                  placeholder={
-                    isRtl ? "مثال: كتاب هندسة البرمجيات" : "e.g. Software Engineering Textbook"
-                  }
-                  value={newTitle}
-                  onChange={(e) => setNewTitle(e.target.value)}
-                  className="w-full px-4 py-2.5 rounded-xl border border-border bg-background text-foreground font-medium focus:ring-2 focus:ring-primary/40 outline-none"
-                />
-                {formErrors.title && (
-                  <p className="text-xs text-red-500 mt-1 font-medium">{formErrors.title}</p>
-                )}
-              </div>
-
-              {/* Price + Category */}
-              <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <label className="block text-xs font-bold text-muted-foreground mb-1">
-                    {isRtl ? "السعر أو التبادل" : "Price / Exchange"}
-                  </label>
-                  <input
-                    type="text"
-                    placeholder={isRtl ? "150 EGP / مجاني" : "150 EGP / Free"}
-                    value={newPrice}
-                    onChange={(e) => setNewPrice(e.target.value)}
-                    className="w-full px-3 py-2.5 rounded-xl border border-border bg-background text-foreground font-medium focus:ring-2 focus:ring-primary/40 outline-none"
-                  />
-                </div>
-                <div>
-                  <label className="block text-xs font-bold text-muted-foreground mb-1">
-                    {isRtl ? "الفئة" : "Category"}
-                    <span className="text-red-500 ms-0.5">*</span>
-                  </label>
-                  <select
-                    value={newCategory}
-                    onChange={(e) =>
-                      setNewCategory(e.target.value as "Books" | "Electronics" | "Tools")
-                    }
-                    className="w-full px-3 py-2.5 rounded-xl border border-border bg-card text-foreground font-medium focus:ring-2 focus:ring-primary/40 outline-none"
-                  >
-                    <option value="Books">{isRtl ? "كتب دراسية" : "Textbooks"}</option>
-                    <option value="Electronics">
-                      {isRtl ? "إلكترونيات ومعامل" : "Lab Electronics"}
-                    </option>
-                    <option value="Tools">{isRtl ? "أدوات هندسية" : "Engineering Tools"}</option>
-                  </select>
-                  {formErrors.category && (
-                    <p className="text-xs text-red-500 mt-1 font-medium">{formErrors.category}</p>
-                  )}
-                </div>
-              </div>
-
-              {/* Condition */}
-              <div>
-                <label className="block text-xs font-bold text-muted-foreground mb-1">
-                  {isRtl ? "حالة المنتج" : "Condition"}
-                  <span className="text-red-500 ms-0.5">*</span>
-                </label>
-                <input
-                  type="text"
-                  placeholder={isRtl ? "مستعمل بحالة ممتازة" : "Used - Like New"}
-                  value={newCondition}
-                  onChange={(e) => setNewCondition(e.target.value)}
-                  className="w-full px-4 py-2.5 rounded-xl border border-border bg-background text-foreground font-medium focus:ring-2 focus:ring-primary/40 outline-none"
-                />
-                {formErrors.condition && (
-                  <p className="text-xs text-red-500 mt-1 font-medium">{formErrors.condition}</p>
-                )}
-              </div>
-
-              {/* Contact Description */}
-              <div>
-                <label className="block text-xs font-bold text-muted-foreground mb-1">
-                  {isRtl
-                    ? "وصف إضافي / طريقة التواصل (اختياري)"
-                    : "Contact Info / Description (optional)"}
-                </label>
-                <textarea
-                  rows={2}
-                  maxLength={200}
-                  placeholder={
-                    isRtl
-                      ? "مثال: تواصل معي عبر الواتساب على الرقم..."
-                      : "e.g. WhatsApp me at 010..."
-                  }
-                  value={newContactDesc}
-                  onChange={(e) => setNewContactDesc(e.target.value)}
-                  className="w-full px-4 py-2.5 rounded-xl border border-border bg-background text-foreground font-medium focus:ring-2 focus:ring-primary/40 outline-none resize-none"
-                />
-                <p className="text-[10px] text-muted-foreground/60 mt-0.5 text-end">
-                  {newContactDesc.length}/200
-                </p>
-                {formErrors.contactDesc && (
-                  <p className="text-xs text-red-500 mt-1 font-medium">{formErrors.contactDesc}</p>
-                )}
-              </div>
-
-              {/* Actions */}
-              <div className="flex gap-3 pt-2">
+            {/* Modal Dialog */}
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95, y: 15 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.95, y: 15 }}
+              transition={{ duration: 0.2, ease: "easeOut" }}
+              className="relative bg-card border border-border rounded-3xl p-6 sm:p-8 max-w-md w-full shadow-2xl space-y-6 z-10 max-h-[90vh] overflow-y-auto"
+              dir={isRtl ? "rtl" : "ltr"}
+            >
+              <div className="flex items-center justify-between pb-2 border-b border-border/40">
+                <h3 className="text-xl font-black text-foreground">
+                  {isRtl ? "عرض كتاب أو أداة دراسية للتبادل" : "List Academic Gear"}
+                </h3>
                 <button
                   type="button"
                   onClick={() => {
                     setIsModalOpen(false);
                     resetForm();
                   }}
-                  className="flex-1 py-3 rounded-xl border border-border font-bold text-muted-foreground hover:bg-muted"
+                  aria-label={isRtl ? "إغلاق النافذة" : "Close modal"}
+                  className="w-8 h-8 rounded-full bg-muted/60 hover:bg-muted text-muted-foreground hover:text-foreground flex items-center justify-center transition-colors"
                 >
-                  {isRtl ? "إلغاء" : "Cancel"}
-                </button>
-                <button
-                  type="submit"
-                  disabled={isSubmitting}
-                  className="flex-1 py-3 rounded-xl bg-primary text-white font-extrabold shadow-md hover:bg-primary/90 disabled:opacity-50"
-                >
-                  {isSubmitting
-                    ? isRtl
-                      ? "جاري العرض..."
-                      : "Listing..."
-                    : isRtl
-                      ? "عرض الغرض"
-                      : "List Gear"}
+                  <X size={18} />
                 </button>
               </div>
-            </form>
+
+              <form onSubmit={handleListItem} className="space-y-4 text-xs sm:text-sm">
+                {/* Title */}
+                <div>
+                  <label className="block text-xs font-bold text-muted-foreground mb-1">
+                    {isRtl ? "اسم الكتاب / الأداة" : "Item / Book Title"}
+                    <span className="text-red-500 ms-0.5">*</span>
+                  </label>
+                  <input
+                    type="text"
+                    required
+                    placeholder={
+                      isRtl ? "مثال: كتاب هندسة البرمجيات" : "e.g. Software Engineering Textbook"
+                    }
+                    value={newTitle}
+                    onChange={(e) => setNewTitle(e.target.value)}
+                    className="w-full px-4 py-2.5 rounded-xl border border-border bg-background text-foreground font-medium focus:ring-2 focus:ring-primary/40 outline-none transition-all"
+                  />
+                  {formErrors.title && (
+                    <p className="text-xs text-red-500 mt-1 font-medium">{formErrors.title}</p>
+                  )}
+                </div>
+
+                {/* Price + Category */}
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <label className="block text-xs font-bold text-muted-foreground mb-1">
+                      {isRtl ? "السعر أو التبادل" : "Price / Exchange"}
+                    </label>
+                    <input
+                      type="text"
+                      placeholder={isRtl ? "150 EGP / مجاني" : "150 EGP / Free"}
+                      value={newPrice}
+                      onChange={(e) => setNewPrice(e.target.value)}
+                      className="w-full px-3 py-2.5 rounded-xl border border-border bg-background text-foreground font-medium focus:ring-2 focus:ring-primary/40 outline-none transition-all"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-bold text-muted-foreground mb-1">
+                      {isRtl ? "الفئة" : "Category"}
+                      <span className="text-red-500 ms-0.5">*</span>
+                    </label>
+                    <select
+                      value={newCategory}
+                      onChange={(e) =>
+                        setNewCategory(e.target.value as "Books" | "Electronics" | "Tools")
+                      }
+                      className="w-full px-3 py-2.5 rounded-xl border border-border bg-card text-foreground font-medium focus:ring-2 focus:ring-primary/40 outline-none transition-all"
+                    >
+                      <option value="Books">{isRtl ? "كتب دراسية" : "Textbooks"}</option>
+                      <option value="Electronics">
+                        {isRtl ? "إلكترونيات ومعامل" : "Lab Electronics"}
+                      </option>
+                      <option value="Tools">{isRtl ? "أدوات هندسية" : "Engineering Tools"}</option>
+                    </select>
+                    {formErrors.category && (
+                      <p className="text-xs text-red-500 mt-1 font-medium">{formErrors.category}</p>
+                    )}
+                  </div>
+                </div>
+
+                {/* Condition */}
+                <div>
+                  <label className="block text-xs font-bold text-muted-foreground mb-1">
+                    {isRtl ? "حالة المنتج" : "Condition"}
+                    <span className="text-red-500 ms-0.5">*</span>
+                  </label>
+                  <input
+                    type="text"
+                    placeholder={isRtl ? "مستعمل بحالة ممتازة" : "Used - Like New"}
+                    value={newCondition}
+                    onChange={(e) => setNewCondition(e.target.value)}
+                    className="w-full px-4 py-2.5 rounded-xl border border-border bg-background text-foreground font-medium focus:ring-2 focus:ring-primary/40 outline-none transition-all"
+                  />
+                  {formErrors.condition && (
+                    <p className="text-xs text-red-500 mt-1 font-medium">{formErrors.condition}</p>
+                  )}
+                </div>
+
+                {/* Contact Description */}
+                <div>
+                  <label className="block text-xs font-bold text-muted-foreground mb-1">
+                    {isRtl
+                      ? "وصف إضافي / طريقة التواصل (اختياري)"
+                      : "Contact Info / Description (optional)"}
+                  </label>
+                  <textarea
+                    rows={2}
+                    maxLength={200}
+                    placeholder={
+                      isRtl
+                        ? "مثال: تواصل معي عبر الواتساب على الرقم..."
+                        : "e.g. WhatsApp me at 010..."
+                    }
+                    value={newContactDesc}
+                    onChange={(e) => setNewContactDesc(e.target.value)}
+                    className="w-full px-4 py-2.5 rounded-xl border border-border bg-background text-foreground font-medium focus:ring-2 focus:ring-primary/40 outline-none resize-none transition-all"
+                  />
+                  <p className="text-[10px] text-muted-foreground/60 mt-0.5 text-end">
+                    {newContactDesc.length}/200
+                  </p>
+                  {formErrors.contactDesc && (
+                    <p className="text-xs text-red-500 mt-1 font-medium">
+                      {formErrors.contactDesc}
+                    </p>
+                  )}
+                </div>
+
+                {/* Legal compliance notice */}
+                <p className="text-[11px] text-muted-foreground/75 leading-relaxed pt-1">
+                  {isRtl ? (
+                    <>
+                      بعرض العنصر، فإنك تؤكد ملكيتك وموافقتك على
+                      <Link href="/legal/terms" className="text-primary underline ms-1">
+                        شروط الاستخدام
+                      </Link>
+                      .
+                    </>
+                  ) : (
+                    <>
+                      By listing an item, you affirm ownership and agreement with our{" "}
+                      <Link href="/legal/terms" className="text-primary underline">
+                        Terms of Service
+                      </Link>
+                      .
+                    </>
+                  )}
+                </p>
+
+                {/* Actions */}
+                <div className="flex gap-3 pt-2">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setIsModalOpen(false);
+                      resetForm();
+                    }}
+                    className="flex-1 py-3 rounded-xl border border-border font-bold text-muted-foreground hover:bg-muted transition-colors"
+                  >
+                    {isRtl ? "إلغاء" : "Cancel"}
+                  </button>
+                  <button
+                    type="submit"
+                    disabled={isSubmitting}
+                    className="flex-1 py-3 rounded-xl bg-primary text-primary-foreground font-extrabold shadow-md hover:bg-primary/90 disabled:opacity-50 transition-all"
+                  >
+                    {isSubmitting
+                      ? isRtl
+                        ? "جاري العرض..."
+                        : "Listing..."
+                      : isRtl
+                        ? "عرض الغرض"
+                        : "List Gear"}
+                  </button>
+                </div>
+              </form>
+            </motion.div>
           </div>
-        </div>
-      )}
+        )}
+      </AnimatePresence>
     </div>
   );
 }

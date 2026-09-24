@@ -14,6 +14,9 @@ import {
   GraduationCap,
   Building2,
   Users,
+  Gem,
+  Trophy,
+  Medal,
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "@/lib/utils";
@@ -49,7 +52,7 @@ const LEAGUES = [
     bg: "from-cyan-500/20 to-blue-500/10",
     border: "border-cyan-500/30",
     min: 5000,
-    emoji: "💎",
+    icon: Gem,
   },
   {
     name: "Gold",
@@ -57,7 +60,7 @@ const LEAGUES = [
     bg: "from-amber-500/20 to-yellow-500/10",
     border: "border-amber-500/30",
     min: 2000,
-    emoji: "🥇",
+    icon: Trophy,
   },
   {
     name: "Silver",
@@ -65,7 +68,7 @@ const LEAGUES = [
     bg: "from-slate-400/20 to-slate-600/10",
     border: "border-slate-400/30",
     min: 1000,
-    emoji: "🥈",
+    icon: Medal,
   },
   {
     name: "Bronze",
@@ -73,7 +76,7 @@ const LEAGUES = [
     bg: "from-orange-600/20 to-amber-600/10",
     border: "border-orange-500/30",
     min: 0,
-    emoji: "🥉",
+    icon: Award,
   },
 ];
 
@@ -191,12 +194,13 @@ export function UserProfileModal({ uid, onClose }: UserProfileModalProps) {
                   <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,rgba(255,255,255,0.05),transparent_70%)]" />
                   <button
                     onClick={onClose}
+                    aria-label="Close modal"
                     className="absolute top-3 right-3 w-8 h-8 rounded-full bg-black/20 flex items-center justify-center text-white/80 hover:bg-black/40 transition-colors"
                   >
                     <X className="w-4 h-4" />
                   </button>
                   <div className="relative z-10 flex items-center gap-2">
-                    <span className="text-2xl">{league.emoji}</span>
+                    <league.icon className={cn("w-6 h-6", league.color)} />
                     <span className={cn("text-sm font-black", league.color)}>
                       {league.name} League
                     </span>
@@ -214,6 +218,7 @@ export function UserProfileModal({ uid, onClose }: UserProfileModalProps) {
                 <div className="absolute top-3 right-3 z-10">
                   <button
                     onClick={onClose}
+                    aria-label="Close modal"
                     className="w-8 h-8 rounded-full bg-muted/60 flex items-center justify-center text-muted-foreground hover:bg-muted transition-colors"
                   >
                     <X className="w-4 h-4" />
@@ -346,12 +351,17 @@ export function UserProfileModal({ uid, onClose }: UserProfileModalProps) {
                       return (
                         <div className="space-y-1.5">
                           <div className="flex items-center justify-between text-[11px] text-muted-foreground">
-                            <span>
-                              {currentLeague.emoji} {currentLeague.name}
+                            <span className="flex items-center gap-1">
+                              <currentLeague.icon className="w-3.5 h-3.5" />
+                              <span>{currentLeague.name}</span>
                             </span>
-                            <span>
-                              {profile.points.toLocaleString()} / {nextLeague.min.toLocaleString()}{" "}
-                              XP → {nextLeague.emoji} {nextLeague.name}
+                            <span className="flex items-center gap-1">
+                              <span>
+                                {profile.points.toLocaleString()} /{" "}
+                                {nextLeague.min.toLocaleString()} XP →
+                              </span>
+                              <nextLeague.icon className="w-3.5 h-3.5" />
+                              <span>{nextLeague.name}</span>
                             </span>
                           </div>
                           <div className="h-2 bg-muted/40 rounded-full overflow-hidden">

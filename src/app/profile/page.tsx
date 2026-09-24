@@ -18,6 +18,9 @@ import {
   Sparkles,
   AtSign,
   Copy,
+  Gem,
+  Medal,
+  Award,
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/Card";
 import { ConfirmationModal } from "@/components/ui/ConfirmationModal";
@@ -159,7 +162,7 @@ export default function ProfilePage() {
           </div>
           {(activeUser.role === "owner" || activeUser.role === "admin") && (
             <div className="absolute -bottom-2 -right-2 bg-gradient-to-r from-primary to-indigo-600 text-primary-foreground px-3.5 py-1 rounded-full text-xs font-black shadow-lg uppercase tracking-wider border border-white/20">
-              {activeUser.role === "owner" ? "Owner 👑" : "Admin 🛡️"}
+              {activeUser.role === "owner" ? "Owner" : "Admin"}
             </div>
           )}
         </div>
@@ -174,7 +177,7 @@ export default function ProfilePage() {
                   className="inline-flex items-center gap-1 text-xs px-3 py-1 rounded-full bg-gradient-to-r from-amber-500 to-yellow-400 text-black font-extrabold shadow-md hover:scale-105 transition-all"
                 >
                   <Crown size={14} />
-                  <span>{language === "ar" ? "العبور بلس 👑 VIP" : "Obour VIP Pass 👑"}</span>
+                  <span>{language === "ar" ? "العبور بلس VIP" : "Obour VIP Pass"}</span>
                 </Link>
               ) : (
                 <Link
@@ -182,11 +185,11 @@ export default function ProfilePage() {
                   className="inline-flex items-center gap-1 text-xs px-2.5 py-1 rounded-full bg-amber-500/10 text-amber-500 hover:bg-amber-500/20 border border-amber-500/30 font-extrabold transition-all"
                 >
                   <Sparkles size={12} />
-                  <span>{language === "ar" ? "ترقية إلى PRO ⚡" : "Upgrade to PRO ⚡"}</span>
+                  <span>{language === "ar" ? "ترقية إلى PRO" : "Upgrade to PRO"}</span>
                 </Link>
               )}
               <span className="text-xs px-2.5 py-1 rounded-full bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20 font-bold">
-                {language === "ar" ? "طالب مسجل 🟢" : "Active Student 🟢"}
+                {language === "ar" ? "طالب مسجل" : "Active Student"}
               </span>
             </h1>
 
@@ -354,7 +357,7 @@ export default function ProfilePage() {
           {
             name: "Diamond",
             nameAr: "\u0627\u0644\u0645\u0627\u0633",
-            emoji: "💎",
+            icon: Gem,
             min: 5000,
             next: Infinity,
             color: "text-cyan-400",
@@ -365,7 +368,7 @@ export default function ProfilePage() {
           {
             name: "Gold",
             nameAr: "\u0630\u0647\u0628",
-            emoji: "🥇",
+            icon: Trophy,
             min: 2000,
             next: 5000,
             color: "text-amber-400",
@@ -376,7 +379,7 @@ export default function ProfilePage() {
           {
             name: "Silver",
             nameAr: "\u0641\u0636\u0629",
-            emoji: "🥈",
+            icon: Medal,
             min: 1000,
             next: 2000,
             color: "text-slate-300",
@@ -387,7 +390,7 @@ export default function ProfilePage() {
           {
             name: "Bronze",
             nameAr: "\u0628\u0631\u0648\u0646\u0632",
-            emoji: "🥉",
+            icon: Award,
             min: 0,
             next: 1000,
             color: "text-orange-400",
@@ -403,6 +406,7 @@ export default function ProfilePage() {
           ? 100
           : Math.min(100, Math.round(((points - league.min) / (league.next - league.min)) * 100));
         const leagueName = language === "ar" ? league.nameAr : league.name;
+        const LeagueIcon = league.icon;
 
         return (
           <div className="bg-card border border-border rounded-4xl p-6 shadow-md dark:bg-card space-y-4">
@@ -429,7 +433,7 @@ export default function ProfilePage() {
               <div
                 className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-black ${league.bg} ${league.color} border ${league.border}`}
               >
-                <span>{league.emoji}</span>
+                <LeagueIcon size={14} />
                 <span>{leagueName}</span>
               </div>
             </div>

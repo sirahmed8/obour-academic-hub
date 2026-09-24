@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { adminAuth, adminDb } from "@/lib/server/firebase-admin";
 import { corsOptions, withCors } from "@/lib/server/cors";
 import { handleRouteError, getRequestContext } from "@/lib/server/auth";
+import { rateLimit } from "@/lib/server/rate-limit";
 
 export const runtime = "nodejs";
 
@@ -16,6 +17,22 @@ export async function DELETE(request: Request) {
 
     if (!uid) {
       return withCors(request, NextResponse.json({ error: "Unauthorized" }, { status: 401 }));
+    }
+
+    const limiter = await rateLimit({
+      key: `api:user:delete:${uid}`,
+      limit: 3,
+      windowMs: 3600_000,
+    });
+
+    if (!limiter.allowed) {
+      return withCors(
+        request,
+        NextResponse.json(
+          { error: "Too many deletion requests. Please try again later." },
+          { status: 429 }
+        )
+      );
     }
 
     // 1. Delete Firestore records (including subcollections tasks and stats) and anonymize chat messages

@@ -157,9 +157,7 @@ export function UsernameSetupModal({ forceShow = false, onClose }: UsernameSetup
     try {
       await updateProfile({ username: clean });
       toast.success(
-        isAr
-          ? `🎉 تم تعيين المعرف الخاص بك @${clean} بنجاح!`
-          : `🎉 Handle @${clean} set successfully!`
+        isAr ? `تم تعيين المعرف الخاص بك @${clean} بنجاح!` : `Handle @${clean} set successfully!`
       );
       if (onClose) onClose();
       setDismissed(true);
@@ -170,141 +168,144 @@ export function UsernameSetupModal({ forceShow = false, onClose }: UsernameSetup
     }
   };
 
-  if (!isOpen) return null;
-
   const suggestions = generateSuggestions();
 
   return (
     <AnimatePresence>
-      <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-md p-4 animate-fadeIn">
-        <motion.div
-          initial={{ opacity: 0, scale: 0.9, y: 20 }}
-          animate={{ opacity: 1, scale: 1, y: 0 }}
-          exit={{ opacity: 0, scale: 0.9 }}
-          className="relative w-full max-w-md rounded-3xl bg-card border border-border shadow-2xl p-6 sm:p-8 space-y-6 text-foreground overflow-hidden"
-          dir={isAr ? "rtl" : "ltr"}
-        >
-          {/* Top Decorative Gradient */}
-          <div className="absolute top-0 right-0 left-0 h-2 bg-gradient-to-r from-primary via-indigo-500 to-amber-500" />
+      {isOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-md p-4">
+          <motion.div
+            initial={{ opacity: 0, scale: 0.9, y: 20 }}
+            animate={{ opacity: 1, scale: 1, y: 0 }}
+            exit={{ opacity: 0, scale: 0.9, y: 20 }}
+            transition={{ type: "spring", stiffness: 350, damping: 28 }}
+            className="relative w-full max-w-md rounded-3xl bg-card border border-border shadow-2xl p-6 sm:p-8 space-y-6 text-foreground overflow-hidden"
+            dir={isAr ? "rtl" : "ltr"}
+          >
+            {/* Top Decorative Gradient */}
+            <div className="absolute top-0 right-0 left-0 h-2 bg-gradient-to-r from-primary via-indigo-500 to-amber-500" />
 
-          {/* Close button if optional */}
-          {onClose && (
-            <button
-              onClick={() => {
-                setDismissed(true);
-                onClose();
-              }}
-              className="absolute top-4 right-4 p-2 rounded-full hover:bg-muted text-muted-foreground transition"
-            >
-              <X size={18} />
-            </button>
-          )}
-
-          {/* Icon Header */}
-          <div className="flex items-center gap-3">
-            <div className="w-12 h-12 rounded-2xl bg-primary/10 border border-primary/20 flex items-center justify-center text-primary shadow-inner">
-              <AtSign size={24} />
-            </div>
-            <div>
-              <h2 className="text-xl font-black text-foreground font-harman">
-                {isAr ? "اختر معرف الحساب الخاص بك ⚡" : "Choose Your Unique @Handle ⚡"}
-              </h2>
-              <p className="text-xs text-muted-foreground font-medium">
-                {isAr
-                  ? "معرف فريد يسهل مشاركة بروفايلك والبحث عنك بين الطلاب."
-                  : "A unique handle to easily share your profile & connect with peers."}
-              </p>
-            </div>
-          </div>
-
-          <form onSubmit={handleSubmit} className="space-y-4">
-            <div>
-              <label className="block text-xs font-bold text-foreground mb-1">
-                {isAr ? "اسم المستخدم (Username) *" : "Unique Handle (@username) *"}
-              </label>
-              <div className="relative flex items-center">
-                <span className="absolute left-3.5 text-muted-foreground/60 font-black text-sm select-none">
-                  @
-                </span>
-                <input
-                  type="text"
-                  required
-                  value={username}
-                  onChange={(e) =>
-                    setUsername(e.target.value.toLowerCase().replace(/[^a-z0-9_]/g, ""))
-                  }
-                  placeholder="e.g. ahmed_2026"
-                  className="w-full pl-8 pr-10 py-3 rounded-2xl bg-muted/50 border border-border outline-none focus:border-primary focus:ring-2 focus:ring-primary/30 text-sm font-bold tracking-wide transition"
-                />
-                <div className="absolute right-3 flex items-center">
-                  {checking ? (
-                    <RefreshCw size={16} className="animate-spin text-muted-foreground" />
-                  ) : isAvailable === true ? (
-                    <Check size={18} className="text-emerald-500 font-bold animate-bounce" />
-                  ) : isAvailable === false ? (
-                    <X size={18} className="text-destructive font-bold" />
-                  ) : null}
-                </div>
-              </div>
-
-              {errorMsg && (
-                <p className="text-[11px] font-bold text-destructive mt-1.5 flex items-center gap-1">
-                  • {errorMsg}
-                </p>
-              )}
-              {isAvailable === true && !checking && (
-                <p className="text-[11px] font-extrabold text-emerald-500 mt-1.5 flex items-center gap-1">
-                  ✓ {isAr ? "اسم المستخدم متاح للاستخدام!" : "Handle is available!"}
-                </p>
-              )}
-            </div>
-
-            {/* Quick Suggestions */}
-            {suggestions.length > 0 && (
-              <div className="space-y-1.5">
-                <label className="block text-[11px] font-bold text-muted-foreground">
-                  {isAr ? "اقتراحات سريعة 💡:" : "Suggested Handles 💡:"}
-                </label>
-                <div className="flex flex-wrap gap-1.5">
-                  {suggestions.map((sug) => (
-                    <button
-                      key={sug}
-                      type="button"
-                      onClick={() => setUsername(sug)}
-                      className={`px-3 py-1 rounded-full text-xs font-extrabold border transition active:scale-95 ${
-                        username === sug
-                          ? "bg-primary text-white border-primary shadow-sm"
-                          : "bg-muted/70 text-muted-foreground border-border hover:bg-primary/10 hover:text-primary"
-                      }`}
-                    >
-                      @{sug}
-                    </button>
-                  ))}
-                </div>
-              </div>
+            {/* Close button if optional */}
+            {onClose && (
+              <button
+                type="button"
+                onClick={() => {
+                  setDismissed(true);
+                  onClose();
+                }}
+                aria-label={isAr ? "إغلاق" : "Close"}
+                className="absolute top-4 right-4 p-2 rounded-full hover:bg-muted text-muted-foreground transition"
+              >
+                <X size={18} />
+              </button>
             )}
 
-            {/* Submit Button */}
-            <button
-              type="submit"
-              disabled={saving || !isAvailable || checking}
-              className="w-full py-3.5 rounded-2xl bg-gradient-to-r from-primary to-indigo-600 text-white font-extrabold text-sm hover:opacity-95 transition shadow-lg flex items-center justify-center gap-2 disabled:opacity-50 active:scale-97"
-            >
-              {saving ? (
-                <>
-                  <RefreshCw size={16} className="animate-spin" />
-                  <span>{isAr ? "جاري الحفظ..." : "Saving Handle..."}</span>
-                </>
-              ) : (
-                <>
-                  <Sparkles size={16} />
-                  <span>{isAr ? "تأكيد وحفظ اسم المستخدم" : "Save Username Handle"}</span>
-                </>
+            {/* Icon Header */}
+            <div className="flex items-center gap-3">
+              <div className="w-12 h-12 rounded-2xl bg-primary/10 border border-primary/20 flex items-center justify-center text-primary shadow-inner">
+                <AtSign size={24} />
+              </div>
+              <div>
+                <h2 className="text-xl font-black text-foreground font-harman">
+                  {isAr ? "اختر معرف الحساب الخاص بك" : "Choose Your Unique @Handle"}
+                </h2>
+                <p className="text-xs text-muted-foreground font-medium">
+                  {isAr
+                    ? "معرف فريد يسهل مشاركة بروفايلك والبحث عنك بين الطلاب."
+                    : "A unique handle to easily share your profile & connect with peers."}
+                </p>
+              </div>
+            </div>
+
+            <form onSubmit={handleSubmit} className="space-y-4">
+              <div>
+                <label className="block text-xs font-bold text-foreground mb-1">
+                  {isAr ? "اسم المستخدم (Username) *" : "Unique Handle (@username) *"}
+                </label>
+                <div className="relative flex items-center">
+                  <span className="absolute left-3.5 text-muted-foreground/60 font-black text-sm select-none">
+                    @
+                  </span>
+                  <input
+                    type="text"
+                    required
+                    value={username}
+                    onChange={(e) =>
+                      setUsername(e.target.value.toLowerCase().replace(/[^a-z0-9_]/g, ""))
+                    }
+                    placeholder="e.g. ahmed_2026"
+                    className="w-full pl-8 pr-10 py-3 rounded-2xl bg-muted/50 border border-border outline-none focus:border-primary focus:ring-2 focus:ring-primary/30 text-sm font-bold tracking-wide transition"
+                  />
+                  <div className="absolute right-3 flex items-center">
+                    {checking ? (
+                      <RefreshCw size={16} className="animate-spin text-muted-foreground" />
+                    ) : isAvailable === true ? (
+                      <Check size={18} className="text-emerald-500 font-bold animate-bounce" />
+                    ) : isAvailable === false ? (
+                      <X size={18} className="text-destructive font-bold" />
+                    ) : null}
+                  </div>
+                </div>
+
+                {errorMsg && (
+                  <p className="text-[11px] font-bold text-destructive mt-1.5 flex items-center gap-1">
+                    • {errorMsg}
+                  </p>
+                )}
+                {isAvailable === true && !checking && (
+                  <p className="text-[11px] font-extrabold text-emerald-500 mt-1.5 flex items-center gap-1">
+                    ✓ {isAr ? "اسم المستخدم متاح للاستخدام!" : "Handle is available!"}
+                  </p>
+                )}
+              </div>
+
+              {/* Quick Suggestions */}
+              {suggestions.length > 0 && (
+                <div className="space-y-1.5">
+                  <label className="block text-[11px] font-bold text-muted-foreground">
+                    {isAr ? "اقتراحات سريعة:" : "Suggested Handles:"}
+                  </label>
+                  <div className="flex flex-wrap gap-1.5">
+                    {suggestions.map((sug) => (
+                      <button
+                        key={sug}
+                        type="button"
+                        onClick={() => setUsername(sug)}
+                        className={`px-3 py-1 rounded-full text-xs font-extrabold border transition active:scale-95 ${
+                          username === sug
+                            ? "bg-primary text-white border-primary shadow-sm"
+                            : "bg-muted/70 text-muted-foreground border-border hover:bg-primary/10 hover:text-primary"
+                        }`}
+                      >
+                        @{sug}
+                      </button>
+                    ))}
+                  </div>
+                </div>
               )}
-            </button>
-          </form>
-        </motion.div>
-      </div>
+
+              {/* Submit Button */}
+              <button
+                type="submit"
+                disabled={saving || !isAvailable || checking}
+                className="w-full py-3.5 rounded-2xl bg-gradient-to-r from-primary to-indigo-600 text-white font-extrabold text-sm hover:opacity-95 transition shadow-lg flex items-center justify-center gap-2 disabled:opacity-50 active:scale-97"
+              >
+                {saving ? (
+                  <>
+                    <RefreshCw size={16} className="animate-spin" />
+                    <span>{isAr ? "جاري الحفظ..." : "Saving Handle..."}</span>
+                  </>
+                ) : (
+                  <>
+                    <Sparkles size={16} />
+                    <span>{isAr ? "تأكيد وحفظ اسم المستخدم" : "Save Username Handle"}</span>
+                  </>
+                )}
+              </button>
+            </form>
+          </motion.div>
+        </div>
+      )}
     </AnimatePresence>
   );
 }

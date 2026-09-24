@@ -345,7 +345,7 @@ export default function QuizPage() {
                   {isSubmitted && (
                     <div className="p-4 rounded-2xl bg-primary/10 border border-primary/20 space-y-1">
                       <div className="text-xs font-black text-primary uppercase">
-                        {isRtl ? "💡 التوضيح الشامل:" : "💡 Solution Explanation:"}
+                        {isRtl ? "التوضيح الشامل:" : "Solution Explanation:"}
                       </div>
                       <p className="text-xs sm:text-sm font-medium text-foreground leading-relaxed">
                         {isRtl ? q.explanationAr : q.explanationEn}
@@ -405,8 +405,8 @@ export default function QuizPage() {
                       }
                       toast.success(
                         isRtl
-                          ? `🎉 تم تسليم الاختبار وحساب +${xpEarned} نقطة XP!`
-                          : `🎉 Quiz submitted! +${xpEarned} XP earned!`
+                          ? `تم تسليم الاختبار وحساب +${xpEarned} نقطة XP!`
+                          : `Quiz submitted! +${xpEarned} XP earned!`
                       );
                     }}
                     className="px-6 py-3 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-black text-xs transition shadow-lg flex items-center gap-1.5 active:scale-95"

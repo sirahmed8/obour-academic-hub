@@ -207,12 +207,12 @@ export function useAdminUsers(): AdminUsersController {
             target: user.uid,
             userId: user.uid,
             type: "VIP_GIFT",
-            title: "🎉 VIP Pass Gifted! / تم إهداؤك العبور بلس 👑",
+            title: "VIP Pass Gifted! / تم إهداؤك العبور بلس",
             message: `Congratulations! You have been granted complimentary Obour VIP Pass access by (${adminName}) with 2x XP multipliers and priority AI features!`,
-            titleAr: "🎉 تهانينا! تم إهداؤك العبور بلس 👑 VIP Pass!",
-            messageAr: `تم منحك اشتراك "العبور بلس 👑 VIP Pass" مجاناً بفضل (${adminName})! استمتع بمميزات مضاعفة النظراء (2x XP)، معالجة الذكاء الاصطناعي الأسرع، وشارة التاج الذهبي الملكي!`,
-            titleEn: "🎉 Congratulations! You received Obour VIP Pass 👑",
-            messageEn: `You have been gifted the Obour VIP Pass 👑 by (${adminName})! Enjoy 2x XP points multiplier, priority AI processing, and a golden crown badge!`,
+            titleAr: "تهانينا! تم إهداؤك العبور بلس VIP Pass!",
+            messageAr: `تم منحك اشتراك "العبور بلس VIP Pass" مجاناً بفضل (${adminName})! استمتع بمميزات مضاعفة النظراء (2x XP)، معالجة الذكاء الاصطناعي الأسرع، وشارة العبور بلس!`,
+            titleEn: "Congratulations! You received Obour VIP Pass",
+            messageEn: `You have been gifted the Obour VIP Pass by (${adminName})! Enjoy 2x XP points multiplier, priority AI processing, and exclusive VIP access!`,
             link: "/plus",
           });
         } catch (e) {
@@ -223,10 +223,10 @@ export function useAdminUsers(): AdminUsersController {
       toast.success(
         language === "ar"
           ? nextVip
-            ? "👑 تم تفعيل العبور بلس للمستخدم وإرسال إشعار التهنئة!"
+            ? "تم تفعيل العبور بلس للمستخدم وإرسال إشعار التهنئة!"
             : "تم إلغاء تفعيل العبور بلس"
           : nextVip
-            ? "👑 Complimentary VIP Pass granted & celebratory notice sent!"
+            ? "Complimentary VIP Pass granted & celebratory notice sent!"
             : "VIP Pass deactivated for user"
       );
     } catch (err) {

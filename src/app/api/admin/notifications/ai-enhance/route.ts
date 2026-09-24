@@ -3,6 +3,7 @@ import { z } from "zod";
 import { corsOptions, withCors } from "@/lib/server/cors";
 import { handleRouteError, requirePermission } from "@/lib/server/auth";
 import { generateGeminiResponse, ANNOUNCEMENT_ENHANCER_SYSTEM_PROMPT } from "@/lib/aiService";
+import { rateLimit } from "@/lib/server/rate-limit";
 
 export const runtime = "nodejs";
 
@@ -21,6 +22,23 @@ export async function OPTIONS(request: Request) {
 export async function POST(request: Request) {
   try {
     const context = await requirePermission(request, "manage_announcements");
+
+    const limiter = await rateLimit({
+      key: `api:admin:ai-enhance:${context.uid}`,
+      limit: 20,
+      windowMs: 60_000,
+    });
+
+    if (!limiter.allowed) {
+      return withCors(
+        request,
+        NextResponse.json(
+          { error: "Too many AI enhancement requests. Please wait a minute." },
+          { status: 429 }
+        )
+      );
+    }
+
     const body = enhanceSchema.parse(await request.json());
 
     const promptText = `يرجى تحسين وتنسيق وإكمال الإعلان التالي:

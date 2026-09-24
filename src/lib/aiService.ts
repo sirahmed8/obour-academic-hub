@@ -177,7 +177,7 @@ async function getLiveDatabaseContext(userUid?: string): Promise<string> {
           contextText += `- المعهد: ${u?.institute || "معاهد العبور"}\n`;
           contextText += `- القسم الأكاديمي: ${u?.department || "غير محدد"}\n`;
           contextText += `- الفرقة الدراسية: ${u?.academicYear ? `الفرقة ${u.academicYear}` : "غير محددة"}\n`;
-          contextText += `- حالة العبور بلس (VIP): ${u?.isVip ? "مشترك مميز (👑 VIP)" : "طالب مجاني"}\n`;
+          contextText += `- حالة العبور بلس (VIP): ${u?.isVip ? "مشترك مميز (VIP)" : "طالب مجاني"}\n`;
           contextText += `- المعدل التراكمي (GPA): ${u?.gpa ? u.gpa.toFixed(2) : "غير محدد"}\n`;
           contextText += `- سلسلة الأيام المتواصلة (Streak): ${u?.streak || 0} أيام\n`;
           contextText += `- النقاط الحالية: ${u?.points || 0}\n`;

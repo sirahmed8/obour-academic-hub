@@ -37,8 +37,8 @@ export function FocusTimer() {
                   .then(({ finalXP, isVip }) => {
                     toast.success(
                       isAr
-                        ? `أحسنت! أتممت جلسة تركيز بنجاح +${finalXP} نقطة ${isVip ? "👑 (2x VIP)" : "⏱️"}`
-                        : `Great focus session! +${finalXP} XP ${isVip ? "👑 (2x VIP)" : "⏱️"}`
+                        ? `أحسنت! أتممت جلسة تركيز بنجاح +${finalXP} نقطة ${isVip ? "(2x VIP)" : ""}`
+                        : `Great focus session! +${finalXP} XP ${isVip ? "(2x VIP)" : ""}`
                     );
                   })
                   .catch(() => {});
@@ -111,6 +111,7 @@ export function FocusTimer() {
               <button
                 type="button"
                 onClick={() => setIsOpen(false)}
+                aria-label={isAr ? "إغلاق مؤقت التركيز" : "Close focus timer"}
                 className="p-1 text-muted-foreground hover:text-foreground rounded-lg"
               >
                 <X className="w-4 h-4" />
@@ -201,7 +202,7 @@ export function FocusTimer() {
                     : "bg-muted text-muted-foreground"
                 )}
               >
-                {isSoundOn ? (isAr ? "مُشغّل 🎵" : "Playing 🎵") : isAr ? "تشغيل" : "Play"}
+                {isSoundOn ? (isAr ? "مُشغّل" : "Playing") : isAr ? "تشغيل" : "Play"}
               </button>
             </div>
 

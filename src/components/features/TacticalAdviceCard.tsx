@@ -122,7 +122,7 @@ export function TacticalAdviceCard() {
               >
                 {loading ? <Loader2 size={16} className="animate-spin" /> : <RefreshCw size={16} />}
                 <span>
-                  {language === "ar" ? "💡 احصل على نصيحة الذكاء الاصطناعي" : "💡 Get AI Advice"}
+                  {language === "ar" ? "احصل على نصيحة الذكاء الاصطناعي" : "Get AI Advice"}
                 </span>
               </button>
             ) : (
@@ -134,8 +134,8 @@ export function TacticalAdviceCard() {
                 <Clock size={16} />
                 <span>
                   {language === "ar"
-                    ? `⏳ متاح طلب نصيحة جديدة بعد ${cooldownMinutes} دقيقة`
-                    : `⏳ Next advice available in ${cooldownMinutes}m`}
+                    ? `متاح طلب نصيحة جديدة بعد ${cooldownMinutes} دقيقة`
+                    : `Next advice available in ${cooldownMinutes}m`}
                 </span>
               </button>
             )}
@@ -157,9 +157,7 @@ export function TacticalAdviceCard() {
                       <Lightbulb size={18} />
                     )}
                     <span>
-                      {language === "ar"
-                        ? "💡 احصل على نصيحة الذكاء الاصطناعي"
-                        : "💡 Get AI Advice"}
+                      {language === "ar" ? "احصل على نصيحة الذكاء الاصطناعي" : "Get AI Advice"}
                     </span>
                   </button>
                 </TapScale>

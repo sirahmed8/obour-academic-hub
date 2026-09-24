@@ -3,7 +3,20 @@
 import { useState, useEffect, useMemo } from "react";
 import { useAuth, useLanguage } from "@/contexts";
 import { analyticsService } from "@/services/analytics.service";
-import { Trophy, TrendingUp, BookOpen, Clock, Zap, Target, Flame, Calendar } from "lucide-react";
+import {
+  Trophy,
+  TrendingUp,
+  BookOpen,
+  Clock,
+  Zap,
+  Target,
+  Flame,
+  Calendar,
+  Folder,
+  Compass,
+  HelpCircle,
+  GraduationCap,
+} from "lucide-react";
 import { motion } from "framer-motion";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/Card";
 
@@ -73,37 +86,37 @@ export function StudentStats() {
         title: language === "ar" ? "بطل الملفات" : "File Master",
         desc: language === "ar" ? "تحميل أكثر من 10 ملفات" : "Downloaded 10+ files",
         unlocked: (stats?.fileOpens ?? 0) >= 10,
-        icon: "📁",
+        icon: <Folder size={22} />,
       },
       {
         title: language === "ar" ? "مستكشف المواد" : "Explorer",
         desc: language === "ar" ? "زيارة 5 مواد مختلفة" : "Visited 5+ subjects",
         unlocked: (stats?.subjectOpens ?? 0) >= 5,
-        icon: "🧭",
+        icon: <Compass size={22} />,
       },
       {
         title: language === "ar" ? "شعلة النشاط" : "Active Learner",
         desc: language === "ar" ? "تسجيل دخول أكثر من 20 مرة" : "Logged in 20+ times",
         unlocked: (stats?.logins ?? 0) >= 20,
-        icon: "🔥",
+        icon: <Flame size={22} />,
       },
       {
         title: language === "ar" ? "أول خطوة" : "First Steps",
         desc: language === "ar" ? "إضافة أول درجات" : "Added first grades",
         unlocked: (stats?.gradesAdded ?? 0) >= 1,
-        icon: "🎯",
+        icon: <Target size={22} />,
       },
       {
         title: language === "ar" ? "ملك الامتحانات" : "Exam King",
         desc: language === "ar" ? "فتح 5 امتحانات سابقة" : "Opened 5+ past exams",
         unlocked: (stats?.examOpens ?? 0) >= 5,
-        icon: "👑",
+        icon: <GraduationCap size={22} />,
       },
       {
         title: language === "ar" ? "عاشق الأسئلة" : "Q&A Enthusiast",
         desc: language === "ar" ? "فتح قسم الأسئلة 3 مرات" : "Opened Q&A 3+ times",
         unlocked: (stats?.qaOpens ?? 0) >= 3,
-        icon: "🤔",
+        icon: <HelpCircle size={22} />,
       },
     ],
     [stats, language]

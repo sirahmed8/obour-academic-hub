@@ -111,7 +111,7 @@ export function TodoList() {
           const storageKey = `notified-${task.id}-${due.getTime()}`;
           if (!sessionStorage.getItem(storageKey)) {
             notificationService.sendBrowserNotification(
-              language === "ar" ? "تذكير بمهمة ⏰" : "Task Reminder ⏰",
+              language === "ar" ? "تذكير بمهمة" : "Task Reminder",
               {
                 body:
                   language === "ar"
@@ -267,7 +267,7 @@ export function TodoList() {
           toast.info(language === "ar" ? "تم إلغاء إكمال المهمة" : "Task uncompleted");
         } else {
           // Task completed - Send notification (In-App + Browser)
-          const title = language === "ar" ? "مهمة مكتملة 🎉" : "Task Completed 🎉";
+          const title = language === "ar" ? "مهمة مكتملة" : "Task Completed";
           const message =
             language === "ar"
               ? `عاش يا بطل! خلصت مهمة: "${task.title}"`
@@ -305,11 +305,11 @@ export function TodoList() {
           toast.success(
             isVipUser
               ? language === "ar"
-                ? "عمل رائع! +20 نقطة (⚡ مضاعف العبور بلس 2x مفعل!) 👑"
-                : "Great job! +20 points (⚡ 2x VIP Multiplier Active!) 👑"
+                ? "عمل رائع! +20 نقطة (مضاعف العبور بلس 2x مفعل)"
+                : "Great job! +20 points (2x VIP Multiplier Active)"
               : language === "ar"
-                ? "عمل رائع! +10 نقاط 🎉"
-                : "Great job! +10 points 🎉"
+                ? "عمل رائع! +10 نقاط"
+                : "Great job! +10 points"
           );
         }
       } catch {
@@ -352,7 +352,7 @@ export function TodoList() {
             console.error("Failed to update points:", err);
           }
 
-          const title = language === "ar" ? "مهمة مكتملة 🎉" : "Task Completed 🎉";
+          const title = language === "ar" ? "مهمة مكتملة" : "Task Completed";
           const message =
             language === "ar"
               ? `عاش يا بطل! خلصت مهمة: "${task.title}"`
@@ -387,11 +387,11 @@ export function TodoList() {
           toast.success(
             isVipUser
               ? language === "ar"
-                ? "عمل رائع! +20 نقطة (⚡ مضاعف العبور بلس 2x مفعل!) 👑"
-                : "Great job! +20 points (⚡ 2x VIP Multiplier Active!) 👑"
+                ? "عمل رائع! +20 نقطة (مضاعف العبور بلس 2x مفعل)"
+                : "Great job! +20 points (2x VIP Multiplier Active)"
               : language === "ar"
-                ? "عمل رائع! +10 نقاط 🎉"
-                : "Great job! +10 points 🎉"
+                ? "عمل رائع! +10 نقاط"
+                : "Great job! +10 points"
           );
         } else if (!willBeCompleted && wasCompleted) {
           try {
@@ -729,8 +729,8 @@ export function TodoList() {
                     ? "لا توجد مهام مكتملة بعد"
                     : "No completed tasks yet"
                   : language === "ar"
-                    ? "كل شيء نظيف! 🎉"
-                    : "All caught up! 🎉"}
+                    ? "كل شيء نظيف ومكتمل"
+                    : "All caught up"}
               </h3>
               <p className="text-sm text-muted-foreground/60 mt-2 max-w-xs mx-auto mb-6">
                 {filters.status === "completed"

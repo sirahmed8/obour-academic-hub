@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useMemo, memo } from "react";
 import { useLanguage, useAuth } from "@/contexts";
+import Link from "next/link";
 import {
   BookOpen,
   Search,
@@ -310,7 +311,7 @@ export default function PastExamsPage() {
         ]);
       }
 
-      toast.success(isRtl ? "🎉 تم إضافة الامتحان بنجاح!" : "🎉 Exam added successfully!");
+      toast.success(isRtl ? "تم إضافة الامتحان بنجاح!" : "Exam added successfully!");
       setIsModalOpen(false);
       setNewTitle("");
       setNewSubject("");
@@ -484,8 +485,8 @@ export default function PastExamsPage() {
                     <FileCheck size={14} className="text-emerald-500" />
                     <span>
                       {isRtl
-                        ? "نموذج إجابة معتمد ومراجع من أساتذة المادة 👑"
-                        : "Verified Faculty Solution Key & Rubric 👑"}
+                        ? "نموذج إجابة معتمد ومراجع من أساتذة المادة"
+                        : "Verified Faculty Solution Key & Rubric"}
                     </span>
                   </p>
                 </div>
@@ -533,7 +534,6 @@ export default function PastExamsPage() {
                 </div>
 
                 <div className="p-4 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-700 dark:text-emerald-300 font-medium">
-                  💡{" "}
                   {isRtl
                     ? "ملاحظة أستاذ المادة: التركيز على كتابة القوانين كاملة للحصول على الدرجة النهائية."
                     : "Faculty Note: Make sure to include all standard formulas to receive full credit."}
@@ -572,119 +572,165 @@ export default function PastExamsPage() {
       </AnimatePresence>
 
       {/* Upload Exam Modal */}
-      {isModalOpen && (
-        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="bg-card border border-border rounded-3xl p-6 sm:p-8 max-w-md w-full shadow-2xl space-y-6 animate-scale-in">
-            <div className="flex items-center justify-between">
-              <h3 className="text-xl font-black text-foreground">
-                {isRtl ? "رفع نموذج امتحان جديد" : "Upload Past Exam"}
-              </h3>
-              <button
-                onClick={() => setIsModalOpen(false)}
-                className="text-muted-foreground hover:text-foreground text-sm font-bold"
-              >
-                ✕
-              </button>
-            </div>
+      <AnimatePresence>
+        {isModalOpen && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+            {/* Backdrop */}
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.2 }}
+              onClick={() => setIsModalOpen(false)}
+              className="fixed inset-0 bg-black/60 backdrop-blur-sm"
+            />
 
-            <form onSubmit={handleUploadExam} className="space-y-4 text-xs sm:text-sm">
-              <div>
-                <label className="block text-xs font-bold text-muted-foreground mb-1">
-                  {isRtl ? "عنوان الامتحان" : "Exam Title"}
-                </label>
-                <input
-                  type="text"
-                  required
-                  placeholder={isRtl ? "مثال: فاينل شبكات 2024" : "e.g. Final Networks 2024"}
-                  value={newTitle}
-                  onChange={(e) => setNewTitle(e.target.value)}
-                  className="w-full px-4 py-2.5 rounded-xl border border-border bg-background text-foreground font-medium focus:ring-2 focus:ring-primary/40 outline-none"
-                />
-              </div>
-
-              <div>
-                <label className="block text-xs font-bold text-muted-foreground mb-1">
-                  {isRtl ? "المادة الدراسية" : "Subject"}
-                </label>
-                <input
-                  type="text"
-                  required
-                  placeholder={isRtl ? "مثال: Computer Networks" : "e.g. Computer Networks"}
-                  value={newSubject}
-                  onChange={(e) => setNewSubject(e.target.value)}
-                  className="w-full px-4 py-2.5 rounded-xl border border-border bg-background text-foreground font-medium focus:ring-2 focus:ring-primary/40 outline-none"
-                />
-              </div>
-
-              <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <label className="block text-xs font-bold text-muted-foreground mb-1">
-                    {isRtl ? "السنة الدراسية" : "Year"}
-                  </label>
-                  <input
-                    type="text"
-                    value={newYear}
-                    onChange={(e) => setNewYear(e.target.value)}
-                    placeholder="2024"
-                    className="w-full px-3 py-2.5 rounded-xl border border-border bg-background text-foreground font-medium focus:ring-2 focus:ring-primary/40 outline-none"
-                  />
-                </div>
-                <div>
-                  <label className="block text-xs font-bold text-muted-foreground mb-1">
-                    {isRtl ? "نوع الامتحان" : "Exam Type"}
-                  </label>
-                  <select
-                    value={newType}
-                    onChange={(e) => setNewType(e.target.value as "Midterm" | "Final")}
-                    className="w-full px-3 py-2.5 rounded-xl border border-border bg-card text-foreground font-medium focus:ring-2 focus:ring-primary/40 outline-none"
-                  >
-                    <option value="Final">{isRtl ? "فاينل (Final)" : "Final Exam"}</option>
-                    <option value="Midterm">{isRtl ? "ميدتيرم (Midterm)" : "Midterm Exam"}</option>
-                  </select>
-                </div>
-              </div>
-
-              <div>
-                <label className="block text-xs font-bold text-muted-foreground mb-1">
-                  {isRtl
-                    ? "رابط ملف الـ PDF (أو Drive / Cloudinary)"
-                    : "PDF File URL (Drive / Cloudinary)"}
-                </label>
-                <input
-                  type="url"
-                  placeholder="https://..."
-                  value={newUrl}
-                  onChange={(e) => setNewUrl(e.target.value)}
-                  className="w-full px-4 py-2.5 rounded-xl border border-border bg-background text-foreground font-medium focus:ring-2 focus:ring-primary/40 outline-none"
-                />
-              </div>
-
-              <div className="flex gap-3 pt-2">
+            {/* Modal Dialog */}
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95, y: 15 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.95, y: 15 }}
+              transition={{ duration: 0.2, ease: "easeOut" }}
+              className="relative bg-card border border-border rounded-3xl p-6 sm:p-8 max-w-md w-full shadow-2xl space-y-6 z-10 max-h-[90vh] overflow-y-auto"
+              dir={isRtl ? "rtl" : "ltr"}
+            >
+              <div className="flex items-center justify-between pb-2 border-b border-border/40">
+                <h3 className="text-xl font-black text-foreground">
+                  {isRtl ? "رفع نموذج امتحان جديد" : "Upload Past Exam"}
+                </h3>
                 <button
                   type="button"
                   onClick={() => setIsModalOpen(false)}
-                  className="flex-1 py-3 rounded-xl border border-border font-bold text-muted-foreground hover:bg-muted"
+                  aria-label={isRtl ? "إغلاق النافذة" : "Close modal"}
+                  className="w-8 h-8 rounded-full bg-muted/60 hover:bg-muted text-muted-foreground hover:text-foreground flex items-center justify-center transition-colors"
                 >
-                  {isRtl ? "إلغاء" : "Cancel"}
-                </button>
-                <button
-                  type="submit"
-                  disabled={isSubmitting}
-                  className="flex-1 py-3 rounded-xl bg-primary text-white font-extrabold shadow-md hover:bg-primary/90 disabled:opacity-50"
-                >
-                  {isSubmitting
-                    ? isRtl
-                      ? "جاري الإضافة..."
-                      : "Uploading..."
-                    : isRtl
-                      ? "حفظ الامتحان"
-                      : "Save Exam"}
+                  <X size={18} />
                 </button>
               </div>
-            </form>
+
+              <form onSubmit={handleUploadExam} className="space-y-4 text-xs sm:text-sm">
+                <div>
+                  <label className="block text-xs font-bold text-muted-foreground mb-1">
+                    {isRtl ? "عنوان الامتحان" : "Exam Title"}
+                  </label>
+                  <input
+                    type="text"
+                    required
+                    placeholder={isRtl ? "مثال: فاينل شبكات 2024" : "e.g. Final Networks 2024"}
+                    value={newTitle}
+                    onChange={(e) => setNewTitle(e.target.value)}
+                    className="w-full px-4 py-2.5 rounded-xl border border-border bg-background text-foreground font-medium focus:ring-2 focus:ring-primary/40 outline-none transition-all"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-xs font-bold text-muted-foreground mb-1">
+                    {isRtl ? "المادة الدراسية" : "Subject"}
+                  </label>
+                  <input
+                    type="text"
+                    required
+                    placeholder={isRtl ? "مثال: Computer Networks" : "e.g. Computer Networks"}
+                    value={newSubject}
+                    onChange={(e) => setNewSubject(e.target.value)}
+                    className="w-full px-4 py-2.5 rounded-xl border border-border bg-background text-foreground font-medium focus:ring-2 focus:ring-primary/40 outline-none transition-all"
+                  />
+                </div>
+
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <label className="block text-xs font-bold text-muted-foreground mb-1">
+                      {isRtl ? "السنة الدراسية" : "Year"}
+                    </label>
+                    <input
+                      type="text"
+                      value={newYear}
+                      onChange={(e) => setNewYear(e.target.value)}
+                      placeholder="2024"
+                      className="w-full px-3 py-2.5 rounded-xl border border-border bg-background text-foreground font-medium focus:ring-2 focus:ring-primary/40 outline-none transition-all"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-bold text-muted-foreground mb-1">
+                      {isRtl ? "نوع الامتحان" : "Exam Type"}
+                    </label>
+                    <select
+                      value={newType}
+                      onChange={(e) => setNewType(e.target.value as "Midterm" | "Final")}
+                      className="w-full px-3 py-2.5 rounded-xl border border-border bg-card text-foreground font-medium focus:ring-2 focus:ring-primary/40 outline-none transition-all"
+                    >
+                      <option value="Final">{isRtl ? "فاينل (Final)" : "Final Exam"}</option>
+                      <option value="Midterm">
+                        {isRtl ? "ميدتيرم (Midterm)" : "Midterm Exam"}
+                      </option>
+                    </select>
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-xs font-bold text-muted-foreground mb-1">
+                    {isRtl
+                      ? "رابط ملف الـ PDF (أو Drive / Cloudinary)"
+                      : "PDF File URL (Drive / Cloudinary)"}
+                  </label>
+                  <input
+                    type="url"
+                    placeholder="https://..."
+                    value={newUrl}
+                    onChange={(e) => setNewUrl(e.target.value)}
+                    className="w-full px-4 py-2.5 rounded-xl border border-border bg-background text-foreground font-medium focus:ring-2 focus:ring-primary/40 outline-none transition-all"
+                  />
+                </div>
+
+                {/* Legal compliance notice */}
+                <p className="text-[11px] text-muted-foreground/75 leading-relaxed pt-1">
+                  {isRtl ? (
+                    <>
+                      برفع الامتحان، فإنك تؤكد خلوه من انتهاك الملكية الفكرية وموافقتك على
+                      <Link href="/legal/terms" className="text-primary underline ms-1">
+                        شروط الاستخدام
+                      </Link>
+                      .
+                    </>
+                  ) : (
+                    <>
+                      By uploading, you affirm that this academic material complies with IP laws and
+                      our{" "}
+                      <Link href="/legal/terms" className="text-primary underline">
+                        Terms of Service
+                      </Link>
+                      .
+                    </>
+                  )}
+                </p>
+
+                <div className="flex gap-3 pt-2">
+                  <button
+                    type="button"
+                    onClick={() => setIsModalOpen(false)}
+                    className="flex-1 py-3 rounded-xl border border-border font-bold text-muted-foreground hover:bg-muted transition-colors"
+                  >
+                    {isRtl ? "إلغاء" : "Cancel"}
+                  </button>
+                  <button
+                    type="submit"
+                    disabled={isSubmitting}
+                    className="flex-1 py-3 rounded-xl bg-primary text-primary-foreground font-extrabold shadow-md hover:bg-primary/90 disabled:opacity-50 transition-all"
+                  >
+                    {isSubmitting
+                      ? isRtl
+                        ? "جاري الإضافة..."
+                        : "Uploading..."
+                      : isRtl
+                        ? "حفظ الامتحان"
+                        : "Save Exam"}
+                  </button>
+                </div>
+              </form>
+            </motion.div>
           </div>
-        </div>
-      )}
+        )}
+      </AnimatePresence>
     </div>
   );
 }

@@ -260,19 +260,22 @@ export default function GuidePage() {
           {/* Quick stat pills */}
           <div className="flex flex-wrap gap-3 pt-2">
             {[
-              { emoji: "🏫", label: isAr ? "20+ صفحة" : "20+ Pages" },
-              { emoji: "📚", label: isAr ? "9 ميزة رئيسية" : "9 Core Features" },
-              { emoji: "🤖", label: isAr ? "ذكاء اصطناعي" : "AI-Powered" },
-              { emoji: "🔐", label: isAr ? "مؤمّن بالكامل" : "Fully Secured" },
-            ].map((p) => (
-              <div
-                key={p.label}
-                className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-muted/50 border border-border/50 text-xs font-bold text-foreground"
-              >
-                <span>{p.emoji}</span>
-                <span>{p.label}</span>
-              </div>
-            ))}
+              { icon: GraduationCap, label: isAr ? "20+ صفحة" : "20+ Pages" },
+              { icon: BookOpen, label: isAr ? "9 ميزة رئيسية" : "9 Core Features" },
+              { icon: BrainCircuit, label: isAr ? "ذكاء اصطناعي" : "AI-Powered" },
+              { icon: Lock, label: isAr ? "مؤمّن بالكامل" : "Fully Secured" },
+            ].map((p) => {
+              const Icon = p.icon;
+              return (
+                <div
+                  key={p.label}
+                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-muted/50 border border-border/50 text-xs font-bold text-foreground"
+                >
+                  <Icon className="w-3.5 h-3.5 text-primary" />
+                  <span>{p.label}</span>
+                </div>
+              );
+            })}
           </div>
         </div>
       </FadeIn>
