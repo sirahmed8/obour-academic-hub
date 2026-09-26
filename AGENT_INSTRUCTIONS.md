@@ -192,6 +192,11 @@
     - Wrapped dialogs in proper `<AnimatePresence>` structures on `VipGrantCelebrationModal`, `UsernameSetupModal`, and `CookieConsent` to ensure smooth open and close exit transitions.
     - Enforced Upstash/memory rate limiting on `/api/admin/notifications/ai-enhance`, `/api/user/delete`, `/api/admin/users/[uid]/alert`, and `/api/cron/cleanup`.
     - Static export and live production deployment to Firebase Hosting (`https://obourinstitutes1.web.app`).
+38. **Silent Background Desktop Dev Launcher & Custom Site Icon App** (Checkpoint 42):
+    - Generated multi-resolution Windows icon (`public/obour-logo.ico`, 16px to 256px) from `public/obour-logo.png` and synced with `src/app/favicon.ico`.
+    - Created silent background launcher (`scripts/launch-dev.ps1`, `scripts/launch-dev.vbs`) running `npm run dev` with zero console window, detecting port 3000 listening state, preventing duplicate instances, and opening browser automatically.
+    - Created companion server stopper (`scripts/stop-dev.ps1`, `scripts/stop-dev.vbs`) to cleanly kill dev server processes and free port 3000.
+    - Installed desktop shortcuts on `C:\Users\a7med\Desktop\Obour Academic Hub.lnk` (with the official site logo icon) and `C:\Users\a7med\Desktop\Stop Obour Hub.lnk`. Added `npm run shortcut:create` script.
 
 ---
 
