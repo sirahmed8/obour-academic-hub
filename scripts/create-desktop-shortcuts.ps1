@@ -26,7 +26,7 @@ $stopShortcut = $wshShell.CreateShortcut($stopShortcutPath)
 $stopShortcut.TargetPath = $wscriptExe
 $stopShortcut.Arguments = "`"$stopVbs`""
 $stopShortcut.WorkingDirectory = $projectDir
-$stopShortcut.IconLocation = "$env:SystemRoot\System32\shell32.dll,27"
+$stopShortcut.IconLocation = "$icoPath,0"
 $stopShortcut.Description = "Stop background Obour Academic Hub dev server"
 $stopShortcut.Save()
 
