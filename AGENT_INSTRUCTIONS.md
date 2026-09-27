@@ -197,6 +197,12 @@
     - Created silent background launcher (`scripts/launch-dev.ps1`, `scripts/launch-dev.vbs`) running `npm run dev` with zero console window, detecting port 3000 listening state, preventing duplicate instances, and opening browser automatically.
     - Created companion server stopper (`scripts/stop-dev.ps1`, `scripts/stop-dev.vbs`) to cleanly kill dev server processes and free port 3000.
     - Installed desktop shortcuts on `C:\Users\a7med\Desktop\Obour Academic Hub.lnk` (with the official site logo icon) and `C:\Users\a7med\Desktop\Stop Obour Hub.lnk`. Added `npm run shortcut:create` script.
+39. **Direct Root Legal Routes, Structured JSON-LD & Technical SEO** (Checkpoint 43):
+    - Created direct root alias routes for `/privacy`, `/terms`, `/refunds`, and `/cookies` delegating cleanly to statutory policy implementations.
+    - Embedded schema.org JSON-LD structured data (`EducationalOrganization` and `WebSite` entities) in root layout `<head>`.
+    - Expanded `sitemap.ts` to index all 16 primary platform and compliance routes with granular priority and change frequency settings.
+    - Configured multi-size favicon and high-resolution icons in root metadata.
+    - Polished notification copywriting in `AddTodoModal.tsx` to enterprise standard.
 
 ---
 
@@ -211,7 +217,7 @@
 4. **Vitest Unit Test Suite**:
    - `npx vitest run` -> **37 test files passed / 37 total (131 tests passed / 131 total)**.
 5. **Next.js Production Build**:
-   - `npm run build` -> **62 / 62 static & dynamic routes compiled cleanly**.
+   - `npm run build` -> **67 / 67 static & dynamic routes compiled cleanly**.
 6. **Firebase Hosting Deploy**:
    - `npm run deploy:firebase` -> **492 files deployed, version finalized and released**.
 

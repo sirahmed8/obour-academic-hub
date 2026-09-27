@@ -246,3 +246,9 @@
   - **Zero-Window Background Runner**: Created `scripts/launch-dev.ps1` and silent VBScript launcher `scripts/launch-dev.vbs` that starts `npm run dev` in the background with zero visible console window, checks port 3000 listening status via TCP, avoids duplicate processes if already running, and automatically opens the user's default browser to `http://localhost:3000` immediately when ready.
   - **Companion Server Stopper**: Created `scripts/stop-dev.ps1` and `scripts/stop-dev.vbs` to cleanly terminate background dev processes and free port 3000 on demand.
   - **Desktop Shortcuts**: Automatically installed `Obour Academic Hub.lnk` (with the official site logo icon) and `Stop Obour Hub.lnk` on the user's Desktop (`C:\Users\a7med\Desktop`). Added `"shortcut:create"` script to `package.json`.
+- **Direct Root Legal Routes, Structured JSON-LD & Technical SEO (Checkpoint 43)**:
+  - **Direct Root Compliance Aliases**: Created lightweight zero-overhead route aliases at `/privacy`, `/terms`, `/refunds`, and `/cookies` delegating to statutory policy implementations, ensuring standard universal links resolve directly.
+  - **Schema.org Structured Data**: Integrated validated JSON-LD schema (`EducationalOrganization` and `WebSite` graph entities) directly in root layout `<head>`, with verified official institution address, logo assets, and multilingual declarations (`ar-EG`, `en-US`).
+  - **Comprehensive Sitemap**: Expanded `sitemap.ts` to index 16 primary platform routes with granular priority rankings and crawl frequencies.
+  - **Multi-Resolution Favicon Suite**: Configured multi-size favicon and high-resolution icons in root metadata.
+  - **Verification**: 100% clean TypeScript compiler check (`npx tsc --noEmit`), 0 ESLint errors/warnings, 131/131 passing Vitest unit tests, and 67/67 static & dynamic Next.js routes compiled cleanly.
