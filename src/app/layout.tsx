@@ -59,8 +59,11 @@ export const metadata: Metadata = {
     images: ["/obour-logo.png"],
   },
   icons: {
-    icon: "/obour-logo.png",
-    shortcut: "/obour-logo.png",
+    icon: [
+      { url: "/favicon.ico", sizes: "any" },
+      { url: "/obour-logo.png", type: "image/png", sizes: "512x512" },
+    ],
+    shortcut: "/favicon.ico",
     apple: "/obour-logo.png",
   },
   manifest: "/manifest.json",
@@ -96,6 +99,42 @@ export default function RootLayout({
                 };
               })();
             `,
+          }}
+        />
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify({
+              "@context": "https://schema.org",
+              "@graph": [
+                {
+                  "@type": "EducationalOrganization",
+                  "@id": "https://obour-academic-hub.vercel.app/#organization",
+                  name: "Obour Academic Hub",
+                  url: "https://obour-academic-hub.vercel.app",
+                  logo: "https://obour-academic-hub.vercel.app/obour-logo.png",
+                  description:
+                    "Unified academic companion and learning platform for students of Obour Higher Institutes.",
+                  address: {
+                    "@type": "PostalAddress",
+                    streetAddress: "Km 21 Cairo-Belbeis Desert Road",
+                    addressLocality: "Obour City",
+                    addressRegion: "Qalyubia",
+                    addressCountry: "EG",
+                  },
+                },
+                {
+                  "@type": "WebSite",
+                  "@id": "https://obour-academic-hub.vercel.app/#website",
+                  url: "https://obour-academic-hub.vercel.app",
+                  name: "Obour Academic Hub",
+                  publisher: {
+                    "@id": "https://obour-academic-hub.vercel.app/#organization",
+                  },
+                  inLanguage: ["ar-EG", "en-US"],
+                },
+              ],
+            }),
           }}
         />
         <link rel="preconnect" href="https://firestore.googleapis.com" crossOrigin="anonymous" />
