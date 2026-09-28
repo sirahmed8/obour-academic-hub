@@ -9,6 +9,7 @@ import { UserPermission } from "@/types";
 const PERMISSION_MAP: Record<string, UserPermission | "owner"> = {
   "/admin/team": "manage_users",
   "/admin/users": "manage_users",
+  "/admin/subscriptions": "manage_users",
   "/admin/inbox": "access_inbox",
   "/admin/notifications": "manage_announcements",
   "/admin/banners": "manage_announcements",

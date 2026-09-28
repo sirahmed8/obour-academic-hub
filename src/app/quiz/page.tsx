@@ -12,7 +12,7 @@ import { collection, getDocs } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import { userService } from "@/services/user.service";
 
-import { useSearchParams } from "next/navigation";
+import { useSearchParams, useRouter } from "next/navigation";
 
 interface Question {
   id: string;
@@ -33,7 +33,9 @@ export default function QuizPage() {
   const { language } = useLanguage();
   const { user } = useAuth();
   const searchParams = useSearchParams();
+  const router = useRouter();
   const isRtl = language === "ar";
+  const isVip = Boolean(user?.isVip || user?.role === "owner" || user?.role === "admin");
 
   const initialSubject = searchParams.get("subject") || "";
   const [subjectName, setSubjectName] = useState(initialSubject);
@@ -225,11 +227,38 @@ export default function QuizPage() {
                   </label>
                   <CustomSelect
                     value={String(questionCount)}
-                    onChange={(val) => setQuestionCount(parseInt(val, 10))}
+                    onChange={(val) => {
+                      const count = parseInt(val, 10);
+                      if (!isVip && count > 5) {
+                        toast.info(
+                          isRtl
+                            ? "توليد 10 إلى 20 سؤالاً ميزة حصرية لمشتركي العبور بلس (VIP). يمكنك الترقية الآن للاستفادة منها!"
+                            : "10-20 questions is an exclusive VIP feature. Upgrade to Obour VIP Pass to unlock!",
+                          {
+                            action: {
+                              label: isRtl ? "ترقية VIP" : "Upgrade",
+                              onClick: () => router.push("/plus"),
+                            },
+                          }
+                        );
+                        return;
+                      }
+                      setQuestionCount(count);
+                    }}
                     options={[
-                      { value: "3", label: isRtl ? "3 أسئلة" : "3 Questions" },
-                      { value: "5", label: isRtl ? "5 أسئلة" : "5 Questions" },
-                      { value: "10", label: isRtl ? "10 أسئلة" : "10 Questions" },
+                      { value: "3", label: isRtl ? "3 أسئلة (مجاني)" : "3 Questions (Free)" },
+                      { value: "5", label: isRtl ? "5 أسئلة (مجاني)" : "5 Questions (Free)" },
+                      { value: "10", label: isRtl ? "10 أسئلة 👑 (VIP)" : "10 Questions 👑 (VIP)" },
+                      {
+                        value: "15",
+                        label: isRtl ? "15 سؤالاً 👑 (VIP)" : "15 Questions 👑 (VIP)",
+                      },
+                      {
+                        value: "20",
+                        label: isRtl
+                          ? "20 سؤالاً 👑 (VIP امتحان شامل)"
+                          : "20 Questions 👑 (Full Exam VIP)",
+                      },
                     ]}
                   />
                 </div>

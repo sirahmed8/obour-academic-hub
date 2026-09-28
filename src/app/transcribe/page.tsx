@@ -235,17 +235,17 @@ export default function TranscribePage() {
 
             <Link
               href="/plus"
-              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-amber-500/20 text-amber-500 hover:bg-amber-500/30 border border-amber-500/30 font-extrabold text-xs transition-all"
+              className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-amber-500/20 text-amber-500 hover:bg-amber-500/30 border border-amber-500/30 font-extrabold text-xs transition-all"
             >
               <Crown size={14} className="text-amber-400" />
               <span>
-                {user?.isVip || user?.role === "owner"
+                {user?.isVip || user?.role === "owner" || user?.role === "admin"
                   ? isRtl
-                    ? "غير محدود PRO"
-                    : "Unlimited PRO"
+                    ? "تفريغ غير محدود 👑 VIP"
+                    : "Unlimited Transcriptions 👑 VIP"
                   : isRtl
-                    ? "ترقية للبث المباشر"
-                    : "Upgrade to Pro"}
+                    ? "3 جلسات شهرياً • ترقية VIP"
+                    : "3 Sessions / mo • Upgrade VIP"}
               </span>
             </Link>
           </div>

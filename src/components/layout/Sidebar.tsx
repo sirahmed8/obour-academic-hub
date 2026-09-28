@@ -312,7 +312,16 @@ export const Sidebar = memo(function Sidebar({ isOpen, onClose }: SidebarProps) 
         useAnimation: true,
         requiredPermission: "manage_users" as UserPermission,
       },
-      // 3. Inbox
+      // 3. Subscriptions
+      {
+        name: language === "ar" ? "اشتراكات العبور بلس" : "VIP Subscriptions",
+        path: "/admin/subscriptions",
+        icon: exploreAnim,
+        fallback: Crown,
+        useAnimation: true,
+        requiredPermission: "manage_users" as UserPermission,
+      },
+      // 4. Inbox
       {
         name: t("admin.inbox"),
         path: "/admin/inbox",
@@ -359,7 +368,7 @@ export const Sidebar = memo(function Sidebar({ isOpen, onClose }: SidebarProps) 
         requiredPermission: "view_analytics" as UserPermission,
       },
     ],
-    [t, inboxUnreadCount]
+    [t, inboxUnreadCount, language]
   );
 
   const ownerItems = useMemo<SidebarItem[]>(

@@ -1,7 +1,8 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import { useAuth, useLanguage } from "@/contexts";
 import { FadeIn, ScaleIn, StaggerChildren } from "@/components/ui/Animations";
 import {
@@ -14,46 +15,242 @@ import {
   Mic,
   BarChart2,
   Check,
-  Lock,
   Clock,
-  Bell,
-  CreditCard,
   Smartphone,
-  ShieldCheck,
+  Copy,
+  Upload,
+  X,
+  HelpCircle,
+  AlertCircle,
+  RefreshCw,
+  Send,
 } from "lucide-react";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
+import { apiFetch } from "@/lib/api-client";
+import { uploadFileToFirebase } from "@/lib/storage";
+import { SubscriptionPlanId, SubscriptionRequest, SubscriptionPaymentMethod } from "@/types";
+
+interface MySubStatus {
+  isVip: boolean;
+  subscriptionTier: string;
+  vipExpiresAt: string | null;
+  daysRemaining: number | null;
+  vipGrantedBy?: string | null;
+  vipGrantedAt?: string | null;
+  vipType?: "paid" | "gifted";
+  latestRequest: SubscriptionRequest | null;
+  requests: SubscriptionRequest[];
+}
 
 export default function ObourPlusSubscriptionPage() {
   const { user, updateProfile } = useAuth();
   const { language } = useLanguage();
   const isAr = language === "ar";
 
-  const [billingCycle, setBillingCycle] = useState<"monthly" | "semester">("semester");
-  const [notifyEmail, setNotifyEmail] = useState("");
-  const [notifyConsent, setNotifyConsent] = useState(false);
-  const [notifySubmitted, setNotifySubmitted] = useState(false);
+  const [billingCycle, setBillingCycle] = useState<SubscriptionPlanId>("semester");
+  const [subStatus, setSubStatus] = useState<MySubStatus | null>(null);
+
+  // Checkout Modal State
+  const [checkoutOpen, setCheckoutOpen] = useState(false);
+  const [checkoutPlan, setCheckoutPlan] = useState<SubscriptionPlanId>("semester");
+  const [paymentMethod, setPaymentMethod] = useState<SubscriptionPaymentMethod>("instapay");
+  const [senderPhoneOrAccount, setSenderPhoneOrAccount] = useState("");
+  const [transactionReference, setTransactionReference] = useState("");
+  const [receiptUrl, setReceiptUrl] = useState("");
+  const [receiptUploading, setReceiptUploading] = useState(false);
+  const [studentNotes, setStudentNotes] = useState("");
+  const [submittingOrder, setSubmittingOrder] = useState(false);
+  const [copiedKey, setCopiedKey] = useState<string | null>(null);
+
+  // Promo Code State
+  const [promoCode, setPromoCode] = useState("");
+  const [redeemingPromo, setRedeemingPromo] = useState(false);
+
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const isOwnerOrAdmin =
     user?.role === "owner" ||
     user?.role === "admin" ||
     user?.email === process.env.NEXT_PUBLIC_OWNER_EMAIL;
-  const isVip = user?.isVip || isOwnerOrAdmin;
 
-  const handleNotify = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!notifyEmail.trim()) return;
-    if (!notifyConsent) {
+  const instapayAccount = process.env.NEXT_PUBLIC_INSTAPAY_ID || "obourhub@instapay";
+  const vodafoneCashNumber = process.env.NEXT_PUBLIC_VODAFONE_CASH_NUMBER || "01023456789";
+
+  const fetchMyStatus = useCallback(async () => {
+    if (!user) {
+      return;
+    }
+    try {
+      const data = await apiFetch<MySubStatus>("/api/subscriptions/my-status");
+      if (data) {
+        setSubStatus(data);
+      }
+    } catch {
+      // Fallback to local auth context
+    }
+  }, [user]);
+
+  useEffect(() => {
+    fetchMyStatus();
+  }, [fetchMyStatus]);
+
+  const copyToClipboard = (text: string, key: string) => {
+    navigator.clipboard.writeText(text);
+    setCopiedKey(key);
+    toast.success(isAr ? "تم النسخ إلى الحافظة بنجاح!" : "Copied to clipboard!");
+    setTimeout(() => setCopiedKey(null), 2500);
+  };
+
+  const handleOpenCheckout = (planId: SubscriptionPlanId) => {
+    if (!user) {
+      toast.error(isAr ? "يرجى تسجيل الدخول أولاً للمتابعة" : "Please log in to continue");
+      return;
+    }
+    setCheckoutPlan(planId);
+    setCheckoutOpen(true);
+  };
+
+  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (file.size > 8 * 1024 * 1024) {
       toast.error(
-        isAr
-          ? "يرجى الموافقة على سياسة الخصوصية للاشتراك في الإشعارات"
-          : "Please consent to the privacy policy to subscribe to notifications"
+        isAr ? "حجم الصورة يتجاوز الحد الأقصى (8 ميجابايت)" : "File size exceeds 8MB limit"
       );
       return;
     }
-    setNotifySubmitted(true);
+
+    setReceiptUploading(true);
+    try {
+      const res = await uploadFileToFirebase(file);
+      if (res?.url) {
+        setReceiptUrl(res.url);
+        toast.success(isAr ? "تم رفع إيصال التحويل بنجاح" : "Receipt uploaded successfully");
+      }
+    } catch {
+      toast.error(isAr ? "تعذر رفع صورة الإيصال" : "Failed to upload receipt");
+    } finally {
+      setReceiptUploading(false);
+    }
   };
+
+  const handleSubmitSubscription = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!senderPhoneOrAccount.trim()) {
+      toast.error(
+        isAr
+          ? "يرجى إدخال رقم الهاتف أو الحساب المحول منه"
+          : "Please enter the sender phone or account"
+      );
+      return;
+    }
+
+    setSubmittingOrder(true);
+    try {
+      const res = await apiFetch<{
+        success: boolean;
+        requestId: string;
+        message: string;
+      }>("/api/subscriptions/request", {
+        method: "POST",
+        body: {
+          plan: checkoutPlan,
+          paymentMethod,
+          senderPhoneOrAccount: senderPhoneOrAccount.trim(),
+          transactionReference: transactionReference.trim() || undefined,
+          receiptUrl: receiptUrl || undefined,
+          notes: studentNotes.trim() || undefined,
+        },
+      });
+
+      if (res?.success) {
+        toast.success(
+          isAr
+            ? "تم إرسال طلب الاشتراك بنجاح! سيتم مراجعته وتفعيل باقتك فوراً."
+            : "Subscription request submitted! Will be reviewed and activated shortly."
+        );
+        setCheckoutOpen(false);
+        // Reset form
+        setSenderPhoneOrAccount("");
+        setTransactionReference("");
+        setReceiptUrl("");
+        setStudentNotes("");
+        fetchMyStatus();
+      }
+    } catch (err: unknown) {
+      const errorMsg =
+        err instanceof Error
+          ? err.message
+          : isAr
+            ? "حدث خطأ أثناء إرسال طلب الاشتراك"
+            : "Failed to submit subscription request";
+      toast.error(errorMsg);
+    } finally {
+      setSubmittingOrder(false);
+    }
+  };
+
+  const handleRedeemPromo = async (e: React.FormEvent) => {
+    e.preventDefault();
+    const code = promoCode.trim().toUpperCase();
+    if (!code) return;
+
+    if (!user) {
+      toast.error(isAr ? "يرجى تسجيل الدخول أولاً" : "Please log in first");
+      return;
+    }
+
+    setRedeemingPromo(true);
+    try {
+      const res = await apiFetch<{
+        success: boolean;
+        message: string;
+        durationDays: number;
+        expiresAt: string;
+      }>("/api/subscriptions/redeem", {
+        method: "POST",
+        body: { code },
+      });
+
+      if (res?.success) {
+        toast.success(
+          isAr
+            ? `🎉 تم تفعيل كود الخصم بنجاح لمدة ${res.durationDays} يوماً!`
+            : `🎉 VIP activated for ${res.durationDays} days!`
+        );
+        setPromoCode("");
+        // Optimistically update context profile
+        if (updateProfile) {
+          await updateProfile({
+            isVip: true,
+            subscriptionTier: "vip",
+            vipGrantedBy: `Promo Code: ${code}`,
+            vipExpiresAt: res.expiresAt,
+          });
+        }
+        fetchMyStatus();
+      }
+    } catch (err: unknown) {
+      const errorMsg =
+        err instanceof Error
+          ? err.message
+          : isAr
+            ? "كود التفعيل غير صحيح أو منتهي الصلاحية"
+            : "Invalid or expired promo code";
+      toast.error(errorMsg);
+    } finally {
+      setRedeemingPromo(false);
+    }
+  };
+
+  const isUserVip = Boolean(subStatus?.isVip || user?.isVip || isOwnerOrAdmin);
+  const pendingRequest =
+    subStatus?.latestRequest?.status === "pending" ? subStatus.latestRequest : null;
+  const rejectedRequest =
+    subStatus?.latestRequest?.status === "rejected" ? subStatus.latestRequest : null;
 
   return (
     <div className="p-4 sm:p-6 lg:p-10 pb-28 space-y-10 max-w-7xl mx-auto min-h-screen page-transition">
@@ -74,21 +271,92 @@ export default function ObourPlusSubscriptionPage() {
 
           <p className="text-white/70 text-sm sm:text-base max-w-3xl mx-auto font-medium leading-relaxed">
             {isAr
-              ? "استثمر في تفوقك الأكاديمي واستمتع بالذكاء الاصطناعي لتحويل المحاضرات، واختبارات المراجعة، وضاعف نقاط الخبرة XP للوصول إلى قمة لوحة الصدارة."
-              : "Upgrade your academic journey with AI lecture transcriptions, smart practice exams, 2x XP multipliers, and exclusive VIP perks."}
+              ? "استثمر في تفوقك الدراسي واستمتع بالذكاء الاصطناعي لتفريغ المحاضرات، وتوليد امتحانات المراجعة بـ 20 سؤالاً، ومضاعفة نقاط الخبرة XP مرتين للوصول لقمة لوحة الصدارة."
+              : "Upgrade your academic journey with AI lecture transcriptions, 20-question practice exams, 2x XP multipliers, and exclusive VIP perks."}
           </p>
 
-          {/* Regular VIP badge */}
-          {isVip && (
+          {/* Active VIP Status Card */}
+          {isUserVip && (
             <motion.div
-              initial={{ scale: 0.9, opacity: 0 }}
+              initial={{ scale: 0.95, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
-              className="mt-4 inline-flex items-center gap-2 px-6 py-2.5 rounded-2xl bg-gradient-to-r from-amber-500 to-yellow-400 text-black font-black text-sm shadow-xl"
+              className="mt-6 inline-flex flex-col sm:flex-row items-center gap-3 px-6 py-3.5 rounded-2xl bg-gradient-to-r from-amber-500/20 via-yellow-500/20 to-amber-500/20 border border-amber-400/50 shadow-xl text-amber-300 font-bold text-sm"
             >
-              <Sparkles size={18} />
-              <span>
-                {isAr ? "اشتراك العبور بلس مفعل في حسابك" : "Obour VIP Pass Active on Your Account"}
-              </span>
+              <div className="flex items-center gap-2">
+                <Crown size={20} className="text-amber-400" />
+                <span className="font-black">
+                  {isAr
+                    ? "اشتراك العبور بلس مفعل في حسابك!"
+                    : "Obour VIP Pass is Active on Your Account!"}
+                </span>
+              </div>
+
+              {!isOwnerOrAdmin && subStatus && subStatus.daysRemaining !== null && (
+                <div className="flex items-center gap-2 text-xs bg-black/40 px-3 py-1 rounded-xl border border-amber-500/30 text-amber-200">
+                  <Clock size={14} />
+                  <span>
+                    {isAr
+                      ? `متبقي ${subStatus.daysRemaining} يوماً على التجديد`
+                      : `${subStatus.daysRemaining} days remaining`}
+                  </span>
+                </div>
+              )}
+            </motion.div>
+          )}
+
+          {/* Pending Request Status Card */}
+          {pendingRequest && (
+            <motion.div
+              initial={{ scale: 0.95, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              className="mt-6 max-w-xl mx-auto p-4 rounded-2xl bg-yellow-500/15 border border-yellow-500/40 text-yellow-300 text-xs sm:text-sm font-semibold space-y-2 text-start"
+            >
+              <div className="flex items-center gap-2 font-black text-yellow-400 text-sm">
+                <Clock size={16} className="animate-spin" />
+                <span>
+                  {isAr
+                    ? "طلب الاشتراك قيد المراجعة والتدقيق"
+                    : "Subscription Request Under Review"}
+                </span>
+                <span className="ms-auto font-mono text-[10px] px-2 py-0.5 rounded bg-black/40">
+                  #{pendingRequest.id.slice(-6)}
+                </span>
+              </div>
+              <p className="text-white/80 text-xs leading-relaxed">
+                {isAr
+                  ? `تم استلام بيانات تحويل ${pendingRequest.amount} ج.م لباقة (${pendingRequest.planNameAr}). يقوم المشرف بمراجعة التحويل وتفعيل الحساب خلال 15 إلى 60 دقيقة.`
+                  : `Transfer data for ${pendingRequest.amount} EGP (${pendingRequest.planNameEn}) received. Verification typically completes within 15-60 minutes.`}
+              </p>
+            </motion.div>
+          )}
+
+          {/* Rejected Request Notification */}
+          {rejectedRequest && !pendingRequest && (
+            <motion.div
+              initial={{ scale: 0.95, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              className="mt-6 max-w-xl mx-auto p-4 rounded-2xl bg-red-500/15 border border-red-500/40 text-red-300 text-xs sm:text-sm font-semibold space-y-2 text-start"
+            >
+              <div className="flex items-center gap-2 font-black text-red-400 text-sm">
+                <AlertCircle size={16} />
+                <span>
+                  {isAr ? "تعذر تفعيل الطلب السابق" : "Previous Request Could Not Be Verified"}
+                </span>
+              </div>
+              <p className="text-white/80 text-xs">
+                {rejectedRequest.rejectionReason ||
+                  (isAr
+                    ? "لم يتم العثور على رقم التحويل. يرجى التأكد من البيانات وإعادة الإرسال."
+                    : "Transfer reference could not be verified. Please double-check and resubmit.")}
+              </p>
+              <button
+                onClick={() => handleOpenCheckout(rejectedRequest.plan)}
+                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-red-500 text-white font-bold text-xs hover:bg-red-600 transition-all"
+              >
+                <span>
+                  {isAr ? "إعادة إرسال بيانات التحويل الصحيحة" : "Resubmit Correct Details"}
+                </span>
+              </button>
             </motion.div>
           )}
         </div>
@@ -107,8 +375,9 @@ export default function ObourPlusSubscriptionPage() {
                   : "text-muted-foreground hover:text-foreground"
               )}
             >
-              {isAr ? "اشتراك شهري (Monthly)" : "Monthly Billing"}
+              {isAr ? "اشتراك شهري (49 ج.م)" : "Monthly (49 EGP)"}
             </button>
+
             <button
               onClick={() => setBillingCycle("semester")}
               className={cn(
@@ -118,9 +387,24 @@ export default function ObourPlusSubscriptionPage() {
                   : "text-muted-foreground hover:text-foreground"
               )}
             >
-              <span>{isAr ? "باقة الفصل الدراسي (Semester Pass)" : "Semester Pass"}</span>
+              <span>{isAr ? "باقة الفصل الدراسي (199 ج.م)" : "Semester Pass (199 EGP)"}</span>
               <span className="px-2 py-0.5 rounded-full bg-black/20 text-[10px] font-black uppercase">
                 {isAr ? "وفر 35%" : "Save 35%"}
+              </span>
+            </button>
+
+            <button
+              onClick={() => setBillingCycle("annual")}
+              className={cn(
+                "px-5 py-2.5 rounded-xl text-xs sm:text-sm font-extrabold transition-all relative flex items-center gap-2",
+                billingCycle === "annual"
+                  ? "bg-gradient-to-r from-amber-500 to-yellow-500 text-black shadow-lg"
+                  : "text-muted-foreground hover:text-foreground"
+              )}
+            >
+              <span>{isAr ? "العام الأكاديمي (349 ج.م)" : "Academic Year (349 EGP)"}</span>
+              <span className="px-2 py-0.5 rounded-full bg-black/20 text-[10px] font-black uppercase">
+                {isAr ? "وفر 45%" : "Save 45%"}
               </span>
             </button>
           </div>
@@ -134,7 +418,7 @@ export default function ObourPlusSubscriptionPage() {
           <div className="p-8 rounded-3xl bg-card border border-border shadow-md flex flex-col justify-between space-y-6 relative overflow-hidden h-full">
             <div className="space-y-4">
               <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-muted text-muted-foreground text-xs font-bold">
-                <span>{isAr ? "الباقة العادية" : "Free Scholar"}</span>
+                <span>{isAr ? "الباقة الأساسية للطلاب" : "Free Scholar"}</span>
               </div>
               <h3 className="text-2xl font-black text-foreground">
                 {isAr ? "مجاناً للأبد" : "Free Forever"}
@@ -147,8 +431,8 @@ export default function ObourPlusSubscriptionPage() {
               </p>
               <p className="text-xs text-muted-foreground font-medium">
                 {isAr
-                  ? "المميزات الأساسية لتصفح المواد والمستلزمات وحل التأسيس."
-                  : "Basic features for browsing subjects, marketplace, and foundation tasks."}
+                  ? "المميزات الأساسية للوصول لجميع المواد الدراسية وملفات المحاضرات."
+                  : "Essential features for accessing subject lectures and materials."}
               </p>
 
               <hr className="border-border/60" />
@@ -157,39 +441,55 @@ export default function ObourPlusSubscriptionPage() {
                 <li className="flex items-center gap-2">
                   <CheckCircle2 size={16} className="text-emerald-500 shrink-0" />
                   <span>
-                    {isAr ? "تصفح كافة مواد الكلية والمحاضرات" : "Access all subject resources"}
-                  </span>
-                </li>
-                <li className="flex items-center gap-2">
-                  <CheckCircle2 size={16} className="text-emerald-500 shrink-0" />
-                  <span>
-                    {isAr ? "3 جلسات تفريغ صوتي شهرياً" : "3 audio transcription sessions / mo"}
+                    {isAr
+                      ? "تصفح وتحميل كافة مواد الكلية ومحاضرات الـ PDF"
+                      : "Full access to all subject PDF materials"}
                   </span>
                 </li>
                 <li className="flex items-center gap-2">
                   <CheckCircle2 size={16} className="text-emerald-500 shrink-0" />
                   <span>
                     {isAr
-                      ? "اختبارات مراجعة بسيطة (5 أسئلة)"
+                      ? "3 جلسات تفريغ صوتي للمحاضرات شهرياً"
+                      : "3 AI lecture transcriptions / mo"}
+                  </span>
+                </li>
+                <li className="flex items-center gap-2">
+                  <CheckCircle2 size={16} className="text-emerald-500 shrink-0" />
+                  <span>
+                    {isAr
+                      ? "اختبارات مراجعة أساسية (5 أسئلة)"
                       : "Basic practice quizzes (5 questions)"}
                   </span>
                 </li>
                 <li className="flex items-center gap-2">
                   <CheckCircle2 size={16} className="text-emerald-500 shrink-0" />
-                  <span>{isAr ? "معدل XP عادي 1x" : "1x Standard XP rate"}</span>
+                  <span>
+                    {isAr
+                      ? "حجز مجموعات المذاكرة (Hagaz) وإدارة المهام"
+                      : "Hagaz study booking & Todo manager"}
+                  </span>
+                </li>
+                <li className="flex items-center gap-2">
+                  <CheckCircle2 size={16} className="text-emerald-500 shrink-0" />
+                  <span>{isAr ? "معدل XP قياسي 1x" : "1x Standard XP rate"}</span>
                 </li>
                 <li className="flex items-center gap-2 text-muted-foreground/40">
                   <XCircle size={16} className="shrink-0" />
-                  <span>{isAr ? "تصدير ملخصات PDF الذكية" : "PDF summary exports"}</span>
+                  <span>
+                    {isAr ? "امتحانات ذكية كاملة بـ 20 سؤالاً" : "Full 20-Question AI Exams"}
+                  </span>
                 </li>
                 <li className="flex items-center gap-2 text-muted-foreground/40">
                   <XCircle size={16} className="shrink-0" />
-                  <span>{isAr ? "وسام النخبة الذهبي" : "Golden VIP badge"}</span>
+                  <span>
+                    {isAr ? "وسام النخبة الذهبي ومضاعف XP" : "Golden VIP badge & 2x XP boost"}
+                  </span>
                 </li>
               </ul>
             </div>
 
-            {!isVip && !isOwnerOrAdmin ? (
+            {!isUserVip ? (
               <div className="w-full py-4 rounded-2xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-600 dark:text-emerald-400 font-extrabold text-sm text-center flex items-center justify-center gap-2">
                 <CheckCircle2 size={16} />
                 <span>{isAr ? "باقتك الحالية - نشطة" : "Your Current Plan - Active"}</span>
@@ -206,20 +506,34 @@ export default function ObourPlusSubscriptionPage() {
         <ScaleIn>
           <div className="p-8 rounded-3xl bg-gradient-to-b from-[#0f172a] via-slate-900 to-[#0f172a] border-2 border-amber-500/60 shadow-2xl flex flex-col justify-between space-y-6 relative overflow-hidden h-full text-white">
             <div className="absolute top-0 right-0 bg-gradient-to-l from-amber-500 to-yellow-400 text-black font-black text-[10px] uppercase tracking-wider px-4 py-1.5 rounded-bl-2xl shadow-lg">
-              {isAr ? "مميزات النخبة" : "VIP Perks"}
+              {billingCycle === "semester"
+                ? isAr
+                  ? "الأكثر طلباً وتوفيراً"
+                  : "Most Popular"
+                : billingCycle === "annual"
+                  ? isAr
+                    ? "أفضل قيمة سنوية"
+                    : "Best Value"
+                  : isAr
+                    ? "مرونة شهرية"
+                    : "Monthly Flexibility"}
             </div>
 
             <div className="space-y-4">
               <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-amber-500/20 text-amber-300 text-xs font-bold border border-amber-500/30">
                 <Crown size={14} className="text-amber-400" />
-                <span>{isAr ? "العبور بلس PRO" : "VIP Pass PRO"}</span>
+                <span>{isAr ? "العبور بلس VIP PRO" : "VIP Pass PRO"}</span>
               </div>
               <h3 className="text-3xl font-black text-white font-harman">
-                {isAr ? "باقة النخبة" : "VIP Elite Pass"}
+                {isAr ? "باقة النخبة الأكاديمية" : "VIP Elite Pass"}
               </h3>
               <div className="flex items-baseline gap-1">
                 <span className="text-4xl font-black text-amber-400 font-harman">
-                  {billingCycle === "monthly" ? "49 EGP" : "199 EGP"}
+                  {billingCycle === "monthly"
+                    ? "49 EGP"
+                    : billingCycle === "semester"
+                      ? "199 EGP"
+                      : "349 EGP"}
                 </span>
                 <span className="text-xs text-white/60 font-medium">
                   /{" "}
@@ -227,9 +541,13 @@ export default function ObourPlusSubscriptionPage() {
                     ? isAr
                       ? "شهرياً"
                       : "per month"
-                    : isAr
-                      ? "ترم كامل"
-                      : "full semester"}
+                    : billingCycle === "semester"
+                      ? isAr
+                        ? "ترم كامل (4 شهور)"
+                        : "full semester"
+                      : isAr
+                        ? "سنة أكاديمية كاملة"
+                        : "academic year"}
                 </span>
               </div>
               <p className="text-xs text-amber-300/80 font-medium">
@@ -237,9 +555,13 @@ export default function ObourPlusSubscriptionPage() {
                   ? isAr
                     ? "ادفع مرة واحدة واستمتع بالفصل الدراسي كاملاً مع خصم 35%!"
                     : "Pay once for the entire semester & save 35%!"
-                  : isAr
-                    ? "إمكانية الإلغاء أو الترقية في أي وقت."
-                    : "Cancel or adjust anytime."}
+                  : billingCycle === "annual"
+                    ? isAr
+                      ? "تغطية كاملة لجميع الفصول الدراسية مع توفير 45%!"
+                      : "Full coverage for both semesters with 45% savings!"
+                    : isAr
+                      ? "تجربة سهلة ومرنة، إمكانية الترقية للفصل الدراسي لاحقاً."
+                      : "Flexible monthly access."}
               </p>
 
               <hr className="border-white/10" />
@@ -249,7 +571,7 @@ export default function ObourPlusSubscriptionPage() {
                   <Check size={16} className="text-amber-400 shrink-0 font-bold" />
                   <span className="font-extrabold text-amber-300">
                     {isAr
-                      ? "تفريغ المحاضرات بالذكاء الاصطناعي"
+                      ? "تفريغ صوتي غير محدود للمحاضرات بالذكاء الاصطناعي"
                       : "Unlimited AI Lecture Transcriptions"}
                   </span>
                 </li>
@@ -257,8 +579,8 @@ export default function ObourPlusSubscriptionPage() {
                   <Check size={16} className="text-amber-400 shrink-0 font-bold" />
                   <span className="font-extrabold text-amber-300">
                     {isAr
-                      ? "توليد اختبارات المراجعة 20 سؤالاً مع الإجابات"
-                      : "Unlimited 20-Question AI Exams"}
+                      ? "توليد امتحانات كاملة بـ 20 سؤالاً مع الشرح والحلول"
+                      : "Unlimited 20-Question AI Exams with Explanations"}
                   </span>
                 </li>
                 <li className="flex items-center gap-2">
@@ -271,8 +593,8 @@ export default function ObourPlusSubscriptionPage() {
                   <Check size={16} className="text-amber-400 shrink-0 font-bold" />
                   <span>
                     {isAr
-                      ? "وسام النخبة الذهبي على البروفايل ولوحة الصدارة"
-                      : "Golden VIP Crown Badge"}
+                      ? "وسام النخبة الذهبي بجانب اسمك في البروفايل ولوحة الصدارة"
+                      : "Golden VIP Crown Badge on Profile & Leaderboard"}
                   </span>
                 </li>
                 <li className="flex items-center gap-2">
@@ -280,309 +602,96 @@ export default function ObourPlusSubscriptionPage() {
                   <span>
                     {isAr
                       ? "تصدير الملخصات والخطط بصيغة PDF معتمدة"
-                      : "PDF Summary & Report Exports"}
+                      : "Certified PDF Summary & Exam Exports"}
                   </span>
                 </li>
                 <li className="flex items-center gap-2">
                   <Check size={16} className="text-amber-400 shrink-0 font-bold" />
                   <span>
                     {isAr
-                      ? "أولوية في حجز مجموعات المذاكرة والزملاء"
-                      : "Priority Study Buddies Matching"}
+                      ? "توليد الخرائط الذهنية الذكية للمواد بدون حدود"
+                      : "Unlimited AI Mind Maps"}
                   </span>
                 </li>
               </ul>
             </div>
 
-            {/* Active or Locked CTA state */}
-            {isVip || isOwnerOrAdmin ? (
-              <div className="w-full py-4 rounded-2xl bg-gradient-to-r from-amber-500/20 to-yellow-500/20 border border-amber-400/50 text-amber-300 font-black text-sm text-center flex items-center justify-center gap-2 shadow-lg">
-                <Crown size={18} className="text-amber-400" />
-                <span>
-                  {isAr ? "باقتك الحالية - VIP مفعلة" : "Your Active Plan - VIP Pass Active"}
-                </span>
-              </div>
-            ) : (
-              <div className="w-full py-4 rounded-2xl bg-white/10 border border-white/20 text-white/70 font-extrabold text-sm text-center flex items-center justify-center gap-2 cursor-default">
-                <Lock size={16} />
-                <span>{isAr ? "بوابة الدفع قريباً" : "Payment Gateway Coming Soon"}</span>
-              </div>
-            )}
+            {/* Subscribe / Extend CTA Button */}
+            <motion.button
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.97 }}
+              onClick={() => handleOpenCheckout(billingCycle)}
+              className="w-full py-4 rounded-2xl bg-gradient-to-r from-amber-400 to-yellow-500 hover:from-amber-500 hover:to-yellow-600 text-black font-black text-sm shadow-xl hover:shadow-amber-500/25 transition-all flex items-center justify-center gap-2"
+            >
+              <Crown size={18} />
+              <span>
+                {isUserVip
+                  ? isAr
+                    ? "تمديد اشتراك العبور بلس الآن"
+                    : "Extend Obour VIP Pass Now"
+                  : isAr
+                    ? "اشترك الآن عبر فودافون كاش أو إنستا باي"
+                    : "Subscribe via Vodafone Cash or InstaPay"}
+              </span>
+            </motion.button>
           </div>
         </ScaleIn>
       </StaggerChildren>
 
-      {/* ── Payment Gateway Coming Soon Banner ─────────────────────────── */}
-      {!isOwnerOrAdmin && (
-        <FadeIn delay={0.08}>
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="relative overflow-hidden rounded-3xl border-2 border-dashed border-amber-500/50 bg-gradient-to-br from-amber-500/5 via-yellow-500/5 to-amber-500/5 p-8 sm:p-12 text-center space-y-6 max-w-3xl mx-auto"
-          >
-            {/* Background glow */}
-            <div className="absolute inset-0 bg-gradient-to-br from-amber-500/5 to-transparent pointer-events-none" />
+      {/* ── Promo Code Card ────────────────────────────────────────────── */}
+      <FadeIn delay={0.08}>
+        <div className="max-w-xl mx-auto p-6 sm:p-8 rounded-3xl bg-card border border-amber-500/30 shadow-md space-y-4 text-center">
+          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-amber-500/15 text-amber-500 font-extrabold text-xs">
+            <Sparkles size={14} />
+            <span>{isAr ? "كود التفعيل والمنح" : "Promo & Access Code"}</span>
+          </div>
 
-            <div className="relative space-y-4">
-              {/* Icon */}
-              <div className="mx-auto w-20 h-20 rounded-3xl bg-amber-500/15 border border-amber-500/30 flex items-center justify-center">
-                <Clock size={36} className="text-amber-500 animate-pulse" />
-              </div>
+          <h3 className="text-lg sm:text-xl font-black text-foreground font-harman">
+            {isAr ? "لديك كود خصم أو اشتراك مجاني؟" : "Have a Promo or Scholarship Code?"}
+          </h3>
 
-              {/* Title */}
-              <h2 className="text-2xl sm:text-3xl font-black text-foreground">
-                {isAr ? "بوابة الدفع الآمنة قريباً" : "Secure Payment Gateway: Coming Soon"}
-              </h2>
+          <p className="text-xs text-muted-foreground font-medium max-w-md mx-auto">
+            {isAr
+              ? "إذا حصلت على كود تفعيل من إدارة المعهد أو فعاليات الأنشطة الطلابية، أدخله هنا لتفعيل اشتراكك فوراً."
+              : "Enter your official promotional or event code to instantly activate your VIP access."}
+          </p>
 
-              <p className="text-sm text-muted-foreground font-medium max-w-xl mx-auto leading-relaxed">
-                {isAr
-                  ? "نحن نعمل على دمج بوابة دفع آمنة ومعتمدة لتتمكن من تفعيل اشتراك العبور بلس بكل سهولة. حتى ذلك الحين، جميع الطلاب على الباقة المجانية."
-                  : "We are integrating an official secure payment gateway for effortless activation of the Obour VIP Pass. Until then, all students remain on the free plan."}
-              </p>
-
-              {/* What's coming */}
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 text-left mt-4">
-                {[
-                  {
-                    icon: CreditCard,
-                    titleAr: "فيزا / ماستركارد",
-                    titleEn: "Visa / Mastercard",
-                    descAr: "دفع آمن مباشر",
-                    descEn: "Direct secure checkout",
-                  },
-                  {
-                    icon: Smartphone,
-                    titleAr: "فودافون كاش & إنستا باي",
-                    titleEn: "Vodafone Cash & InstaPay",
-                    descAr: "دفع محلي سريع",
-                    descEn: "Local fast payment",
-                  },
-                  {
-                    icon: ShieldCheck,
-                    titleAr: "حماية كاملة للبيانات",
-                    titleEn: "Full Data Security",
-                    descAr: "تشفير بنكي معتمد",
-                    descEn: "Bank-grade encryption",
-                  },
-                ].map((item, i) => (
-                  <div
-                    key={i}
-                    className="p-4 rounded-2xl bg-card border border-border space-y-2 text-center"
-                  >
-                    <div className="flex justify-center text-primary py-1">
-                      <item.icon size={26} />
-                    </div>
-                    <p className="font-extrabold text-xs text-foreground">
-                      {isAr ? item.titleAr : item.titleEn}
-                    </p>
-                    <p className="text-[10px] text-muted-foreground font-medium">
-                      {isAr ? item.descAr : item.descEn}
-                    </p>
-                  </div>
-                ))}
-              </div>
-
-              {/* Notify Me & Promo Code Forms */}
-              <div className="pt-2 space-y-4">
-                {/* Coupon Code Redemption Form */}
-                <div className="p-4 rounded-2xl bg-card border border-amber-500/30 max-w-md mx-auto space-y-2 text-left">
-                  <div className="flex items-center gap-2 text-amber-500 font-extrabold text-xs uppercase tracking-wider">
-                    <Sparkles size={14} />
-                    <span>
-                      {isAr ? "لديك كود تفعيل خصم أو اشتراك؟" : "Have a VIP Promo / Access Code?"}
-                    </span>
-                  </div>
-                  <form
-                    onSubmit={async (e) => {
-                      e.preventDefault();
-                      const code = (
-                        e.currentTarget.elements.namedItem("couponCode") as HTMLInputElement
-                      )?.value
-                        ?.trim()
-                        .toUpperCase();
-                      if (!code) return;
-                      const validCodes = [
-                        "VIP2026",
-                        "OBOURFREE",
-                        "OBOUR2026",
-                        "VIPPASS",
-                        "OBOURPLUS",
-                        "ELITE2026",
-                      ];
-                      if (!validCodes.includes(code)) {
-                        toast.error(
-                          isAr
-                            ? "كود التفعيل غير صحيح أو منتهي الصلاحية"
-                            : "Invalid or expired promo code"
-                        );
-                        return;
-                      }
-                      if (!user?.uid) {
-                        toast.error(isAr ? "يرجى تسجيل الدخول أولاً" : "Please log in first");
-                        return;
-                      }
-                      try {
-                        await updateProfile({
-                          isVip: true,
-                          subscriptionTier: "vip",
-                          vipGrantedBy: `Promo Code: ${code}`,
-                          vipExpiresAt: new Date(
-                            Date.now() + 180 * 24 * 60 * 60 * 1000
-                          ).toISOString(),
-                        });
-                        localStorage.removeItem(`vip-celebration-seen-${user.uid}`);
-                        toast.success(
-                          isAr
-                            ? "تم تفعيل اشتراك العبور بلس بنجاح"
-                            : "Obour VIP Pass activated successfully"
-                        );
-                      } catch {
-                        toast.error(
-                          isAr ? "حدث خطأ أثناء تفعيل الكود" : "Failed to activate promo code"
-                        );
-                      }
-                    }}
-                    className="flex gap-2"
-                  >
-                    <input
-                      name="couponCode"
-                      type="text"
-                      placeholder={
-                        isAr ? "أدخل كود التفعيل (مثل: VIP2026)" : "Enter code (e.g. VIP2026)"
-                      }
-                      className="flex-1 px-3.5 py-2.5 rounded-xl bg-background border border-border text-xs font-bold uppercase focus:outline-none focus:ring-2 focus:ring-amber-500/50"
-                    />
-                    <motion.button
-                      type="submit"
-                      whileHover={{ scale: 1.02 }}
-                      whileTap={{ scale: 0.96 }}
-                      className="px-4 py-2.5 rounded-xl bg-gradient-to-r from-amber-500 to-yellow-500 text-black font-black text-xs shadow-md whitespace-nowrap"
-                    >
-                      {isAr ? "تفعيل" : "Activate"}
-                    </motion.button>
-                  </form>
-                </div>
-
-                {notifySubmitted ? (
-                  <div className="inline-flex items-center gap-2 px-6 py-3 rounded-2xl bg-emerald-500/15 border border-emerald-500/40 text-emerald-500 font-bold text-sm">
-                    <CheckCircle2 size={18} />
-                    <span>
-                      {isAr
-                        ? "تم تسجيل بريدك بنجاح، سنُخطركم فور إطلاق الاشتراكات"
-                        : "Email registered successfully. We'll notify you upon launch"}
-                    </span>
-                  </div>
-                ) : (
-                  <form
-                    onSubmit={handleNotify}
-                    className="flex flex-col gap-3 justify-center max-w-md mx-auto"
-                  >
-                    <div className="flex flex-col sm:flex-row items-center gap-2">
-                      <input
-                        type="email"
-                        value={notifyEmail}
-                        onChange={(e) => setNotifyEmail(e.target.value)}
-                        placeholder={
-                          isAr
-                            ? "أدخل بريدك الإلكتروني للتنبيه عند الإطلاق"
-                            : "Enter your email to be notified at launch"
-                        }
-                        className="flex-1 w-full px-4 py-3 rounded-2xl bg-background border border-border text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-amber-500/50 placeholder:text-muted-foreground/60"
-                      />
-                      <motion.button
-                        type="submit"
-                        disabled={!notifyConsent || !notifyEmail.trim()}
-                        whileHover={{ scale: 1.02 }}
-                        whileTap={{ scale: 0.97 }}
-                        className="flex items-center justify-center gap-2 px-6 py-3 rounded-2xl bg-gradient-to-r from-amber-400 to-yellow-500 text-black font-extrabold text-sm shadow-lg hover:shadow-amber-500/25 transition-all whitespace-nowrap disabled:opacity-50 disabled:cursor-not-allowed"
-                      >
-                        <Bell size={16} />
-                        <span>{isAr ? "نبّهني عند الإطلاق" : "Notify Me at Launch"}</span>
-                      </motion.button>
-                    </div>
-
-                    <label className="flex items-start gap-2 text-xs text-muted-foreground cursor-pointer select-none text-right">
-                      <input
-                        type="checkbox"
-                        checked={notifyConsent}
-                        onChange={(e) => setNotifyConsent(e.target.checked)}
-                        className="mt-0.5 h-4 w-4 rounded border-border text-primary focus:ring-primary/40"
-                        required
-                      />
-                      <span>
-                        {isAr ? (
-                          <>
-                            أوافق على استلام إشعارات التحديثات الرسمية وفقاً لـ{" "}
-                            <Link
-                              href="/legal/privacy"
-                              className="font-bold text-primary hover:underline"
-                            >
-                              سياسة الخصوصية
-                            </Link>
-                            .
-                          </>
-                        ) : (
-                          <>
-                            I consent to receive official launch notifications in accordance with
-                            the{" "}
-                            <Link
-                              href="/legal/privacy"
-                              className="font-bold text-primary hover:underline"
-                            >
-                              Privacy Policy
-                            </Link>
-                            .
-                          </>
-                        )}
-                      </span>
-                    </label>
-                  </form>
-                )}
-
-                <div className="pt-2 text-center text-xs text-muted-foreground">
-                  {isAr ? (
-                    <>
-                      تخضع كافة الاشتراكات وباقات العبور بلس لـ{" "}
-                      <Link href="/legal/terms" className="font-bold text-primary hover:underline">
-                        شروط الاستخدام
-                      </Link>{" "}
-                      و{" "}
-                      <Link href="/legal/refund" className="font-bold text-primary hover:underline">
-                        سياسة الاسترجاع
-                      </Link>
-                      .
-                    </>
-                  ) : (
-                    <>
-                      All subscriptions are governed by our{" "}
-                      <Link href="/legal/terms" className="font-bold text-primary hover:underline">
-                        Terms of Service
-                      </Link>{" "}
-                      and{" "}
-                      <Link href="/legal/refund" className="font-bold text-primary hover:underline">
-                        Refund Policy
-                      </Link>
-                      .
-                    </>
-                  )}
-                </div>
-              </div>
-            </div>
-          </motion.div>
-        </FadeIn>
-      )}
+          <form onSubmit={handleRedeemPromo} className="flex gap-2 max-w-md mx-auto pt-2">
+            <input
+              type="text"
+              value={promoCode}
+              onChange={(e) => setPromoCode(e.target.value)}
+              placeholder={isAr ? "أدخل الكود (مثل: OBOUR2026)" : "Enter code (e.g. OBOUR2026)"}
+              className="flex-1 px-4 py-3 rounded-2xl bg-background border border-border text-xs sm:text-sm font-bold uppercase focus:outline-none focus:ring-2 focus:ring-amber-500/50"
+            />
+            <button
+              type="submit"
+              disabled={redeemingPromo || !promoCode.trim()}
+              className="px-6 py-3 rounded-2xl bg-gradient-to-r from-amber-500 to-yellow-500 text-black font-black text-xs sm:text-sm shadow-md hover:shadow-amber-500/25 transition-all disabled:opacity-50"
+            >
+              {redeemingPromo ? (
+                <RefreshCw size={16} className="animate-spin mx-auto" />
+              ) : isAr ? (
+                "تفعيل"
+              ) : (
+                "Redeem"
+              )}
+            </button>
+          </form>
+        </div>
+      </FadeIn>
 
       {/* ── Deep Dive Feature Highlights ───────────────────────────────── */}
       <FadeIn delay={0.1}>
         <div className="space-y-6 pt-6">
           <div className="text-center space-y-2 max-w-xl mx-auto">
             <h2 className="text-2xl sm:text-3xl font-black text-foreground font-harman">
-              {isAr ? "ماذا يمنحك اشتراك العبور بلس؟" : "Why Upgrade to Obour VIP Pass?"}
+              {isAr ? "لماذا يشترك طلاب معاهد العبور في VIP؟" : "Why Obour Students Choose VIP?"}
             </h2>
             <p className="text-sm text-muted-foreground font-medium">
               {isAr
-                ? "أدوات حصرية مصممة خصيصاً لمساعدتك في الحصول على أعلى تقدير أكاديمي."
-                : "Exclusive tools designed to help you achieve top grades with minimum friction."}
+                ? "أدوات حصرية لتسهيل المذاكرة وتحقيق تقديرات الامتياز مع توفير الوقت."
+                : "Exclusive tools designed to maximize your GPA while saving study hours."}
             </p>
           </div>
 
@@ -592,32 +701,36 @@ export default function ObourPlusSubscriptionPage() {
                 icon: Mic,
                 titleAr: "تفريغ المحاضرات الصوتية",
                 titleEn: "AI Audio Transcriber",
-                descAr: "ارفع التسجيل الصوتي للمحاضرة واحصل على ملخص شامل وعناوين رئيسية فوراً.",
-                descEn: "Upload lecture audio and get instant AI notes and summaries.",
+                descAr:
+                  "سجل المحاضرة واحصل فوراً على ملخص منظم ومصطلحات ونقاط رئيسية جاهزة للمذاكرة.",
+                descEn: "Record lectures and get instant structured summaries and definitions.",
                 color: "text-amber-500 bg-amber-500/10 border-amber-500/20",
               },
               {
                 icon: Zap,
-                titleAr: "منشئ الامتحانات الذكي",
-                titleEn: "AI Practice Exam Gen",
-                descAr: "أنشئ امتحانات متكاملة بـ 20 سؤالاً مع توضيح خطوات الحل بالتفصيل.",
-                descEn: "Generate 20-question practice exams with full solution steps.",
+                titleAr: "امتحانات تفاعلية 20 سؤالاً",
+                titleEn: "20-Question AI Exams",
+                descAr:
+                  "تدرب على امتحانات واقعية شاملة للمنهج مع توضيح خطوات الحل الصحيح لكل سؤال.",
+                descEn:
+                  "Practice with realistic exams and detailed step-by-step solution breakdowns.",
                 color: "text-sky-500 bg-sky-500/10 border-sky-500/20",
               },
               {
                 icon: Flame,
                 titleAr: "مضاعف نقاط الخبرة 2x",
                 titleEn: "2x XP Points Boost",
-                descAr: "ضاعف XP الذي تحصل عليه عند إنجاز المهام واصعد قمة لوحة الصدارة.",
-                descEn: "Earn double XP on all completed tasks and climb leaderboard ranks.",
+                descAr: "ضاعف XP الذي تحصده عند حل الأسئلة والمهام وتصدر لوحة الصدارة الأكاديمية.",
+                descEn: "Earn double XP on all completed tasks and lead the student rankings.",
                 color: "text-orange-500 bg-orange-500/10 border-orange-500/20",
               },
               {
                 icon: BarChart2,
-                titleAr: "مخطط التقدير التراكمي",
-                titleEn: "Pro GPA Target Planner",
-                descAr: "محاكاة سيناريوهات المعدل التراكمي لعدة فصول دراسية وتصدير التقرير.",
-                descEn: "Simulate multi-semester GPA targets and export progress reports.",
+                titleAr: "خرائط ذهنية وتصدير PDF",
+                titleEn: "Mind Maps & PDF Exports",
+                descAr:
+                  "حوّل أي موضوع لخريطة ذهنية واضحة واحفظ الملخصات بصيغة PDF للطباعة السريعة.",
+                descEn: "Generate visual concept maps and download print-ready revision PDFs.",
                 color: "text-emerald-500 bg-emerald-500/10 border-emerald-500/20",
               },
             ].map((feature, i) => (
@@ -645,16 +758,388 @@ export default function ObourPlusSubscriptionPage() {
         </div>
       </FadeIn>
 
-      {/* ── Bottom CTA note ────────────────────────────────────────────── */}
+      {/* ── FAQ Section ────────────────────────────────────────────────── */}
       <FadeIn delay={0.12}>
-        <div className="text-center py-6 space-y-2">
-          <p className="text-xs text-muted-foreground font-medium">
-            {isAr
-              ? "جميع الطلاب على الباقة المجانية حتى إطلاق بوابة الدفع الرسمية. ترقبوا الإعلان قريباً."
-              : "All students are on the Free Plan until the official payment gateway launches. Stay tuned."}
-          </p>
+        <div className="max-w-3xl mx-auto space-y-4 pt-6">
+          <div className="text-center space-y-1 pb-2">
+            <h3 className="text-xl sm:text-2xl font-black text-foreground font-harman">
+              {isAr ? "الأسئلة الشائعة حول الاشتراك" : "Frequently Asked Questions"}
+            </h3>
+            <p className="text-xs text-muted-foreground">
+              {isAr
+                ? "كل ما تحتاج معرفته عن الدفع والتفعيل"
+                : "Everything about payment & activation"}
+            </p>
+          </div>
+
+          <div className="space-y-3">
+            {[
+              {
+                qAr: "كم يستغرق تفعيل الاشتراك بعد التحويل؟",
+                qEn: "How long does activation take after transfer?",
+                aAr: "يتم التحقق من تحويلات إنستا باي وفودافون كاش وتفعيل باقة الطالب عادةً خلال 15 إلى 45 دقيقة من إرسال الطلب.",
+                aEn: "InstaPay and Vodafone Cash transfers are verified within 15 to 45 minutes on average.",
+              },
+              {
+                qAr: "هل يمكنني الدفع عبر أي محفظة إلكترونية أخرى؟",
+                qEn: "Can I pay using other mobile wallets?",
+                aAr: "نعم! رقم فودافون كاش يستقبل التحويلات من كافة المحافظ الإلكترونية في مصر (أورانج كاش، اتصالات كاش، وي باي، محافظ البنوك الذكية).",
+                aEn: "Yes! The mobile wallet accepts transfers from all Egyptian wallets (Vodafone, Orange, Etisalat, WE, and Smart Bank Wallets).",
+              },
+              {
+                qAr: "إذا كان لدي اشتراك نشط وقمت بالتجديد، هل يضيع ما تبقى؟",
+                qEn: "If I renew while active, do I lose remaining days?",
+                aAr: "أبداً! التجديد يعمل بشكل تراكمي وتُضاف الأيام الجديدة مباشرة إلى تاريخ انتهاء اشتراكك الحالي.",
+                aEn: "Never! Renewals add days cumulatively to your current expiration date without losing any days.",
+              },
+              {
+                qAr: "هل الاشتراك متوافق مع سياسة الاسترجاع؟",
+                qEn: "What is your refund policy?",
+                aAr: "نعم، تخضع كافة الاشتراكات لسياسة الاسترجاع المعتمدة الموضحة في الرابط بالأسفل، مع ضمان استرداد كامل في حال وجود أي مشكلة تقنية.",
+                aEn: "Yes, all subscriptions adhere to our official refund policy with full assistance for technical concerns.",
+              },
+            ].map((faq, idx) => (
+              <div
+                key={idx}
+                className="p-5 rounded-2xl bg-card border border-border/80 space-y-2 text-start"
+              >
+                <div className="flex items-center gap-2 font-black text-sm text-foreground">
+                  <HelpCircle size={16} className="text-amber-500 shrink-0" />
+                  <span>{isAr ? faq.qAr : faq.qEn}</span>
+                </div>
+                <p className="text-xs text-muted-foreground leading-relaxed ps-6">
+                  {isAr ? faq.aAr : faq.aEn}
+                </p>
+              </div>
+            ))}
+          </div>
+
+          <div className="pt-4 text-center text-xs text-muted-foreground">
+            {isAr ? (
+              <>
+                تخضع كافة الاشتراكات لـ{" "}
+                <Link href="/legal/terms" className="font-bold text-primary hover:underline">
+                  شروط الاستخدام
+                </Link>{" "}
+                و{" "}
+                <Link href="/legal/refund" className="font-bold text-primary hover:underline">
+                  سياسة الاسترجاع
+                </Link>{" "}
+                و{" "}
+                <Link href="/legal/privacy" className="font-bold text-primary hover:underline">
+                  سياسة الخصوصية
+                </Link>
+                .
+              </>
+            ) : (
+              <>
+                All subscriptions are governed by our{" "}
+                <Link href="/legal/terms" className="font-bold text-primary hover:underline">
+                  Terms of Service
+                </Link>
+                ,{" "}
+                <Link href="/legal/refund" className="font-bold text-primary hover:underline">
+                  Refund Policy
+                </Link>
+                , and{" "}
+                <Link href="/legal/privacy" className="font-bold text-primary hover:underline">
+                  Privacy Policy
+                </Link>
+                .
+              </>
+            )}
+          </div>
         </div>
       </FadeIn>
+
+      {/* ── Interactive Egyptian Checkout Modal ─────────────────────────── */}
+      <AnimatePresence>
+        {checkoutOpen && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md animate-in fade-in-0 duration-200">
+            <motion.div
+              initial={{ scale: 0.95, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.95, opacity: 0 }}
+              className="bg-card border border-border/80 rounded-3xl p-6 sm:p-8 max-w-xl w-full max-h-[90vh] overflow-y-auto space-y-6 shadow-2xl text-foreground text-start"
+              dir={isAr ? "rtl" : "ltr"}
+            >
+              {/* Modal Header */}
+              <div className="flex items-center justify-between pb-4 border-b border-border/60">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-2xl bg-amber-500/15 border border-amber-500/30 flex items-center justify-center text-amber-500">
+                    <Crown size={22} />
+                  </div>
+                  <div>
+                    <h3 className="text-lg font-black font-harman">
+                      {isAr ? "إتمام اشتراك العبور بلس" : "Complete VIP Subscription"}
+                    </h3>
+                    <p className="text-xs text-muted-foreground font-medium">
+                      {checkoutPlan === "monthly"
+                        ? isAr
+                          ? "باقة الاشتراك الشهري (49 ج.م)"
+                          : "Monthly Pass (49 EGP)"
+                        : checkoutPlan === "semester"
+                          ? isAr
+                            ? "باقة الفصل الدراسي (199 ج.م)"
+                            : "Semester Pass (199 EGP)"
+                          : isAr
+                            ? "باقة العام الأكاديمي (349 ج.م)"
+                            : "Academic Year Pass (349 EGP)"}
+                    </p>
+                  </div>
+                </div>
+
+                <button
+                  onClick={() => setCheckoutOpen(false)}
+                  className="p-2 rounded-xl hover:bg-muted text-muted-foreground hover:text-foreground transition-all"
+                >
+                  <X size={18} />
+                </button>
+              </div>
+
+              {/* Step 1: Payment Method Selector */}
+              <div className="space-y-3">
+                <label className="block text-xs font-bold text-foreground">
+                  {isAr ? "1. اختر طريقة الدفع المحلية:" : "1. Select Payment Method:"}
+                </label>
+
+                <div className="grid grid-cols-2 gap-3">
+                  <button
+                    type="button"
+                    onClick={() => setPaymentMethod("instapay")}
+                    className={cn(
+                      "p-3.5 rounded-2xl border text-start space-y-1 transition-all",
+                      paymentMethod === "instapay"
+                        ? "border-amber-500 bg-amber-500/10 shadow-sm"
+                        : "border-border hover:bg-muted/50"
+                    )}
+                  >
+                    <div className="flex items-center justify-between">
+                      <span className="font-extrabold text-xs text-foreground">
+                        {isAr ? "إنستا باي (InstaPay)" : "InstaPay (IPN)"}
+                      </span>
+                      <Smartphone size={16} className="text-amber-500" />
+                    </div>
+                    <p className="text-[11px] text-muted-foreground">
+                      {isAr ? "تحويل لحظي من أي بنك" : "Instant bank transfer"}
+                    </p>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => setPaymentMethod("vodafone_cash")}
+                    className={cn(
+                      "p-3.5 rounded-2xl border text-start space-y-1 transition-all",
+                      paymentMethod === "vodafone_cash"
+                        ? "border-amber-500 bg-amber-500/10 shadow-sm"
+                        : "border-border hover:bg-muted/50"
+                    )}
+                  >
+                    <div className="flex items-center justify-between">
+                      <span className="font-extrabold text-xs text-foreground">
+                        {isAr ? "فودافون كاش والمحافظ" : "Vodafone Cash & Wallets"}
+                      </span>
+                      <Smartphone size={16} className="text-red-500" />
+                    </div>
+                    <p className="text-[11px] text-muted-foreground">
+                      {isAr ? "محافظ المحمول في مصر" : "All mobile wallets"}
+                    </p>
+                  </button>
+                </div>
+              </div>
+
+              {/* Step 2: Transfer Details Strip */}
+              <div className="p-4 rounded-2xl bg-muted/40 border border-border/80 space-y-3">
+                <div className="flex items-center justify-between text-xs">
+                  <span className="font-bold text-foreground">
+                    {paymentMethod === "instapay"
+                      ? isAr
+                        ? "عنوان إنستا باي (IPA):"
+                        : "InstaPay Address:"
+                      : isAr
+                        ? "رقم محفظة فودافون كاش:"
+                        : "Vodafone Cash Number:"}
+                  </span>
+                  <span className="font-mono font-black text-amber-500 select-all text-sm">
+                    {paymentMethod === "instapay" ? instapayAccount : vodafoneCashNumber}
+                  </span>
+                </div>
+
+                <div className="flex items-center justify-between text-xs pt-1 border-t border-border/60">
+                  <span className="text-muted-foreground">
+                    {isAr ? "المبلغ المطلوب تحويله:" : "Amount to transfer:"}
+                  </span>
+                  <span className="font-black text-foreground">
+                    {checkoutPlan === "monthly" ? 49 : checkoutPlan === "semester" ? 199 : 349} EGP
+                  </span>
+                </div>
+
+                <button
+                  type="button"
+                  onClick={() =>
+                    copyToClipboard(
+                      paymentMethod === "instapay" ? instapayAccount : vodafoneCashNumber,
+                      "account"
+                    )
+                  }
+                  className="w-full py-2 rounded-xl bg-background hover:bg-card border border-border text-xs font-bold text-foreground flex items-center justify-center gap-1.5 transition-all"
+                >
+                  <Copy size={13} />
+                  <span>
+                    {copiedKey === "account"
+                      ? isAr
+                        ? "تم نسخ الرقم!"
+                        : "Copied!"
+                      : isAr
+                        ? "نسخ رقم الحساب / المحفظة"
+                        : "Copy Transfer Account Number"}
+                  </span>
+                </button>
+              </div>
+
+              {/* Step 3: Verification Submission Form */}
+              <form onSubmit={handleSubmitSubscription} className="space-y-4">
+                {/* Sender Phone/Account */}
+                <div className="space-y-1">
+                  <label className="block text-xs font-bold text-foreground">
+                    {isAr ? "رقم هاتفك أو حسابك المحول منه *" : "Sender Phone Number or Account *"}
+                  </label>
+                  <input
+                    type="text"
+                    required
+                    value={senderPhoneOrAccount}
+                    onChange={(e) => setSenderPhoneOrAccount(e.target.value)}
+                    placeholder={
+                      paymentMethod === "instapay"
+                        ? isAr
+                          ? "مثال: yourname@instapay أو 01xxxxxxxxx"
+                          : "e.g. yourname@instapay or 01xxxxxxxxx"
+                        : isAr
+                          ? "مثال: 01012345678"
+                          : "e.g. 01012345678"
+                    }
+                    className="w-full px-4 py-3 rounded-2xl bg-background border border-border text-xs sm:text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-amber-500/50"
+                  />
+                </div>
+
+                {/* Transaction Reference (Optional) */}
+                <div className="space-y-1">
+                  <label className="block text-xs font-bold text-foreground">
+                    {isAr
+                      ? "رقم العملية / المرجع (اختياري، يسرع التفعيل)"
+                      : "Transaction Reference (Optional, speeds up activation)"}
+                  </label>
+                  <input
+                    type="text"
+                    value={transactionReference}
+                    onChange={(e) => setTransactionReference(e.target.value)}
+                    placeholder={isAr ? "رقم المرجع من رسالة التحويل" : "Reference from SMS or App"}
+                    className="w-full px-4 py-3 rounded-2xl bg-background border border-border text-xs sm:text-sm font-mono focus:outline-none focus:ring-2 focus:ring-amber-500/50"
+                  />
+                </div>
+
+                {/* Receipt Upload */}
+                <div className="space-y-1.5">
+                  <label className="block text-xs font-bold text-foreground">
+                    {isAr
+                      ? "صورة إيصال التحويل (اختياري ومستحسن)"
+                      : "Receipt Screenshot (Recommended)"}
+                  </label>
+
+                  <input
+                    ref={fileInputRef}
+                    type="file"
+                    accept="image/*"
+                    onChange={handleFileUpload}
+                    className="hidden"
+                  />
+
+                  {receiptUrl ? (
+                    <div className="relative w-full h-32 rounded-2xl overflow-hidden border border-emerald-500/50 bg-black/20 flex items-center justify-center">
+                      <Image
+                        src={receiptUrl}
+                        alt="Uploaded Receipt"
+                        fill
+                        className="object-contain"
+                        unoptimized
+                      />
+                      <button
+                        type="button"
+                        onClick={() => setReceiptUrl("")}
+                        className="absolute top-2 end-2 p-1 rounded-lg bg-black/70 text-white hover:bg-black transition-all"
+                      >
+                        <X size={14} />
+                      </button>
+                    </div>
+                  ) : (
+                    <button
+                      type="button"
+                      disabled={receiptUploading}
+                      onClick={() => fileInputRef.current?.click()}
+                      className="w-full py-3.5 px-4 rounded-2xl border-2 border-dashed border-border hover:border-amber-500/50 bg-muted/20 hover:bg-muted/40 text-xs font-bold text-muted-foreground hover:text-foreground transition-all flex items-center justify-center gap-2"
+                    >
+                      {receiptUploading ? (
+                        <>
+                          <RefreshCw size={16} className="animate-spin text-amber-500" />
+                          <span>{isAr ? "جارٍ رفع صورة الإيصال..." : "Uploading receipt..."}</span>
+                        </>
+                      ) : (
+                        <>
+                          <Upload size={16} className="text-amber-500" />
+                          <span>
+                            {isAr
+                              ? "انقر لرفع لقطة شاشة للإيصال"
+                              : "Click to upload receipt screenshot"}
+                          </span>
+                        </>
+                      )}
+                    </button>
+                  )}
+                </div>
+
+                {/* Notes */}
+                <div className="space-y-1">
+                  <label className="block text-xs font-bold text-foreground">
+                    {isAr ? "ملاحظات إضافية للمشرف (اختياري)" : "Additional Notes (Optional)"}
+                  </label>
+                  <input
+                    type="text"
+                    value={studentNotes}
+                    onChange={(e) => setStudentNotes(e.target.value)}
+                    placeholder={
+                      isAr ? "أي تفاصيل تود توضيحها..." : "Any details you want to add..."
+                    }
+                    className="w-full px-4 py-2.5 rounded-2xl bg-background border border-border text-xs focus:outline-none focus:ring-2 focus:ring-amber-500/50"
+                  />
+                </div>
+
+                {/* Submit CTA */}
+                <div className="pt-2">
+                  <button
+                    type="submit"
+                    disabled={submittingOrder || !senderPhoneOrAccount.trim()}
+                    className="w-full py-4 rounded-2xl bg-gradient-to-r from-amber-400 to-yellow-500 hover:from-amber-500 hover:to-yellow-600 text-black font-black text-sm shadow-xl hover:shadow-amber-500/25 transition-all flex items-center justify-center gap-2 disabled:opacity-50"
+                  >
+                    {submittingOrder ? (
+                      <>
+                        <RefreshCw size={16} className="animate-spin" />
+                        <span>{isAr ? "جارٍ إرسال الطلب..." : "Submitting order..."}</span>
+                      </>
+                    ) : (
+                      <>
+                        <Send size={16} />
+                        <span>
+                          {isAr ? "تأكيد وإرسال طلب الاشتراك" : "Confirm & Submit Request"}
+                        </span>
+                      </>
+                    )}
+                  </button>
+                </div>
+              </form>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }

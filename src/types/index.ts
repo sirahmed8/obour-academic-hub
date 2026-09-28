@@ -228,3 +228,56 @@ export interface UserPresence {
   status: "online" | "offline";
   currentPath?: string;
 }
+
+export type SubscriptionPlanId = "monthly" | "semester" | "annual";
+
+export type SubscriptionPaymentMethod =
+  | "instapay"
+  | "vodafone_cash"
+  | "orange_cash"
+  | "etisalat_cash"
+  | "we_pay"
+  | "card";
+
+export type SubscriptionRequestStatus = "pending" | "approved" | "rejected";
+
+export interface SubscriptionRequest {
+  id: string;
+  userId: string;
+  userEmail: string;
+  userName: string;
+  studentCode?: string;
+  institute?: string;
+  department?: string;
+  academicYear?: string;
+  plan: SubscriptionPlanId;
+  planNameAr: string;
+  planNameEn: string;
+  amount: number;
+  currency: string; // "EGP"
+  paymentMethod: SubscriptionPaymentMethod;
+  senderPhoneOrAccount: string;
+  transactionReference?: string;
+  receiptUrl?: string;
+  status: SubscriptionRequestStatus;
+  notes?: string;
+  rejectionReason?: string;
+  reviewedBy?: string;
+  reviewedAt?: string | FirestoreDate;
+  createdAt: string | FirestoreDate;
+  updatedAt?: string | FirestoreDate;
+  durationDays: number;
+}
+
+export interface PromoCode {
+  id: string;
+  code: string;
+  tier: "vip";
+  durationDays: number;
+  maxUses: number;
+  usedCount: number;
+  usedBy?: string[];
+  isActive: boolean;
+  expiresAt?: string;
+  createdAt?: string | FirestoreDate;
+}

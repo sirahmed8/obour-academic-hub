@@ -1,5 +1,4 @@
 import type { Metadata, Viewport } from "next";
-import { Inter } from "next/font/google";
 import { Toaster } from "sonner";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
 import { SpeedInsights } from "@vercel/speed-insights/next";
@@ -9,7 +8,7 @@ import NextTopLoader from "nextjs-toploader";
 import { ThemeProvider, AuthProvider, LanguageProvider, SolidModeProvider } from "@/contexts";
 import { AuthenticatedLayout } from "@/components/layout/AuthenticatedLayout";
 
-const inter = Inter({ subsets: ["latin"], variable: "--font-inter" });
+const inter = { variable: "font-sans" };
 
 export const metadata: Metadata = {
   title: {

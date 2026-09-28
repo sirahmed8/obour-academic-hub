@@ -2,7 +2,8 @@
 
 import { useState, useEffect } from "react";
 import { useLanguage, useAuth } from "@/contexts";
-import { GitFork, Sparkles, RefreshCw, Layers, ChevronRight } from "lucide-react";
+import Link from "next/link";
+import { GitFork, Sparkles, RefreshCw, Layers, ChevronRight, Crown } from "lucide-react";
 import { collection, getDocs } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 
@@ -95,11 +96,29 @@ export default function MindMapPage() {
     >
       <FadeIn>
         <div className="p-6 sm:p-10 rounded-3xl bg-card border border-border shadow-xl space-y-3 dark:bg-card">
-          <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-primary/10 text-primary font-extrabold text-xs uppercase tracking-wider border border-primary/20">
-            <GitFork size={14} />
-            <span>
-              {isRtl ? "مولد الخرائط الذهنية بالذكاء الاصطناعي" : "AI Mind Map Generator"}
-            </span>
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-primary/10 text-primary font-extrabold text-xs uppercase tracking-wider border border-primary/20">
+              <GitFork size={14} />
+              <span>
+                {isRtl ? "مولد الخرائط الذهنية بالذكاء الاصطناعي" : "AI Mind Map Generator"}
+              </span>
+            </div>
+
+            <Link
+              href="/plus"
+              className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-amber-500/20 text-amber-500 hover:bg-amber-500/30 border border-amber-500/30 font-extrabold text-xs transition-all"
+            >
+              <Crown size={14} className="text-amber-400" />
+              <span>
+                {user?.isVip || user?.role === "owner" || user?.role === "admin"
+                  ? isRtl
+                    ? "خرائط غير محدودة 👑 VIP"
+                    : "Unlimited Maps 👑 VIP"
+                  : isRtl
+                    ? "ترقية العبور بلس VIP"
+                    : "Upgrade to VIP"}
+              </span>
+            </Link>
           </div>
 
           <h1 className="text-3xl sm:text-5xl font-black text-foreground font-harman">
