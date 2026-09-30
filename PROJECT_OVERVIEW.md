@@ -274,3 +274,8 @@
   - **Prettier Code Formatting Sync**: Formatted 13 subscription route endpoints, admin layouts, and navigation components with Prettier, achieving 100% repository-wide code style compliance.
   - **Zero-Bug Verification**: Verified zero ESLint errors (0 errors, 0 warnings), 100% clean TypeScript compiler verification (`tsc --noEmit`), and 139/139 passing Vitest unit/integration tests across 42 test suites.
   - **Production Builds & Firebase Release**: Compiled all 72 Next.js production routes cleanly (`npm run build`), generated static export (46 pages via `npm run build:firebase`), and deployed live to Firebase Hosting (`https://obourinstitutes1.web.app`).
+- **Deep Workspace & Disk Space Optimization (Checkpoint 47)**:
+  - **Massive Disk Space Recovery**: Identified and eradicated bloated cache folders (`.next/dev` at 3.45 GB and `.next/cache` at 754 MB), recovering over 11 GB of free disk space on drive D: (increasing free space from 0.64 GB to 11.65 GB).
+  - **Repository & Workspace Clean-Up**: Removed obsolete tracked `.vs/` Visual Studio solution cache and obsolete one-time migration script `scripts/fix-recharts.mjs`. Added `.vs/` and `.idea/` to `.gitignore`. Ran `git gc --prune=now` shrinking `.git` from 192 MB to 39 MB.
+  - **Automated Cleanup Engine**: Built [`scripts/clean-project.ps1`](file:///d:/Projects/Obour%20Academic%20Hub/scripts/clean-project.ps1) with automated size calculation, safe targeting, stray log detection, and git repacking. Added `"clean"` and `"clean:deep"` commands to `package.json`.
+  - **Production Verification & Live Deployment**: Verified all 139 vitest tests pass, compiled clean 72 Next.js routes, generated static export, and deployed live to Firebase Hosting (`https://obourinstitutes1.web.app`).

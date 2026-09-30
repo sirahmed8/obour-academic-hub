@@ -18,7 +18,9 @@
     "build:firebase": "cross-env FIREBASE_BUILD=1 NODE_OPTIONS=\"--max-old-space-size=2560\" next build --webpack",
     "deploy:firebase": "npm run build:firebase && firebase deploy --only hosting",
     "deploy:full": "npm run build && npm run deploy:firebase",
-    "shortcut:create": "powershell -ExecutionPolicy Bypass -File scripts/create-desktop-shortcuts.ps1"
+    "shortcut:create": "powershell -ExecutionPolicy Bypass -File scripts/create-desktop-shortcuts.ps1",
+    "clean": "powershell -ExecutionPolicy Bypass -File scripts/clean-project.ps1 -SkipGitGc",
+    "clean:deep": "powershell -ExecutionPolicy Bypass -File scripts/clean-project.ps1"
   },
   "dependencies": {
     "@sentry/nextjs": "^10.32.1",
