@@ -89,6 +89,19 @@ export default function AdminSubscriptionsPage() {
     fetchSubscriptions();
   }, [fetchSubscriptions]);
 
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape") {
+        setShowApproveModal(false);
+        setShowRejectModal(false);
+        setReceiptModalUrl(null);
+        setSelectedRequest(null);
+      }
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, []);
+
   const handleRefresh = () => {
     setRefreshing(true);
     fetchSubscriptions();

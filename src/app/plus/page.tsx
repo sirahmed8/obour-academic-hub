@@ -96,6 +96,16 @@ export default function ObourPlusSubscriptionPage() {
     fetchMyStatus();
   }, [fetchMyStatus]);
 
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape") {
+        setCheckoutOpen(false);
+      }
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, []);
+
   const copyToClipboard = (text: string, key: string) => {
     navigator.clipboard.writeText(text);
     setCopiedKey(key);
@@ -150,12 +160,16 @@ export default function ObourPlusSubscriptionPage() {
 
     setSubmittingOrder(true);
     try {
+      const idempotencyKey = `sub_${user?.uid || "anon"}_${checkoutPlan}_${Date.now()}`;
       const res = await apiFetch<{
         success: boolean;
         requestId: string;
         message: string;
       }>("/api/subscriptions/request", {
         method: "POST",
+        headers: {
+          "x-idempotency-key": idempotencyKey,
+        },
         body: {
           plan: checkoutPlan,
           paymentMethod,

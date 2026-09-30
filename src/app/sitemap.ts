@@ -3,7 +3,7 @@ import { MetadataRoute } from "next";
 export const dynamic = "force-static";
 
 export default function sitemap(): MetadataRoute.Sitemap {
-  const baseUrl = process.env.NEXT_PUBLIC_APP_URL || "https://obour-academic-hub.vercel.app";
+  const baseUrl = process.env.NEXT_PUBLIC_APP_URL || "https://obourinstitutes1.web.app";
 
   // Comprehensive platform public & legal routes
   const routes: MetadataRoute.Sitemap = [

@@ -37,8 +37,8 @@ export function SendEmailTab({ language }: SendEmailTabProps) {
 
       toast.success(
         language === "ar"
-          ? "تم صيغ وتصميم الإيميل بالذكاء الاصطناعي ✨"
-          : "Email body polished & structured by AI ✨"
+          ? "تمت صياغة وتنسيق البريد الإلكتروني بنجاح"
+          : "Email body polished and structured successfully"
       );
     } catch {
       toast.error(language === "ar" ? "فشل تحسين الإيميل" : "Failed to enhance email");

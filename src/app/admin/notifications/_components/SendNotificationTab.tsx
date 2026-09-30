@@ -46,8 +46,8 @@ export function SendNotificationTab({ language }: SendNotificationTabProps) {
 
       toast.success(
         language === "ar"
-          ? "تم تحسين نص الإشعار وتدقيقه بالذكاء الاصطناعي ✨"
-          : "Announcement enhanced & polished by AI ✨"
+          ? "تم تحسين نص وتنسيق الإشعار بنجاح"
+          : "Announcement enhanced and formatted successfully"
       );
     } catch {
       toast.error(language === "ar" ? "فشل في تحسين الإعلان" : "Failed to enhance announcement");

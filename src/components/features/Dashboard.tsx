@@ -12,6 +12,8 @@ import { AcademicStreakWidget } from "@/components/features/AcademicStreakWidget
 import { OnboardingOverlay, shouldShowOnboarding } from "@/components/features/OnboardingOverlay";
 import { FeatureTips } from "@/components/features/FeatureTips";
 import { motion, AnimatePresence } from "framer-motion";
+import { collection, query, where, onSnapshot } from "firebase/firestore";
+import { db } from "@/lib/firebase";
 
 export function Dashboard() {
   const { user, isAdmin } = useAuth();
@@ -45,33 +47,23 @@ export function Dashboard() {
       setShowOnboarding(true);
     }
 
-    try {
-      // Task count from todo-items key
-      const rawTodos = localStorage.getItem("todo-items");
-      if (rawTodos) {
-        const parsed = JSON.parse(rawTodos);
-        if (Array.isArray(parsed)) {
-          // Count all active tasks
-          setTaskCount(parsed.length);
-        }
+    // Sync streak from authenticated user profile or fallback
+    if (user?.streakDays !== undefined) {
+      setStreakCount(user.streakDays);
+    } else {
+      try {
+        const uid = user?.uid;
+        const streakRaw = uid
+          ? (localStorage.getItem(`obour_streak_${uid}`) ?? localStorage.getItem("study-streak"))
+          : localStorage.getItem("study-streak");
+        setStreakCount(streakRaw ? parseInt(streakRaw, 10) || 0 : 0);
+      } catch {
+        /* ignore */
       }
-    } catch {
-      /* ignore */
     }
 
+    // Next exam hint — read from schedule or fallback
     try {
-      // Streak — prefer per-user key, fall back to generic study-streak key
-      const uid = user?.uid;
-      const streakRaw = uid
-        ? (localStorage.getItem(`obour_streak_${uid}`) ?? localStorage.getItem("study-streak"))
-        : localStorage.getItem("study-streak");
-      setStreakCount(streakRaw ? parseInt(streakRaw, 10) || 0 : 0);
-    } catch {
-      /* ignore */
-    }
-
-    try {
-      // Next exam hint — read from schedule or fallback
       const rawExam = localStorage.getItem("next-exam-date");
       if (rawExam) {
         const examDate = new Date(rawExam);
@@ -81,7 +73,47 @@ export function Dashboard() {
     } catch {
       /* ignore */
     }
-  }, [user?.uid]);
+
+    // Real-time task count from Firestore
+    if (user?.uid && db) {
+      const tasksQuery = query(
+        collection(db, "users", user.uid, "tasks"),
+        where("completed", "==", false)
+      );
+
+      const unsubscribe = onSnapshot(
+        tasksQuery,
+        (snap) => {
+          setTaskCount(snap.size);
+        },
+        () => {
+          // Fallback to local storage on error/offline
+          try {
+            const rawTodos = localStorage.getItem("todo-items");
+            if (rawTodos) {
+              const parsed = JSON.parse(rawTodos);
+              if (Array.isArray(parsed)) setTaskCount(parsed.length);
+            }
+          } catch {
+            /* ignore */
+          }
+        }
+      );
+
+      return () => unsubscribe();
+    } else {
+      // Unauthenticated or offline fallback
+      try {
+        const rawTodos = localStorage.getItem("todo-items");
+        if (rawTodos) {
+          const parsed = JSON.parse(rawTodos);
+          if (Array.isArray(parsed)) setTaskCount(parsed.length);
+        }
+      } catch {
+        /* ignore */
+      }
+    }
+  }, [user?.uid, user?.streakDays]);
 
   return (
     <>

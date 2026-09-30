@@ -283,7 +283,12 @@ export function ChatInput({
           >
             <div className="relative w-24 h-24 rounded-lg overflow-hidden">
               {stagedAttachment.type === "image" ? (
-                <Image src={stagedAttachment.url} alt="Staged" fill className="object-cover" />
+                <Image
+                  src={stagedAttachment.url}
+                  alt={stagedAttachment.name || "Staged upload attachment"}
+                  fill
+                  className="object-cover"
+                />
               ) : (
                 <div className="flex flex-col items-center justify-center w-full h-full bg-secondary/50">
                   <Upload className="w-8 h-8 text-primary opacity-50" />

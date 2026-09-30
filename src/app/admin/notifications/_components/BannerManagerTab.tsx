@@ -58,8 +58,8 @@ export function BannerManagerTab({ banners, language }: BannerManagerTabProps) {
 
       toast.success(
         language === "ar"
-          ? "تم تحسين نص الشريط الإعلاني بالذكاء الاصطناعي ✨"
-          : "Banner text polished by AI ✨"
+          ? "تم تحسين نص الشريط الإعلاني بنجاح"
+          : "Banner text polished successfully"
       );
     } catch {
       toast.error(language === "ar" ? "فشل تحسين الشريط" : "Failed to enhance banner");

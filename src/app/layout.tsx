@@ -31,14 +31,14 @@ export const metadata: Metadata = {
   authors: [{ name: "Ahmed", url: "https://github.com/sirahmed8" }],
   creator: "Ahmed",
   publisher: "Obour Academic Hub",
-  metadataBase: new URL(process.env.NEXT_PUBLIC_APP_URL || "https://obour-academic-hub.vercel.app"),
+  metadataBase: new URL(process.env.NEXT_PUBLIC_APP_URL || "https://obourinstitutes1.web.app"),
   alternates: {
     canonical: "/",
   },
   openGraph: {
     title: "Obour Academic Hub",
     description: "The premium academic companion for Obour Institutes students.",
-    url: "https://obour-academic-hub.vercel.app",
+    url: process.env.NEXT_PUBLIC_APP_URL || "https://obourinstitutes1.web.app",
     siteName: "Obour Academic Hub",
     images: [
       {
@@ -108,10 +108,10 @@ export default function RootLayout({
               "@graph": [
                 {
                   "@type": "EducationalOrganization",
-                  "@id": "https://obour-academic-hub.vercel.app/#organization",
+                  "@id": `${process.env.NEXT_PUBLIC_APP_URL || "https://obourinstitutes1.web.app"}#organization`,
                   name: "Obour Academic Hub",
-                  url: "https://obour-academic-hub.vercel.app",
-                  logo: "https://obour-academic-hub.vercel.app/obour-logo.png",
+                  url: process.env.NEXT_PUBLIC_APP_URL || "https://obourinstitutes1.web.app",
+                  logo: `${process.env.NEXT_PUBLIC_APP_URL || "https://obourinstitutes1.web.app"}/obour-logo.png`,
                   description:
                     "Unified academic companion and learning platform for students of Obour Higher Institutes.",
                   address: {
@@ -124,11 +124,11 @@ export default function RootLayout({
                 },
                 {
                   "@type": "WebSite",
-                  "@id": "https://obour-academic-hub.vercel.app/#website",
-                  url: "https://obour-academic-hub.vercel.app",
+                  "@id": `${process.env.NEXT_PUBLIC_APP_URL || "https://obourinstitutes1.web.app"}#website`,
+                  url: process.env.NEXT_PUBLIC_APP_URL || "https://obourinstitutes1.web.app",
                   name: "Obour Academic Hub",
                   publisher: {
-                    "@id": "https://obour-academic-hub.vercel.app/#organization",
+                    "@id": `${process.env.NEXT_PUBLIC_APP_URL || "https://obourinstitutes1.web.app"}#organization`,
                   },
                   inLanguage: ["ar-EG", "en-US"],
                 },

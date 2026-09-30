@@ -92,6 +92,38 @@ export async function POST(req: NextRequest) {
     const planDetails = PLAN_CONFIG[plan as SubscriptionPlanId];
     const nowIso = new Date().toISOString();
 
+    // Idempotency check via client header
+    const idempotencyKey =
+      req.headers.get("x-idempotency-key") || req.headers.get("idempotency-key");
+    if (idempotencyKey) {
+      const existingIdempotentSnap = await adminDb
+        .collection("subscription_requests")
+        .where("idempotencyKey", "==", idempotencyKey)
+        .where("userId", "==", context.uid)
+        .limit(1)
+        .get();
+
+      if (!existingIdempotentSnap.empty) {
+        const existingData = existingIdempotentSnap.docs[0].data();
+        return withCors(
+          req,
+          NextResponse.json({
+            success: true,
+            requestId: existingIdempotentSnap.docs[0].id,
+            plan: {
+              id: existingData.plan,
+              nameAr: existingData.planNameAr,
+              nameEn: existingData.planNameEn,
+              amount: existingData.amount,
+              durationDays: existingData.durationDays,
+            },
+            idempotentReplay: true,
+            message: "Subscription request already processed",
+          })
+        );
+      }
+    }
+
     // Check for existing pending request to avoid duplicates
     const existingPendingQuery = await adminDb
       .collection("subscription_requests")
@@ -121,6 +153,7 @@ export async function POST(req: NextRequest) {
           userName: context.profile?.displayName || context.email.split("@")[0],
           userEmail: context.email,
           studentCode: context.profile?.studentCode || "",
+          idempotencyKey: idempotencyKey || null,
         },
         { merge: true }
       );
@@ -147,6 +180,7 @@ export async function POST(req: NextRequest) {
         notes: notes || "",
         createdAt: nowIso,
         updatedAt: nowIso,
+        idempotencyKey: idempotencyKey || null,
       });
     }
 

@@ -18,7 +18,21 @@ import { toast } from "sonner";
 import { FadeIn, ScaleIn, StaggerChildren } from "@/components/ui/Animations";
 import { SkeletonHagazView } from "@/components/ui/Skeleton";
 import { userService } from "@/services/user.service";
-import { collection, getDocs, query, limit, addDoc, serverTimestamp } from "firebase/firestore";
+import {
+  collection,
+  getDocs,
+  query,
+  limit,
+  addDoc,
+  serverTimestamp,
+  doc,
+  updateDoc,
+  increment,
+  arrayUnion,
+  arrayRemove,
+  setDoc,
+  deleteDoc,
+} from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import { ScrollableTabs } from "@/components/ui/ScrollableTabs";
 import { CreateSessionModal } from "@/components/features/hagaz/CreateSessionModal";
@@ -34,6 +48,7 @@ interface StudySlot {
   bookedSeats: number;
   type: "group" | "battle" | "lab";
   mentor: string;
+  attendees?: string[];
 }
 
 export function HagazView() {
@@ -63,8 +78,15 @@ export function HagazView() {
         const q = query(collection(db, "hagazSessions"), limit(30));
         const snap = await getDocs(q);
         const list: StudySlot[] = [];
+        const userBookings: string[] = [];
+
         snap.forEach((docSnap) => {
           const data = docSnap.data();
+          const attendees: string[] = Array.isArray(data.attendees) ? data.attendees : [];
+          if (user && attendees.includes(user.uid)) {
+            userBookings.push(docSnap.id);
+          }
+
           list.push({
             id: docSnap.id,
             titleAr: data.titleAr || data.title || "جلسة مذاكرة",
@@ -73,13 +95,17 @@ export function HagazView() {
             time: data.time || "02:00 PM - 04:00 PM",
             date: data.date || new Date().toISOString().split("T")[0],
             seats: data.seats || 10,
-            bookedSeats: data.bookedSeats || 0,
+            bookedSeats: data.bookedSeats || attendees.length || 0,
             type: data.type || "group",
             mentor: data.mentor || "Peer Mentor",
+            attendees,
           });
         });
 
         setSlots(list);
+        if (user) {
+          setMyBookings(userBookings);
+        }
       } catch (err) {
         console.error("Error loading hagaz sessions:", err);
       } finally {
@@ -87,7 +113,7 @@ export function HagazView() {
       }
     }
     loadSessions();
-  }, []);
+  }, [user]);
 
   const handleBook = async (slotId: string) => {
     if (!user) {
@@ -96,26 +122,74 @@ export function HagazView() {
     }
 
     if (myBookings.includes(slotId)) {
-      setMyBookings(myBookings.filter((id) => id !== slotId));
-      setSlots(
-        slots.map((s) =>
-          s.id === slotId ? { ...s, bookedSeats: Math.max(0, s.bookedSeats - 1) } : s
+      setMyBookings((prev) => prev.filter((id) => id !== slotId));
+      setSlots((prev) =>
+        prev.map((s) =>
+          s.id === slotId
+            ? {
+                ...s,
+                bookedSeats: Math.max(0, s.bookedSeats - 1),
+                attendees: (s.attendees || []).filter((uid) => uid !== user.uid),
+              }
+            : s
         )
       );
       toast.info(language === "ar" ? "تم إلغاء حجز الجلسة" : "Booking cancelled");
+
+      if (db) {
+        try {
+          const sessionRef = doc(db, "hagazSessions", slotId);
+          await updateDoc(sessionRef, {
+            bookedSeats: increment(-1),
+            attendees: arrayRemove(user.uid),
+          });
+          const userBookingRef = doc(db, "users", user.uid, "bookings", slotId);
+          await deleteDoc(userBookingRef).catch(() => {});
+        } catch (e) {
+          console.error("Error updating hagaz cancel in Firestore:", e);
+        }
+      }
     } else {
-      setMyBookings([...myBookings, slotId]);
-      setSlots(slots.map((s) => (s.id === slotId ? { ...s, bookedSeats: s.bookedSeats + 1 } : s)));
+      setMyBookings((prev) => [...prev, slotId]);
+      setSlots((prev) =>
+        prev.map((s) =>
+          s.id === slotId
+            ? {
+                ...s,
+                bookedSeats: s.bookedSeats + 1,
+                attendees: [...(s.attendees || []), user.uid],
+              }
+            : s
+        )
+      );
+
       const bookedSlot = slots.find((s) => s.id === slotId);
       toast.success(
         language === "ar"
           ? "تم تأكيد حجز الجلسة بنجاح! تم إضافتها إلى جدولك وقائمة مهامك وحصولك على +50 XP"
           : "Slot reserved successfully! Added to your timetable & tasks, earned +50 XP"
       );
-      try {
-        await userService.awardUserXP(user.uid, 50, "hagaz_booking");
-        await userService.updateStudyStreak(user.uid);
-        if (db && bookedSlot) {
+
+      if (db && bookedSlot) {
+        try {
+          const sessionRef = doc(db, "hagazSessions", slotId);
+          await updateDoc(sessionRef, {
+            bookedSeats: increment(1),
+            attendees: arrayUnion(user.uid),
+          });
+
+          const userBookingRef = doc(db, "users", user.uid, "bookings", slotId);
+          await setDoc(userBookingRef, {
+            sessionId: slotId,
+            bookedAt: serverTimestamp(),
+            subject: bookedSlot.subject || "General",
+            date: bookedSlot.date,
+            time: bookedSlot.time,
+          });
+
+          await userService.awardUserXP(user.uid, 50, "hagaz_booking");
+          await userService.updateStudyStreak(user.uid);
+
           const title = language === "ar" ? bookedSlot.titleAr : bookedSlot.titleEn;
           await addDoc(collection(db, "users", user.uid, "tasks"), {
             title: `${language === "ar" ? "حضور جلسة مذاكرة" : "Attend Study Session"}: ${title}`,
@@ -125,9 +199,9 @@ export function HagazView() {
             subject: bookedSlot.subject || "عام",
             createdAt: serverTimestamp(),
           });
+        } catch (e) {
+          console.error("Error updating booking in Firestore:", e);
         }
-      } catch (e) {
-        console.error("Error updating booking tasks/XP:", e);
       }
     }
   };
@@ -158,20 +232,20 @@ export function HagazView() {
         type: newType,
         mentor: user.displayName || user.email || "Student Peer",
         createdBy: user.uid,
+        attendees: [],
         createdAt: serverTimestamp(),
       };
 
-      if (db) {
-        const docRef = await addDoc(collection(db, "hagazSessions"), payload);
-        const createdSlot: StudySlot = {
-          id: docRef.id,
-          ...payload,
-        };
-        setSlots([createdSlot, ...slots]);
-      } else {
-        const fakeId = "slot-" + Date.now();
-        setSlots([{ id: fakeId, ...payload }, ...slots]);
+      if (!db) {
+        throw new Error("Database connection not ready");
       }
+
+      const docRef = await addDoc(collection(db, "hagazSessions"), payload);
+      const createdSlot: StudySlot = {
+        id: docRef.id,
+        ...payload,
+      };
+      setSlots([createdSlot, ...slots]);
 
       toast.success(
         language === "ar" ? "تم إنشاء جلسة المذاكرة بنجاح!" : "Study session created successfully!"

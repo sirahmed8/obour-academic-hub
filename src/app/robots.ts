@@ -9,6 +9,6 @@ export default function robots(): MetadataRoute.Robots {
       allow: "/",
       disallow: ["/admin/", "/private/"],
     },
-    sitemap: `${process.env.NEXT_PUBLIC_APP_URL || "https://obour-academic-hub.vercel.app"}/sitemap.xml`,
+    sitemap: `${process.env.NEXT_PUBLIC_APP_URL || "https://obourinstitutes1.web.app"}/sitemap.xml`,
   };
 }
