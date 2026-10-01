@@ -521,8 +521,8 @@ export default function ProfilePage() {
             </h3>
             <p className="text-sm text-muted-foreground font-medium">
               {language === "ar"
-                ? "حذف حسابك سيؤدي إلى مسح كافة بياناتك بشكل نهائي من المنصة."
-                : "Deleting your account will permanently remove all your data from the platform."}
+                ? "حذف الحساب والبيانات نهائياً وفقاً للمادة 17 من اللائحة العامة لحماية البيانات (GDPR) والقانون المصري رقم 151 لسنة 2020 لحماية البيانات الشخصية."
+                : "Permanently delete your account and personal records under GDPR Article 17 (Right to Erasure) and Egyptian Law No. 151 of 2020."}
             </p>
           </div>
           <button

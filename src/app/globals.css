@@ -105,6 +105,8 @@
     scroll-behavior: smooth;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
+    overflow-x: clip;
+    max-width: 100vw;
   }
 
   * {
@@ -116,7 +118,8 @@
     transition:
       background-color 0.3s ease,
       color 0.3s ease;
-    overflow-x: hidden;
+    overflow-x: clip;
+    max-width: 100vw;
   }
 
   button,
@@ -536,4 +539,36 @@
 .dark ::-moz-selection {
   background-color: rgba(99, 102, 241, 0.45);
   color: #ffffff;
+}
+
+/* ============================================
+   ACADEMIC PRINT STYLESHEET (@media print)
+   ============================================ */
+@media print {
+  header,
+  nav,
+  aside,
+  footer,
+  button,
+  .print-hidden,
+  [aria-label="Skip to content"],
+  [data-sonner-toaster] {
+    display: none !important;
+  }
+
+  body {
+    background: #ffffff !important;
+    color: #000000 !important;
+    font-size: 12pt !important;
+  }
+
+  main {
+    margin: 0 !important;
+    padding: 0 !important;
+    width: 100% !important;
+  }
+
+  a[href]:after {
+    content: "" !important;
+  }
 }

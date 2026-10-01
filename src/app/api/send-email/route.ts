@@ -56,6 +56,14 @@ const sanitizeEmailHtml = (html: string | undefined | null): string => {
   });
 };
 
+const CAN_SPAM_FOOTER = `
+<div style="margin-top: 32px; padding-top: 16px; border-top: 1px solid #e2e8f0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; font-size: 11px; color: #64748b; line-height: 1.5; text-align: center;">
+  <p style="margin: 0 0 4px 0; font-weight: 600; color: #334155;">معاهد العبور العليا • Obour Academic Hub</p>
+  <p style="margin: 0 0 4px 0;">Km 21 Cairo-Belbeis Desert Road, Obour City, Qalyubia, Egypt</p>
+  <p style="margin: 0;">You received this institutional notification regarding your academic account. To manage notifications, visit <a href="https://obourinstitutes1.web.app/notifications" style="color: #4f46e5; text-decoration: underline;">notification preferences</a>.</p>
+</div>
+`;
+
 export const runtime = "nodejs";
 
 export async function OPTIONS(request: Request) {
@@ -138,11 +146,16 @@ export async function POST(request: Request) {
       );
     }
 
+    const sanitizedBody = sanitizeEmailHtml(html);
+    const finalHtml = sanitizedBody.includes("Obour Academic Hub")
+      ? sanitizedBody
+      : `${sanitizedBody}${CAN_SPAM_FOOTER}`;
+
     const info = await transporter.sendMail({
       from: `"Obour Academic Hub" <${process.env.SMTP_USER}>`,
       to: Array.isArray(to) ? to.join(",") : to,
       subject,
-      html: sanitizeEmailHtml(html),
+      html: finalHtml,
     });
 
     return withCors(request, NextResponse.json({ success: true, messageId: info.messageId }));

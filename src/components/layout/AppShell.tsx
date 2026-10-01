@@ -45,11 +45,12 @@ const StudentProfileSetup = dynamic(
 import { LiveBanner } from "@/components/features/LiveBanner";
 import { AdminApprovalModal } from "@/components/admin/AdminApprovalModal";
 import { CookieConsent } from "@/components/ui/CookieConsent";
-import { ExternalLink } from "lucide-react";
+import { ExternalLink, Mail, Phone } from "lucide-react";
 import { useGlobalKeyboard } from "@/hooks/useGlobalKeyboard";
 import { usePerformance } from "@/hooks/usePerformance";
 import { PageTransition } from "@/components/ui/Animations";
 import { LanguageTransition } from "@/components/ui/LanguageTransition";
+import { ScrollToTop } from "@/components/ui/ScrollToTop";
 
 const VipGrantCelebrationModal = dynamic(
   () =>
@@ -284,6 +285,27 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                   </Link>
                 </div>
 
+                <div className="flex flex-wrap items-center justify-center gap-4 text-xs font-medium text-muted-foreground pt-1">
+                  <a
+                    href="mailto:support@oi.edu.eg"
+                    className="inline-flex items-center gap-1.5 hover:text-primary transition-colors py-1 px-2 rounded-lg hover:bg-muted"
+                    aria-label="Email Obour Hub Support"
+                  >
+                    <Mail className="w-3.5 h-3.5" />
+                    <span>support@oi.edu.eg</span>
+                  </a>
+                  <span>•</span>
+                  <a
+                    href="tel:+20244770000"
+                    className="inline-flex items-center gap-1.5 hover:text-primary transition-colors py-1 px-2 rounded-lg hover:bg-muted"
+                    aria-label="Call Obour Institutes Administration"
+                    dir="ltr"
+                  >
+                    <Phone className="w-3.5 h-3.5" />
+                    <span>+20 2 4477 0000</span>
+                  </a>
+                </div>
+
                 <div className="max-w-3xl mx-auto px-4 text-[11px] text-muted-foreground/60 space-y-1 leading-relaxed">
                   <p className="font-semibold text-foreground/75">
                     {language === "ar"
@@ -297,8 +319,8 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                   </p>
                 </div>
 
-                <p className="text-[10px] text-muted-foreground/40">
-                  &copy; 2026 Obour Academic Hub. All rights reserved.
+                <p className="text-[10px] text-muted-foreground/50">
+                  &copy; {new Date().getFullYear()} Obour Academic Hub. All rights reserved.
                 </p>
               </footer>
             </main>
@@ -327,6 +349,8 @@ export function AppShell({ children }: { children: React.ReactNode }) {
       <UsernameSetupModal />
       {/* Cookie Consent Banner */}
       <CookieConsent />
+      {/* Scroll to Top Utility */}
+      <ScrollToTop />
     </div>
   );
 }

@@ -86,7 +86,7 @@ describe("POST /api/send-email", () => {
       expect.objectContaining({
         to: "recipient@test.com",
         subject: "Test Subject",
-        html: "<p>Test Content</p>",
+        html: expect.stringContaining("<p>Test Content</p>"),
       })
     );
   });

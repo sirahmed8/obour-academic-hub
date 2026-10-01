@@ -489,7 +489,14 @@ export const Sidebar = memo(function Sidebar({ isOpen, onClose }: SidebarProps) 
                   : "bg-background/60 backdrop-blur-xl backdrop-saturate-150"
               )}
             />
-            <div className="flex items-center gap-3">
+            <Link
+              href="/"
+              onClick={() => {
+                if (onClose) onClose();
+              }}
+              className="flex items-center gap-3 hover:opacity-90 transition-opacity focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary rounded-xl"
+              aria-label={t("navbar.title")}
+            >
               <div className="relative w-10 h-10 shrink-0 rounded-xl overflow-hidden ring-2 ring-white/20 shadow-lg bg-white">
                 <Image
                   src="/obour-logo.png"
@@ -507,7 +514,7 @@ export const Sidebar = memo(function Sidebar({ isOpen, onClose }: SidebarProps) 
                   {t("navbar.subtitle")}
                 </span>
               </div>
-            </div>
+            </Link>
           </div>
 
           {/* 

@@ -54,6 +54,19 @@ export async function PATCH(
     const requestData = requestDoc.data()!;
     const userId = requestData.userId;
 
+    // Idempotency: prevent double approvals or duplicate review operations
+    if (requestData.status === "approved" || requestData.status === "rejected") {
+      return withCors(
+        req,
+        NextResponse.json({
+          success: true,
+          message: `Subscription request was already ${requestData.status}`,
+          status: requestData.status,
+          alreadyProcessed: true,
+        })
+      );
+    }
+
     if (action === "approve") {
       const durationDays =
         customDurationDays ||

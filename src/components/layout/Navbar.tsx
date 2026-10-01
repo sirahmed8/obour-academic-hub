@@ -5,6 +5,7 @@ import { Menu } from "lucide-react"; // Only imported what is used
 import { useAuth, useLanguage, useSolidMode } from "@/contexts";
 import { cn } from "@/lib/utils";
 import Image from "next/image";
+import Link from "next/link";
 import { ProfileMenu } from "./ProfileMenu";
 import { SearchBar } from "../ui/SearchBar";
 import { FocusTimer } from "../ui/FocusTimer";
@@ -54,7 +55,11 @@ export const Navbar = memo(function Navbar({ onMenuClick }: NavbarProps) {
         </button>
 
         {/* Logo - Visible on Desktop Only */}
-        <div className="hidden lg:flex items-center gap-2">
+        <Link
+          href="/"
+          className="hidden lg:flex items-center gap-2 hover:opacity-90 transition-opacity focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary rounded-xl"
+          aria-label={t("navbar.title")}
+        >
           <div className="relative w-10 h-10 shrink-0 rounded-xl overflow-hidden ring-2 ring-white/20 shadow-lg bg-white">
             <Image
               src="/obour-logo.png"
@@ -72,7 +77,7 @@ export const Navbar = memo(function Navbar({ onMenuClick }: NavbarProps) {
               {t("navbar.subtitle")}
             </span>
           </div>
-        </div>
+        </Link>
 
         {/* Global Search Bar - Restricted to Desktop for cleanliness */}
         <div className="hidden md:flex flex-1 justify-center px-8">

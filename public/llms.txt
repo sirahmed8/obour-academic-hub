@@ -1,0 +1,28 @@
+# Obour Academic Hub
+
+> Obour Academic Hub is the official student learning portal and academic companion for Obour Higher Institutes in Egypt (Higher Institute for Engineering & Technology, and Higher Institute for Management & Information Systems).
+
+## Core Academic Services
+- Course Resources & Lectures: https://obourinstitutes1.web.app/subject
+- Study Matchmaking & Sessions: https://obourinstitutes1.web.app/hagaz
+- Past Examinations & Model Answers: https://obourinstitutes1.web.app/exams
+- Interactive Q&A Forum: https://obourinstitutes1.web.app/qa
+- Student Task & Study Planner: https://obourinstitutes1.web.app/todo
+- AI Lecture Audio Transcription: https://obourinstitutes1.web.app/transcribe
+- AI Concept Mind Maps: https://obourinstitutes1.web.app/mindmap
+- AI Academic Quiz Engine: https://obourinstitutes1.web.app/quiz
+- Community Leaderboard & Standing: https://obourinstitutes1.web.app/community/leaderboard
+- Obour Hub VIP Membership (Egyptian Pounds): https://obourinstitutes1.web.app/plus
+
+## Statutory & Legal Compliance
+- Privacy Policy (Egyptian Law 151/2020 & GDPR): https://obourinstitutes1.web.app/privacy
+- Terms of Service (Egyptian Law 175/2018): https://obourinstitutes1.web.app/terms
+- Refund Policy (Egyptian Law 181/2018): https://obourinstitutes1.web.app/refunds
+- Cookie Policy & Consent: https://obourinstitutes1.web.app/cookies
+
+## Institutional Information
+- Institution: معاهد العبور العليا (Obour Higher Institutes)
+- Location: Km 21 Cairo-Belbeis Desert Road, Obour City, Qalyubia, Egypt
+- Accreditation: Ministry of Higher Education & Scientific Research - Arab Republic of Egypt
+- Official Website: https://obourinstitutes1.web.app
+- Contact: support@oi.edu.eg | +20 2 4477 0000
