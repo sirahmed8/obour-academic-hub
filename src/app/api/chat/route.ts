@@ -15,9 +15,20 @@ export async function OPTIONS(request: Request) {
 export async function POST(req: Request) {
   try {
     let uid = "guest";
+    let isOwnerOrVip = false;
     try {
       const context = await getRequestContext(req, { allowMissingProfile: true });
       uid = context.uid;
+      const isOwner =
+        context.role === "owner" ||
+        (context.email && context.email.toLowerCase() === "a7medorabe7@gmail.com");
+      const isVipUser = Boolean(
+        context.profile?.isVip ||
+        context.profile?.subscriptionTier === "vip" ||
+        isOwner ||
+        context.role === "admin"
+      );
+      isOwnerOrVip = isVipUser;
     } catch (authError) {
       console.warn(
         "[API /api/chat] Auth context fallback to guest:",
@@ -25,25 +36,56 @@ export async function POST(req: Request) {
       );
     }
 
-    const limiter = await rateLimit({
-      key: `api:chat:${uid}`,
-      limit: 30,
-      windowMs: 60_000,
-    });
+    // 1. Minute-level burst rate limiter (Owner bypassed)
+    if (!isOwnerOrVip) {
+      const limiter = await rateLimit({
+        key: `api:chat:${uid}`,
+        limit: 30,
+        windowMs: 60_000,
+      });
 
-    if (!limiter.allowed) {
-      return withCors(
-        req,
-        NextResponse.json(
-          { error: "Too many chat requests. Please try again shortly." },
-          {
-            status: 429,
-            headers: {
-              "Retry-After": String(Math.ceil(limiter.retryAfterMs / 1000)),
+      if (!limiter.allowed) {
+        return withCors(
+          req,
+          NextResponse.json(
+            { error: "Too many chat requests. Please try again shortly." },
+            {
+              status: 429,
+              headers: {
+                "Retry-After": String(Math.ceil(limiter.retryAfterMs / 1000)),
+              },
+            }
+          )
+        );
+      }
+
+      // 2. Free-tier daily quota guard (10 messages per 24 hours)
+      const todayStr = new Date().toISOString().slice(0, 10);
+      const dailyQuota = await rateLimit({
+        key: `api:chat:daily_quota:${uid}:${todayStr}`,
+        limit: 10,
+        windowMs: 86_400_000, // 24 hours
+      });
+
+      if (!dailyQuota.allowed) {
+        return withCors(
+          req,
+          NextResponse.json(
+            {
+              error: "quota_exceeded",
+              message:
+                "لقد استنفذت الحد اليومي المجاني للمساعد الذكي (10 رسائل/يوم). قم بالترقية إلى باقة العبور بلس (VIP) للاستمتاع بوصول أكاديمي غير محدود طوال الترم.",
+              messageEn:
+                "You have reached today's free AI support limit (10 messages/day). Upgrade to Obour Plus (VIP) for unlimited academic assistance.",
+              upgradeUrl: "/pricing",
+              dailyLimit: 10,
             },
-          }
-        )
-      );
+            {
+              status: 403,
+            }
+          )
+        );
+      }
     }
 
     const json = chatRequestSchema.parse(await req.json());

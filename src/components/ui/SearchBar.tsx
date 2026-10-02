@@ -22,6 +22,8 @@ import {
   Calendar,
   Layers,
   Compass,
+  Crown,
+  FileText,
 } from "lucide-react";
 import { useLanguage } from "@/contexts";
 import { useTheme } from "next-themes";
@@ -246,6 +248,34 @@ export function SearchBar() {
         categoryAr: "أدوات أكاديمية",
         icon: <Calendar className="w-4 h-4" />,
         action: () => router.push("/hagaz"),
+      },
+      {
+        id: "nav-pricing",
+        labelEn: "Obour Plus VIP & Pricing Plans",
+        labelAr: "باقات واشتراكات العبور بلس",
+        categoryEn: "Account",
+        categoryAr: "الحساب",
+        badge: "VIP",
+        icon: <Crown className="w-4 h-4 text-amber-500" />,
+        action: () => router.push("/pricing"),
+      },
+      {
+        id: "nav-exams",
+        labelEn: "Past Term Exams & Solutions",
+        labelAr: "الامتحانات السابقة ونماذج الإجابة",
+        categoryEn: "Navigation",
+        categoryAr: "التنقل",
+        icon: <FileText className="w-4 h-4 text-blue-500" />,
+        action: () => router.push("/exams"),
+      },
+      {
+        id: "nav-schedule",
+        labelEn: "Academic Lectures Schedule",
+        labelAr: "الجدول الدراسي للمحاضرات",
+        categoryEn: "Navigation",
+        categoryAr: "التنقل",
+        icon: <Calendar className="w-4 h-4 text-emerald-500" />,
+        action: () => router.push("/schedule"),
       },
       {
         id: "nav-profile",

@@ -18,6 +18,7 @@ import { TodoItem } from "./TodoItem";
 import { AddTodoModal } from "./AddTodoModal";
 import { AITaskAssistantModal } from "./AITaskAssistantModal";
 import { ScrollableTabs } from "@/components/ui/ScrollableTabs";
+import { canAccessFeature } from "@/lib/permissions";
 import {
   Plus,
   CheckCircle2,
@@ -238,7 +239,7 @@ export function TodoList() {
         });
 
         // Update user points: VIP Pass users get +25, +10 for regular, -10 for uncompleted
-        const isVipUser = user.isVip || user.role === "owner" || user.role === "admin";
+        const isVipUser = canAccessFeature(user, "xp_boost");
         const xpAmount = isVipUser ? 25 : 10;
 
         try {
@@ -331,7 +332,7 @@ export function TodoList() {
           completed: willBeCompleted,
         });
 
-        const isVipUser = user.isVip || user.role === "owner" || user.role === "admin";
+        const isVipUser = canAccessFeature(user, "xp_boost");
         const xpAmount = isVipUser ? 20 : 10;
 
         if (willBeCompleted && !wasCompleted) {

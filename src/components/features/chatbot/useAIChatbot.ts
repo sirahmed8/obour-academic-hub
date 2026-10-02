@@ -572,6 +572,28 @@ export function useAIChatbot(): AIChatbotController {
             });
 
             if (!response.ok || !response.body) {
+              if (response.status === 403 || response.status === 429) {
+                try {
+                  const errorJson = await response.json();
+                  if (errorJson?.error === "quota_exceeded") {
+                    const quotaMsg = isEnglishInput
+                      ? (errorJson.messageEn || errorJson.message) +
+                        "\n\n👉 [Upgrade to VIP Now](/pricing)"
+                      : (errorJson.message || errorJson.messageEn) +
+                        "\n\n👉 [ترقية الحساب الآن إلى باقة العبور بلس (VIP)](/pricing)";
+
+                    setAiMessages((prev) =>
+                      prev.map((msg) =>
+                        msg.id === botMsgId ? { ...msg, text: quotaMsg, status: "sent" } : msg
+                      )
+                    );
+                    setIsGenerating(false);
+                    return;
+                  }
+                } catch {
+                  // Fall through to standard error
+                }
+              }
               throw new Error("Failed AI generation");
             }
 

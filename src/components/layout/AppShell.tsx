@@ -51,6 +51,8 @@ import { usePerformance } from "@/hooks/usePerformance";
 import { PageTransition } from "@/components/ui/Animations";
 import { LanguageTransition } from "@/components/ui/LanguageTransition";
 import { ScrollToTop } from "@/components/ui/ScrollToTop";
+import { ReadingProgressBar } from "@/components/ui/ReadingProgressBar";
+import { OwnerBar } from "@/components/layout/OwnerBar";
 
 const VipGrantCelebrationModal = dynamic(
   () =>
@@ -349,8 +351,12 @@ export function AppShell({ children }: { children: React.ReactNode }) {
       <UsernameSetupModal />
       {/* Cookie Consent Banner */}
       <CookieConsent />
+      {/* Reading Progress Bar */}
+      <ReadingProgressBar />
       {/* Scroll to Top Utility */}
       <ScrollToTop />
+      {/* Secret Owner OP Console Bar */}
+      <OwnerBar />
     </div>
   );
 }

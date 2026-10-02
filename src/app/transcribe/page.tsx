@@ -14,6 +14,7 @@ import { toast } from "sonner";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import { apiFetch } from "@/lib/api-client";
+import { canAccessFeature } from "@/lib/permissions";
 
 interface SpeechRecognitionInstance {
   lang: string;
@@ -234,12 +235,12 @@ export default function TranscribePage() {
             </div>
 
             <Link
-              href="/plus"
+              href="/pricing"
               className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-amber-500/20 text-amber-500 hover:bg-amber-500/30 border border-amber-500/30 font-extrabold text-xs transition-all"
             >
               <Crown size={14} className="text-amber-400" />
               <span>
-                {user?.isVip || user?.role === "owner" || user?.role === "admin"
+                {canAccessFeature(user, "unlimited_transcriptions")
                   ? isRtl
                     ? "تفريغ غير محدود 👑 VIP"
                     : "Unlimited Transcriptions 👑 VIP"

@@ -13,6 +13,8 @@
 - AI Academic Quiz Engine: https://obourinstitutes1.web.app/quiz
 - Community Leaderboard & Standing: https://obourinstitutes1.web.app/community/leaderboard
 - Obour Hub VIP Membership (Egyptian Pounds): https://obourinstitutes1.web.app/plus
+- Pricing Plans & Subscription Comparison: https://obourinstitutes1.web.app/pricing
+- Subscription Confirmation & SLA: https://obourinstitutes1.web.app/thank-you
 
 ## Statutory & Legal Compliance
 - Privacy Policy (Egyptian Law 151/2020 & GDPR): https://obourinstitutes1.web.app/privacy

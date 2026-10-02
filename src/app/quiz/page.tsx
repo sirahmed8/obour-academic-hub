@@ -11,6 +11,7 @@ import { CustomSelect } from "@/components/ui/CustomSelect";
 import { collection, getDocs } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import { userService } from "@/services/user.service";
+import { canAccessFeature } from "@/lib/permissions";
 
 import { useSearchParams, useRouter } from "next/navigation";
 
@@ -35,7 +36,7 @@ export default function QuizPage() {
   const searchParams = useSearchParams();
   const router = useRouter();
   const isRtl = language === "ar";
-  const isVip = Boolean(user?.isVip || user?.role === "owner" || user?.role === "admin");
+  const isVip = canAccessFeature(user, "unlimited_quizzes");
 
   const initialSubject = searchParams.get("subject") || "";
   const [subjectName, setSubjectName] = useState(initialSubject);

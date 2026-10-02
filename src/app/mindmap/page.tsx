@@ -12,6 +12,7 @@ import { SkeletonMindmapCanvas } from "@/components/ui/Skeleton";
 import { userService } from "@/services/user.service";
 import { toast } from "sonner";
 import { apiFetch } from "@/lib/api-client";
+import { canAccessFeature } from "@/lib/permissions";
 
 import { useSearchParams } from "next/navigation";
 
@@ -105,12 +106,12 @@ export default function MindMapPage() {
             </div>
 
             <Link
-              href="/plus"
+              href="/pricing"
               className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-amber-500/20 text-amber-500 hover:bg-amber-500/30 border border-amber-500/30 font-extrabold text-xs transition-all"
             >
               <Crown size={14} className="text-amber-400" />
               <span>
-                {user?.isVip || user?.role === "owner" || user?.role === "admin"
+                {canAccessFeature(user, "unlimited_mindmaps")
                   ? isRtl
                     ? "خرائط غير محدودة 👑 VIP"
                     : "Unlimited Maps 👑 VIP"

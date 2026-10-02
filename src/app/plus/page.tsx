@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback, useRef } from "react";
 import Link from "next/link";
 import Image from "next/image";
+import { useRouter } from "next/navigation";
 import { useAuth, useLanguage } from "@/contexts";
 import { FadeIn, ScaleIn, StaggerChildren } from "@/components/ui/Animations";
 import {
@@ -47,6 +48,7 @@ interface MySubStatus {
 export default function ObourPlusSubscriptionPage() {
   const { user, updateProfile } = useAuth();
   const { language } = useLanguage();
+  const router = useRouter();
   const isAr = language === "ar";
 
   const [billingCycle, setBillingCycle] = useState<SubscriptionPlanId>("semester");
@@ -187,12 +189,20 @@ export default function ObourPlusSubscriptionPage() {
             : "Subscription request submitted! Will be reviewed and activated shortly."
         );
         setCheckoutOpen(false);
+        const orderRef = transactionReference.trim() || `OBR-${Date.now().toString().slice(-6)}`;
         // Reset form
         setSenderPhoneOrAccount("");
         setTransactionReference("");
         setReceiptUrl("");
         setStudentNotes("");
         fetchMyStatus();
+        const planPrices: Record<string, number> = {
+          monthly: 49,
+          semester: 199,
+          annual: 349,
+        };
+        const paidAmount = planPrices[checkoutPlan] || 199;
+        router.push(`/thank-you?plan=${checkoutPlan}&ref=${orderRef}&amount=${paidAmount}`);
       }
     } catch (err: unknown) {
       const errorMsg =
