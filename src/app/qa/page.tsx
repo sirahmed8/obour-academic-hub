@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useMemo, memo } from "react";
 import { useLanguage, useAuth } from "@/contexts";
-import { MessageSquare, ThumbsUp, ShieldCheck, Sparkles, Plus, Search, X } from "lucide-react";
+import { MessageSquare, ThumbsUp, ShieldCheck, Plus, Search, X } from "lucide-react";
 import { FadeIn, ScaleIn, StaggerChildren } from "@/components/ui/Animations";
 import { motion, AnimatePresence } from "framer-motion";
 import Link from "next/link";
@@ -302,7 +302,7 @@ export default function QAForumPage() {
             </div>
 
             <h1 className="text-3xl sm:text-5xl font-black text-foreground font-harman">
-              {isRtl ? "منتدى الاستفسارات والإجابات المعتمدة 💬" : "Q&A & Faculty Discussion"}
+              {isRtl ? "منتدى الاستفسارات والإجابات المعتمدة" : "Q&A & Faculty Discussion"}
             </h1>
 
             <p className="text-muted-foreground text-sm sm:text-base font-medium max-w-2xl">
@@ -362,16 +362,50 @@ export default function QAForumPage() {
           <div className="w-8 h-8 rounded-full border-4 border-primary border-t-transparent animate-spin" />
         </div>
       ) : filteredQuestions.length === 0 ? (
-        <div className="p-10 rounded-3xl bg-card border border-border text-center space-y-3 shadow-md">
-          <Sparkles className="mx-auto text-primary w-10 h-10 animate-bounce" />
-          <h3 className="text-lg font-bold text-foreground">
-            {isRtl ? "لا توجد أسئلة تطابق البحث" : "No academic questions matching search"}
-          </h3>
-          <p className="text-sm text-muted-foreground">
-            {isRtl
-              ? "جرّب البحث بكلمات أخرى أو اختر مادة مختلفة."
-              : "Try searching with different keywords or select another subject."}
-          </p>
+        <div className="p-10 rounded-3xl bg-card border border-border text-center space-y-4 shadow-md max-w-lg mx-auto">
+          <div className="w-16 h-16 rounded-2xl bg-primary/10 text-primary mx-auto flex items-center justify-center">
+            <MessageSquare size={32} />
+          </div>
+          <div className="space-y-1">
+            <h3 className="text-lg font-bold text-foreground">
+              {searchQuery || selectedSubject !== "all"
+                ? isRtl
+                  ? "لا توجد أسئلة تطابق البحث"
+                  : "No academic questions matching search"
+                : isRtl
+                  ? "لا توجد أسئلة منشورة حتى الآن"
+                  : "No questions posted yet"}
+            </h3>
+            <p className="text-sm text-muted-foreground">
+              {searchQuery || selectedSubject !== "all"
+                ? isRtl
+                  ? "جرّب البحث بكلمات أخرى أو مسح التصفية الحالية."
+                  : "Try searching with different keywords or clear the active filter."
+                : isRtl
+                  ? "كن أول من يطرح سؤالاً أو استفساراً دراسياً في هذا القسم."
+                  : "Be the first to post a study inquiry or discussion question."}
+            </p>
+          </div>
+          {searchQuery || selectedSubject !== "all" ? (
+            <button
+              onClick={() => {
+                setSearchQuery("");
+                setSelectedSubject("all");
+              }}
+              className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-muted hover:bg-muted/80 text-foreground font-extrabold text-xs transition-all shadow-sm"
+            >
+              <X size={14} />
+              <span>{isRtl ? "إعادة ضبط التصفية" : "Reset Filter"}</span>
+            </button>
+          ) : (
+            <button
+              onClick={() => setIsModalOpen(true)}
+              className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-primary text-white font-extrabold text-xs hover:bg-primary/90 transition-all shadow-md active:scale-95"
+            >
+              <Plus size={16} />
+              <span>{isRtl ? "طرح أول سؤال" : "Ask First Question"}</span>
+            </button>
+          )}
         </div>
       ) : (
         <StaggerChildren className="space-y-4">

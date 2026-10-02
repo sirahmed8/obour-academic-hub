@@ -194,8 +194,8 @@ export default function PricingPage() {
 
           <p className="text-muted-foreground text-sm sm:text-lg font-medium leading-relaxed">
             {isAr
-              ? "استمتع بأدوات ذكاء اصطناعي غير محدودة، وتفريغ صوتي للمحاضرات، واختبارات تفاعلية، مع الاحتفاظ بجميع الخدمات الأساسية مجاناً للجميع."
-              : "Unleash unmetered AI power, audio lecture transcriptions, and interactive practice exams, while foundational materials remain 100% free."}
+              ? "استمتع بتفريغ المحاضرات الصوتية، وبنك أسئلة يصل إلى 20 سؤالاً بالحلول، ومضاعف نقاط 2x، مع بقاء سلايدات المحاضرات والامتحانات السابقة مجانية 100% للجميع."
+              : "Get unmetered lecture audio transcriptions, 20-question practice exams, and a 2x study XP booster, while course slides and past exams remain 100% free for all students."}
           </p>
 
           {/* Billing Cycle Switcher */}

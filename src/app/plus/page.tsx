@@ -286,7 +286,7 @@ export default function ObourPlusSubscriptionPage() {
 
           <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-amber-500/20 text-amber-300 font-extrabold text-xs uppercase tracking-widest border border-amber-500/40 backdrop-blur-md">
             <Crown size={16} className="text-amber-400 animate-pulse" />
-            <span>{isAr ? "باقة النخبة الأكاديمية" : "Obour Hub VIP Pass"}</span>
+            <span>{isAr ? "اشتراك العبور بلس الأكاديمي" : "Obour Hub VIP Pass"}</span>
           </div>
 
           <h1 className="text-4xl sm:text-6xl font-black text-white tracking-tight font-harman leading-tight">
@@ -295,8 +295,8 @@ export default function ObourPlusSubscriptionPage() {
 
           <p className="text-white/70 text-sm sm:text-base max-w-3xl mx-auto font-medium leading-relaxed">
             {isAr
-              ? "استثمر في تفوقك الدراسي واستمتع بالذكاء الاصطناعي لتفريغ المحاضرات، وتوليد امتحانات المراجعة بـ 20 سؤالاً، ومضاعفة نقاط الخبرة XP مرتين للوصول لقمة لوحة الصدارة."
-              : "Upgrade your academic journey with AI lecture transcriptions, 20-question practice exams, 2x XP multipliers, and exclusive VIP perks."}
+              ? "استثمر في دراستك مع أدوات تفريغ المحاضرات الصوتية، وتوليد امتحانات المراجعة الشاملة بـ 20 سؤالاً مع الحلول، ومضاعف نقاط 2x XP على المهام اليومية."
+              : "Upgrade your study workflow with audio lecture transcriptions, 20-question practice exams with step-by-step solutions, and a 2x XP task booster."}
           </p>
 
           {/* Active VIP Status Card */}

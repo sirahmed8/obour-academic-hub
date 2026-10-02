@@ -102,12 +102,12 @@ export function VipGrantCelebrationModal() {
                   {isAr ? "تم إهداؤك اشتراك مميز!" : "Complimentary VIP Pass Activated!"}
                 </span>
                 <h2 className="text-2xl sm:text-3xl font-black text-foreground tracking-tight">
-                  {isAr ? "أهلاً بك في النخبة الأكاديمية!" : "Welcome to the Academic Elite!"}
+                  {isAr ? "أهلاً بك في العبور بلس!" : "Welcome to Obour Plus!"}
                 </h2>
                 <p className="text-xs sm:text-sm text-muted-foreground max-w-md mx-auto leading-relaxed">
                   {isAr
-                    ? `تهانينا! تم منحك اشتراك "العبور بلس VIP Pass" مجاناً بفضل (${grantedByText}). استمتع بكافة المميزات الاستثنائية فائقة السرعة!`
-                    : `Congratulations! You were granted complimentary Obour VIP Pass access courtesy of (${grantedByText}). Enjoy all premium features!`}
+                    ? `تم تفعيل اشتراك "العبور بلس" لحسابك بإهداء من (${grantedByText}). يمكنك الآن استخدام كافة أدوات المذاكرة والتفريغ الصوتي دون قيود.`
+                    : `Obour Plus has been activated on your account, courtesy of (${grantedByText}). You now have full access to study tools and lecture audio transcriptions.`}
                 </p>
               </div>
 

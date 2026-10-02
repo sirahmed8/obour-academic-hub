@@ -742,6 +742,19 @@ export function TodoList() {
                     ? "استرخِ أو أضف مهامًا جديدة لإدارة وقتك بذكاء."
                     : "Relax or add new tasks to manage your time wisely."}
               </p>
+              {filters.status !== "completed" && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    setEditingTask(undefined);
+                    setIsModalOpen(true);
+                  }}
+                  className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-primary text-white font-extrabold text-sm hover:bg-primary/90 transition-all shadow-md active:scale-95"
+                >
+                  <Plus size={16} />
+                  <span>{language === "ar" ? "إضافة مهمة جديدة" : "Add Your First Task"}</span>
+                </button>
+              )}
             </motion.div>
           ) : viewMode === "kanban" ? (
             <motion.div

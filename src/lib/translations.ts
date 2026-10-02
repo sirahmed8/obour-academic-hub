@@ -161,7 +161,8 @@ export const translations: Record<Language, Record<string, string>> = {
     "welcome.hero.scroll": "Scroll to explore",
     "welcome.features.badge": "Why Obour Hub?",
     "welcome.features.title": "Everything You Need",
-    "welcome.features.subtitle": "Powerful features designed to supercharge your academic journey.",
+    "welcome.features.subtitle":
+      "Every tool you need to study, practice, and track your coursework in one place.",
     "welcome.features.subjects": "Smart Subjects",
     "welcome.features.subjectsDesc":
       "Browse all your courses with organized resources, lecture notes, and downloadable materials.",
@@ -185,8 +186,8 @@ export const translations: Record<Language, Record<string, string>> = {
       "Designed for eye comfort. Switch between dark and light themes with a single click.",
     "welcome.features.bilingual": "English & Arabic",
     "welcome.features.bilingualDesc":
-      "Full RTL support. Seamlessly toggle between English and Arabic from your account.",
-    "welcome.howItWorks.badge": "Seamless Experience",
+      "Full RTL support. Switch between English and Arabic anytime from your profile.",
+    "welcome.howItWorks.badge": "Simple 3 Steps",
     "welcome.howItWorks.title": "How It Works",
     "welcome.howItWorks.step1": "Authenticate",
     "welcome.howItWorks.step1Desc": "Securely sign in using your official institute email.",
@@ -210,9 +211,9 @@ export const translations: Record<Language, Record<string, string>> = {
     "welcome.why.secure": "Verified & Secure",
     "welcome.why.secureDesc":
       "Firebase-powered authentication with encrypted transport. Your academic records remain protected.",
-    "welcome.why.fast": "Optimized Real-time Performance",
+    "welcome.why.fast": "Fast & Lightweight",
     "welcome.why.fastDesc":
-      "Engineered for speed with instant page rendering and live synchronization.",
+      "Sub-200ms page response time with instant lecture and grade synchronization.",
     "welcome.why.free": "Free Core Access",
     "welcome.why.freeDesc":
       "Full access to browse curriculum, download lectures, and view study materials is free for all students.",
@@ -408,7 +409,7 @@ export const translations: Record<Language, Record<string, string>> = {
     "welcome.hero.scroll": "اسحب للاستكشاف",
     "welcome.features.badge": "ليه معاهد العبور؟",
     "welcome.features.title": "كل اللي تحتاجه",
-    "welcome.features.subtitle": "مميزات قوية مصممة عشان تسهّل رحلتك الأكاديمية.",
+    "welcome.features.subtitle": "أدوات متكاملة لمتابعة محاضراتك وتنظيم دراستك في مكان واحد.",
     "welcome.features.subjects": "مواد ذكية",
     "welcome.features.subjectsDesc": "تصفح كل المواد مع الملفات المنظمة والمحاضرات والملخصات.",
     "welcome.features.liveSupport": "دعم مباشر",
@@ -428,7 +429,7 @@ export const translations: Record<Language, Record<string, string>> = {
     "welcome.features.bilingual": "عربي وإنجليزي",
     "welcome.features.bilingualDesc":
       "دعم كامل لاتجاه النص RTL مع إمكانية التبديل بين اللغتين من حسابك.",
-    "welcome.howItWorks.badge": "تجربة سلسة",
+    "welcome.howItWorks.badge": "٣ خطوات بسيطة",
     "welcome.howItWorks.title": "كيف تعمل المنصة؟",
     "welcome.howItWorks.step1": "الدخول الآمن",
     "welcome.howItWorks.step1Desc": "سجل دخولك ببريدك المعتمد لتجربة آمنة ومخصصة.",
@@ -450,8 +451,8 @@ export const translations: Record<Language, Record<string, string>> = {
     "welcome.why.subtitle": "منصة مخصصة لطلاب معاهد العبور العليا لدعم مسيرتهم التعليمية.",
     "welcome.why.secure": "بوابة معتمدة وآمنة",
     "welcome.why.secureDesc": "نظام حماية وتوثيق متكامل لتأمين بياناتك وسجلاتك الأكاديمية.",
-    "welcome.why.fast": "أداء فائق واستجابة لحظية",
-    "welcome.why.fastDesc": "محسّنة للسرعة الفائقة مع تحديثات ومزامنة مباشرة.",
+    "welcome.why.fast": "سرعة وخفة في التصفح",
+    "welcome.why.fastDesc": "زمن استجابة أقل من 200 مللي ثانية مع مزامنة فورية للمحاضرات والدرجات.",
     "welcome.why.free": "وصول أساسي مجاني",
     "welcome.why.freeDesc": "تصفح المناهج وتنزيل المحاضرات والمصادر متاح لجميع طلاب المعهد مجاناً.",
     "welcome.cta.title": "مستعد تبدأ؟",
