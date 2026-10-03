@@ -138,6 +138,21 @@ export function UsernameSetupModal({ forceShow = false, onClose }: UsernameSetup
     return () => clearTimeout(timer);
   }, [username, user?.uid, isAr, validateFormat]);
 
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape" && isOpen) {
+        if (onClose) onClose();
+        else setDismissed(true);
+      }
+    };
+    if (isOpen) {
+      window.addEventListener("keydown", handleKeyDown);
+    }
+    return () => {
+      window.removeEventListener("keydown", handleKeyDown);
+    };
+  }, [isOpen, onClose]);
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     const clean = username.trim().toLowerCase().replace(/^@/, "");

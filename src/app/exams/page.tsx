@@ -202,6 +202,21 @@ export default function PastExamsPage() {
   const [selectedType, setSelectedType] = useState<string>("all");
   const [previewDrawerExam, setPreviewDrawerExam] = useState<PastExam | null>(null);
 
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape") {
+        if (isModalOpen) setIsModalOpen(false);
+        if (previewDrawerExam) setPreviewDrawerExam(null);
+      }
+    };
+    if (isModalOpen || previewDrawerExam) {
+      window.addEventListener("keydown", handleKeyDown);
+    }
+    return () => {
+      window.removeEventListener("keydown", handleKeyDown);
+    };
+  }, [isModalOpen, previewDrawerExam]);
+
   const availableYears = useMemo(() => {
     const years = new Set<string>();
     years.add("all");

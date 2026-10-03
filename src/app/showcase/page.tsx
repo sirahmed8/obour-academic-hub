@@ -68,6 +68,19 @@ export default function ShowcasePage() {
   const [formErrors, setFormErrors] = useState<Partial<Record<keyof ShowcaseFormData, string>>>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
 
+  // Keyboard accessibility for modal
+  useEffect(() => {
+    if (!isModalOpen) return;
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape") {
+        setIsModalOpen(false);
+        resetForm();
+      }
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [isModalOpen]);
+
   // ── Load from Firestore ──────────────────────────────────────────────────
   useEffect(() => {
     async function loadProjects() {
@@ -366,15 +379,21 @@ export default function ShowcasePage() {
 
                 <div className="pt-3 border-t border-border/50 flex items-center justify-between">
                   <span className="text-xs font-bold text-muted-foreground">{project.author}</span>
-                  <a
-                    href={project.demoUrl}
-                    target="_blank"
-                    rel="noreferrer"
-                    className="px-4 py-2 rounded-xl bg-gradient-to-r from-primary to-indigo-600 text-white font-extrabold text-xs hover:opacity-95 transition-all duration-300 flex items-center gap-1.5 shadow-md active:scale-95"
-                  >
-                    <span>{isRtl ? "معاينة المشروع" : "View Project"}</span>
-                    <ExternalLink size={14} />
-                  </a>
+                  {project.demoUrl && project.demoUrl !== "#" ? (
+                    <a
+                      href={project.demoUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="px-4 py-2 rounded-xl bg-gradient-to-r from-primary to-indigo-600 text-white font-extrabold text-xs hover:opacity-95 transition-all duration-300 flex items-center gap-1.5 shadow-md active:scale-95"
+                    >
+                      <span>{isRtl ? "معاينة المشروع" : "View Project"}</span>
+                      <ExternalLink size={14} />
+                    </a>
+                  ) : (
+                    <span className="px-3.5 py-1.5 rounded-xl bg-muted/60 text-muted-foreground font-bold text-xs border border-border/40">
+                      {isRtl ? "الرابط قيد المراجعة" : "Preview Soon"}
+                    </span>
+                  )}
                 </div>
               </div>
             </ScaleIn>

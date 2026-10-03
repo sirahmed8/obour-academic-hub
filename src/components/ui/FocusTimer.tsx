@@ -20,8 +20,39 @@ export function FocusTimer() {
 
   const intervalRef = useRef<NodeJS.Timeout | null>(null);
   const audioContextRef = useRef<AudioContext | null>(null);
+  const containerRef = useRef<HTMLDivElement | null>(null);
 
   const { user } = useAuth();
+
+  useEffect(() => {
+    return () => {
+      if (audioContextRef.current) {
+        audioContextRef.current.close().catch(() => {});
+        audioContextRef.current = null;
+      }
+    };
+  }, []);
+
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape" && isOpen) {
+        setIsOpen(false);
+      }
+    };
+    const handleClickOutside = (e: MouseEvent) => {
+      if (containerRef.current && !containerRef.current.contains(e.target as Node)) {
+        setIsOpen(false);
+      }
+    };
+    if (isOpen) {
+      window.addEventListener("keydown", handleKeyDown);
+      document.addEventListener("mousedown", handleClickOutside);
+    }
+    return () => {
+      window.removeEventListener("keydown", handleKeyDown);
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, [isOpen]);
 
   useEffect(() => {
     if (isActive) {
@@ -74,7 +105,7 @@ export function FocusTimer() {
   };
 
   return (
-    <div className="relative">
+    <div ref={containerRef} className="relative">
       {/* Trigger Button in Navbar */}
       <button
         type="button"
@@ -175,12 +206,21 @@ export function FocusTimer() {
                   setIsSoundOn(nextSound);
                   if (nextSound) {
                     try {
-                      const ctx = new (
+                      const AudioContextClass =
                         window.AudioContext ||
                         (window as unknown as { webkitAudioContext: typeof AudioContext })
-                          .webkitAudioContext
-                      )();
+                          .webkitAudioContext;
+                      if (!AudioContextClass) {
+                        toast.error(
+                          isAr
+                            ? "المتصفح لا يدعم تشغيل الصوت"
+                            : "Audio is not supported by your browser"
+                        );
+                        setIsSoundOn(false);
+                        return;
+                      }
 
+                      const ctx = new AudioContextClass();
                       const osc = ctx.createOscillator();
                       const gain = ctx.createGain();
                       osc.type = "sine";
@@ -190,9 +230,14 @@ export function FocusTimer() {
                       gain.connect(ctx.destination);
                       osc.start();
                       audioContextRef.current = ctx;
-                    } catch {}
+                    } catch (err) {
+                      console.error("Audio error:", err);
+                      toast.error(isAr ? "تعذر تشغيل الصوت" : "Failed to start audio");
+                      setIsSoundOn(false);
+                    }
                   } else if (audioContextRef.current) {
-                    audioContextRef.current.close();
+                    audioContextRef.current.close().catch(() => {});
+                    audioContextRef.current = null;
                   }
                 }}
                 className={cn(

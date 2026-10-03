@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { useSearchParams } from "next/navigation";
 import { useAuth, useLanguage } from "@/contexts";
 import {
   Calendar,
@@ -67,6 +68,23 @@ export function HagazView() {
   const [newSeats, setNewSeats] = useState(6);
   const [newType, setNewType] = useState<"group" | "battle" | "lab">("group");
   const [isCreating, setIsCreating] = useState(false);
+  const searchParams = useSearchParams();
+
+  useEffect(() => {
+    const buddyParam = searchParams.get("buddy");
+    const subjectParam = searchParams.get("subject");
+    if (buddyParam || subjectParam) {
+      if (buddyParam) {
+        setNewTitle(
+          language === "ar" ? `جلسة مراجعة مع ${buddyParam}` : `Study session with ${buddyParam}`
+        );
+      }
+      if (subjectParam) {
+        setNewSubject(subjectParam);
+      }
+      setIsModalOpen(true);
+    }
+  }, [searchParams, language]);
 
   useEffect(() => {
     async function loadSessions() {

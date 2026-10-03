@@ -146,6 +146,14 @@ export function UserProfileModal({ uid, onClose }: UserProfileModalProps) {
     fetch();
   }, [uid]);
 
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape") onClose();
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [onClose]);
+
   if (!uid) return null;
 
   const league = profile ? getLeague(profile.points) : null;

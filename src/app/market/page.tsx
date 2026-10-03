@@ -88,6 +88,19 @@ export default function MarketPage() {
   );
   const [isSubmitting, setIsSubmitting] = useState(false);
 
+  // Keyboard accessibility for modal
+  useEffect(() => {
+    if (!isModalOpen) return;
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape") {
+        setIsModalOpen(false);
+        resetForm();
+      }
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [isModalOpen]);
+
   // ── Load from Firestore ──────────────────────────────────────────────────
   useEffect(() => {
     async function loadItems() {
@@ -395,7 +408,7 @@ export default function MarketPage() {
                     )}
                   </div>
                   <Link
-                    href="/community"
+                    href={`/community/chat?item=${encodeURIComponent(isRtl ? item.titleAr : item.titleEn)}&seller=${encodeURIComponent(item.seller)}`}
                     className="px-4 py-2 rounded-xl bg-gradient-to-r from-primary to-indigo-600 text-white font-extrabold text-xs hover:opacity-95 transition-all duration-300 flex items-center gap-1.5 shadow-md active:scale-97"
                   >
                     <MessageSquare size={14} />

@@ -113,6 +113,20 @@ export function AITaskAssistantModal({
     }
   }, [messages, isOpen, isGenerating]);
 
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape" && isOpen) {
+        onClose();
+      }
+    };
+    if (isOpen) {
+      window.addEventListener("keydown", handleKeyDown);
+    }
+    return () => {
+      window.removeEventListener("keydown", handleKeyDown);
+    };
+  }, [isOpen, onClose]);
+
   const handleSend = async (textOverride?: string) => {
     const queryText = textOverride || input;
     if (!queryText.trim() || isGenerating) return;
@@ -247,6 +261,9 @@ export function AITaskAssistantModal({
           exit="exit"
           variants={modalBackdrop}
           className="fixed inset-0 z-999 flex items-center justify-center p-3 md:p-6 bg-black/70 backdrop-blur-md"
+          onClick={(e) => {
+            if (e.target === e.currentTarget) onClose();
+          }}
         >
           <motion.div
             initial={{ scale: 0.95, opacity: 0, y: 10 }}

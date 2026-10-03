@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useMemo } from "react";
 import { useLanguage, useAuth } from "@/contexts";
-import { GraduationCap, Briefcase, Sparkles, Plus, Search, X } from "lucide-react";
+import { GraduationCap, Briefcase, Sparkles, Plus, Search, X, CheckCircle2 } from "lucide-react";
 import { FadeIn, ScaleIn, StaggerChildren } from "@/components/ui/Animations";
 import { motion, AnimatePresence } from "framer-motion";
 import Link from "next/link";
@@ -68,6 +68,7 @@ export default function AlumniPage() {
 
   // Modal state
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [appliedJobIds, setAppliedJobIds] = useState<string[]>([]);
   const [newCompany, setNewCompany] = useState("");
   const [newRole, setNewRole] = useState("");
   const [newLocation, setNewLocation] = useState("");
@@ -80,6 +81,49 @@ export default function AlumniPage() {
     {}
   );
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  // Restore applied jobs from localStorage
+  useEffect(() => {
+    try {
+      const saved = localStorage.getItem("obour_applied_internships");
+      if (saved) setAppliedJobIds(JSON.parse(saved));
+    } catch {}
+  }, []);
+
+  // Keyboard accessibility for modal
+  useEffect(() => {
+    if (!isModalOpen) return;
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape") {
+        setIsModalOpen(false);
+        resetForm();
+      }
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [isModalOpen]);
+
+  const handleApply = (job: Internship) => {
+    if (!user) {
+      toast.error(
+        isRtl
+          ? "يرجى تسجيل الدخول أولاً للتقديم والتواصل"
+          : "Please log in first to apply & connect"
+      );
+      return;
+    }
+    if (appliedJobIds.includes(job.id)) return;
+    const updated = [...appliedJobIds, job.id];
+    setAppliedJobIds(updated);
+    try {
+      localStorage.setItem("obour_applied_internships", JSON.stringify(updated));
+    } catch {}
+    toast.success(
+      isRtl
+        ? `تم تسجيل طلبك للتواصل مع ممثل ${job.company} بنجاح!`
+        : `Application interest for ${job.company} registered successfully!`
+    );
+  };
 
   // ── Load from Firestore ──────────────────────────────────────────────────
   useEffect(() => {
@@ -390,20 +434,23 @@ export default function AlumniPage() {
                   </div>
                 </div>
 
-                <motion.button
-                  type="button"
-                  whileHover={{ scale: 1.02 }}
-                  whileTap={{ scale: 0.96 }}
-                  onClick={() =>
-                    toast.success(
-                      isRtl ? "تم إرسال طلب التقديم للإرشاد المهني!" : "Application sent!"
-                    )
-                  }
-                  className="w-full py-3 rounded-2xl bg-gradient-to-r from-primary to-indigo-600 text-white font-extrabold text-xs transition-all duration-300 hover:opacity-95 flex items-center justify-center gap-2 shadow-lg hover:shadow-primary/20 active:scale-97"
-                >
-                  <Briefcase size={16} />
-                  <span>{isRtl ? "التقديم وتواصل مع الخريج" : "Apply & Connect"}</span>
-                </motion.button>
+                {appliedJobIds.includes(job.id) ? (
+                  <div className="w-full py-3 rounded-2xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-600 dark:text-emerald-400 font-extrabold text-xs flex items-center justify-center gap-2">
+                    <CheckCircle2 size={16} />
+                    <span>{isRtl ? "تم التقديم بنجاح ✓" : "Applied Successfully ✓"}</span>
+                  </div>
+                ) : (
+                  <motion.button
+                    type="button"
+                    whileHover={{ scale: 1.02 }}
+                    whileTap={{ scale: 0.96 }}
+                    onClick={() => handleApply(job)}
+                    className="w-full py-3 rounded-2xl bg-gradient-to-r from-primary to-indigo-600 text-white font-extrabold text-xs transition-all duration-300 hover:opacity-95 flex items-center justify-center gap-2 shadow-lg hover:shadow-primary/20 active:scale-97"
+                  >
+                    <Briefcase size={16} />
+                    <span>{isRtl ? "التقديم وتواصل مع الخريج" : "Apply & Connect"}</span>
+                  </motion.button>
+                )}
               </div>
             </ScaleIn>
           ))}

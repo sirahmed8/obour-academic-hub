@@ -40,9 +40,19 @@ export function CustomSelect({
         setIsOpen(false);
       }
     };
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape" && isOpen) {
+        setIsOpen(false);
+      }
+    };
+
     document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
-  }, []);
+    window.addEventListener("keydown", handleKeyDown);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+      window.removeEventListener("keydown", handleKeyDown);
+    };
+  }, [isOpen]);
 
   return (
     <div className={cn("relative", className)} ref={containerRef}>
@@ -100,7 +110,7 @@ export function CustomSelect({
                       "w-full flex items-center justify-between px-3 py-2.5 rounded-xl text-sm transition-all duration-200 mb-0.5 last:mb-0 relative z-10",
                       option.value === value
                         ? "bg-primary/10 text-primary font-bold"
-                        : "text-foreground hover:bg-white/5 active:scale-[0.98]"
+                        : "text-foreground hover:bg-muted active:scale-[0.98]"
                     )}
                   >
                     <span className="truncate">{option.label}</span>

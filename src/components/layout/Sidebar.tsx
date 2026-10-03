@@ -123,6 +123,20 @@ export const Sidebar = memo(function Sidebar({ isOpen, onClose }: SidebarProps) 
     };
   }, [user, isAdmin]);
 
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape" && isOpen) {
+        onClose();
+      }
+    };
+    if (isOpen) {
+      window.addEventListener("keydown", handleKeyDown);
+    }
+    return () => {
+      window.removeEventListener("keydown", handleKeyDown);
+    };
+  }, [isOpen, onClose]);
+
   // Helper function to check if path is active
   const isActivePath = (itemPath: string) => {
     const normalize = (p: string) => p.replace(/\/+$/, "") || "/";

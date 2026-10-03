@@ -223,6 +223,15 @@ export default function NotificationsPage() {
                 ? "كل شيء محدث! ستظهر هنا أي تحديثات جديدة من إدارة المنصة أو المواد."
                 : "Everything is up to date! New course updates and alerts will appear here."}
             </p>
+            {activeFilter !== "all" && (
+              <button
+                type="button"
+                onClick={() => setActiveFilter("all")}
+                className="mt-4 px-4 py-2 rounded-xl bg-primary/10 hover:bg-primary/20 text-primary text-xs font-bold transition-colors inline-flex items-center gap-1.5"
+              >
+                <span>{language === "ar" ? "عرض جميع الإشعارات" : "Show All Notifications"}</span>
+              </button>
+            )}
           </div>
         ) : (
           <motion.div

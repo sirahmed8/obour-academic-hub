@@ -82,6 +82,21 @@ export function ChatWindow({
     return () => unsubscribe();
   }, [session?.userId]);
 
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape") {
+        if (emojiPickerState) setEmojiPickerState(null);
+        else if (replyTo) setReplyTo(null);
+      }
+    };
+    if (emojiPickerState || replyTo) {
+      window.addEventListener("keydown", handleKeyDown);
+    }
+    return () => {
+      window.removeEventListener("keydown", handleKeyDown);
+    };
+  }, [emojiPickerState, replyTo, setReplyTo]);
+
   const isOnline = userPresence.status === "online";
 
   // Scroll to bottom when new messages arrive - with session guard
@@ -152,7 +167,7 @@ export function ChatWindow({
               <div className="flex items-center gap-4">
                 <button
                   onClick={onBack}
-                  className="lg:hidden p-2 -ml-2 hover:bg-white/10 rounded-full transition-colors"
+                  className="lg:hidden p-2 -ml-2 hover:bg-muted text-foreground rounded-full transition-colors"
                 >
                   <ArrowLeft />
                 </button>
@@ -220,7 +235,7 @@ export function ChatWindow({
                 {/* Close Chat Button */}
                 <button
                   onClick={onBack}
-                  className="p-2 text-muted-foreground hover:bg-white/10 rounded-xl transition-all"
+                  className="p-2 text-muted-foreground hover:bg-muted hover:text-foreground rounded-xl transition-all"
                   title="Close Chat"
                 >
                   <X size={20} />
@@ -281,7 +296,7 @@ export function ChatWindow({
                     {QUICK_EMOJIS.map((emoji) => (
                       <button
                         key={emoji}
-                        className="text-xl hover:scale-125 transition-transform p-2 hover:bg-white/10 rounded-xl"
+                        className="text-xl hover:scale-125 transition-transform p-2 hover:bg-muted rounded-xl"
                         onClick={(e) => {
                           e.stopPropagation();
                           onReaction(emojiPickerState.id, emoji);

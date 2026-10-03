@@ -53,7 +53,7 @@ export function SubjectsHeader({
                 animate={{ opacity: 1, scale: 1 }}
                 exit={{ opacity: 0, scale: 0.8 }}
                 onClick={onSearchClear}
-                className="absolute right-3 top-1/2 rounded-lg p-1.5 text-muted-foreground transition-colors hover:bg-white/10 hover:text-foreground"
+                className="absolute right-3 top-1/2 rounded-lg p-1.5 text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
               >
                 <Plus className="h-4 w-4 rotate-45" />
               </motion.button>

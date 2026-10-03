@@ -53,6 +53,14 @@ export function UserDetailModal({ user, onClose, language }: UserDetailModalProp
   }>({ logs: [], chats: [], errors: [] });
 
   useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape") onClose();
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [onClose]);
+
+  useEffect(() => {
     const fetchData = async () => {
       if (!db) {
         setLoading(false);

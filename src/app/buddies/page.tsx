@@ -297,7 +297,7 @@ export default function StudyBuddiesPage() {
                 </div>
 
                 <Link
-                  href={`/hagaz`}
+                  href={`/hagaz?buddy=${encodeURIComponent(buddy.name)}&subject=${encodeURIComponent(buddy.sharedSubjects[0] || "")}`}
                   className="w-full py-3 rounded-2xl bg-gradient-to-r from-primary to-indigo-600 text-white font-extrabold text-xs transition-all duration-300 hover:opacity-95 flex items-center justify-center gap-2 shadow-lg hover:shadow-primary/20 active:scale-97"
                 >
                   <UserCheck size={16} />

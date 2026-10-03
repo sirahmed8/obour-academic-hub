@@ -1,6 +1,6 @@
 import { motion, AnimatePresence } from "framer-motion";
 import { Trophy, X, Award } from "lucide-react";
-import React from "react";
+import React, { useEffect } from "react";
 
 export interface Achievement {
   title: string;
@@ -24,6 +24,20 @@ export function AchievementsModal({
   unlockedCount,
   language,
 }: AchievementsModalProps) {
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape" && show) {
+        onClose();
+      }
+    };
+    if (show) {
+      window.addEventListener("keydown", handleKeyDown);
+    }
+    return () => {
+      window.removeEventListener("keydown", handleKeyDown);
+    };
+  }, [show, onClose]);
+
   return (
     <AnimatePresence>
       {show && (
@@ -38,6 +52,9 @@ export function AchievementsModal({
           />
           {/* Modal */}
           <motion.div
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="achievements-modal-title"
             initial={{ opacity: 0, scale: 0.95, y: 20 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.95, y: 20 }}
@@ -51,7 +68,7 @@ export function AchievementsModal({
                   <Trophy size={22} className="text-primary" />
                 </div>
                 <div>
-                  <h2 className="text-lg font-black text-foreground">
+                  <h2 id="achievements-modal-title" className="text-lg font-black text-foreground">
                     {language === "ar" ? "الإنجازات" : "Achievements"}
                   </h2>
                   <p className="text-xs text-muted-foreground font-medium">
