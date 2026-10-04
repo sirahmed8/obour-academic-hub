@@ -133,9 +133,7 @@ export default function MindMapPage() {
           </div>
 
           <h1 className="text-3xl sm:text-5xl font-black text-foreground font-harman">
-            {isRtl
-              ? "بسط الفصول المعقدة إلى خرائط تفاعلية"
-              : "Visualize Complex Academic Topics"}
+            {isRtl ? "بسط الفصول المعقدة إلى خرائط تفاعلية" : "Visualize Complex Academic Topics"}
           </h1>
 
           <p className="text-muted-foreground text-sm sm:text-base font-medium max-w-2xl">
@@ -258,9 +256,7 @@ export default function MindMapPage() {
                         createdAt: fsTs(),
                       });
                       toast.success(
-                        isRtl
-                          ? "تمت إضافة الخريطة إلى قائمة المهام"
-                          : "Mindmap added to your tasks"
+                        isRtl ? "تمت إضافة الخريطة إلى قائمة المهام" : "Mindmap added to your tasks"
                       );
                     } catch {
                       toast.error(isRtl ? "تعذر حفظ المهمة" : "Failed to save task");

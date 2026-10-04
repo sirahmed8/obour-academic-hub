@@ -1003,7 +1003,9 @@ export default function ObourPlusSubscriptionPage() {
                   <div
                     className={cn(
                       "w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-black shrink-0",
-                      checkoutStep === 3 ? "bg-amber-500 text-black shadow-sm" : "bg-muted text-muted-foreground"
+                      checkoutStep === 3
+                        ? "bg-amber-500 text-black shadow-sm"
+                        : "bg-muted text-muted-foreground"
                     )}
                   >
                     {checkoutStep < 3 ? <Lock size={10} /> : "3"}
@@ -1096,7 +1098,8 @@ export default function ObourPlusSubscriptionPage() {
                         {isAr ? "المبلغ الإجمالي المستحق:" : "Total Due:"}
                       </span>
                       <span className="font-black text-amber-500 text-sm">
-                        {checkoutPlan === "monthly" ? 49 : checkoutPlan === "semester" ? 199 : 349} EGP
+                        {checkoutPlan === "monthly" ? 49 : checkoutPlan === "semester" ? 199 : 349}{" "}
+                        EGP
                       </span>
                     </div>
                   </div>
@@ -1141,7 +1144,8 @@ export default function ObourPlusSubscriptionPage() {
                         {isAr ? "المبلغ المطلوب تحويله:" : "Amount to transfer:"}
                       </span>
                       <span className="font-black text-foreground">
-                        {checkoutPlan === "monthly" ? 49 : checkoutPlan === "semester" ? 199 : 349} EGP
+                        {checkoutPlan === "monthly" ? 49 : checkoutPlan === "semester" ? 199 : 349}{" "}
+                        EGP
                       </span>
                     </div>
 
@@ -1220,7 +1224,9 @@ export default function ObourPlusSubscriptionPage() {
                     {/* Sender Phone/Account */}
                     <div className="space-y-1">
                       <label className="block text-xs font-bold text-foreground">
-                        {isAr ? "رقم هاتفك أو حسابك المحول منه *" : "Sender Phone Number or Account *"}
+                        {isAr
+                          ? "رقم هاتفك أو حسابك المحول منه *"
+                          : "Sender Phone Number or Account *"}
                       </label>
                       <input
                         type="text"
@@ -1251,7 +1257,9 @@ export default function ObourPlusSubscriptionPage() {
                         type="text"
                         value={transactionReference}
                         onChange={(e) => setTransactionReference(e.target.value)}
-                        placeholder={isAr ? "رقم المرجع من رسالة التحويل" : "Reference from SMS or App"}
+                        placeholder={
+                          isAr ? "رقم المرجع من رسالة التحويل" : "Reference from SMS or App"
+                        }
                         className="w-full px-4 py-3 rounded-2xl bg-background border border-border text-xs sm:text-sm font-mono focus:outline-none focus:ring-2 focus:ring-amber-500/50"
                       />
                     </div>
@@ -1299,7 +1307,9 @@ export default function ObourPlusSubscriptionPage() {
                           {receiptUploading ? (
                             <>
                               <RefreshCw size={16} className="animate-spin text-amber-500" />
-                              <span>{isAr ? "جارٍ رفع صورة الإيصال..." : "Uploading receipt..."}</span>
+                              <span>
+                                {isAr ? "جارٍ رفع صورة الإيصال..." : "Uploading receipt..."}
+                              </span>
                             </>
                           ) : (
                             <>

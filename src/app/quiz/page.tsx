@@ -2,7 +2,15 @@
 
 import { useState, useEffect } from "react";
 import { useLanguage, useAuth } from "@/contexts";
-import { HelpCircle, CheckCircle2, XCircle, Sparkles, Trophy, RefreshCw, LogOut } from "lucide-react";
+import {
+  HelpCircle,
+  CheckCircle2,
+  XCircle,
+  Sparkles,
+  Trophy,
+  RefreshCw,
+  LogOut,
+} from "lucide-react";
 import { FadeIn, ScaleIn } from "@/components/ui/Animations";
 import { motion } from "framer-motion";
 import { toast } from "sonner";
@@ -97,9 +105,7 @@ export default function QuizPage() {
         setCurrentIndex(0);
         setSelectedAnswers({});
         setIsSubmitted(false);
-        toast.success(
-          isRtl ? "تم توليد الاختبار التفاعلي بنجاح!" : "Quiz generated successfully!"
-        );
+        toast.success(isRtl ? "تم توليد الاختبار التفاعلي بنجاح!" : "Quiz generated successfully!");
       }
     } catch {
       toast.error(isRtl ? "حدث خطأ أثناء توليد الاختبار" : "Failed to generate quiz");
@@ -337,7 +343,8 @@ export default function QuizPage() {
                 {quiz.questions.map((_, idx) => {
                   const isCurrent = idx === currentIndex;
                   const isAnswered = selectedAnswers[idx] !== undefined;
-                  const isCorrect = isSubmitted && selectedAnswers[idx] === quiz.questions[idx].correctIndex;
+                  const isCorrect =
+                    isSubmitted && selectedAnswers[idx] === quiz.questions[idx].correctIndex;
                   const isWrong = isSubmitted && isAnswered && !isCorrect;
 
                   let bubbleStyle =
@@ -357,8 +364,7 @@ export default function QuizPage() {
                     bubbleStyle =
                       "bg-primary text-white border-primary shadow-md shadow-primary/25 font-black scale-105";
                   } else if (isAnswered) {
-                    bubbleStyle =
-                      "bg-primary/15 text-primary border-primary/40 font-extrabold";
+                    bubbleStyle = "bg-primary/15 text-primary border-primary/40 font-extrabold";
                   }
 
                   return (
@@ -394,7 +400,6 @@ export default function QuizPage() {
 
               return (
                 <div className="space-y-6">
-
                   <h2 className="text-xl sm:text-2xl font-black text-foreground">
                     {isRtl ? q.questionAr : q.questionEn}
                   </h2>
