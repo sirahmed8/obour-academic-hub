@@ -3,7 +3,17 @@
 import { useState, useEffect } from "react";
 import { useLanguage, useAuth } from "@/contexts";
 import Link from "next/link";
-import { GitFork, Sparkles, RefreshCw, Layers, ChevronRight, Crown } from "lucide-react";
+import {
+  GitFork,
+  Sparkles,
+  RefreshCw,
+  Layers,
+  ChevronRight,
+  ChevronLeft,
+  Crown,
+  Download,
+  CheckSquare,
+} from "lucide-react";
 import { collection, getDocs } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 
@@ -76,8 +86,8 @@ export default function MindMapPage() {
         setMindmap(res.mindmap);
         toast.success(
           isRtl
-            ? "تم توليد الخريطة الذهنية بنجاح! 🧠 وحصولك على +40 XP"
-            : "Mind map generated! 🧠 Earned +40 XP"
+            ? "تم توليد الخريطة الذهنية بنجاح! وحصولك على +40 XP"
+            : "Mind map generated! Earned +40 XP"
         );
         if (user?.uid) {
           userService.awardUserXP(user.uid, 40, "mindmap_generated").catch(console.error);
@@ -113,8 +123,8 @@ export default function MindMapPage() {
               <span>
                 {canAccessFeature(user, "unlimited_mindmaps")
                   ? isRtl
-                    ? "خرائط غير محدودة 👑 VIP"
-                    : "Unlimited Maps 👑 VIP"
+                    ? "خرائط غير محدودة (VIP)"
+                    : "Unlimited Maps (VIP)"
                   : isRtl
                     ? "ترقية العبور بلس VIP"
                     : "Upgrade to VIP"}
@@ -124,7 +134,7 @@ export default function MindMapPage() {
 
           <h1 className="text-3xl sm:text-5xl font-black text-foreground font-harman">
             {isRtl
-              ? "بسط الفصول المعقدة إلى خرائط تفاعلية 🧠"
+              ? "بسط الفصول المعقدة إلى خرائط تفاعلية"
               : "Visualize Complex Academic Topics"}
           </h1>
 
@@ -206,7 +216,7 @@ export default function MindMapPage() {
             ) : (
               <>
                 <Sparkles size={18} />
-                <span>{isRtl ? "إنشاء الخريطة الذهنية 🧠" : "Generate Mind Map 🧠"}</span>
+                <span>{isRtl ? "إنشاء الخريطة الذهنية" : "Generate Mind Map"}</span>
               </>
             )}
           </button>
@@ -249,8 +259,8 @@ export default function MindMapPage() {
                       });
                       toast.success(
                         isRtl
-                          ? "تمت إضافة الخريطة إلى قائمة المهام! 📝"
-                          : "Mindmap added to your tasks! 📝"
+                          ? "تمت إضافة الخريطة إلى قائمة المهام"
+                          : "Mindmap added to your tasks"
                       );
                     } catch {
                       toast.error(isRtl ? "تعذر حفظ المهمة" : "Failed to save task");
@@ -258,8 +268,8 @@ export default function MindMapPage() {
                   }}
                   className="px-3 py-1.5 rounded-xl bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 font-extrabold text-xs flex items-center gap-1.5 border border-emerald-500/20 transition active:scale-95"
                 >
-                  <Sparkles size={14} />
-                  <span>{isRtl ? "إضافة كـ مهمة 📝" : "Add as Task 📝"}</span>
+                  <CheckSquare size={14} />
+                  <span>{isRtl ? "إضافة كـ مهمة" : "Add as Task"}</span>
                 </button>
 
                 <button
@@ -272,10 +282,11 @@ export default function MindMapPage() {
                     a.href = dataStr;
                     a.download = `${mindmap.root}-mindmap.json`;
                     a.click();
-                    toast.success(isRtl ? "تم تصدير ملف الخريطة! 📤" : "Mindmap exported! 📤");
+                    toast.success(isRtl ? "تم تصدير ملف الخريطة" : "Mindmap exported");
                   }}
                   className="px-3 py-1.5 rounded-xl bg-primary text-white font-extrabold text-xs flex items-center gap-1.5 transition shadow-md hover:bg-primary/90 active:scale-95"
                 >
+                  <Download size={14} />
                   <span>{isRtl ? "تصدير JSON" : "Export JSON"}</span>
                 </button>
               </div>
@@ -289,12 +300,16 @@ export default function MindMapPage() {
                   className="p-4 rounded-2xl bg-muted/40 border border-border/50 space-y-3"
                 >
                   <div className="font-extrabold text-sm text-primary flex items-center gap-2">
-                    <ChevronRight size={16} />
+                    {isRtl ? <ChevronLeft size={16} /> : <ChevronRight size={16} />}
                     <span>{child.title}</span>
                   </div>
 
                   {child.children && child.children.length > 0 && (
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 pr-6 sm:pr-8">
+                    <div
+                      className={`grid grid-cols-1 sm:grid-cols-2 gap-2 ${
+                        isRtl ? "pr-6 sm:pr-8" : "pl-6 sm:pl-8"
+                      }`}
+                    >
                       {child.children.map((sub, subIdx) => (
                         <div
                           key={subIdx}

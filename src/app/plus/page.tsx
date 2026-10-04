@@ -25,6 +25,9 @@ import {
   AlertCircle,
   RefreshCw,
   Send,
+  Lock,
+  ChevronLeft,
+  ChevronRight,
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "@/lib/utils";
@@ -56,6 +59,7 @@ export default function ObourPlusSubscriptionPage() {
 
   // Checkout Modal State
   const [checkoutOpen, setCheckoutOpen] = useState(false);
+  const [checkoutStep, setCheckoutStep] = useState<1 | 2 | 3>(1);
   const [checkoutPlan, setCheckoutPlan] = useState<SubscriptionPlanId>("semester");
   const [paymentMethod, setPaymentMethod] = useState<SubscriptionPaymentMethod>("instapay");
   const [senderPhoneOrAccount, setSenderPhoneOrAccount] = useState("");
@@ -121,6 +125,7 @@ export default function ObourPlusSubscriptionPage() {
       return;
     }
     setCheckoutPlan(planId);
+    setCheckoutStep(1);
     setCheckoutOpen(true);
   };
 
@@ -921,245 +926,444 @@ export default function ObourPlusSubscriptionPage() {
                 </button>
               </div>
 
-              {/* Step 1: Payment Method Selector */}
-              <div className="space-y-3">
-                <label className="block text-xs font-bold text-foreground">
-                  {isAr ? "1. اختر طريقة الدفع المحلية:" : "1. Select Payment Method:"}
-                </label>
-
-                <div className="grid grid-cols-2 gap-3">
-                  <button
-                    type="button"
-                    onClick={() => setPaymentMethod("instapay")}
-                    className={cn(
-                      "p-3.5 rounded-2xl border text-start space-y-1 transition-all",
-                      paymentMethod === "instapay"
-                        ? "border-amber-500 bg-amber-500/10 shadow-sm"
-                        : "border-border hover:bg-muted/50"
-                    )}
-                  >
-                    <div className="flex items-center justify-between">
-                      <span className="font-extrabold text-xs text-foreground">
-                        {isAr ? "إنستا باي (InstaPay)" : "InstaPay (IPN)"}
-                      </span>
-                      <Smartphone size={16} className="text-amber-500" />
-                    </div>
-                    <p className="text-[11px] text-muted-foreground">
-                      {isAr ? "تحويل لحظي من أي بنك" : "Instant bank transfer"}
-                    </p>
-                  </button>
-
-                  <button
-                    type="button"
-                    onClick={() => setPaymentMethod("vodafone_cash")}
-                    className={cn(
-                      "p-3.5 rounded-2xl border text-start space-y-1 transition-all",
-                      paymentMethod === "vodafone_cash"
-                        ? "border-amber-500 bg-amber-500/10 shadow-sm"
-                        : "border-border hover:bg-muted/50"
-                    )}
-                  >
-                    <div className="flex items-center justify-between">
-                      <span className="font-extrabold text-xs text-foreground">
-                        {isAr ? "فودافون كاش والمحافظ" : "Vodafone Cash & Wallets"}
-                      </span>
-                      <Smartphone size={16} className="text-red-500" />
-                    </div>
-                    <p className="text-[11px] text-muted-foreground">
-                      {isAr ? "محافظ المحمول في مصر" : "All mobile wallets"}
-                    </p>
-                  </button>
-                </div>
-              </div>
-
-              {/* Step 2: Transfer Details Strip */}
-              <div className="p-4 rounded-2xl bg-muted/40 border border-border/80 space-y-3">
-                <div className="flex items-center justify-between text-xs">
-                  <span className="font-bold text-foreground">
-                    {paymentMethod === "instapay"
-                      ? isAr
-                        ? "عنوان إنستا باي (IPA):"
-                        : "InstaPay Address:"
-                      : isAr
-                        ? "رقم محفظة فودافون كاش:"
-                        : "Vodafone Cash Number:"}
-                  </span>
-                  <span className="font-mono font-black text-amber-500 select-all text-sm">
-                    {paymentMethod === "instapay" ? instapayAccount : vodafoneCashNumber}
-                  </span>
-                </div>
-
-                <div className="flex items-center justify-between text-xs pt-1 border-t border-border/60">
-                  <span className="text-muted-foreground">
-                    {isAr ? "المبلغ المطلوب تحويله:" : "Amount to transfer:"}
-                  </span>
-                  <span className="font-black text-foreground">
-                    {checkoutPlan === "monthly" ? 49 : checkoutPlan === "semester" ? 199 : 349} EGP
-                  </span>
-                </div>
-
+              {/* Interactive 3-Step Linear Stepper with Strict Causality */}
+              <div className="grid grid-cols-3 gap-2 p-1.5 bg-muted/40 rounded-2xl border border-border/50 text-xs">
+                {/* Step 1 Tab */}
                 <button
                   type="button"
-                  onClick={() =>
-                    copyToClipboard(
-                      paymentMethod === "instapay" ? instapayAccount : vodafoneCashNumber,
-                      "account"
-                    )
-                  }
-                  className="w-full py-2 rounded-xl bg-background hover:bg-card border border-border text-xs font-bold text-foreground flex items-center justify-center gap-1.5 transition-all"
+                  onClick={() => setCheckoutStep(1)}
+                  className={cn(
+                    "flex items-center justify-center gap-1.5 p-2 rounded-xl transition-all",
+                    checkoutStep === 1
+                      ? "bg-background text-foreground font-black shadow-sm"
+                      : "text-muted-foreground hover:text-foreground cursor-pointer font-bold"
+                  )}
                 >
-                  <Copy size={13} />
-                  <span>
-                    {copiedKey === "account"
-                      ? isAr
-                        ? "تم نسخ الرقم!"
-                        : "Copied!"
-                      : isAr
-                        ? "نسخ رقم الحساب / المحفظة"
-                        : "Copy Transfer Account Number"}
-                  </span>
+                  <div
+                    className={cn(
+                      "w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-black shrink-0",
+                      checkoutStep === 1
+                        ? "bg-amber-500 text-black shadow-sm"
+                        : "bg-emerald-500/20 text-emerald-500"
+                    )}
+                  >
+                    {checkoutStep > 1 ? <Check size={12} /> : "1"}
+                  </div>
+                  <span className="truncate">{isAr ? "طريقة الدفع" : "Method"}</span>
+                </button>
+
+                {/* Step 2 Tab (Locked if on Step 1) */}
+                <button
+                  type="button"
+                  disabled={checkoutStep < 2}
+                  onClick={() => {
+                    if (checkoutStep > 2) setCheckoutStep(2);
+                  }}
+                  className={cn(
+                    "flex items-center justify-center gap-1.5 p-2 rounded-xl transition-all",
+                    checkoutStep === 2
+                      ? "bg-background text-foreground font-black shadow-sm"
+                      : checkoutStep > 2
+                        ? "text-muted-foreground hover:text-foreground cursor-pointer font-bold"
+                        : "opacity-50 cursor-not-allowed text-muted-foreground font-medium"
+                  )}
+                >
+                  <div
+                    className={cn(
+                      "w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-black shrink-0",
+                      checkoutStep === 2
+                        ? "bg-amber-500 text-black shadow-sm"
+                        : checkoutStep > 2
+                          ? "bg-emerald-500/20 text-emerald-500"
+                          : "bg-muted text-muted-foreground"
+                    )}
+                  >
+                    {checkoutStep > 2 ? (
+                      <Check size={12} />
+                    ) : checkoutStep < 2 ? (
+                      <Lock size={10} />
+                    ) : (
+                      "2"
+                    )}
+                  </div>
+                  <span className="truncate">{isAr ? "بيانات التحويل" : "Transfer"}</span>
+                </button>
+
+                {/* Step 3 Tab (Locked if on Step 1 or 2) */}
+                <button
+                  type="button"
+                  disabled={checkoutStep < 3}
+                  className={cn(
+                    "flex items-center justify-center gap-1.5 p-2 rounded-xl transition-all",
+                    checkoutStep === 3
+                      ? "bg-background text-foreground font-black shadow-sm"
+                      : "opacity-50 cursor-not-allowed text-muted-foreground font-medium"
+                  )}
+                >
+                  <div
+                    className={cn(
+                      "w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-black shrink-0",
+                      checkoutStep === 3 ? "bg-amber-500 text-black shadow-sm" : "bg-muted text-muted-foreground"
+                    )}
+                  >
+                    {checkoutStep < 3 ? <Lock size={10} /> : "3"}
+                  </div>
+                  <span className="truncate">{isAr ? "تأكيد الإرسال" : "Verify"}</span>
                 </button>
               </div>
 
-              {/* Step 3: Verification Submission Form */}
-              <form onSubmit={handleSubmitSubscription} className="space-y-4">
-                {/* Sender Phone/Account */}
-                <div className="space-y-1">
-                  <label className="block text-xs font-bold text-foreground">
-                    {isAr ? "رقم هاتفك أو حسابك المحول منه *" : "Sender Phone Number or Account *"}
-                  </label>
-                  <input
-                    type="text"
-                    required
-                    value={senderPhoneOrAccount}
-                    onChange={(e) => setSenderPhoneOrAccount(e.target.value)}
-                    placeholder={
-                      paymentMethod === "instapay"
-                        ? isAr
-                          ? "مثال: yourname@instapay أو 01xxxxxxxxx"
-                          : "e.g. yourname@instapay or 01xxxxxxxxx"
-                        : isAr
-                          ? "مثال: 01012345678"
-                          : "e.g. 01012345678"
-                    }
-                    className="w-full px-4 py-3 rounded-2xl bg-background border border-border text-xs sm:text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-amber-500/50"
-                  />
-                </div>
+              {/* Step 1: Payment Method Selection & Order Review */}
+              {checkoutStep === 1 && (
+                <motion.div
+                  initial={{ opacity: 0, x: -15 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  exit={{ opacity: 0, x: 15 }}
+                  className="space-y-4"
+                >
+                  <div className="space-y-3">
+                    <label className="block text-xs font-bold text-foreground">
+                      {isAr ? "اختر طريقة الدفع المناسبة:" : "Select Payment Gateway:"}
+                    </label>
 
-                {/* Transaction Reference (Optional) */}
-                <div className="space-y-1">
-                  <label className="block text-xs font-bold text-foreground">
-                    {isAr
-                      ? "رقم العملية / المرجع (اختياري، يسرع التفعيل)"
-                      : "Transaction Reference (Optional, speeds up activation)"}
-                  </label>
-                  <input
-                    type="text"
-                    value={transactionReference}
-                    onChange={(e) => setTransactionReference(e.target.value)}
-                    placeholder={isAr ? "رقم المرجع من رسالة التحويل" : "Reference from SMS or App"}
-                    className="w-full px-4 py-3 rounded-2xl bg-background border border-border text-xs sm:text-sm font-mono focus:outline-none focus:ring-2 focus:ring-amber-500/50"
-                  />
-                </div>
-
-                {/* Receipt Upload */}
-                <div className="space-y-1.5">
-                  <label className="block text-xs font-bold text-foreground">
-                    {isAr
-                      ? "صورة إيصال التحويل (اختياري ومستحسن)"
-                      : "Receipt Screenshot (Recommended)"}
-                  </label>
-
-                  <input
-                    ref={fileInputRef}
-                    type="file"
-                    accept="image/*"
-                    onChange={handleFileUpload}
-                    className="hidden"
-                  />
-
-                  {receiptUrl ? (
-                    <div className="relative w-full h-32 rounded-2xl overflow-hidden border border-emerald-500/50 bg-black/20 flex items-center justify-center">
-                      <Image
-                        src={receiptUrl}
-                        alt="Uploaded Receipt"
-                        fill
-                        className="object-contain"
-                        unoptimized
-                      />
+                    <div className="grid grid-cols-2 gap-3">
                       <button
                         type="button"
-                        onClick={() => setReceiptUrl("")}
-                        className="absolute top-2 end-2 p-1 rounded-lg bg-black/70 text-white hover:bg-black transition-all"
+                        onClick={() => setPaymentMethod("instapay")}
+                        className={cn(
+                          "p-3.5 rounded-2xl border text-start space-y-1 transition-all",
+                          paymentMethod === "instapay"
+                            ? "border-amber-500 bg-amber-500/10 shadow-sm"
+                            : "border-border hover:bg-muted/50"
+                        )}
                       >
-                        <X size={14} />
+                        <div className="flex items-center justify-between">
+                          <span className="font-extrabold text-xs text-foreground">
+                            {isAr ? "إنستا باي (InstaPay)" : "InstaPay (IPN)"}
+                          </span>
+                          <Smartphone size={16} className="text-amber-500" />
+                        </div>
+                        <p className="text-[11px] text-muted-foreground">
+                          {isAr ? "تحويل لحظي من أي بنك" : "Instant bank transfer"}
+                        </p>
+                      </button>
+
+                      <button
+                        type="button"
+                        onClick={() => setPaymentMethod("vodafone_cash")}
+                        className={cn(
+                          "p-3.5 rounded-2xl border text-start space-y-1 transition-all",
+                          paymentMethod === "vodafone_cash"
+                            ? "border-amber-500 bg-amber-500/10 shadow-sm"
+                            : "border-border hover:bg-muted/50"
+                        )}
+                      >
+                        <div className="flex items-center justify-between">
+                          <span className="font-extrabold text-xs text-foreground">
+                            {isAr ? "فودافون كاش والمحافظ" : "Vodafone Cash & Wallets"}
+                          </span>
+                          <Smartphone size={16} className="text-red-500" />
+                        </div>
+                        <p className="text-[11px] text-muted-foreground">
+                          {isAr ? "محافظ المحمول في مصر" : "All mobile wallets"}
+                        </p>
                       </button>
                     </div>
-                  ) : (
+                  </div>
+
+                  {/* Plan Review Summary Card */}
+                  <div className="p-4 rounded-2xl bg-muted/40 border border-border/80 space-y-2">
+                    <div className="flex items-center justify-between text-xs">
+                      <span className="text-muted-foreground">
+                        {isAr ? "الباقة المختارة:" : "Selected Plan:"}
+                      </span>
+                      <span className="font-black text-foreground">
+                        {checkoutPlan === "monthly"
+                          ? isAr
+                            ? "الاشتراك الشهري"
+                            : "Monthly"
+                          : checkoutPlan === "semester"
+                            ? isAr
+                              ? "الفصل الدراسي (الأكثر طلباً)"
+                              : "Semester (Popular)"
+                            : isAr
+                              ? "العام الأكاديمي الكامل"
+                              : "Full Academic Year"}
+                      </span>
+                    </div>
+
+                    <div className="flex items-center justify-between text-xs pt-2 border-t border-border/60">
+                      <span className="text-muted-foreground">
+                        {isAr ? "المبلغ الإجمالي المستحق:" : "Total Due:"}
+                      </span>
+                      <span className="font-black text-amber-500 text-sm">
+                        {checkoutPlan === "monthly" ? 49 : checkoutPlan === "semester" ? 199 : 349} EGP
+                      </span>
+                    </div>
+                  </div>
+
+                  <button
+                    type="button"
+                    onClick={() => setCheckoutStep(2)}
+                    className="w-full py-3.5 rounded-2xl bg-primary text-primary-foreground font-black text-xs hover:bg-primary/90 transition shadow-lg flex items-center justify-center gap-2 active:scale-98"
+                  >
+                    <span>{isAr ? "متابعة لبيانات التحويل" : "Proceed to Transfer Details"}</span>
+                    {isAr ? <ChevronLeft size={16} /> : <ChevronRight size={16} />}
+                  </button>
+                </motion.div>
+              )}
+
+              {/* Step 2: Transfer Details Strip */}
+              {checkoutStep === 2 && (
+                <motion.div
+                  initial={{ opacity: 0, x: -15 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  exit={{ opacity: 0, x: 15 }}
+                  className="space-y-4"
+                >
+                  <div className="p-4 rounded-2xl bg-muted/40 border border-border/80 space-y-3">
+                    <div className="flex items-center justify-between text-xs">
+                      <span className="font-bold text-foreground">
+                        {paymentMethod === "instapay"
+                          ? isAr
+                            ? "عنوان إنستا باي (IPA):"
+                            : "InstaPay Address:"
+                          : isAr
+                            ? "رقم محفظة فودافون كاش:"
+                            : "Vodafone Cash Number:"}
+                      </span>
+                      <span className="font-mono font-black text-amber-500 select-all text-sm">
+                        {paymentMethod === "instapay" ? instapayAccount : vodafoneCashNumber}
+                      </span>
+                    </div>
+
+                    <div className="flex items-center justify-between text-xs pt-1 border-t border-border/60">
+                      <span className="text-muted-foreground">
+                        {isAr ? "المبلغ المطلوب تحويله:" : "Amount to transfer:"}
+                      </span>
+                      <span className="font-black text-foreground">
+                        {checkoutPlan === "monthly" ? 49 : checkoutPlan === "semester" ? 199 : 349} EGP
+                      </span>
+                    </div>
+
                     <button
                       type="button"
-                      disabled={receiptUploading}
-                      onClick={() => fileInputRef.current?.click()}
-                      className="w-full py-3.5 px-4 rounded-2xl border-2 border-dashed border-border hover:border-amber-500/50 bg-muted/20 hover:bg-muted/40 text-xs font-bold text-muted-foreground hover:text-foreground transition-all flex items-center justify-center gap-2"
+                      onClick={() =>
+                        copyToClipboard(
+                          paymentMethod === "instapay" ? instapayAccount : vodafoneCashNumber,
+                          "account"
+                        )
+                      }
+                      className="w-full py-2.5 rounded-xl bg-background hover:bg-card border border-border text-xs font-bold text-foreground flex items-center justify-center gap-1.5 transition-all shadow-sm"
                     >
-                      {receiptUploading ? (
-                        <>
-                          <RefreshCw size={16} className="animate-spin text-amber-500" />
-                          <span>{isAr ? "جارٍ رفع صورة الإيصال..." : "Uploading receipt..."}</span>
-                        </>
-                      ) : (
-                        <>
-                          <Upload size={16} className="text-amber-500" />
-                          <span>
-                            {isAr
-                              ? "انقر لرفع لقطة شاشة للإيصال"
-                              : "Click to upload receipt screenshot"}
-                          </span>
-                        </>
-                      )}
+                      <Copy size={13} />
+                      <span>
+                        {copiedKey === "account"
+                          ? isAr
+                            ? "تم نسخ الرقم!"
+                            : "Copied!"
+                          : isAr
+                            ? "نسخ رقم الحساب / المحفظة"
+                            : "Copy Transfer Account Number"}
+                      </span>
                     </button>
-                  )}
-                </div>
+                  </div>
 
-                {/* Notes */}
-                <div className="space-y-1">
-                  <label className="block text-xs font-bold text-foreground">
-                    {isAr ? "ملاحظات إضافية للمشرف (اختياري)" : "Additional Notes (Optional)"}
-                  </label>
-                  <input
-                    type="text"
-                    value={studentNotes}
-                    onChange={(e) => setStudentNotes(e.target.value)}
-                    placeholder={
-                      isAr ? "أي تفاصيل تود توضيحها..." : "Any details you want to add..."
-                    }
-                    className="w-full px-4 py-2.5 rounded-2xl bg-background border border-border text-xs focus:outline-none focus:ring-2 focus:ring-amber-500/50"
-                  />
-                </div>
+                  <div className="p-3.5 rounded-2xl bg-amber-500/10 border border-amber-500/20 text-xs text-muted-foreground space-y-1">
+                    <p className="font-bold text-foreground">
+                      {isAr ? "تعليمات هامة لإتمام التحويل:" : "Important Transfer Guidelines:"}
+                    </p>
+                    <p>
+                      {isAr
+                        ? "1. افتح تطبيق البنك أو المحفظة وقم بتحويل المبلغ بدقة."
+                        : "1. Open your banking or mobile wallet app and transfer the exact amount."}
+                    </p>
+                    <p>
+                      {isAr
+                        ? "2. التقط لقطة شاشة لإشعار نجاح العملية لتسريع التفعيل."
+                        : "2. Take a screenshot of the confirmation screen to expedite activation."}
+                    </p>
+                  </div>
 
-                {/* Submit CTA */}
-                <div className="pt-2">
-                  <button
-                    type="submit"
-                    disabled={submittingOrder || !senderPhoneOrAccount.trim()}
-                    className="w-full py-4 rounded-2xl bg-gradient-to-r from-amber-400 to-yellow-500 hover:from-amber-500 hover:to-yellow-600 text-black font-black text-sm shadow-xl hover:shadow-amber-500/25 transition-all flex items-center justify-center gap-2 disabled:opacity-50"
-                  >
-                    {submittingOrder ? (
-                      <>
-                        <RefreshCw size={16} className="animate-spin" />
-                        <span>{isAr ? "جارٍ إرسال الطلب..." : "Submitting order..."}</span>
-                      </>
-                    ) : (
-                      <>
-                        <Send size={16} />
-                        <span>
-                          {isAr ? "تأكيد وإرسال طلب الاشتراك" : "Confirm & Submit Request"}
-                        </span>
-                      </>
-                    )}
-                  </button>
-                </div>
-              </form>
+                  <div className="flex items-center gap-3 pt-2">
+                    <button
+                      type="button"
+                      onClick={() => setCheckoutStep(1)}
+                      className="px-4 py-3 rounded-xl border border-border text-muted-foreground hover:bg-muted font-bold text-xs transition"
+                    >
+                      {isAr ? "رجوع" : "Back"}
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={() => setCheckoutStep(3)}
+                      className="flex-1 py-3.5 rounded-2xl bg-primary text-primary-foreground font-black text-xs hover:bg-primary/90 transition shadow-lg flex items-center justify-center gap-2 active:scale-98"
+                    >
+                      <span>
+                        {isAr
+                          ? "أتممت التحويل، المتابعة لتأكيد الاشتراك"
+                          : "I Have Transferred, Proceed"}
+                      </span>
+                      {isAr ? <ChevronLeft size={16} /> : <ChevronRight size={16} />}
+                    </button>
+                  </div>
+                </motion.div>
+              )}
+
+              {/* Step 3: Verification Submission Form */}
+              {checkoutStep === 3 && (
+                <motion.div
+                  initial={{ opacity: 0, x: -15 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  exit={{ opacity: 0, x: 15 }}
+                >
+                  <form onSubmit={handleSubmitSubscription} className="space-y-4">
+                    {/* Sender Phone/Account */}
+                    <div className="space-y-1">
+                      <label className="block text-xs font-bold text-foreground">
+                        {isAr ? "رقم هاتفك أو حسابك المحول منه *" : "Sender Phone Number or Account *"}
+                      </label>
+                      <input
+                        type="text"
+                        required
+                        value={senderPhoneOrAccount}
+                        onChange={(e) => setSenderPhoneOrAccount(e.target.value)}
+                        placeholder={
+                          paymentMethod === "instapay"
+                            ? isAr
+                              ? "مثال: yourname@instapay أو 01xxxxxxxxx"
+                              : "e.g. yourname@instapay or 01xxxxxxxxx"
+                            : isAr
+                              ? "مثال: 01012345678"
+                              : "e.g. 01012345678"
+                        }
+                        className="w-full px-4 py-3 rounded-2xl bg-background border border-border text-xs sm:text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-amber-500/50"
+                      />
+                    </div>
+
+                    {/* Transaction Reference (Optional) */}
+                    <div className="space-y-1">
+                      <label className="block text-xs font-bold text-foreground">
+                        {isAr
+                          ? "رقم العملية / المرجع (اختياري، يسرع التفعيل)"
+                          : "Transaction Reference (Optional, speeds up activation)"}
+                      </label>
+                      <input
+                        type="text"
+                        value={transactionReference}
+                        onChange={(e) => setTransactionReference(e.target.value)}
+                        placeholder={isAr ? "رقم المرجع من رسالة التحويل" : "Reference from SMS or App"}
+                        className="w-full px-4 py-3 rounded-2xl bg-background border border-border text-xs sm:text-sm font-mono focus:outline-none focus:ring-2 focus:ring-amber-500/50"
+                      />
+                    </div>
+
+                    {/* Receipt Upload */}
+                    <div className="space-y-1.5">
+                      <label className="block text-xs font-bold text-foreground">
+                        {isAr
+                          ? "صورة إيصال التحويل (اختياري ومستحسن)"
+                          : "Receipt Screenshot (Recommended)"}
+                      </label>
+
+                      <input
+                        ref={fileInputRef}
+                        type="file"
+                        accept="image/*"
+                        onChange={handleFileUpload}
+                        className="hidden"
+                      />
+
+                      {receiptUrl ? (
+                        <div className="relative w-full h-32 rounded-2xl overflow-hidden border border-emerald-500/50 bg-black/20 flex items-center justify-center">
+                          <Image
+                            src={receiptUrl}
+                            alt="Uploaded Receipt"
+                            fill
+                            className="object-contain"
+                            unoptimized
+                          />
+                          <button
+                            type="button"
+                            onClick={() => setReceiptUrl("")}
+                            className="absolute top-2 end-2 p-1 rounded-lg bg-black/70 text-white hover:bg-black transition-all"
+                          >
+                            <X size={14} />
+                          </button>
+                        </div>
+                      ) : (
+                        <button
+                          type="button"
+                          disabled={receiptUploading}
+                          onClick={() => fileInputRef.current?.click()}
+                          className="w-full py-3.5 px-4 rounded-2xl border-2 border-dashed border-border hover:border-amber-500/50 bg-muted/20 hover:bg-muted/40 text-xs font-bold text-muted-foreground hover:text-foreground transition-all flex items-center justify-center gap-2"
+                        >
+                          {receiptUploading ? (
+                            <>
+                              <RefreshCw size={16} className="animate-spin text-amber-500" />
+                              <span>{isAr ? "جارٍ رفع صورة الإيصال..." : "Uploading receipt..."}</span>
+                            </>
+                          ) : (
+                            <>
+                              <Upload size={16} className="text-amber-500" />
+                              <span>
+                                {isAr
+                                  ? "انقر لرفع لقطة شاشة للإيصال"
+                                  : "Click to upload receipt screenshot"}
+                              </span>
+                            </>
+                          )}
+                        </button>
+                      )}
+                    </div>
+
+                    {/* Notes */}
+                    <div className="space-y-1">
+                      <label className="block text-xs font-bold text-foreground">
+                        {isAr ? "ملاحظات إضافية للمشرف (اختياري)" : "Additional Notes (Optional)"}
+                      </label>
+                      <input
+                        type="text"
+                        value={studentNotes}
+                        onChange={(e) => setStudentNotes(e.target.value)}
+                        placeholder={
+                          isAr ? "أي تفاصيل تود توضيحها..." : "Any details you want to add..."
+                        }
+                        className="w-full px-4 py-2.5 rounded-2xl bg-background border border-border text-xs focus:outline-none focus:ring-2 focus:ring-amber-500/50"
+                      />
+                    </div>
+
+                    {/* Submit Actions */}
+                    <div className="flex items-center gap-3 pt-2">
+                      <button
+                        type="button"
+                        onClick={() => setCheckoutStep(2)}
+                        className="px-4 py-3 rounded-xl border border-border text-muted-foreground hover:bg-muted font-bold text-xs transition"
+                      >
+                        {isAr ? "رجوع" : "Back"}
+                      </button>
+
+                      <button
+                        type="submit"
+                        disabled={submittingOrder || !senderPhoneOrAccount.trim()}
+                        className="flex-1 py-4 rounded-2xl bg-gradient-to-r from-amber-400 to-yellow-500 hover:from-amber-500 hover:to-yellow-600 text-black font-black text-sm shadow-xl hover:shadow-amber-500/25 transition-all flex items-center justify-center gap-2 disabled:opacity-50"
+                      >
+                        {submittingOrder ? (
+                          <>
+                            <RefreshCw size={16} className="animate-spin" />
+                            <span>{isAr ? "جارٍ إرسال الطلب..." : "Submitting order..."}</span>
+                          </>
+                        ) : (
+                          <>
+                            <Send size={16} />
+                            <span>
+                              {isAr ? "تأكيد وإرسال طلب الاشتراك" : "Confirm & Submit Request"}
+                            </span>
+                          </>
+                        )}
+                      </button>
+                    </div>
+                  </form>
+                </motion.div>
+              )}
             </motion.div>
           </div>
         )}

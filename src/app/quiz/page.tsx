@@ -2,12 +2,13 @@
 
 import { useState, useEffect } from "react";
 import { useLanguage, useAuth } from "@/contexts";
-import { HelpCircle, CheckCircle2, XCircle, Sparkles, Trophy, RefreshCw } from "lucide-react";
+import { HelpCircle, CheckCircle2, XCircle, Sparkles, Trophy, RefreshCw, LogOut } from "lucide-react";
 import { FadeIn, ScaleIn } from "@/components/ui/Animations";
 import { motion } from "framer-motion";
 import { toast } from "sonner";
 import { apiFetch } from "@/lib/api-client";
 import { CustomSelect } from "@/components/ui/CustomSelect";
+import { ConfirmationModal } from "@/components/ui/ConfirmationModal";
 import { collection, getDocs } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import { userService } from "@/services/user.service";
@@ -52,6 +53,7 @@ export default function QuizPage() {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [selectedAnswers, setSelectedAnswers] = useState<Record<number, number>>({});
   const [isSubmitted, setIsSubmitted] = useState(false);
+  const [showExitModal, setShowExitModal] = useState(false);
 
   // Load enrolled subjects from Firestore
   useEffect(() => {
@@ -96,7 +98,7 @@ export default function QuizPage() {
         setSelectedAnswers({});
         setIsSubmitted(false);
         toast.success(
-          isRtl ? "تمت توليد الاختبار التفاعلي بنجاح! 🎯" : "Quiz generated successfully! 🎯"
+          isRtl ? "تم توليد الاختبار التفاعلي بنجاح!" : "Quiz generated successfully!"
         );
       }
     } catch {
@@ -137,7 +139,7 @@ export default function QuizPage() {
 
           <h1 className="text-3xl sm:text-5xl font-black text-foreground font-harman">
             {isRtl
-              ? "اختبر معلوماتك الأكاديمية بالذكاء الاصطناعي 🎯"
+              ? "اختبر معلوماتك الأكاديمية بالذكاء الاصطناعي"
               : "Practice & Master Subject Exams"}
           </h1>
 
@@ -281,7 +283,7 @@ export default function QuizPage() {
               ) : (
                 <>
                   <Sparkles size={18} />
-                  <span>{isRtl ? "إنشاء الاختبار الآن 🎯" : "Generate Quiz Now 🎯"}</span>
+                  <span>{isRtl ? "إنشاء الاختبار الآن" : "Generate Quiz Now"}</span>
                 </>
               )}
             </button>
@@ -291,21 +293,99 @@ export default function QuizPage() {
         /* Active Interactive Quiz Interface */
         <ScaleIn>
           <div className="p-6 sm:p-10 rounded-3xl bg-card/60 border border-primary/20 backdrop-blur-2xl shadow-xl space-y-6">
-            <div className="flex items-center justify-between border-b border-border/50 pb-4">
-              <span className="text-xs font-black uppercase text-primary tracking-wider">
-                {isRtl
-                  ? `السؤال ${currentIndex + 1} من ${quiz.questions.length}`
-                  : `Question ${currentIndex + 1} of ${quiz.questions.length}`}
-              </span>
+            {/* Top Toolbar */}
+            <div className="flex items-center justify-between border-b border-border/50 pb-4 gap-3 flex-wrap">
+              <div className="flex items-center gap-3">
+                <span className="text-xs font-black uppercase text-primary tracking-wider">
+                  {isRtl
+                    ? `السؤال ${currentIndex + 1} من ${quiz.questions.length}`
+                    : `Question ${currentIndex + 1} of ${quiz.questions.length}`}
+                </span>
 
-              {isSubmitted && (
+                {!isSubmitted && (
+                  <button
+                    type="button"
+                    onClick={() => setShowExitModal(true)}
+                    className="inline-flex items-center gap-1.5 px-3 py-1 rounded-xl text-xs font-bold text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-colors"
+                  >
+                    <LogOut size={13} className={isRtl ? "rotate-180" : ""} />
+                    <span>{isRtl ? "مغادرة الاختبار" : "Exit Quiz"}</span>
+                  </button>
+                )}
+              </div>
+
+              {isSubmitted ? (
                 <div className="px-4 py-1.5 rounded-full bg-emerald-500/10 text-emerald-500 font-black text-sm border border-emerald-500/20 flex items-center gap-1.5">
                   <Trophy size={16} />
                   <span>
                     {calculateScore()} / {quiz.questions.length}
                   </span>
                 </div>
+              ) : (
+                <div className="text-xs font-bold text-muted-foreground flex items-center gap-1.5">
+                  <span>{isRtl ? "تمت الإجابة:" : "Answered:"}</span>
+                  <span className="text-foreground font-black px-2 py-0.5 rounded-md bg-muted">
+                    {Object.keys(selectedAnswers).length} / {quiz.questions.length}
+                  </span>
+                </div>
               )}
+            </div>
+
+            {/* Question Navigator Strip */}
+            <div className="space-y-2">
+              <div className="flex items-center gap-1.5 overflow-x-auto pb-1 pt-0.5 no-scrollbar">
+                {quiz.questions.map((_, idx) => {
+                  const isCurrent = idx === currentIndex;
+                  const isAnswered = selectedAnswers[idx] !== undefined;
+                  const isCorrect = isSubmitted && selectedAnswers[idx] === quiz.questions[idx].correctIndex;
+                  const isWrong = isSubmitted && isAnswered && !isCorrect;
+
+                  let bubbleStyle =
+                    "bg-muted/60 text-muted-foreground border-border/70 hover:bg-muted hover:text-foreground";
+                  if (isSubmitted) {
+                    if (isCorrect) {
+                      bubbleStyle =
+                        "bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 border-emerald-500/50 font-black";
+                    } else if (isWrong) {
+                      bubbleStyle =
+                        "bg-destructive/20 text-destructive border-destructive/50 font-black";
+                    } else {
+                      bubbleStyle =
+                        "bg-muted/30 text-muted-foreground/60 border-dashed border-border/50";
+                    }
+                  } else if (isCurrent) {
+                    bubbleStyle =
+                      "bg-primary text-white border-primary shadow-md shadow-primary/25 font-black scale-105";
+                  } else if (isAnswered) {
+                    bubbleStyle =
+                      "bg-primary/15 text-primary border-primary/40 font-extrabold";
+                  }
+
+                  return (
+                    <button
+                      key={idx}
+                      type="button"
+                      onClick={() => setCurrentIndex(idx)}
+                      className={`min-w-8 h-8 rounded-xl border text-xs flex items-center justify-center transition-all duration-200 shrink-0 ${bubbleStyle}`}
+                      aria-label={`${isRtl ? "السؤال" : "Question"} ${idx + 1}`}
+                    >
+                      {idx + 1}
+                    </button>
+                  );
+                })}
+              </div>
+
+              {/* Progress Line */}
+              <div className="w-full h-1.5 rounded-full bg-muted/60 overflow-hidden">
+                <motion.div
+                  initial={{ width: 0 }}
+                  animate={{
+                    width: `${((currentIndex + 1) / quiz.questions.length) * 100}%`,
+                  }}
+                  transition={{ duration: 0.3 }}
+                  className="h-full bg-primary rounded-full"
+                />
+              </div>
             </div>
 
             {/* Current Question Body */}
@@ -314,15 +394,6 @@ export default function QuizPage() {
 
               return (
                 <div className="space-y-6">
-                  {/* Progress Line */}
-                  <div className="w-full h-2 rounded-full bg-muted/60 overflow-hidden">
-                    <motion.div
-                      initial={{ width: 0 }}
-                      animate={{ width: `${((currentIndex + 1) / quiz.questions.length) * 100}%` }}
-                      transition={{ duration: 0.4 }}
-                      className="h-full bg-primary rounded-full"
-                    />
-                  </div>
 
                   <h2 className="text-xl sm:text-2xl font-black text-foreground">
                     {isRtl ? q.questionAr : q.questionEn}
@@ -470,8 +541,8 @@ export default function QuizPage() {
                       if (wrongQuestions.length === 0) {
                         toast.success(
                           isRtl
-                            ? "درجة كاملة! لا توجد أسئلة خاطئة 🎯"
-                            : "Perfect score! No incorrect questions to add 🎯"
+                            ? "درجة كاملة! لا توجد أسئلة غير صحيحة"
+                            : "Perfect score! No incorrect questions to add"
                         );
                         return;
                       }
@@ -493,8 +564,8 @@ export default function QuizPage() {
                         }
                         toast.success(
                           isRtl
-                            ? `تمت إضافة ${wrongQuestions.length} سؤال خاطئ لمهام المراجعة! 📝`
-                            : `Added ${wrongQuestions.length} missed questions to your revision tasks! 📝`
+                            ? `تمت إضافة ${wrongQuestions.length} سؤال لمهام المراجعة`
+                            : `Added ${wrongQuestions.length} missed questions to your revision tasks`
                         );
                       } catch {
                         toast.error(isRtl ? "تعذر حفظ المهام" : "Failed to save revision tasks");
@@ -503,7 +574,7 @@ export default function QuizPage() {
                     className="px-4 py-2.5 rounded-xl bg-amber-500/15 hover:bg-amber-500/25 text-amber-600 dark:text-amber-300 font-extrabold text-xs flex items-center gap-1.5 border border-amber-500/30 transition active:scale-95"
                   >
                     <Sparkles size={14} />
-                    <span>{isRtl ? "إضافة الأخطاء للمراجعة 📝" : "Add Missed to To-Do 📝"}</span>
+                    <span>{isRtl ? "إضافة الأخطاء للمراجعة" : "Add Missed to To-Do"}</span>
                   </button>
 
                   <button
@@ -520,6 +591,28 @@ export default function QuizPage() {
           </div>
         </ScaleIn>
       )}
+
+      {/* Exit Quiz Confirmation Dialog */}
+      <ConfirmationModal
+        isOpen={showExitModal}
+        onClose={() => setShowExitModal(false)}
+        onConfirm={() => {
+          setShowExitModal(false);
+          setQuiz(null);
+          setCurrentIndex(0);
+          setSelectedAnswers({});
+          setIsSubmitted(false);
+        }}
+        title={isRtl ? "مغادرة الاختبار" : "Exit Quiz"}
+        message={
+          isRtl
+            ? "هل أنت متأكد من رغبتك في إنهاء الاختبار الحالي؟ ستفقد التقدم والإجابات التي لم يتم تسليمها."
+            : "Are you sure you want to leave? Your unsaved quiz progress and answers will be lost."
+        }
+        confirmText={isRtl ? "نعم، إنهاء الاختبار" : "Yes, Exit"}
+        cancelText={isRtl ? "متابعة الاختبار" : "Continue Quiz"}
+        type="warning"
+      />
     </div>
   );
 }

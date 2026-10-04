@@ -57,7 +57,7 @@
 ### A. Authentication & Onboarding
 
 - **Google Popup Auth (`signInWithPopup`)**: Frictionless Google Sign-In with instant session sync to Firestore (`users` collection), ambient aura background, and security trust indicators.
-- **Multi-Step Student Onboarding Wizard (`StudentProfileSetup.tsx`)**: Interactive 2-step setup wizard allowing students to set their full Arabic name, 6-digit student code, Institute selection, Academic Grade year, and Department specialization with progress bar tracking.
+- **Multi-Step Student Onboarding Wizard (`StudentProfileSetup.tsx`)**: Strict-causality 2-step setup wizard with milestone progression. Step 2 (`Academic Pathway`) is strictly locked with a lock badge until Step 1 (`Basic Info`) validates. Students can freely revisit completed steps directly from the header without scrolling.
 - **Role-Based Access Control (RBAC)**: Supports `student`, `admin`, and `owner` roles with administrative middleware/API validation.
 
 ### B. Core Student Experience & Design System Overhaul
@@ -95,10 +95,11 @@
 - **Academic Q&A Forum (`/qa`) & Past Exams Bank (`/exams`)**:
   - Q&A Forum featuring optimistic upvote counter with Firestore `increment()` sync, active vote highlighting, search bar, and subject tag filter pills.
   - Searchable past midterm/final exam paper repository with year pills (2025-2022), exam type pills (Midterm/Final), PDF download, and interactive Solution Key Preview Drawer with faculty-verified rubric and model answers.
-- **Interactive Practice Hubs (`/quiz`, `/schedule`, `/mindmap`)**:
-  - **AI Quiz Generator (`/quiz`)**: Instant quiz creation with difficulty levels, question count selection, instant score calculation, `canvas-confetti` celebration, +15 XP toast reward, and step-by-step solution explanations.
+- **Interactive Practice Hubs (`/quiz`, `/schedule`, `/mindmap`, `/plus`)**:
+  - **AI Quiz Generator (`/quiz`)**: Instant quiz creation with difficulty levels, question count selection, Question Navigator Strip (active, answered, unanswered, and post-submission badges), safe Exit Confirmation Modal (`ConfirmationModal`), instant score calculation, `canvas-confetti` celebration, and step-by-step solution explanations.
   - **Academic Timetable & Attendance (`/schedule`)**: Interactive lecture timetable with Day Filter Pills (Sunday through Thursday), attendance tracking, and attendance percentage calculator.
-  - **AI MindMap Visualizer (`/mindmap`)**: Instant concept tree generator simplifying complex academic subjects into structured hierarchical nodes.
+  - **AI MindMap Visualizer (`/mindmap`)**: Instant concept tree generator simplifying complex academic subjects into structured hierarchical nodes, featuring RTL-aware chevron flips (`ChevronLeft`/`ChevronRight`), bidirectional indentation, and JSON export.
+  - **VIP Subscription Checkout Wizard (`/plus`)**: 3-step linear checkout flow (1: Method & Plan Review &rarr; 2: Transfer Coordinates & 1-Click Copy &rarr; 3: Receipt Verification Submission) with locked milestone progression.
 - **Student Project Showcase (`/showcase`) & Alumni Search Board (`/alumni`)**:
   - **Project Showcase (`/showcase`)**: Real-time project search bar (title, author, department, tags), Zod input validation (`showcaseSchema`), duplicate like prevention with active heart indicator, and high-contrast solid cards.
   - **Alumni & Internship Board (`/alumni`)**: Real-time search bar, opportunity type filter pills (Summer Internships, Mentorship, Junior Jobs), Zod input validation (`internshipSchema`), and solid cards.
@@ -312,4 +313,21 @@
     - _Market_: Replaced dead-end community link with context-aware chat routing `/community/chat?item=...&seller=...`.
     - _Study Buddies_: Connected "Request Study Session" to `/hagaz?buddy=...&subject=...`, pre-filling the booking modal via `useSearchParams()`.
     - _Notifications_: Added a "Show All Notifications" reset CTA when an active filter yields no results.
+  - **Complete Verification**: 151/151 tests passed across 45 test files (100% pass rate), 0 ESLint errors/warnings, 0 TypeScript errors, 75/75 Next.js production routes compiled cleanly.
+- **Human Experience (HX), Anti-Clone Architecture & Strict Causality Wizards Overhaul (Checkpoint 52)**:
+  - **Strict Causality Stepper in Student Profile Setup (`StudentProfileSetup.tsx`)**: Replaced thin progress line with an interactive 2-step milestone stepper (`Basic Info` &rarr; `Academic Pathway`). Step 2 shows a locked badge (`Lock` icon) and is disabled until Step 1 validates via `isStep1Valid()`. Completed steps are revisitable directly from the header stepper without scrolling.
+  - **VIP Subscription Checkout Linear Lifecycle (`src/app/plus/page.tsx`)**: Eradicated the monolithic scrolling checkout form. Segmented into a focused 3-step linear flow:
+    1. _Step 1 (Payment Method & Review)_: InstaPay vs Vodafone Cash selection with order summary and plan validity details.
+    2. _Step 2 (Transfer Details)_: Recipient account / IPA address, exact EGP amount with 1-click copy feedback, guidelines, and back-to-previous navigation.
+    3. _Step 3 (Verification Submission)_: Sender account/phone, transaction reference, screenshot receipt upload with preview, notes, back-to-previous navigation, and final submission.
+    - Top milestone stepper displays lock icons (`Lock`) on future steps and prevents step skipping until earlier steps are validated.
+  - **Interactive Quiz Navigator & Safe Exit Protocol (`src/app/quiz/page.tsx`)**:
+    - Engineered horizontal Question Navigator Strip with active, answered, unanswered, and post-submission (correct/wrong) state badges, allowing students to navigate questions directly.
+    - Implemented an "Exit Quiz" (`مغادرة الاختبار`) control wired to `ConfirmationModal` to prevent accidental exits or feeling trapped in active exams.
+    - Purged decorative emoji clichés across headings, form buttons, and toasts.
+  - **MindMap RTL Physics & Microcopy Polish (`src/app/mindmap/page.tsx`)**:
+    - Dynamically flipped tree node indicator chevron for Arabic RTL layout (`ChevronLeft` in RTL, `ChevronRight` in LTR).
+    - Fixed tree node child indentation for RTL (`pr-6 sm:pr-8` in RTL vs `pl-6 sm:pl-8` in LTR).
+    - Standardized action buttons with `CheckSquare` and `Download` icons.
+    - Purged decorative emoji clichés across headings, buttons, and toasts.
   - **Complete Verification**: 151/151 tests passed across 45 test files (100% pass rate), 0 ESLint errors/warnings, 0 TypeScript errors, 75/75 Next.js production routes compiled cleanly.

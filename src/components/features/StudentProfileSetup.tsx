@@ -3,10 +3,11 @@
 import { useState } from "react";
 import { useAuth, useLanguage } from "@/contexts";
 import { motion, AnimatePresence } from "framer-motion";
-import { User, GraduationCap, Sparkles, MessageCircle } from "lucide-react";
+import { User, GraduationCap, MessageCircle, Check, Lock } from "lucide-react";
 import { toast } from "sonner";
 import { scaleIn, getMotionProps } from "@/lib/motion";
 import { useReducedMotion } from "@/hooks/useReducedMotion";
+import { cn } from "@/lib/utils";
 
 import { INSTITUTES, GRADES, DEPARTMENTS } from "./ProfileSetup/constants";
 import { Step1BasicInfo } from "./ProfileSetup/Step1BasicInfo";
@@ -74,6 +75,19 @@ export function StudentProfileSetup({ onComplete }: StudentProfileSetupProps) {
     return Object.keys(newErrors).length === 0;
   };
 
+  const isStep1Valid = (): boolean => {
+    if (user?.role === "owner" || user?.email === process.env.NEXT_PUBLIC_OWNER_EMAIL) {
+      return true;
+    }
+    if (!isNameLocked) {
+      if (!displayName.trim() || !arabicRegex.test(displayName.trim())) return false;
+    }
+    if (!isCodeLocked) {
+      if (!studentCode.trim() || !/^\d{6}$/.test(studentCode.trim())) return false;
+    }
+    return true;
+  };
+
   const handleNext = () => {
     if (validateStep1()) {
       setStep(2);
@@ -136,17 +150,13 @@ export function StudentProfileSetup({ onComplete }: StudentProfileSetupProps) {
         </div>
 
         {/* Wizard Header */}
-        <div className="text-center mb-6 pt-2">
+        <div className="text-center mb-5 pt-2">
           <div className="w-14 h-14 bg-primary/10 rounded-2xl mx-auto flex items-center justify-center mb-3 border border-primary/20 shadow-md">
             {step === 1 ? (
               <User className="w-7 h-7 text-primary" />
             ) : (
               <GraduationCap className="w-7 h-7 text-primary" />
             )}
-          </div>
-          <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-primary/10 text-primary font-bold text-[11px] uppercase tracking-wider mb-2">
-            <Sparkles size={12} />
-            <span>{language === "ar" ? `الخطوة ${step} من 2` : `Step ${step} of 2`}</span>
           </div>
           <h2 className="text-2xl font-black text-foreground font-harman">
             {step === 1
@@ -160,12 +170,100 @@ export function StudentProfileSetup({ onComplete }: StudentProfileSetupProps) {
           <p className="text-muted-foreground text-xs sm:text-sm mt-1">
             {step === 1
               ? language === "ar"
-                ? "أدخل اسمك ورقمك التعريفي للطالب"
-                : "Enter your official name and student code"
+                ? "أدخل اسمك ورقمك التعريفي للطالب للمتابعة"
+                : "Enter your official name and student code to proceed"
               : language === "ar"
                 ? "اختر المعهد، الفرقة الدراسية، والتخصص"
                 : "Select your institute, grade year, and department"}
           </p>
+        </div>
+
+        {/* Interactive Linear Stepper with Strict Causality */}
+        <div className="grid grid-cols-2 gap-3 mb-6 p-1.5 bg-muted/40 rounded-2xl border border-border/40">
+          <button
+            type="button"
+            onClick={() => {
+              if (step === 2) setStep(1);
+            }}
+            className={cn(
+              "flex items-center gap-2.5 p-2.5 rounded-xl transition-all text-start",
+              step === 1
+                ? "bg-background text-foreground shadow-sm border border-border/60"
+                : "text-muted-foreground hover:text-foreground hover:bg-background/50 cursor-pointer"
+            )}
+          >
+            <div
+              className={cn(
+                "w-7 h-7 rounded-lg flex items-center justify-center font-black text-xs shrink-0",
+                step === 1
+                  ? "bg-primary text-primary-foreground shadow-sm"
+                  : "bg-emerald-500/15 text-emerald-500"
+              )}
+            >
+              {step === 2 ? <Check size={14} /> : "1"}
+            </div>
+            <div className="min-w-0">
+              <p className="text-xs font-black truncate">
+                {language === "ar" ? "البيانات الأساسية" : "Basic Info"}
+              </p>
+              <p className="text-[10px] text-muted-foreground truncate">
+                {step === 2
+                  ? language === "ar"
+                    ? "مكتملة ✓"
+                    : "Completed ✓"
+                  : language === "ar"
+                    ? "الخطوة الحالية"
+                    : "Current Step"}
+              </p>
+            </div>
+          </button>
+
+          <button
+            type="button"
+            disabled={step === 1 && !isStep1Valid()}
+            onClick={() => {
+              if (step === 1) handleNext();
+            }}
+            className={cn(
+              "flex items-center gap-2.5 p-2.5 rounded-xl transition-all text-start",
+              step === 2
+                ? "bg-background text-foreground shadow-sm border border-border/60"
+                : isStep1Valid()
+                  ? "text-muted-foreground hover:text-foreground hover:bg-background/50 cursor-pointer"
+                  : "opacity-60 cursor-not-allowed text-muted-foreground"
+            )}
+          >
+            <div
+              className={cn(
+                "w-7 h-7 rounded-lg flex items-center justify-center font-black text-xs shrink-0",
+                step === 2
+                  ? "bg-primary text-primary-foreground shadow-sm"
+                  : isStep1Valid()
+                    ? "bg-muted text-foreground"
+                    : "bg-muted text-muted-foreground"
+              )}
+            >
+              {step === 1 && !isStep1Valid() ? <Lock size={12} /> : "2"}
+            </div>
+            <div className="min-w-0">
+              <p className="text-xs font-black truncate">
+                {language === "ar" ? "المسار الأكاديمي" : "Academic Pathway"}
+              </p>
+              <p className="text-[10px] text-muted-foreground truncate">
+                {step === 2
+                  ? language === "ar"
+                    ? "الخطوة الحالية"
+                    : "Current Step"
+                  : isStep1Valid()
+                    ? language === "ar"
+                      ? "جاهز للمتابعة"
+                      : "Ready"
+                    : language === "ar"
+                      ? "مقفل مؤقتاً"
+                      : "Locked"}
+              </p>
+            </div>
+          </button>
         </div>
 
         {/* Wizard Body Form */}
